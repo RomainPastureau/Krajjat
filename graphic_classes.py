@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Krajjat 1.6
+"""Krajjat 1.7
 Kinect Realignment Algorithm for Joint Jumps And Twitches
 Author: Romain Pastureau
 This file contains the main graphic classes, mainly converting
@@ -11,7 +11,7 @@ import pygame
 from pygame import *
 
 __author__ = "Romain Pastureau"
-__version__ = "1.6"
+__version__ = "1.7"
 __email__ = "r.pastureau@bcbl.eu"
 __license__ = "GPL"
 
@@ -40,7 +40,7 @@ ptHand.fill(colorJoint)
 ptHead.fill(colorJoint)
 
 
-class Display(object):
+class GraphicDisplay(object):
     """Contains the information of the window to produce the GUI"""
 
     def __init__(self, window):
@@ -83,10 +83,10 @@ class GraphicSequence(object):
         self.sequence = sequence  # Saves the original sequence
         self.display = disp  # Saves the display information
         self.poses = []  # Contains the graphic poses
-        self.load_sequence(show_lines, ignore_bottom, display)
+        self.load_sequence(show_lines, ignore_bottom, disp)
         self.time = Time()  # Creates a time variable
         self.reset()
-        self.currentPose = start_pose
+        self.current_pose = start_pose
 
     def load_sequence(self, show_lines, ignore_bottom, disp):
         """Turns a Sequence into a GraphicSequence"""
@@ -95,34 +95,41 @@ class GraphicSequence(object):
 
     def next_pose(self):
         """Iterates the current pose; if we reach the last pose, we restart from the beginning"""
-        self.currentPose += 1
-        if self.currentPose == len(self.sequence) - 1:
+        self.current_pose += 1
+        if self.current_pose == len(self.sequence) - 1:
             self.reset()
+        print("Pose " + str(self.current_pose + 1) + " of " + str(len(self.poses)))
+            
+    def previous_pose(self):
+        self.current_pose -= 1
+        if self.current_pose == len(self.sequence) - 1:
+            self.current_pose = len(self.poses) - 1
+        print("Pose " + str(self.current_pose + 1) + " of " + str(len(self.poses)))
 
     def reset(self):
         """Resets the current pose as the first one, and the time"""
-        self.currentPose = 0
+        self.current_pose = 0
         self.time.reset()
 
     def get_events(self, ev):
         """Allows to go to the next pose when pressing the Right key, and the previous when pressing the Left"""
         if ev.type == KEYDOWN and ev.key == K_RIGHT:
-            self.currentPose = (self.currentPose + 1) % len(self.sequence)
-            print("Current pose: " + str(self.currentPose + 1) + "/" + str(len(self.sequence)))
+            self.current_pose = (self.current_pose + 1) % len(self.sequence)
+            print("Current pose: " + str(self.current_pose + 1) + "/" + str(len(self.sequence)))
         elif ev.type == KEYDOWN and ev.key == K_LEFT:
-            self.currentPose = (self.currentPose + 1) % len(self.sequence)
-            print("Current pose: " + str(self.currentPose + 1) + "/" + str(len(self.sequence)))
+            self.current_pose = (self.current_pose + 1) % len(self.sequence)
+            print("Current pose: " + str(self.current_pose + 1) + "/" + str(len(self.sequence)))
 
     def show(self, window, show_lines, show_image=False, shift_x=0, shift_y=0):
         """Shows all the joints of the current pose, and iterates the next pose"""
-        if self.sequence.poses[self.currentPose + 1].get_relative_time() * 1000 < self.time.get_time():
+        if self.sequence.poses[self.current_pose + 1].get_relative_timestamp() * 1000 < self.time.get_time():
             self.next_pose()
-        self.poses[self.currentPose].show(window, show_lines, show_image, shift_x, shift_y)
+        self.poses[self.current_pose].show(window, show_lines, show_image, shift_x, shift_y)
         self.time.update()
 
     def show_pose(self, window, show_lines, show_image, shift_x=0, shift_y=0):
         """Shows just one pose without automatic time iteration"""
-        self.poses[self.currentPose].show(window, show_lines, show_image, shift_x, shift_y)
+        self.poses[self.current_pose].show(window, show_lines, show_image, shift_x, shift_y)
 
 
 class GraphicPose(object):
@@ -175,7 +182,7 @@ class GraphicPose(object):
             self.lines.append(GraphicLine(self.joints["KneeLeft"], self.joints["AnkleLeft"]))
             self.lines.append(GraphicLine(self.joints["AnkleLeft"], self.joints["FootLeft"]))
 
-    def show(self, window, show_lines, shift_x=0, shift_y=0):
+    def show(self, window, show_lines, show_image, shift_x=0, shift_y=0):
         """Shows a pose, with or without the lines"""
         if show_lines:
             for line in self.lines:

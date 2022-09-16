@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Krajjat 1.6
+"""Krajjat 1.7
 Kinect Realignment Algorithm for Joint Jumps And Twitches
 Author: Romain Pastureau
 This file contains all the classes used by the other files,
@@ -13,7 +13,7 @@ import os
 import random
 
 __author__ = "Romain Pastureau"
-__version__ = "1.6"
+__version__ = "1.7"
 __email__ = "r.pastureau@bcbl.eu"
 __license__ = "GPL"
 
@@ -225,6 +225,8 @@ class Sequence(object):
 
                     if verbose:
                         print("\tVelocity over threshold. Check in subsequent poses...")
+
+                    self.poses[p].joints[j].set_move_much(True)
 
                     # We check the next poses (defined by the window) if the position of the joint comes back below
                     # threshold

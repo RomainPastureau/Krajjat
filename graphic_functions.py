@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Krajjat 1.6
+"""Krajjat 1.7
 Kinect Realignment Algorithm for Joint Jumps And Twitches
 Author: Romain Pastureau
 This file contains the main graphic functions. This is the
@@ -12,14 +12,14 @@ import matplotlib.pyplot as plt
 import sys
 
 __author__ = "Romain Pastureau"
-__version__ = "1.6"
+__version__ = "1.7"
 __email__ = "r.pastureau@bcbl.eu"
 __license__ = "GPL"
 
 
 def common_displayer(folder_or_sequence1, folder_or_sequence2=None, show_lines=True, ignore_bottom=False,
                      resolution=(1600, 900), full_screen=False, manual=False, show_image=False, start_pose=0,
-                     realign=True, folder_save=None, velocity_threshold=10, w=3):
+                     realign=False, folder_save=None, velocity_threshold=10, w=3):
     # If folderOrSequence is a folder, we load the sequence; otherwise, we just attribute the sequence
     if folder_or_sequence1 is str:
         sequence1 = Sequence(folder_or_sequence1)
@@ -49,7 +49,7 @@ def common_displayer(folder_or_sequence1, folder_or_sequence2=None, show_lines=T
         window = pygame.display.set_mode(resolution)
 
     pygame.mouse.set_visible(True)  # Allows the mouse to be visible
-    disp = Display(window)  # Contains the window and resizing info
+    disp = GraphicDisplay(window)  # Contains the window and resizing info
 
     # Generates a graphic sequence from the sequence
     animation1 = GraphicSequence(sequence1, show_lines, ignore_bottom, start_pose, disp)
@@ -71,13 +71,19 @@ def common_displayer(folder_or_sequence1, folder_or_sequence2=None, show_lines=T
                 program = False
                 break
 
+            if manual:
+                if ev.type == KEYDOWN and ev.key == K_RIGHT:
+                    animation1.next_pose()
+                elif ev.type == KEYDOWN and ev.key == K_LEFT:
+                    animation1.previous_pose()
+
         if manual:
             animation1.show_pose(window, show_lines, show_image)
-        if sequence2 is None:
-            animation1.show(window, show_lines, 0)
+        elif sequence2 is None:
+            animation1.show(window, show_lines, shift_x=0)
         else:
-            animation1.show(window, show_lines, -300)
-            animation2.show(window, show_lines, 300)
+            animation1.show(window, show_lines, shift_x=-300)
+            animation2.show(window, show_lines, shift_x=300)
 
         pygame.display.flip()
 
@@ -96,7 +102,7 @@ def sequence_realigner(folder_or_sequence, velocity_threshold, w, folder_save=No
                        ignore_bottom=False, resolution=(1600, 900), full_screen=False):
     """Realigns a sequence, then displays the original and the realigned sequence side by side."""
 
-    common_displayer(folder_or_sequence, show_lines, ignore_bottom, resolution, full_screen, realign=True,
+    common_displayer(folder_or_sequence, None, show_lines, ignore_bottom, resolution, full_screen, realign=True,
                      folder_save=folder_save, velocity_threshold=velocity_threshold, w=w)
 
 
@@ -126,7 +132,7 @@ def velocity_plotter(folder_or_sequence1, audio=None, overlay=False):
 
     # Compute velocities of the joints
     joints_velocity, joints_qty_movement, max_velocity, times, audio_array, \
-    audio_times = get_velocities_joints(sequence, audio, overlay)
+    audio_times = get_velocities_joints(sequence, audio)
     new_audio_array = []
 
     # Places the positions of the different joints in the graph to look like a body
@@ -306,7 +312,7 @@ if __name__ == '__main__':
     sequence_comparer(sequence1, sequence2, show_lines=True, ignore_bottom=False, resolution=(1600, 900),
                       full_screen=False)
 
-    # Compares two sequences side by side
+    # Reads one specific pose of a sequence, control with keyboard
     pose_reader(sequence1, start_pose=100, show_lines=True, show_image=True, ignore_bottom=False,
                 resolution=(1600, 900), full_screen=False)
 
