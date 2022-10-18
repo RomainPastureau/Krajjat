@@ -1,17 +1,18 @@
 #!/usr/bin/env python
-"""Krajjat 1.7
+"""Krajjat 1.8
 Kinect Realignment Algorithm for Joint Jumps And Twitches
 Author: Romain Pastureau
 This file contains the main graphic classes, mainly converting
 the classes from the "classes.py" file to be able to show them
 graphically.
 """
+import os
 
 import pygame
 from pygame import *
 
 __author__ = "Romain Pastureau"
-__version__ = "1.7"
+__version__ = "1.8"
 __email__ = "r.pastureau@bcbl.eu"
 __license__ = "GPL"
 
@@ -79,19 +80,41 @@ class Time(object):
 class GraphicSequence(object):
     """Graphical counterpart to Sequence: allows to convert the original coordinates into graphical coordinates"""
 
-    def __init__(self, sequence, show_lines, ignore_bottom, start_pose, disp):
+    def __init__(self, sequence, show_lines, ignore_bottom, start_pose, path_images, disp):
         self.sequence = sequence  # Saves the original sequence
         self.display = disp  # Saves the display information
         self.poses = []  # Contains the graphic poses
-        self.load_sequence(show_lines, ignore_bottom, disp)
+        self.load_sequence(show_lines, ignore_bottom, path_images, disp)
         self.time = Time()  # Creates a time variable
         self.reset()
         self.current_pose = start_pose
 
-    def load_sequence(self, show_lines, ignore_bottom, disp):
+    def load_sequence(self, show_lines, ignore_bottom, path_images, disp):
         """Turns a Sequence into a GraphicSequence"""
-        for pose in self.sequence.poses:
-            self.poses.append(GraphicPose(pose, show_lines, ignore_bottom, disp))
+        print("Creating the graphic poses...")
+
+        # Show percentage
+        perc = 10
+
+        # Gets the images (in order of the number before the extension) if the path is not none
+        if path_images != None:
+            files = os.listdir(path_images)
+            images = ["" for i in range(len(files))]
+            for file in files:
+                if file.split(".")[-1] in ["png", "jpg", "bmp"]:
+                    images[int(file.split(".")[0].split("_")[1])] = path_images+"/"+file
+
+        # Loads the poses and images
+        for p in range(len(self.sequence.poses)):
+            if p / len(self.sequence.poses) > perc / 100:
+                print(str(perc) + "%", end=" ")
+                perc += 10
+            pose = self.sequence.poses[p]
+            if path_images != None:
+                self.poses.append(GraphicPose(pose, show_lines, ignore_bottom, images[p], disp))
+            else:
+                self.poses.append(GraphicPose(pose, show_lines, ignore_bottom, None, disp))
+        print("100% - Done.")
 
     def next_pose(self):
         """Iterates the current pose; if we reach the last pose, we restart from the beginning"""
@@ -135,13 +158,22 @@ class GraphicSequence(object):
 class GraphicPose(object):
     """Graphical counterpart to Pose: allows to convert the original coordinates into graphical coordinates"""
 
-    def __init__(self, pose, show_lines, ignore_bottom, disp):
+    def __init__(self, pose, show_lines, ignore_bottom, path_image, disp):
         self.pose = pose  # Saves the original pose
         self.joints = {}  # Contains all the graphic joints
+        self.image = None # Image to put below the joints
         self.load_joints(ignore_bottom, disp)
         if show_lines:
             self.lines = []  # Contains the lines connecting the joints
             self.load_lines(ignore_bottom)
+        if path_image != None:
+            self.load_image(path_image, disp)
+
+    def load_image(self, path_image, disp):
+        #print("Loading image "+str(self.pose.no))
+        image = pygame.image.load(path_image)
+        image = pygame.transform.rotate(image, 180)
+        self.image = pygame.transform.scale(image, (disp.width, disp.height))
 
     def load_joints(self, ignore_bottom, disp):
         """Creates GraphicJoint elements for each joint of the pose"""
@@ -184,6 +216,8 @@ class GraphicPose(object):
 
     def show(self, window, show_lines, show_image, shift_x=0, shift_y=0):
         """Shows a pose, with or without the lines"""
+        if show_image and self.image != None:
+            window.blit(self.image, (0, 0))
         if show_lines:
             for line in self.lines:
                 line.show(window, shift_x=shift_x, shift_y=shift_y)

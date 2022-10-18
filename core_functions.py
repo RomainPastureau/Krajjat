@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Krajjat 1.7
+"""Krajjat 1.8
 Kinect Realignment Algorithm for Joint Jumps And Twitches
 Author: Romain Pastureau
 This file contains the main core functions. This is the file
@@ -10,7 +10,7 @@ from classes import *
 from scipy.io import wavfile
 
 __author__ = "Romain Pastureau"
-__version__ = "1.7"
+__version__ = "1.8"
 __email__ = "r.pastureau@bcbl.eu"
 __license__ = "GPL"
 
@@ -194,22 +194,130 @@ def realign_recursive(input_folder, output_folder, velocity_threshold, window, v
             else:
                 realign_recursive(input_folder+"/"+c, output_folder+"/"+c, velocity_threshold, window, verbose)
 
+def re_reference_single(input_folder, output_folder, reference_joint, place_at_zero, verbose):
+    """Realigns one video and saves it in an output folder."""
+
+    sequence = Sequence(input_folder)
+    new_sequence = sequence.re_reference(reference_joint, place_at_zero, verbose)
+    save_json(sequence, new_sequence, output_folder)
+
+
+def re_reference_folder(input_folder, output_folder, reference_joint, place_at_zero, verbose):
+    """Realigns all videos in a folder and saves them in an output folder."""
+
+    contents = os.listdir(input_folder)
+
+    for c in contents:
+        if os.path.isdir(input_folder+"/"+c):
+            print("======= " + c + " =======")
+            if not os.path.exists(output_folder+"/"+c):
+                os.mkdir(output_folder+"/"+c)
+            re_reference_single(input_folder+"/"+c, output_folder+"/"+c, reference_joint, place_at_zero, verbose)
+
+
+def re_reference_recursive(input_folder, output_folder, reference_joint, place_at_zero, verbose):
+    """Realigns all videos in a recursive fashion, save them using the same folder structure."""
+
+    contents = os.listdir(input_folder)
+
+    for c in contents:
+        if os.path.isdir(input_folder+"/"+c):
+            subcontents = os.listdir(input_folder+"/"+c)
+            for file_name in subcontents:
+                if file_name.endswith('.json'):
+                    print("======= " + input_folder + "/" + c + " =======")
+                    re_reference_single(input_folder + "/" + c, output_folder + "/" + c, reference_joint, place_at_zero,
+                                        verbose)
+                    break
+            else:
+                re_reference_recursive(input_folder+"/"+c, output_folder+"/"+c, reference_joint, place_at_zero, verbose)
+
+def align_two_sequences(sequence1, sequence2):
+    """Checks if one sequence is a subset of another; if true, returns the index of the two sequences for
+    syncrhonization"""
+
+    subsequence1 = []
+    for p in range(0, len(sequence1.poses)):
+        subsequence1.append(sequence1.poses[p].joints["HandRight"].x)
+
+    subsequence2 = []
+    for p in range(0, len(sequence2.poses)):
+        subsequence2.append(sequence2.poses[p].joints["HandRight"].x)
+
+    if len(subsequence1) <= len(subsequence2):
+        for i in range(0, len(subsequence2)-len(subsequence1)):
+            if subsequence1 == subsequence2[i:i+len(subsequence1)]:
+                return([0, i])
+    else :
+        for i in range(0, len(subsequence1)-len(subsequence2)):
+            if subsequence2 == subsequence1[i:i+len(subsequence2)]:
+                return([i, 0])
+
+    return(False)
+
+
+def get_difference_paths(sequences):
+
+    paths = []
+    min_len = None
+
+    for sequence in sequences:
+        paths.append(sequence.folder.split("/"))
+        l = len(sequence.folder.split("/"))
+        if min_len == None:
+            min_len = l
+        elif l < min_len :
+            min_len = l
+
+    new_paths = [[] for i in range(len(paths))]
+
+    for i in range(min_len):
+        keep = False
+        for p in range(len(paths)):
+            if paths[p][i] != paths[0][i] :
+                keep = True
+        if keep:
+            for p in range(len(paths)):
+                new_paths[p].append(paths[p][i])
+
+    for p in range(len(paths)):
+        if len(paths[p]) > min_len :
+            for i in range(min_len, len(paths[p])):
+                new_paths[p].append(paths[p][i])
+
+    return(new_paths)
+
 
 if __name__ == '__main__':
 
     # Define variables here
     folder = ""
-    input_folder = folder+"01_Original_gestures"
-    output_folder = folder+"02_Realigned_gestures"
+    input_folder = ""
+    output_folder = ""
     velocity_threshold = 10  # in cm per second
     window = 3  # max number of frames under which something is considered as a twitch, and over which a jump
     verbose = False  # if you want to see everything that the program does, put True
+    reference_joint = "SpineMid" # joint to be used as reference in the re-referencing
+    place_at_zero = True # if you want the re-referencing to place the reference joint at (0, 0, 0)
+
+    # Realignment
 
     # For one recording
-    realign_single(input_folder, output_folder, velocity_threshold, window, verbose)
+    # realign_single(input_folder, output_folder, velocity_threshold, window, verbose)
 
     # For many recordings in one directory
-    realign_folder(input_folder, output_folder, velocity_threshold, window, verbose)
+    # realign_folder(input_folder, output_folder, velocity_threshold, window, verbose)
 
     # For dealing with all the videos recursively
-    realign_recursive(input_folder, output_folder, velocity_threshold, window, verbose)
+    # realign_recursive(input_folder, output_folder, velocity_threshold, window, verbose)
+
+    # Re-referencing
+
+    # For one recording
+    # re_reference_single(input_folder, output_folder, reference_joint, place_at_zero, verbose)
+
+    # For many recordings in one directory
+    # re_reference_folder(input_folder, output_folder, reference_joint, place_at_zero, verbose)
+
+    # For dealing with all the videos recursively
+    re_reference_recursive(input_folder, output_folder, reference_joint, place_at_zero, verbose)

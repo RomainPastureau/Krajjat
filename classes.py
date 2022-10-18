@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Krajjat 1.7
+"""Krajjat 1.8
 Kinect Realignment Algorithm for Joint Jumps And Twitches
 Author: Romain Pastureau
 This file contains all the classes used by the other files,
@@ -13,7 +13,7 @@ import os
 import random
 
 __author__ = "Romain Pastureau"
-__version__ = "1.7"
+__version__ = "1.8"
 __email__ = "r.pastureau@bcbl.eu"
 __license__ = "GPL"
 
@@ -289,17 +289,17 @@ class Sequence(object):
 
         return new_sequence
 
-    def correction(self, new_sequence, start_pose_number, end_pose_number, joint_number, realigned_points, verbose):
+    def correction(self, new_sequence, start_pose_number, end_pose_number, joint_name, realigned_points, verbose):
         """Performs a jump or twitch correction"""
 
         # We extract the data from the joints at the beginning and at the end of the partial sequence to correct
-        joint_before = new_sequence.poses[start_pose_number].joints[joint_number]
-        joint_after = self.poses[end_pose_number].joints[joint_number]
+        joint_before = new_sequence.poses[start_pose_number].joints[joint_name]
+        joint_after = self.poses[end_pose_number].joints[joint_name]
 
         # If the starting and ending joint are the same, we don't correct, it means it is the last pose of the sequence
         if start_pose_number == end_pose_number:
-            joint = self.copy_joint(start_pose_number, joint_number)
-            new_sequence.poses[start_pose_number].add_joint(joint_number, joint)
+            joint = self.copy_joint(start_pose_number, joint_name)
+            new_sequence.poses[start_pose_number].add_joint(joint_name, joint)
 
             if verbose:
                 print("\t\t\t\tDid not corrected joint " + str(start_pose_number) +
@@ -309,7 +309,7 @@ class Sequence(object):
         for pose_number in range(start_pose_number + 1, end_pose_number):
 
             # If a joint was already corrected we don't correct it to avoid overcorrection
-            if self.poses[pose_number].joints[joint_number].corrected:
+            if self.poses[pose_number].joints[joint_name].corrected:
 
                 if verbose:
                     print("\t\t\t\tDid not corrected joint " + str(pose_number + 1) + " as it was already corrected.")
@@ -322,23 +322,23 @@ class Sequence(object):
                                              verbose)
 
                 # We copy the original joint, apply the new coordinates and add it to the new sequence
-                joint = self.copy_joint(pose_number, joint_number)
+                joint = self.copy_joint(pose_number, joint_name)
                 joint.correct_joint(x, y, z)
-                new_sequence.poses[pose_number].add_joint(joint_number, joint)
+                new_sequence.poses[pose_number].add_joint(joint_name, joint)
 
                 if verbose:
                     print("\t\t\t\tCorrecting joint: " + str(pose_number + 1) + ". Original coordinates: (" + str(
-                        self.poses[pose_number].joints[joint_number].x) +
-                          ", " + str(self.poses[pose_number].joints[joint_number].y) + ", " + str(
-                        self.poses[pose_number].joints[joint_number].z) + ")")
+                        self.poses[pose_number].joints[joint_name].x) +
+                          ", " + str(self.poses[pose_number].joints[joint_name].y) + ", " + str(
+                        self.poses[pose_number].joints[joint_name].z) + ")")
                     print("\t\t\t\tPrevious joint: " + str(start_pose_number + 1) + ". (" + str(
-                        new_sequence.poses[start_pose_number].joints[joint_number].x) +
-                          ", " + str(new_sequence.poses[start_pose_number].joints[joint_number].y) + ", " + str(
-                        new_sequence.poses[start_pose_number].joints[joint_number].z) + ")")
+                        new_sequence.poses[start_pose_number].joints[joint_name].x) +
+                          ", " + str(new_sequence.poses[start_pose_number].joints[joint_name].y) + ", " + str(
+                        new_sequence.poses[start_pose_number].joints[joint_name].z) + ")")
                     print("\t\t\t\tNext joint: " + str(end_pose_number + 1) + ". (" + str(
-                        self.poses[end_pose_number].joints[joint_number].x) +
-                          ", " + str(self.poses[end_pose_number].joints[joint_number].y) + ", " + str(
-                        self.poses[end_pose_number].joints[joint_number].z) + ")")
+                        self.poses[end_pose_number].joints[joint_name].x) +
+                          ", " + str(self.poses[end_pose_number].joints[joint_name].y) + ", " + str(
+                        self.poses[end_pose_number].joints[joint_name].z) + ")")
                     print("\t\t\t\tCorrected joint " + str(pose_number + 1) + ". New coordinates: (" + str(
                         x) + ", " + str(y) + ", " + str(z) + ")\n")
 
@@ -366,6 +366,84 @@ class Sequence(object):
         z = joint_before.z - percentage_time * (joint_before.z - joint_after.z)
 
         return x, y, z
+
+    def re_reference(self, reference_joint="SpineMid", place_at_zero=True, verbose=False):
+        """Subtracts the movement of one joint to the rest of the joints, to measure the movements from the
+        joints independently of the global movements of the body in the room."""
+
+        # Create an empty sequence, the same length in poses as the original, just keeping the timestamp information
+        # for each pose.
+        new_sequence = self.create_empty_sequence()
+
+        # If verbose, show all the information. Else, show only the progress in percentage.
+        print("Starting normalization...")
+
+        # Get reference : position of the reference joint at time 0
+        if place_at_zero:
+            start_ref_x = 0 #self.poses[0].joints[reference_joint].x
+            start_ref_y = 0 #self.poses[0].joints[reference_joint].y
+            start_ref_z = 0 #self.poses[0].joints[reference_joint].z
+        else:
+            start_ref_x = self.poses[0].joints[reference_joint].x
+            start_ref_y = self.poses[0].joints[reference_joint].y
+            start_ref_z = self.poses[0].joints[reference_joint].z
+
+        # Define the percentage counter
+        perc = 10
+
+        # For every pose starting on the second one
+        for p in range(len(self.poses)):
+
+            if verbose:
+                print("\n== POSE NUMBER " + str(p + 1) + " ==")
+
+            if not verbose and p / len(self.poses) > perc / 100:
+                print(str(perc) + "%", end=" ")
+                perc += 10
+
+            # Get movement from the reference point
+            curr_ref_x = self.poses[p].joints[reference_joint].x
+            curr_ref_y = self.poses[p].joints[reference_joint].y
+            curr_ref_z = self.poses[p].joints[reference_joint].z
+
+            # Compute the differences
+            diff_ref_x = curr_ref_x - start_ref_x
+            diff_ref_y = curr_ref_y - start_ref_y
+            diff_ref_z = curr_ref_z - start_ref_z
+
+            if verbose:
+                print("Removing " + str(diff_ref_x) + " to every joint in x;")
+                print("Removing " + str(diff_ref_y) + " to every joint in y;")
+                print("Removing " + str(diff_ref_z) + " to every joint in z.")
+
+            # For every joint
+            for j in self.poses[0].joints.keys():
+
+                # Compute new joint position
+                if j == reference_joint:
+                    new_x = 0
+                    new_y = 0
+                    new_z = 0
+                else:
+                    new_x = self.poses[p].joints[j].x - diff_ref_x
+                    new_y = self.poses[p].joints[j].y - diff_ref_y
+                    new_z = self.poses[p].joints[j].z - diff_ref_z
+
+                # Add to the sequence
+                joint = self.copy_joint(p, j)
+                joint.correct_joint(new_x, new_y, new_z)
+                new_sequence.poses[p].add_joint(j, joint)
+
+                if verbose:
+                    print(j + ": ")
+                    print("X: " + str(self.poses[p].joints[j].x) + " -> " + str(new_x))
+                    print("Y: " + str(self.poses[p].joints[j].y) + " -> " + str(new_y))
+                    print("Z: " + str(self.poses[p].joints[j].z) + " -> " + str(new_z))
+
+        print("100% - Done.\n")
+        print("Normalization over.")
+        return new_sequence
+
 
     def create_empty_sequence(self, verbose=True):
         """Creates an empty sequence with empty poses and empty joints, with the same number of poses as
