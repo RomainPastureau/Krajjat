@@ -10,6 +10,7 @@ from core_functions import *
 from graphic_classes import *
 import matplotlib.pyplot as plt
 import sys
+import math
 
 __author__ = "Romain Pastureau"
 __version__ = "1.8"
@@ -30,7 +31,7 @@ def common_displayer(folder_or_sequence1, folder_or_sequence2=None, show_lines=T
     if realign:
         sequence2 = sequence1.realign(velocity_threshold, w, verbose=False)
         if folder_save:
-            save_json(sequence1, sequence2, folder_save)
+            save_sequence(sequence1, sequence2, folder_save)
     else:
         if folder_or_sequence2 is str:
             sequence2 = Sequence(folder_or_sequence2)
@@ -121,14 +122,14 @@ def pose_reader(folder_or_sequence, start_pose=0, show_lines=True, show_image=Tr
                      show_image, start_pose, path_images=path_images)
 
 
-def velocity_plotter(folder_or_sequence1, audio=None, overlay=False):
+def velocity_plotter(folder_or_sequence, audio=None, overlay=False):
     """Plots the velocity across time of the joints"""
 
     # If folderOrSequence is a folder, we load the sequence; otherwise, we just attribute the sequence
-    if folder_or_sequence1 is str:
-        sequence = Sequence(folder_or_sequence1)
+    if folder_or_sequence is str:
+        sequence = Sequence(folder_or_sequence)
     else:
-        sequence = folder_or_sequence1
+        sequence = folder_or_sequence
 
     # Compute velocities of the joints
     joints_velocity, joints_qty_movement, max_velocity, times, audio_array, \
@@ -312,7 +313,7 @@ def joint_temporal_plotter(sequenceOrSequences, joint_label="HandRight", align=T
 
     plt.subplot(5, 1, 1)
     for i in range(len(sequenceOrSequences)):
-        lab = sequenceOrSequences[i].folder
+        lab = sequenceOrSequences[i].path
         print(lab)
         plt.plot(times[i], x[i], linewidth=line_width, color=colors[i%5], label = " · ".join(labels[i]))
     plt.ylabel("x", **parameters)
@@ -340,21 +341,67 @@ def joint_temporal_plotter(sequenceOrSequences, joint_label="HandRight", align=T
 
     plt.show()
 
+def framerate_plotter(sequenceOrSequences):
+
+    if type(sequenceOrSequences) is not list:
+        sequenceOrSequences = [sequenceOrSequences]
+
+    i = 1
+    while i**2 < len(sequenceOrSequences):
+        i += 1
+    if len(sequenceOrSequences) <= i*(i-1):
+        j = i-1
+    else:
+        j = i
+    plt.rcParams["figure.figsize"] = (12, 6)
+    plt.subplots_adjust(left=0.03, bottom=0.03, right=0.97, top=0.9, wspace=0.3, hspace=0.7)
+    labels = get_difference_paths(sequenceOrSequences)
+    max_framerate = 0
+
+    framerates_list = []
+    time_stamps_list = []
+    averages_list = []
+
+    for seq in range(len(sequenceOrSequences)):
+
+        sequence = sequenceOrSequences[seq]
+        framerates, time_stamps = sequence.get_framerate()
+        avg = sum(framerates)/len(framerates)
+        averages = [avg for _ in range(len(framerates))]
+
+        framerates_list.append(framerates)
+        time_stamps_list.append(time_stamps)
+        averages_list.append(averages)
+
+        if max(framerates) > max_framerate:
+            max_framerate = max(framerates)
+
+    for seq in range(len(sequenceOrSequences)):
+        plt.subplot(i, j, seq+1)
+        plt.ylim([0, max_framerate])
+        plt.plot(time_stamps_list[seq], framerates_list[seq], linewidth=1.0, color="#000000", label="Framerate")
+        plt.plot(time_stamps_list[seq], averages_list[seq], linewidth=1.0, color="#ff0000", label="Average")
+        if seq == 0:
+            plt.legend(bbox_to_anchor=(0, 1.3+0.1*i, 1, 0), loc="upper left", ncol=2)
+        plt.title(" · ".join(labels[seq]) + " [Avg: " + format(averages_list[seq][0], '.2f') + "]")
+
+
+    plt.show()
 
 if __name__ == '__main__':
 
-    parent_path = ""
-    subject = ""
-    video = ""
+    parent_path = "D:/OneDrive/Documents/BCBL/05_BodyLingual/Stimuli/Recordings/Retellings/Gesture/"
+    subject = "01_Araitz"
+    video = "R018"
 
     # Enter the path to the folder containing the first sequence
-    folder1 = ""
+    folder1 = parent_path+"/01_Original_gesture/"+subject+"/"+video
 
     # (Facultative) Enter the path to the folder containing the second sequence
-    folder2 = ""
+    folder2 = parent_path+"/02_Realigned_gesture/"+subject+"/"+video
 
     # (Facultative) Enter the path to the folder containing the third sequence
-    folder3 = ""
+    folder3 = parent_path+"/03_Rereferenced_gesture/"+subject+"/"+video
 
     # (Facultative) Enter the path to the folder containing the images
     path_images = ""
@@ -365,7 +412,7 @@ if __name__ == '__main__':
     sequence3 = Sequence(folder3)
 
     # Randomize the second sequence
-    #sequence2.randomize()
+    sequence1.randomize()
 
     # Parameters for the following functions
     # Sequence: you can enter either a Sequence object or a path to a folder
@@ -382,7 +429,7 @@ if __name__ == '__main__':
     # Path images: path to the images to show behind the skeleton
 
     # Reads one sequence and loops through it
-    #sequence_reader(sequence_ex, show_lines=True, ignore_bottom=True, resolution=(1600, 900), full_screen=False)
+    sequence_reader(sequence1, show_lines=False, ignore_bottom=True, resolution=(1600, 900), full_screen=False)
 
     # Realign a sequence and compare them side by side (saves the realigned sequence only if folder_save is not None)
     #sequence_realigner(sequence1, velocity_threshold=10, w=3, folder_save=None, show_lines=True, ignore_bottom=False,

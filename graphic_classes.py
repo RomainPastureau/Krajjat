@@ -16,8 +16,6 @@ __version__ = "1.8"
 __email__ = "r.pastureau@bcbl.eu"
 __license__ = "GPL"
 
-# Constants
-
 # Colors
 colorJoint = (255, 216, 109)  # Color of the joints: yellow
 colorLine = (93, 183, 247)  # Color of the lines: blue
@@ -121,13 +119,13 @@ class GraphicSequence(object):
         self.current_pose += 1
         if self.current_pose == len(self.sequence) - 1:
             self.reset()
-        print("Pose " + str(self.current_pose + 1) + " of " + str(len(self.poses)))
+        #print("Pose " + str(self.current_pose + 1) + " of " + str(len(self.poses)))
             
     def previous_pose(self):
         self.current_pose -= 1
         if self.current_pose == len(self.sequence) - 1:
             self.current_pose = len(self.poses) - 1
-        print("Pose " + str(self.current_pose + 1) + " of " + str(len(self.poses)))
+        #print("Pose " + str(self.current_pose + 1) + " of " + str(len(self.poses)))
 
     def reset(self):
         """Resets the current pose as the first one, and the time"""

@@ -7,10 +7,12 @@ along with the realignment algorithm.
 """
 
 import copy
-import json
 import math
 import os
 import random
+import statistics
+import tool_functions
+from collections import OrderedDict
 
 __author__ = "Romain Pastureau"
 __version__ = "1.8"
@@ -21,32 +23,33 @@ __license__ = "GPL"
 class Sequence(object):
     """Defines a motion sequence by opening an existing one or creating a new."""
 
-    def __init__(self, folder):
+    def __init__(self, path):
         self.files = None  # List of the files in the target folder
         self.poses = []  # List of the poses in the sequence, ordered
-        self.randomized = False  # Is necessary?
+        self.randomized = False  # True if the joints positions are randomized
 
-        # In the case where a folder is passed as argument,
+        # In the case where a file or folder is passed as argument,
         # we load the sequence
-        if folder is not None:
-            self.folder = folder
-            self.get_files()  # Fetches all the .json files
-            self.load_poses()  # Loads the .json files into poses
+        if path is not None:
+            self.path = path
+
+            # If it's a folder, we fetch all the files
+
+            if os.path.isdir(self.path):
+                self.get_files()  # Fetches all the files
+            self.load_poses()  # Loads the files into poses
             self.load_relative_timestamps()  # Sets the relative time from the first pose for each pose
+
+        if len(self.poses) == 0:
+            raise Exception("The path "+path+" is not a valid sequence.")
 
         self.calculate_velocity()
 
     def get_files(self):
-        """Opens a folder and fetches all the .json files."""
+        """Opens a folder and fetches all the individual files (.json, .csv, .txt or .xlsx)."""
 
-        file_list: list[str] | list[bytes] = os.listdir(self.folder)  # List all the files in the folder
+        file_list: list[str] | list[bytes] = tool_functions.os.listdir(self.path)  # List all the files in the folder
         self.files = ["" for _ in range(len(file_list))]  # Create an empty list the length of the files
-
-        # Variable checking if a ".meta" file was found in the folder, ensuring its integrity.
-        # All Kinect recordings must come with a .meta file containing all the timestamps for
-        # the files contained in the folder.
-        meta_found = False
-        size = None
 
         # Here, we find all the files that are either .json or .meta in the folder.
         for f in file_list:
@@ -54,43 +57,16 @@ class Sequence(object):
             # If a file is ".json", then we get its index from its name to order it correctly in the list.
             # This is necessary as some file systems will order frame_2.json after frame_11.json because,
             # alphabetically, "1" is before "2".
-            if f[-4:] == "json":
+            if f.split(".")[-1] in ["json", "csv", "txt", "xlsx"]:
                 self.files[int(f.split(".")[0].split("_")[1])] = f
 
-            # Here, we just check that there is indeed a ".meta" file in the folder, as a sign of integrity
-            # of the data.
-            elif f[-4:] == "meta":
-                meta_found = True
-                # Get the number of frames in the .meta file to compare it with the number of files in the folder.
-                size = self.get_meta(f)
-
-                # If there were files that weren't ".json" in the folder, then "self.files" is larger than the number of
+        # If there were files that weren't ".json" in the folder, then "self.files" is larger than the number of
         # frames. The list is thus ending by a series of empty strings that we trim.
         if "" in self.files:
             limit = self.files.index("")
             self.files = self.files[0:limit]
 
-            # If no ".meta" file was found, we consider the folder integrity as being false.
-            if not meta_found:
-                raise Exception(".meta file not found.")
-
-            # Otherwise, we compare that the number of frames announced by the .meta file is indeed equal to the
-            # number of .json files. If it is not, we return an Exception.
-            else:
-                if size > len(self.files):
-                    raise Exception("According to the .meta file, some .json files are " +
-                                    "missing. The .meta file lists " + str(size) + " file(s) while " +
-                                    str(len(self.files)) + " .json file(s) have been found.")
-
         print(str(len(self.files)) + " pose file(s) found.\n")
-
-    def get_meta(self, file):
-        """Opens the .meta file from a folder, and counts the amount of lines, which should reflect the amount
-        of frames, and thus the amount of files. This allows to check the integrity of the data."""
-        f = open(self.folder + "/" + file, "r")
-        fileread = f.read().split("\n")
-        f.close()
-        return len(fileread)
 
     def load_poses(self, verbose=True):
         """Opens successively all the .json files, read them and creates a Pose object for each of them.
@@ -100,16 +76,139 @@ class Sequence(object):
             print("Opening poses...")
 
         perc = 10  # Used for the progression percentage
-        for i in range(len(self.files)):
 
-            # Show percentage if verbose
-            if verbose and i / len(self.files) > perc / 100:
-                print(str(perc) + "%", end=" ")
-                perc += 10
+        # If the path is a folder, we load every single file
+        if tool_functions.os.path.isdir(self.path):
 
-            # Create the Pose object, passes as parameter the index and the file path
-            pose = Pose(i, self.folder + "/" + self.files[i])
-            self.poses.append(pose)
+            for i in range(len(self.files)):
+
+                # Show percentage if verbose
+                perc = tool_functions.show_percentage(verbose, i, len(self.files), perc)
+
+                # Create the Pose object, passes as parameter the index and the file path
+                self.load_single_file(i, self.path + "/" + self.files[i])
+
+            if verbose:
+                print("100% - Done.\n")
+
+        # Otherwise, we load the one file
+        else:
+            self.load_global_file(verbose)
+
+    def load_single_file(self, pose_number, path):
+
+        file = None
+        values = None
+        timestamp = None
+
+        # JSON file
+        if path.split(".")[-1] == "json":
+            data = tool_functions.open_json(path)
+            values = data["Bodies"][0]["Joints"]
+            timestamp = data["Timestamp"]
+            file = self.path.split("/")[-1]
+
+        # Excel file
+        elif path.split(".")[-1] == "xlsx":
+            data, joints_labels = tool_functions.open_xlsx(path)
+
+            values = OrderedDict()
+            for i in range(len(joints_labels)):
+                values[joints_labels[i]] = float(data.cell(1, i+1).value)
+
+            values, timestamp = tool_functions.table_to_json_joints(values)
+
+        elif path.split(".")[-1] in ["txt", "csv"]:
+
+            # Open the file and read the data
+            separator = tool_functions.get_filetype_separator(path)
+            data = tool_functions.open_txt(path)
+
+            # Get the joints labels and values
+            joints_labels = data[0].split(separator)
+            elements = data[1].split(separator)
+
+            values = OrderedDict()
+            for i in range(len(joints_labels)):
+                values[joints_labels[i]] = float(elements[i])
+
+            values, timestamp = tool_functions.table_to_json_joints(values)
+
+        # Create the Pose object, passes as parameter the index and the data
+        pose = Pose(pose_number, values, file)
+        pose.set_timestamp(timestamp)
+        self.poses.append(pose)
+
+    def load_global_file(self, verbose):
+        """Loads a global file containing the whole sequence instead of single files for each pose."""
+
+        perc = 10  # Used for the progression percentage
+
+        # JSON file
+        if self.path.split(".")[-1] == "json":
+
+            # Open the file and read the data
+            data = tool_functions.open_json(self.path)
+
+            for p in range(len(data)):
+
+                # Show percentage if verbose
+                perc = tool_functions.show_percentage(verbose, p, len(data), perc)
+
+                # Create the Pose object, passes as parameter the index and the data
+                pose = Pose(p, data[p]["Bodies"][0]["Joints"])
+                pose.set_timestamp(data[p]["Timestamp"])
+                self.poses.append(pose)
+
+        # Excel file
+        elif self.path.split(".")[-1] == "xlsx":
+            import openpyxl as op
+            workbook = op.load_workbook(self.path)
+            sheet = workbook[workbook.sheetnames[0]]
+
+            # Get the labels (timestamp and joint labels) from the first row
+            joints_labels = []
+            for cell in sheet["1"]:
+                joints_labels.append(str(cell.value))
+
+            # For each pose
+            for p in range(len(sheet["A"])-1):
+
+                # Get the values (coordinates)
+                values = OrderedDict()
+                for i in range(len(joints_labels)):
+                    values[joints_labels[i]] = float(sheet.cell(p+2, i+1).value)
+                values, timestamp = tool_functions.table_to_json_joints(values)
+
+                # Create the Pose object, passes as parameter the index and the data
+                pose = Pose(p, values)
+                pose.set_timestamp(timestamp)
+                self.poses.append(pose)
+
+        # Text file (csv or txt)
+        elif self.path.split(".")[-1] in ["csv", "txt"]:
+
+            separator = tool_functions.get_filetype_separator(self.path)
+
+            # Open the file and read the data
+            data = tool_functions.open_txt(self.path)
+
+            # Get the joints labels
+            joints_labels = data[0].split(separator)
+
+            # For each pose
+            for line in range(len(data)-1):
+                elements = data[line+1].split(separator)
+                values = OrderedDict()
+                for i in range(len(joints_labels)):
+                    values[joints_labels[i]] = float(elements[i])
+
+                values, timestamp = tool_functions.table_to_json_joints(values)
+
+                # Create the Pose object, passes as parameter the index and the data
+                pose = Pose(line, values)
+                pose.set_timestamp(timestamp)
+                self.poses.append(pose)
 
         if verbose:
             print("100% - Done.\n")
@@ -147,6 +246,15 @@ class Sequence(object):
 
         return velocity
 
+    def get_total_velocity(self, joint):
+        """Returns the sum of the velocity of a joint for the whole duration of the sequence."""
+        total_velocity = 0
+
+        for p in range(1, len(self.poses)):
+            total_velocity += self.get_velocity(self.poses[p-1], self.poses[p], joint)
+
+        return total_velocity
+
     @staticmethod
     def get_distance(joint_a, joint_b):
         """Uses the Euclidian formula to calculate the distance between two joints. This can be used to calculate
@@ -179,7 +287,7 @@ class Sequence(object):
         """Returns the z value of a joint."""
         return joint.z
 
-    def realign(self, velocity_threshold, window, verbose=True):
+    def realign(self, velocity_threshold, window, verbose=False):
         """Realignment function: detects twitches and jumps in a sequence, corrects them linearly and outputs
         a new realigned sequence. For more information on how the realignment is performed, see the documentation."""
 
@@ -380,9 +488,9 @@ class Sequence(object):
 
         # Get reference : position of the reference joint at time 0
         if place_at_zero:
-            start_ref_x = 0 #self.poses[0].joints[reference_joint].x
-            start_ref_y = 0 #self.poses[0].joints[reference_joint].y
-            start_ref_z = 0 #self.poses[0].joints[reference_joint].z
+            start_ref_x = 0  # self.poses[0].joints[reference_joint].x
+            start_ref_y = 0  # self.poses[0].joints[reference_joint].y
+            start_ref_z = 0  # self.poses[0].joints[reference_joint].z
         else:
             start_ref_x = self.poses[0].joints[reference_joint].x
             start_ref_y = self.poses[0].joints[reference_joint].y
@@ -444,7 +552,6 @@ class Sequence(object):
         print("Normalization over.")
         return new_sequence
 
-
     def create_empty_sequence(self, verbose=True):
         """Creates an empty sequence with empty poses and empty joints, with the same number of poses as
         the sequence in which it is created. The only data kept for the poses is the timestamp and relative
@@ -499,11 +606,38 @@ class Sequence(object):
             timestamps.append(pose.get_relative_timestamp())
 
         return timestamps
+
+    def get_table(self, include_relative_timestamp=False):
+        """Returns a list of lists containing a header and the x, y and z coordinates of the joints for all the
+        poses of the sequence"""
+
+        table = []
+
+        # For each pose
+        for p in range(len(self.poses)):
+            if p == 0:
+                table = self.poses[0].get_table(include_relative_timestamp)
+            else:
+                table.append(self.poses[p].get_table(include_relative_timestamp)[1])
+
+        return table
+
+    def get_json_joint_list(self, include_relative_timestamp=False):
+        """Returns a json format containing the timestamps and the x, y ans z coordinates of the joints for all
+        the poses of the sequence"""
+
+        data = []
+
+        # For each pose
+        for p in range(len(self.poses)):
+            data.append(self.poses[p].get_json_joint_list(include_relative_timestamp))
+
+        return data
     
     def print_json(self, pose):
         """Print the original json data from a pose"""
         data = self.poses[pose].get_json_data()
-        print(json.dumps(data, indent=4))
+        print(tool_functions.json.dumps(data, indent=4))
 
     def print_pose(self, pose):
         """Prints all the information relative to one pose"""
@@ -531,6 +665,54 @@ class Sequence(object):
                 p.joints[joints_list[j]].move_joint_randomized(starting_positions[j], randomized_positions[j])
         self.randomized = True
 
+    def get_framerate(self):
+        """Returns the framerate across time for the whole sequence."""
+        time_points = []
+        framerates = []
+        for p in range(1, len(self.poses)-1):
+            time_points.append(self.poses[p].relative_timestamp)
+            framerate = 1/(self.poses[p].relative_timestamp - self.poses[p-1].relative_timestamp)
+            framerates.append(framerate)
+
+        return framerates, time_points
+
+    def get_stats(self, tabled=False):
+        """Returns some statistics and information over the sequence."""
+        stats = OrderedDict()
+        stats["Path"] = self.path
+        stats["Duration"] = self.poses[-1].relative_timestamp
+        stats["Number of poses"] = len(self.poses)
+
+        # Framerate stats
+        framerates, time_points = self.get_framerate()
+        stats["Average framerate"] = sum(framerates)/len(framerates)
+        stats["SD framerate"] = statistics.stdev(framerates)
+        stats["Max framerate"] = max(framerates)
+        stats["Min framerate"] = min(framerates)
+
+        # Movement stats
+        for joint in self.poses[0].joints.keys():
+            stats["Total velocity "+joint] = self.get_total_velocity(joint)
+
+        if tabled:
+            table = [[],[]]
+            for key in stats.keys():
+                table[0].append(key)
+                table[1].append(stats[key])
+            return table
+
+        return stats
+
+    def print_stats(self):
+        """Prints the statistics and information over the sequence."""
+        stats = self.get_stats()
+        for key in stats.keys():
+            print(str(key)+": "+str(stats[key]))
+
+    def __len__(self):
+        """Return the amount of poses in the sequence"""
+        return len(self.poses)
+
     @staticmethod
     def generate_random_joints():
         """Creates uniform, random positions for the joints"""
@@ -543,53 +725,30 @@ class Sequence(object):
             random_joints.append(j)
         return random_joints
 
-    def __len__(self):
-        """Return the amount of poses in the sequence"""
-        return len(self.poses)
+
 
 
 class Pose(object):
     """Defines a pose (frame) pertaining to a motion sequence."""
 
-    def __init__(self, no, file):
+    def __init__(self, no, data, file=None):
         self.no = no  # Index of the pose in the sequence
-        self.joints = {}  # Dictionary of joint objects
+        self.joints = OrderedDict()  # Dictionary of joint objects
         self.timestamp = None  # Original timestamp of the pose
         self.relative_timestamp = None  # Timestamp relative to the first pose
+        self.file = file
 
-        # If we create a pose from a file, we read it
-        if file is not None:
-            self.file = file
-            self.read()
+        if data is not None:
+            self.read(data)
 
-    def read(self):
+    def read(self, data):
         """Opens the file, reads the content and create the joints"""
-
-        # Load the content
-        data = self.get_json_data()
-
-        # Get the timestamp
-        self.timestamp = data["Timestamp"]
-        
-        # Read the joints
-        self.read_joints(data)
+        for joint in data:
+            self.joints[joint["JointType"]] = Joint(joint)
 
     def get_json_data(self):
         """Reads and returns the contents of one json file"""
-        
-        # Open the file
-        f = open(self.file, "r", encoding="utf-16-le")
-        content = f.read()
-        f.close()
-
-        data = json.loads(content)
-
-        return data
-
-    def read_joints(self, data):
-        """Reads all the joints from the json format"""
-        for joint in data["Bodies"][0]["Joints"]:
-            self.joints[joint["JointType"]] = Joint(joint)
+        return tool_functions.open_json(self.file)
 
     def add_joint(self, name, joint):
         """Adds a joint to the pose"""
@@ -605,7 +764,7 @@ class Pose(object):
 
     def set_timestamp(self, timestamp):
         """Sets the original json timestamp"""
-        self.timestamp = timestamp
+        self.timestamp = float(timestamp)
 
     def set_relative_timestamp(self, t):
         """Sets the relative time compared to the time from the first pose (in sec)"""
@@ -614,6 +773,41 @@ class Pose(object):
     def get_relative_timestamp(self):
         """Gets the relative time of this pose compared to the first one"""
         return self.relative_timestamp
+
+    def get_table(self, include_relative_timestamp=False):
+        """Returns the table version of the pose"""
+        labels = ["Timestamp"]
+        if include_relative_timestamp:
+            values = [self.relative_timestamp]
+        else:
+            values = [self.timestamp]
+
+        for joint in self.joints.keys():
+            labels.append(self.joints[joint].joint_type + "_X")
+            labels.append(self.joints[joint].joint_type + "_Y")
+            labels.append(self.joints[joint].joint_type + "_Z")
+            values.append(self.joints[joint].x)
+            values.append(self.joints[joint].y)
+            values.append(self.joints[joint].z)
+        return [labels, values]
+
+    def get_json_joint_list(self, include_relative_timestamp=False):
+
+        data = {"Bodies": [{"Joints": []}]}
+
+        if include_relative_timestamp:
+            data["Timestamp"] = self.relative_timestamp
+        else:
+            data["Timestamp"] = self.timestamp
+
+        joints = []
+        for j in self.joints.keys():
+            joint = {"JointType": j.joint_type, "Position": {"X": j.x, "Y": j.y, "Z": j.z}}
+            joints.append(joint)
+
+        data["Bodies"][0]["Joints"] = joints
+
+        return data
 
     def __repr__(self):
         """Prints all the joints"""
@@ -647,9 +841,9 @@ class Joint(object):
             
         # Otherwise, we create a joint with new coordinates
         else:
-            self.x = coord[0]
-            self.y = coord[1]
-            self.z = coord[2]
+            self.x = float(coord[0])
+            self.y = float(coord[1])
+            self.z = float(coord[2])
             self.color = (0, 255, 0)  # Color green for the corrected joints
 
         self.position = [self.x, self.y, self.z]  # List of the x, y and z coordinates of the joint
@@ -661,16 +855,16 @@ class Joint(object):
     def read_data(self, data):
         """Reads the data from the json file and creates the corresponding attributes"""
         self.joint_type = data["JointType"]
-        self.x = data["Position"]["X"]
-        self.y = data["Position"]["Y"]
-        self.z = data["Position"]["Z"]
+        self.x = float(data["Position"]["X"])
+        self.y = float(data["Position"]["Y"])
+        self.z = float(data["Position"]["Z"])
         self.position = [self.x, self.y, self.z]
 
     def correct_joint(self, x, y, z):
         """Assigns new x, y and z coordinates to the joint and marks it as corrected"""
-        self.x = x
-        self.y = y
-        self.z = z
+        self.x = float(x)
+        self.y = float(y)
+        self.z = float(z)
         self.position = [self.x, self.y, self.z]
         self.corrected = True
 

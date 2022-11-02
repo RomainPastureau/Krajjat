@@ -23,19 +23,31 @@ be used for visualizing Kinect data.
 * Velocity Plotter plots the velocity across time of all the joints from a sequence.
 * Joint Temporal Plotter plots the temporal data (x, y, and z coordinates, distance travelled and velocity) from a joint of one or more sequences across time.
 
+### Dependencies
+* **Openpyxl** to process .xls and .xlsx documents
+* **Pygame** for sequence visualization
+* **Matplotlib** for plottings
+* **Scipy** to show the audio wave on the plottings
+
 ## What's new?
 
-### Version 1.8
+### Version 1.9 (02/11/2022)
+* Save and open sequences in new formats, including .json, .txt, .csv, and .xlsx. For the csv files, choose the separator.
+* Possibility to save the sequences under one file per pose or one meta-file for the whole sequence.
+* Get the stats from recordings (duration, average framerate, minimum framerate, maximum framerate, number of poses) for one or more recordings, and output them as a table.
+* Visualize the framerate across time using the framerate_visualizer function.
+* Batch open many sequences in a list with batch_loader and batch_loader_recursive.
+* Code sweeping.
+
+### Version 1.8 (18/10/2022)
 * Added a function to re-reference all the joints to a reference joint (default: SpineMid). As for the realignment, the function can be called for a single file, a whole folder or a recursive path. This function can also place the reference joint at the coordinate (0, 0, 0).
 * Created a tool function that allows to return the unique differences between two paths. For example, if the inputs are "C:/Documents/Kinect/John/Videos/A001" and "C:/Documents/Kinect/Paul/Videos/A001", the function will return "John and "Paul".
 * The Pose Reader now allows to show the image frames in the background of the poses.
-* The Joint Temporal Plotter function now can plot more than one sequence, and 
+* The Joint Temporal Plotter function now can plot more than one sequence, and align automatically sequences that are trimmed from others.
 * In the classes file, changed the name of the variable "joint_number" to "joint_name".
  
 ## What's next?
-* Version 1.9 will add the possibility of working with different formats. Global .json files will be usable, along with .txt, .csv, .xls, .xlsx and .mat files.
-* Version 1.9 will add the possibility to trim a motion sequence according to starting and ending timestamps.
-* Version 1.9 will add a function to know the minimum, maximum and average framerate of a recording and to visualize a graph of the framerate across time. It will also furnish a list of this data in the form of an Excel file.
+* Version 1.10 will add the possibility to trim a motion sequence according to starting and ending timestamps.
 * Version 1.10 will add the possibility to resample the data as in Matlab.
 * Version 1.10 will also perform some performance and code sweeping.
 

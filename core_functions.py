@@ -5,9 +5,12 @@ Author: Romain Pastureau
 This file contains the main core functions. This is the file
 to run to realign one or more recordings.
 """
+from collections import OrderedDict
+from typing import List, Any
 
 from classes import *
 from scipy.io import wavfile
+from tool_functions import *
 
 __author__ = "Romain Pastureau"
 __version__ = "1.8"
@@ -15,88 +18,92 @@ __email__ = "r.pastureau@bcbl.eu"
 __license__ = "GPL"
 
 
-def compute_different_joints(sequence1, sequence2, verbose=False):
-    """Returns the number of joints having different coordinates between two sequences. Can be used to check how
-    many joints have been realigned, for example."""
-    different_joints = 0
-    total_joints = 0
-
-    for p in range(len(sequence1.poses)):  # For all the poses
-        for j in sequence1.poses[p].joints.keys():  # For all the joints
-
-            # We round the coordinates to 5 significant digits in order to account for rounding errors
-            if round(sequence1.poses[p].joints[j].x, 5) == round(sequence2.poses[p].joints[j].x, 5) and \
-                    round(sequence1.poses[p].joints[j].y, 5) == round(sequence2.poses[p].joints[j].y, 5) and \
-                    round(sequence1.poses[p].joints[j].z, 5) == round(sequence2.poses[p].joints[j].z, 5):
-                total_joints += 1
-
-            else:
-                # If verbose, we show the number of the pose, the name of the joint, and the coordinates of the
-                # two sequences
-                if verbose:
-                    print("Pose n°" + str(p) + ", " + str(j))
-                    print("X: " + str(sequence1.poses[p].joints[j].x) +
-                          "; Y: " + str(sequence1.poses[p].joints[j].y) +
-                          "; Z: " + str(sequence1.poses[p].joints[j].z))
-                    print("X: " + str(sequence2.poses[p].joints[j].x) +
-                          "; Y: " + str(sequence2.poses[p].joints[j].y) +
-                          "; Z: " + str(sequence2.poses[p].joints[j].z))
-                different_joints += 1
-                total_joints += 1
-
-    # We print the result
-    print("Different joints: " + str(different_joints) + "/" + str(total_joints) + " (" + str(
-        different_joints / total_joints) + "%).")
-
-    return different_joints, total_joints
-
-
-def save_json(original_sequence, new_sequence, folder_out, correct_timestamp=False, verbose=True):
-    """Saves a realigned sequence as a series of json files, using the information from the original sequence
-    to generate the structure - only the coordinates are """
+def save_sequence(sequence, folder_out, original_sequence=None, name_out="global", file_format="json", individual=True,
+                  correct_timestamp=False, verbose=True):
+    """Saves a realigned sequence in json, txt, csv or xlsx. In the first case, the original sequence is necessary
+    in order to only modify the timestamp and xyz position from the original file; all the other formats lose the
+    information from the original sequence. It is possible to save the data with one file per pose or a meta file."""
 
     # Automatic creation of all the folders of the path if they don't exist
-    folders = folder_out.split("/")  # We create a list of all the sub-folders of the path
-    for folder in range(len(folders)):
-        partial_path = ""
-        for i in range(folder + 1):
-            partial_path += folders[i] + "/"
-        if not os.path.exists(partial_path):
-            os.mkdir(partial_path)
-            print("Creating folder: " + partial_path)
+    subfolder_creation(folder_out)
 
-    print("Saving JSON files...")
+    file_format = file_format.strip(".")  # We remove the dot in the format
+    if file_format == "xls":
+        file_format = "xlsx"
+
+    if verbose:
+        if individual:
+            print("Saving " + file_format.upper() + " individual files...")
+        else:
+            print("Saving " + file_format.upper() + " global file...")
 
     perc = 10  # Used for the progression percentage
 
-    for p in range(len(original_sequence.poses)):
+    # If file format is JSON
+    if file_format == "json":
 
-        # Show percentage if verbose
-        if verbose and p / len(original_sequence.poses) > perc / 100:
-            print(str(perc) + "%", end=" ")
-            perc += 10
+        # Get the data
+        if original_sequence is not None:
+            data = merge_original_and_new_sequences(original_sequence, sequence, correct_timestamp, perc, verbose)
+        else:
+            data = sequence.get_json_joint_list(correct_timestamp)
 
-        # Get the original json data from the original sequence
-        data = original_sequence.poses[p].get_json_data()
+        # Save the data
+        if not individual:
+            with open(folder_out + "/" + name_out + ".json", 'w', encoding="utf-16-le") as f:
+                json.dump(data, f)
+        else:
+            for p in range(len(sequence.poses)):
+                perc = show_percentage(verbose, p, len(sequence.poses), perc)
+                with open(folder_out + "/frame_" + str(p) + ".json", 'w', encoding="utf-16-le") as f:
+                    json.dump(data[p], f)
 
-        # For each joint, rewrites the x, y and z coordinates
-        for joint in range(len(data["Bodies"][0]["Joints"])):
-            joint_type = data["Bodies"][0]["Joints"][joint]["JointType"]
-            j = new_sequence.poses[p].joints[joint_type]
-            data["Bodies"][0]["Joints"][joint]["Position"]["X"] = j.x
-            data["Bodies"][0]["Joints"][joint]["Position"]["Y"] = j.y
-            data["Bodies"][0]["Joints"][joint]["Position"]["Z"] = j.z
+    elif file_format == "xlsx":
+        import openpyxl as op
+        workbook_out = op.Workbook()
+        sheet_out = workbook_out.active
 
-        # If the parameter is true, we change the timestamp by the relative timestamp
-        if correct_timestamp:
-            data["Timestamp"] = new_sequence.poses[p].relative_timestamp
+        # Save the data
+        if not individual:
+            data = sequence.get_table(correct_timestamp)
+            excel_write(workbook_out, sheet_out, data, folder_out + "/" + name_out + ".xlsx", perc, verbose)
 
-        # We save the pose file
-        file = original_sequence.poses[p].file.split("/")[-1]
-        with open(folder_out + "/" + file, 'w', encoding="utf-16-le") as f:
-            json.dump(data, f)
+        else:
+            for p in range(len(sequence.poses)):
+                data = sequence.poses[p].get_table(correct_timestamp)
+                perc = show_percentage(verbose, p, len(sequence.poses), perc)
+                excel_write(workbook_out, sheet_out, data, folder_out + "/frame_" + str(p) + ".xlsx", perc, False)
 
-    print("- Done.\n")
+    # If the file format is CSV or TXT
+    else:
+
+        # Force comma or semicolon separator
+        if file_format == "csv,":
+            separator = ","
+            file_format = "csv"
+        elif file_format == "csv;":
+            separator = ";"
+            file_format = "csv"
+        elif file_format[0:3] == "csv":  # Get the separator from local user (to get , or ;)
+            separator = get_system_separator()
+        elif file_format == "txt":  # For text files, tab separator
+            separator = "\t"
+        else:
+            separator = "\t"
+
+        # Save the data
+        if not individual:
+            data = table_to_string(sequence.get_table(correct_timestamp), separator, perc, verbose)
+            with open(folder_out + "/" + name_out + "." + file_format, 'w', encoding="utf-16-le") as f:
+                f.write(data)
+        else:
+            for p in range(len(sequence.poses)):
+                data = table_to_string(sequence.poses[p].get_table(correct_timestamp), separator, perc, False)
+                perc = show_percentage(verbose, p, len(sequence.poses), perc)
+                with open(folder_out + "/frame_" + str(p) + "." + file_format, 'w', encoding="utf-16-le") as f:
+                    f.write(data)
+
+    print("100% - Done.\n")
 
 
 def get_velocities_joints(sequence, audio=None):
@@ -157,12 +164,70 @@ def get_velocities_joints(sequence, audio=None):
     return joints_velocity, joints_qty_movement, max_velocity, times, audio_array, audio_times
 
 
+def save_stats(sequenceOrSequences, output_file, verbose=True):
+    """Saves the sequence or sequences statistics and information in a table file (xlsx, csv or txt)."""
+
+    # Automatic creation of all the folders of the path if they don't exist
+    subfolder_creation("/".join(output_file.split("/")[:-1]))
+
+    # Open the sequence or sequences
+    if type(sequenceOrSequences) is Sequence:
+        sequenceOrSequences = [sequenceOrSequences]
+    elif type(sequenceOrSequences) is str:
+        sequenceOrSequences = load_sequences_recursive(sequenceOrSequences)
+
+    file_format = output_file.split(".")[-1]
+    if file_format == "xls":
+        file_format = "xlsx"
+        output_file += "x"
+
+    perc = 10  # Used for the progression percentage
+
+    if verbose:
+        print("Saving " + file_format.upper() + " stat file...")
+
+    # Get the table
+    global_stats = []
+    for sequence in sequenceOrSequences:
+        stats = sequence.get_stats(tabled=True)
+        if global_stats == []:
+            global_stats.append(stats[0].copy())
+        global_stats.append(stats[1].copy())
+
+    if file_format == "xlsx":
+        import openpyxl as op
+        workbook_out = op.Workbook()
+        sheet_out = workbook_out.active
+        excel_write(workbook_out, sheet_out, global_stats, output_file, perc, verbose)
+
+    else:
+        # Force comma or semicolon separator
+        if file_format == "csv,":
+            separator = ","
+            output_file = output_file[:-1]
+        elif file_format == "csv;":
+            separator = ";"
+            output_file = output_file[:-1]
+        elif file_format[0:3] == "csv":  # Get the separator from local user (to get , or ;)
+            separator = get_system_separator()
+        elif file_format == "txt":  # For text files, tab separator
+            separator = "\t"
+        else:
+            separator = "\t"
+
+        data = table_to_string(global_stats, separator, perc, False)
+        with open(output_file, 'w', encoding="utf-16-le") as f:
+            f.write(data)
+
+    print("100% - Done.")
+
+
 def realign_single(input_folder, output_folder, velocity_threshold, window, verbose):
     """Realigns one video and saves it in an output folder."""
 
     sequence = Sequence(input_folder)
     new_sequence = sequence.realign(velocity_threshold, window, verbose)
-    save_json(sequence, new_sequence, output_folder)
+    save_sequence(sequence, new_sequence, output_folder)
 
 
 def realign_folder(input_folder, output_folder, velocity_threshold, window, verbose):
@@ -171,11 +236,11 @@ def realign_folder(input_folder, output_folder, velocity_threshold, window, verb
     contents = os.listdir(input_folder)
 
     for c in contents:
-        if os.path.isdir(input_folder+"/"+c):
+        if os.path.isdir(input_folder + "/" + c):
             print("======= " + c + " =======")
-            if not os.path.exists(output_folder+"/"+c):
-                os.mkdir(output_folder+"/"+c)
-            realign_single(input_folder+"/"+c, output_folder+"/"+c, velocity_threshold, window, verbose)
+            if not os.path.exists(output_folder + "/" + c):
+                os.mkdir(output_folder + "/" + c)
+            realign_single(input_folder + "/" + c, output_folder + "/" + c, velocity_threshold, window, verbose)
 
 
 def realign_recursive(input_folder, output_folder, velocity_threshold, window, verbose):
@@ -184,22 +249,23 @@ def realign_recursive(input_folder, output_folder, velocity_threshold, window, v
     contents = os.listdir(input_folder)
 
     for c in contents:
-        if os.path.isdir(input_folder+"/"+c):
-            subcontents = os.listdir(input_folder+"/"+c)
+        if os.path.isdir(input_folder + "/" + c):
+            subcontents = os.listdir(input_folder + "/" + c)
             for file_name in subcontents:
                 if file_name.endswith('.json'):
                     print("======= " + input_folder + "/" + c + " =======")
                     realign_single(input_folder + "/" + c, output_folder + "/" + c, velocity_threshold, window, verbose)
                     break
             else:
-                realign_recursive(input_folder+"/"+c, output_folder+"/"+c, velocity_threshold, window, verbose)
+                realign_recursive(input_folder + "/" + c, output_folder + "/" + c, velocity_threshold, window, verbose)
+
 
 def re_reference_single(input_folder, output_folder, reference_joint, place_at_zero, verbose):
     """Realigns one video and saves it in an output folder."""
 
     sequence = Sequence(input_folder)
     new_sequence = sequence.re_reference(reference_joint, place_at_zero, verbose)
-    save_json(sequence, new_sequence, output_folder)
+    save_sequence(sequence, new_sequence, output_folder)
 
 
 def re_reference_folder(input_folder, output_folder, reference_joint, place_at_zero, verbose):
@@ -208,11 +274,12 @@ def re_reference_folder(input_folder, output_folder, reference_joint, place_at_z
     contents = os.listdir(input_folder)
 
     for c in contents:
-        if os.path.isdir(input_folder+"/"+c):
+        if os.path.isdir(input_folder + "/" + c):
             print("======= " + c + " =======")
-            if not os.path.exists(output_folder+"/"+c):
-                os.mkdir(output_folder+"/"+c)
-            re_reference_single(input_folder+"/"+c, output_folder+"/"+c, reference_joint, place_at_zero, verbose)
+            if not os.path.exists(output_folder + "/" + c):
+                os.mkdir(output_folder + "/" + c)
+            re_reference_single(input_folder + "/" + c, output_folder + "/" + c, reference_joint, place_at_zero,
+                                verbose)
 
 
 def re_reference_recursive(input_folder, output_folder, reference_joint, place_at_zero, verbose):
@@ -221,8 +288,8 @@ def re_reference_recursive(input_folder, output_folder, reference_joint, place_a
     contents = os.listdir(input_folder)
 
     for c in contents:
-        if os.path.isdir(input_folder+"/"+c):
-            subcontents = os.listdir(input_folder+"/"+c)
+        if os.path.isdir(input_folder + "/" + c):
+            subcontents = os.listdir(input_folder + "/" + c)
             for file_name in subcontents:
                 if file_name.endswith('.json'):
                     print("======= " + input_folder + "/" + c + " =======")
@@ -230,66 +297,43 @@ def re_reference_recursive(input_folder, output_folder, reference_joint, place_a
                                         verbose)
                     break
             else:
-                re_reference_recursive(input_folder+"/"+c, output_folder+"/"+c, reference_joint, place_at_zero, verbose)
-
-def align_two_sequences(sequence1, sequence2):
-    """Checks if one sequence is a subset of another; if true, returns the index of the two sequences for
-    syncrhonization"""
-
-    subsequence1 = []
-    for p in range(0, len(sequence1.poses)):
-        subsequence1.append(sequence1.poses[p].joints["HandRight"].x)
-
-    subsequence2 = []
-    for p in range(0, len(sequence2.poses)):
-        subsequence2.append(sequence2.poses[p].joints["HandRight"].x)
-
-    if len(subsequence1) <= len(subsequence2):
-        for i in range(0, len(subsequence2)-len(subsequence1)):
-            if subsequence1 == subsequence2[i:i+len(subsequence1)]:
-                return([0, i])
-    else :
-        for i in range(0, len(subsequence1)-len(subsequence2)):
-            if subsequence2 == subsequence1[i:i+len(subsequence2)]:
-                return([i, 0])
-
-    return(False)
+                re_reference_recursive(input_folder + "/" + c, output_folder + "/" + c, reference_joint, place_at_zero,
+                                       verbose)
 
 
-def get_difference_paths(sequences):
+def load_sequences_folder(input_folder):
+    """Opens sequences contained in a folder."""
+    print("Loading sequences...")
+    return (load_sequences(input_folder, False))
 
-    paths = []
-    min_len = None
 
-    for sequence in sequences:
-        paths.append(sequence.folder.split("/"))
-        l = len(sequence.folder.split("/"))
-        if min_len == None:
-            min_len = l
-        elif l < min_len :
-            min_len = l
+def load_sequences_recursive(input_folder):
+    """Finds and opens sequences recursively from a folder."""
+    print("Loading sequences recursively...")
+    return (load_sequences(input_folder, True))
 
-    new_paths = [[] for i in range(len(paths))]
 
-    for i in range(min_len):
-        keep = False
-        for p in range(len(paths)):
-            if paths[p][i] != paths[0][i] :
-                keep = True
-        if keep:
-            for p in range(len(paths)):
-                new_paths[p].append(paths[p][i])
+def load_sequences(input_folder, recursive=False):
 
-    for p in range(len(paths)):
-        if len(paths[p]) > min_len :
-            for i in range(min_len, len(paths[p])):
-                new_paths[p].append(paths[p][i])
+    content = os.listdir(input_folder)
+    sequences = []
 
-    return(new_paths)
+    for c in content:
+        try:
+            print("======= " + input_folder + "/" + c + " =======")
+            sequence = Sequence(input_folder + "/" + c)
+            sequences.append(sequence)
+        except Exception:
+            print("The path " + input_folder + "/" + c + " is not a valid sequence.")
+            if recursive:
+                if os.path.isdir(input_folder + "/" + c):
+                    sequences += load_sequences(input_folder + "/" + c, True)
 
+    print("Sequences loaded.")
+
+    return(sequences)
 
 if __name__ == '__main__':
-
     # Define variables here
     folder = ""
     input_folder = ""
@@ -297,8 +341,8 @@ if __name__ == '__main__':
     velocity_threshold = 10  # in cm per second
     window = 3  # max number of frames under which something is considered as a twitch, and over which a jump
     verbose = False  # if you want to see everything that the program does, put True
-    reference_joint = "SpineMid" # joint to be used as reference in the re-referencing
-    place_at_zero = True # if you want the re-referencing to place the reference joint at (0, 0, 0)
+    reference_joint = "SpineMid"  # joint to be used as reference in the re-referencing
+    place_at_zero = True  # if you want the re-referencing to place the reference joint at (0, 0, 0)
 
     # Realignment
 
