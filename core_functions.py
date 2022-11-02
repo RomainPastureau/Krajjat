@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Krajjat 1.8
+"""Krajjat 1.9
 Kinect Realignment Algorithm for Joint Jumps And Twitches
 Author: Romain Pastureau
 This file contains the main core functions. This is the file
@@ -13,7 +13,7 @@ from scipy.io import wavfile
 from tool_functions import *
 
 __author__ = "Romain Pastureau"
-__version__ = "1.8"
+__version__ = "1.9"
 __email__ = "r.pastureau@bcbl.eu"
 __license__ = "GPL"
 

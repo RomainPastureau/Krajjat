@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Krajjat 1.8
+"""Krajjat 1.9
 Kinect Realignment Algorithm for Joint Jumps And Twitches
 Author: Romain Pastureau
 This file contains all the classes used by the other files,
@@ -15,7 +15,7 @@ import tool_functions
 from collections import OrderedDict
 
 __author__ = "Romain Pastureau"
-__version__ = "1.8"
+__version__ = "1.9"
 __email__ = "r.pastureau@bcbl.eu"
 __license__ = "GPL"
 

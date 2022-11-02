@@ -1,16 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="17f5d419-2a1b-432f-83bc-85d48bd70ac2" name="Changes" comment="Changes">
-      <change afterPath="$PROJECT_DIR$/test_file.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tool_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classes.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/core_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/graphic_classes.py" beforeDir="false" afterPath="$PROJECT_DIR$/graphic_classes.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/graphic_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/graphic_functions.py" afterDir="false" />
-    </list>
+    <list default="true" id="17f5d419-2a1b-432f-83bc-85d48bd70ac2" name="Changes" comment="Changes" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
