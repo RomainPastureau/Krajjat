@@ -1,4 +1,4 @@
-# **Krajjat 1.9.0**
+# **Krajjat 1.10.1**
 Kinect Realignment Algorithm for Joint Jumps And Twitches
 
 Author: Romain Pastureau
