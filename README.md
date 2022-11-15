@@ -31,6 +31,13 @@ be used for visualizing Kinect data.
 
 ## What's new?
 
+### Version 1.10 (15/11/2022)
+* Trim a motion sequence according to delay and audio duration, or to starting and ending timestamps.
+* Resample a motion sequence according to a frequency.
+* Add a name to the sequences.
+* Verbose has now three levels: 2 is for showing all the info, 1 is for showing some info, 0 is for being completely opaque. 
+* Performance and code sweeping.
+
 ### Version 1.9 (02/11/2022)
 * Save and open sequences in new formats, including .json, .txt, .csv, and .xlsx. For the csv files, choose the separator.
 * Possibility to save the sequences under one file per pose or one meta-file for the whole sequence.
@@ -47,9 +54,9 @@ be used for visualizing Kinect data.
 * In the classes file, changed the name of the variable "joint_number" to "joint_name".
  
 ## What's next?
-* Version 1.10 will add the possibility to trim a motion sequence according to starting and ending timestamps.
-* Version 1.10 will add the possibility to resample the data as in Matlab.
-* Version 1.10 will also perform some performance and code sweeping.
+* Version 1.11 will add the possibility to generate MP4, AVI or MKV videos from motion sequences as displayed in Pygame.
+* Version 1.11 will add the calculation of correlation between a motion sequence and an audio file, or a group of sequences and audio files.
+* Version 1.12 will (try to) perform automatic gesture segregation.
 
 If you detect any bug, please contact me at r.pastureau@bcbl.eu
 

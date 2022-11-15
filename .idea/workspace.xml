@@ -1,7 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="17f5d419-2a1b-432f-83bc-85d48bd70ac2" name="Changes" comment="Changes" />
+    <list default="true" id="17f5d419-2a1b-432f-83bc-85d48bd70ac2" name="Changes" comment="Changes">
+      <change afterPath="$PROJECT_DIR$/joint.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pose.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/classes.py" beforeDir="false" afterPath="$PROJECT_DIR$/sequence.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/core_functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/graphic_classes.py" beforeDir="false" afterPath="$PROJECT_DIR$/graphic_classes.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/graphic_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/graphic_functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tool_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/tool_functions.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -20,6 +31,10 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;last_opened_file_path&quot;: &quot;D:/OneDrive/Documents/BCBL/05_BodyLingual/Programs &amp; Scripts/Video_Processing/Realigner/v5/gesture_synchronizer.py&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
+  },
   &quot;keyToStringList&quot;: {
     &quot;com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File&quot;: [
       &quot;Python&quot;

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Krajjat 1.9
+"""Krajjat 1.10
 Kinect Realignment Algorithm for Joint Jumps And Twitches
 Author: Romain Pastureau
 This file contains the main graphic functions. This is the
@@ -10,10 +10,9 @@ from core_functions import *
 from graphic_classes import *
 import matplotlib.pyplot as plt
 import sys
-import math
 
 __author__ = "Romain Pastureau"
-__version__ = "1.9"
+__version__ = "1.10"
 __email__ = "r.pastureau@bcbl.eu"
 __license__ = "GPL"
 
@@ -119,7 +118,7 @@ def pose_reader(folder_or_sequence, start_pose=0, show_lines=True, show_image=Tr
     """Reads a sequence and offers a manuel control over the poses (with the arrows of the keyboard)."""
 
     common_displayer(folder_or_sequence, None, show_lines, ignore_bottom, resolution, full_screen, True,
-                     show_image, start_pose, path_images=path_images)
+                     show_image, start_pose=start_pose, path_images=path_images)
 
 
 def velocity_plotter(folder_or_sequence, audio=None, overlay=False):
@@ -181,7 +180,7 @@ def velocity_plotter(folder_or_sequence, audio=None, overlay=False):
     plt.rcParams["figure.figsize"] = (12, 9)
     plt.subplots_adjust(left=0.03, bottom=0.03, right=0.97, top=0.97, wspace=0.3, hspace=0.5)
 
-    if len(audio_array) != 0 :
+    if len(audio_array) != 0:
         print("Plotting the audio... ")
         plt.subplot(7, 5, 1)
         plt.title("Audio")
@@ -190,11 +189,11 @@ def velocity_plotter(folder_or_sequence, audio=None, overlay=False):
         if overlay:
             max_audio_array = max(audio_array)
             j = 10
-            for i in range(len(audio_array)) :
-                if i/len(audio_array) > j/100 :
-                    print(str(j)+"%", end=" ")
+            for i in range(len(audio_array)):
+                if i / len(audio_array) > j / 100:
+                    print(str(j) + "%", end=" ")
                     j += 10
-                new_audio_array.append(audio_array[i]/max_audio_array * max_velocity)
+                new_audio_array.append(audio_array[i] / max_audio_array * max_velocity)
 
             print("100% - Done.\n")
 
@@ -214,13 +213,12 @@ def velocity_plotter(folder_or_sequence, audio=None, overlay=False):
     plt.show()
 
 
-def joint_temporal_plotter(sequenceOrSequences, joint_label="HandRight", align=True):
-
+def joint_temporal_plotter(sequence_or_sequences, joint_label="HandRight", align=True):
     # Get the time array
     times = []
-    if type(sequenceOrSequences) is list:
-        for seq in range(len(sequenceOrSequences)):
-            sequence = sequenceOrSequences[seq]
+    if type(sequence_or_sequences) is list:
+        for seq in range(len(sequence_or_sequences)):
+            sequence = sequence_or_sequences[seq]
 
             # If we already had sequences, and align is True, we try to align the sequences
             if seq != 0 and align:
@@ -228,31 +226,30 @@ def joint_temporal_plotter(sequenceOrSequences, joint_label="HandRight", align=T
                 aligned = False
                 # We compare the sequence to every other sequence already in the list
                 for seq2 in range(seq):
-                    prior_sequence = sequenceOrSequences[seq2]
+                    prior_sequence = sequence_or_sequences[seq2]
                     alignment = align_two_sequences(sequence, prior_sequence)
-                    if alignment != False:
+                    if alignment:
                         if alignment[0] == 0:
-                            print("Aligning sequence "+str(seq+1)+" to sequence "+str(seq2+1)+".")
-                            times.append(times[seq2][alignment[1]:alignment[1]+len(sequence)])
+                            print("Aligning sequence " + str(seq + 1) + " to sequence " + str(seq2 + 1) + ".")
+                            times.append(times[seq2][alignment[1]:alignment[1] + len(sequence)])
                             aligned = True
                             break
-                        else :
+                        else:
                             print("Aligning sequence " + str(seq2 + 1) + " to sequence " + str(seq + 1) + ".")
                             times.append(sequence.get_timestamps())
-                            times[seq2] = times[seq][alignment[0]:alignment[0]+len(prior_sequence)]
+                            times[seq2] = times[seq][alignment[0]:alignment[0] + len(prior_sequence)]
                             aligned = True
                             break
 
-                if aligned == False:
+                if not aligned:
                     times.append(sequence.get_timestamps())
 
             else:
                 times.append(sequence.get_timestamps())
 
-
     else:
-        times.append(sequenceOrSequences.get_timestamps())
-        sequenceOrSequences = [sequenceOrSequences]
+        times.append(sequence_or_sequences.get_timestamps())
+        sequence_or_sequences = [sequence_or_sequences]
 
     # Create empty lists for the arrays
     x = []
@@ -265,9 +262,9 @@ def joint_temporal_plotter(sequenceOrSequences, joint_label="HandRight", align=T
     max_velocity = 0
 
     # For all poses
-    for i in range(len(sequenceOrSequences)):
+    for i in range(len(sequence_or_sequences)):
 
-        sequence = sequenceOrSequences[i]
+        sequence = sequence_or_sequences[i]
 
         x.append([])
         y.append([])
@@ -303,70 +300,68 @@ def joint_temporal_plotter(sequenceOrSequences, joint_label="HandRight", align=T
     plt.subplots_adjust(left=0.15, bottom=0.1, right=0.97, top=0.9, wspace=0.3, hspace=0.5)
 
     # Define colors to show
-    colors = ["#0066ff", "#ff6600", "#009900", "#009999", "#cc0099"]
+    colors = ["#0066ff", "#ff6600", "#009900", "#ff0000", "#009999", "#cc0099"]
 
     # Plot x, y, z, distance travelled and velocities
-    parameters = {"rotation":"horizontal", "horizontalalignment":"right", "verticalalignment":"center",
-                   "font":{'size':16, "weight":"bold"}}
-
-    labels = get_difference_paths(sequenceOrSequences)
+    parameters = {"rotation": "horizontal", "horizontalalignment": "right", "verticalalignment": "center",
+                  "font": {'size': 16, "weight": "bold"}}
 
     plt.subplot(5, 1, 1)
-    for i in range(len(sequenceOrSequences)):
-        lab = sequenceOrSequences[i].path
+    for i in range(len(sequence_or_sequences)):
+        lab = sequence_or_sequences[i].name
         print(lab)
-        plt.plot(times[i], x[i], linewidth=line_width, color=colors[i%5], label = " · ".join(labels[i]))
+        plt.plot(times[i], x[i], linewidth=line_width, color=colors[i % 5], label=lab)
     plt.ylabel("x", **parameters)
-    plt.legend(bbox_to_anchor=(0, 1, 1, 0), loc="lower left", mode="expand", ncol=len(sequenceOrSequences))
+    plt.legend(bbox_to_anchor=(0, 1, 1, 0), loc="lower left", mode="expand", ncol=len(sequence_or_sequences))
 
     plt.subplot(5, 1, 2)
-    for i in range(len(sequenceOrSequences)):
-        plt.plot(times[i], y[i], linewidth=line_width, color=colors[i%5])
+    for i in range(len(sequence_or_sequences)):
+        plt.plot(times[i], y[i], linewidth=line_width, color=colors[i % 5])
     plt.ylabel("y", **parameters)
 
     plt.subplot(5, 1, 3)
-    for i in range(len(sequenceOrSequences)):
-        plt.plot(times[i], z[i], linewidth=line_width, color=colors[i%5])
+    for i in range(len(sequence_or_sequences)):
+        plt.plot(times[i], z[i], linewidth=line_width, color=colors[i % 5])
     plt.ylabel("z", **parameters)
 
     plt.subplot(5, 1, 4)
-    for i in range(len(sequenceOrSequences)):
-        plt.plot(times[i][1:], dist[i], linewidth=line_width, color=colors[i%5])
+    for i in range(len(sequence_or_sequences)):
+        plt.plot(times[i][1:], dist[i], linewidth=line_width, color=colors[i % 5])
     plt.ylabel("Distance", **parameters)
 
     plt.subplot(5, 1, 5)
-    for i in range(len(sequenceOrSequences)):
-        plt.plot(times[i][1:], velocities[i], linewidth=line_width, color=colors[i%5])
+    for i in range(len(sequence_or_sequences)):
+        plt.plot(times[i][1:], velocities[i], linewidth=line_width, color=colors[i % 5])
     plt.ylabel("Speed", **parameters)
 
     plt.show()
 
-def framerate_plotter(sequenceOrSequences):
 
-    if type(sequenceOrSequences) is not list:
-        sequenceOrSequences = [sequenceOrSequences]
+def framerate_plotter(sequence_or_sequences):
+    if type(sequence_or_sequences) is not list:
+        sequence_or_sequences = [sequence_or_sequences]
 
     i = 1
-    while i**2 < len(sequenceOrSequences):
+    while i ** 2 < len(sequence_or_sequences):
         i += 1
-    if len(sequenceOrSequences) <= i*(i-1):
-        j = i-1
+    if len(sequence_or_sequences) <= i * (i - 1):
+        j = i - 1
     else:
         j = i
     plt.rcParams["figure.figsize"] = (12, 6)
     plt.subplots_adjust(left=0.03, bottom=0.03, right=0.97, top=0.9, wspace=0.3, hspace=0.7)
-    labels = get_difference_paths(sequenceOrSequences)
+    labels = get_names(sequence_or_sequences)
     max_framerate = 0
 
     framerates_list = []
     time_stamps_list = []
     averages_list = []
 
-    for seq in range(len(sequenceOrSequences)):
+    for seq in range(len(sequence_or_sequences)):
 
-        sequence = sequenceOrSequences[seq]
+        sequence = sequence_or_sequences[seq]
         framerates, time_stamps = sequence.get_framerate()
-        avg = sum(framerates)/len(framerates)
+        avg = sum(framerates) / len(framerates)
         averages = [avg for _ in range(len(framerates))]
 
         framerates_list.append(framerates)
@@ -376,75 +371,13 @@ def framerate_plotter(sequenceOrSequences):
         if max(framerates) > max_framerate:
             max_framerate = max(framerates)
 
-    for seq in range(len(sequenceOrSequences)):
-        plt.subplot(i, j, seq+1)
-        plt.ylim([0, max_framerate])
+    for seq in range(len(sequence_or_sequences)):
+        plt.subplot(i, j, seq + 1)
+        plt.ylim([0, max_framerate + 1])
         plt.plot(time_stamps_list[seq], framerates_list[seq], linewidth=1.0, color="#000000", label="Framerate")
         plt.plot(time_stamps_list[seq], averages_list[seq], linewidth=1.0, color="#ff0000", label="Average")
         if seq == 0:
-            plt.legend(bbox_to_anchor=(0, 1.3+0.1*i, 1, 0), loc="upper left", ncol=2)
-        plt.title(" · ".join(labels[seq]) + " [Avg: " + format(averages_list[seq][0], '.2f') + "]")
-
+            plt.legend(bbox_to_anchor=(0, 1.3 + 0.1 * i, 1, 0), loc="upper left", ncol=2)
+        plt.title(labels[seq] + " [Avg: " + format(averages_list[seq][0], '.2f') + "]")
 
     plt.show()
-
-if __name__ == '__main__':
-
-    parent_path = "D:/OneDrive/Documents/BCBL/05_BodyLingual/Stimuli/Recordings/Retellings/Gesture/"
-    subject = "01_Araitz"
-    video = "R018"
-
-    # Enter the path to the folder containing the first sequence
-    folder1 = parent_path+"/01_Original_gesture/"+subject+"/"+video
-
-    # (Facultative) Enter the path to the folder containing the second sequence
-    folder2 = parent_path+"/02_Realigned_gesture/"+subject+"/"+video
-
-    # (Facultative) Enter the path to the folder containing the third sequence
-    folder3 = parent_path+"/03_Rereferenced_gesture/"+subject+"/"+video
-
-    # (Facultative) Enter the path to the folder containing the images
-    path_images = ""
-
-    # Load the sequences
-    sequence1 = Sequence(folder1)
-    sequence2 = Sequence(folder2)
-    sequence3 = Sequence(folder3)
-
-    # Randomize the second sequence
-    sequence1.randomize()
-
-    # Parameters for the following functions
-    # Sequence: you can enter either a Sequence object or a path to a folder
-    # Show lines: show the lines connecting the joints
-    # Ignore bottom: ignore the joints below the hip (feet, ankles and knees)
-    # Velocity threshold: for the realignment, velocity over which we do a realignment
-    # W: window of frames over which we consider a jump, below (or at) which we consider a twitch
-    # Folder save: defines a folder to save the realigned sequence. Does NOT save the sequence if None
-    # Start pose: pose index at which the visualization starts
-    # Show image: shows the video image below the skeleton
-    # Resolution: in pixels, default 1600 x 900
-    # Full screen: shows the animation in full screen (it is recommended to set your screen resolution)
-    # Joint label: joint of which you want to see the temporal components
-    # Path images: path to the images to show behind the skeleton
-
-    # Reads one sequence and loops through it
-    sequence_reader(sequence1, show_lines=False, ignore_bottom=True, resolution=(1600, 900), full_screen=False)
-
-    # Realign a sequence and compare them side by side (saves the realigned sequence only if folder_save is not None)
-    #sequence_realigner(sequence1, velocity_threshold=10, w=3, folder_save=None, show_lines=True, ignore_bottom=False,
-    #                   resolution=(1600, 900), full_screen=False)
-
-    # Compare two sequences side by side
-    #sequence_comparer(sequence1, sequence2, show_lines=True, ignore_bottom=False, resolution=(1600, 900),
-    #                  full_screen=False)
-
-    # Reads one specific pose of a sequence, control with keyboard
-    #pose_reader(sequence1, start_pose=100, show_lines=True, show_image=True, ignore_bottom=False,
-    #            resolution=(1600, 900), full_screen=False)
-
-    # Plots the velocity of the joints across time
-    #velocity_plotter(sequence1)
-
-    # Plots the time components (x, y, z, distance travelled and velocity) of a joint from a sequence
-    joint_temporal_plotter([sequence1, sequence2, sequence3], joint_label="Head")

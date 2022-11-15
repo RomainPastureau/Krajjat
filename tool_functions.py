@@ -75,13 +75,19 @@ def align_two_sequences(sequence1, sequence2):
     return False
 
 
+def get_names(sequences):
+    names = []
+    for sequence in sequences:
+        names.append(sequence.name)
+    return names
+
 def get_difference_paths(sequences):
     paths = []
     min_len = None
 
     for sequence in sequences:
         paths.append(sequence.path.split("/"))
-        l: int = len(sequence.path.split("/"))
+        l = len(sequence.path.split("/"))
         if min_len is None:
             min_len = l
         elif min_len > l:
@@ -135,9 +141,9 @@ def get_filetype_separator(path):
 
 
 def show_percentage(verbose, current_iteration, total_value, next_percentage, step=10):
-    """Shows the percentage of progression if verbose."""
+    """Shows the percentage of progression if verbose is equal to 1."""
 
-    if verbose and current_iteration / total_value > next_percentage / 100:
+    if verbose == 1 and current_iteration / total_value > next_percentage / 100:
         print(str(next_percentage) + "%", end=" ")
         next_percentage += step
 

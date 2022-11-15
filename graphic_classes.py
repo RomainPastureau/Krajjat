@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-"""Krajjat 1.9
+"""Krajjat 1.10
 Kinect Realignment Algorithm for Joint Jumps And Twitches
 Author: Romain Pastureau
 This file contains the main graphic classes, mainly converting
-the classes from the "classes.py" file to be able to show them
+the classes from the "sequence.py" file to be able to show them
 graphically.
 """
 import os
@@ -12,7 +12,7 @@ import pygame
 from pygame import *
 
 __author__ = "Romain Pastureau"
-__version__ = "1.9"
+__version__ = "1.10"
 __email__ = "r.pastureau@bcbl.eu"
 __license__ = "GPL"
 

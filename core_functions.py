@@ -1,19 +1,17 @@
 #!/usr/bin/env python
-"""Krajjat 1.9
+"""Krajjat 1.10
 Kinect Realignment Algorithm for Joint Jumps And Twitches
 Author: Romain Pastureau
 This file contains the main core functions. This is the file
 to run to realign one or more recordings.
 """
-from collections import OrderedDict
-from typing import List, Any
 
-from classes import *
+from sequence import *
 from scipy.io import wavfile
 from tool_functions import *
 
 __author__ = "Romain Pastureau"
-__version__ = "1.9"
+__version__ = "1.10"
 __email__ = "r.pastureau@bcbl.eu"
 __license__ = "GPL"
 
@@ -223,15 +221,15 @@ def save_stats(sequenceOrSequences, output_file, verbose=True):
 
 
 def realign_single(input_folder, output_folder, velocity_threshold, window, verbose):
-    """Realigns one video and saves it in an output folder."""
+    """Realigns one sequence and saves it in an output folder."""
 
     sequence = Sequence(input_folder)
     new_sequence = sequence.realign(velocity_threshold, window, verbose)
     save_sequence(sequence, new_sequence, output_folder)
 
 
-def realign_folder(input_folder, output_folder, velocity_threshold, window, verbose):
-    """Realigns all videos in a folder and saves them in an output folder."""
+def realign_folder(input_folder, output_folder, velocity_threshold, window, verbose=False):
+    """Realigns all sequences in a folder and saves them in an output folder."""
 
     contents = os.listdir(input_folder)
 
@@ -243,8 +241,8 @@ def realign_folder(input_folder, output_folder, velocity_threshold, window, verb
             realign_single(input_folder + "/" + c, output_folder + "/" + c, velocity_threshold, window, verbose)
 
 
-def realign_recursive(input_folder, output_folder, velocity_threshold, window, verbose):
-    """Realigns all videos in a recursive fashion, save them using the same folder structure."""
+def realign_recursive(input_folder, output_folder, velocity_threshold, window, verbose=False):
+    """Realigns all sequences in a recursive fashion, save them using the same folder structure."""
 
     contents = os.listdir(input_folder)
 
@@ -260,16 +258,29 @@ def realign_recursive(input_folder, output_folder, velocity_threshold, window, v
                 realign_recursive(input_folder + "/" + c, output_folder + "/" + c, velocity_threshold, window, verbose)
 
 
-def re_reference_single(input_folder, output_folder, reference_joint, place_at_zero, verbose):
-    """Realigns one video and saves it in an output folder."""
+def realign_sequences(sequence_or_sequences, velocity_threshold, window, verbose=False):
+    """Realigns sequences and returns them."""
+
+    if sequence_or_sequences is Sequence:
+        sequence_or_sequences = [sequence_or_sequences]
+
+    output_sequences = []
+    for sequence in sequence_or_sequences:
+        output_sequences.append(sequence.realign(velocity_threshold, window, verbose))
+
+    return(output_sequences)
+
+
+def re_reference_single(input_folder, output_folder, reference_joint, place_at_zero, verbose=True):
+    """Realigns one sequence and saves it in an output folder."""
 
     sequence = Sequence(input_folder)
     new_sequence = sequence.re_reference(reference_joint, place_at_zero, verbose)
     save_sequence(sequence, new_sequence, output_folder)
 
 
-def re_reference_folder(input_folder, output_folder, reference_joint, place_at_zero, verbose):
-    """Realigns all videos in a folder and saves them in an output folder."""
+def re_reference_folder(input_folder, output_folder, reference_joint, place_at_zero, verbose=True):
+    """Realigns all sequences in a folder and saves them in an output folder."""
 
     contents = os.listdir(input_folder)
 
@@ -282,8 +293,8 @@ def re_reference_folder(input_folder, output_folder, reference_joint, place_at_z
                                 verbose)
 
 
-def re_reference_recursive(input_folder, output_folder, reference_joint, place_at_zero, verbose):
-    """Realigns all videos in a recursive fashion, save them using the same folder structure."""
+def re_reference_recursive(input_folder, output_folder, reference_joint, place_at_zero, verbose=True):
+    """Realigns all sequences in a recursive fashion, save them using the same folder structure."""
 
     contents = os.listdir(input_folder)
 
@@ -300,6 +311,132 @@ def re_reference_recursive(input_folder, output_folder, reference_joint, place_a
                 re_reference_recursive(input_folder + "/" + c, output_folder + "/" + c, reference_joint, place_at_zero,
                                        verbose)
 
+
+def re_reference_sequences(sequence_or_sequences, reference_joint, place_at_zero, verbose=True):
+    """Realigns sequences and returns them."""
+
+    if sequence_or_sequences is Sequence:
+        sequence_or_sequences = [sequence_or_sequences]
+
+    output_sequences = []
+    for sequence in sequence_or_sequences:
+        output_sequences.append(sequence.re_reference(reference_joint, place_at_zero, verbose))
+
+    return (output_sequences)
+
+
+def trim_single(input_folder, output_folder, delay_beginning, path_audio=None, verbose=True):
+    """Trims a sequence by deleting the poses at the beginning in the duration of delay_beginning, and the poses
+    at the end after the duration of the audio file."""
+
+    sequence = Sequence(input_folder)
+    new_sequence = sequence.synchronize(delay_beginning, path_audio, True, verbose)
+    save_sequence(sequence, new_sequence, output_folder)
+
+
+def trim_folder(input_folder, output_folder, delays_beginning, paths_audio=None, verbose=True):
+    """Trims all sequences in a folder and saves them in an output folder."""
+
+    contents = os.listdir(input_folder)
+
+    # Iterative value
+    i = 0
+
+    for c in contents:
+        if os.path.isdir(input_folder + "/" + c):
+            print("======= " + c + " =======")
+            if not os.path.exists(output_folder + "/" + c):
+                os.mkdir(output_folder + "/" + c)
+
+            if type(delays_beginning) is dict:
+                db = delays_beginning[input_folder + "/" + c]
+            elif type(delays_beginning) is list:
+                db = delays_beginning[i]
+            if type(paths_audio) is dict:
+                pa = paths_audio[input_folder + "/" + c]
+            elif type(paths_audio) is list:
+                pa = paths_audio[i]
+            elif type(paths_audio) is None:
+                pa = None
+
+            trim_single(input_folder + "/" + c, output_folder + "/" + c, db, pa, verbose)
+            i += 1
+
+
+def trim_recursive(input_folder, output_folder, delays_beginning, paths_audio=None, verbose=True):
+    """Trims all sequences in a recursive fashion, save them using the same folder structure."""
+
+    contents = os.listdir(input_folder)
+
+    # Iterative value
+    i = 0
+
+    for c in contents:
+        if os.path.isdir(input_folder + "/" + c):
+                subcontents = os.listdir(input_folder + "/" + c)
+                for file_name in subcontents:
+                    if file_name.endswith('.json'):
+                        print("======= " + input_folder + "/" + c + " =======")
+
+                        if type(delays_beginning) is dict:
+                            db = delays_beginning[input_folder + "/" + c]
+                        elif type(delays_beginning) is list:
+                            db = delays_beginning[i]
+                        if type(paths_audio) is dict:
+                            pa = paths_audio[input_folder + "/" + c]
+                        elif type(paths_audio) is list:
+                            pa = paths_audio[i]
+                        elif type(paths_audio) is None:
+                            pa = None
+
+                        trim_single(input_folder + "/" + c, output_folder + "/" + c, db, pa, verbose)
+                        i += 1
+                        break
+                else:
+                    if type(delays_beginning) is dict:
+                        db = delays_beginning
+                    elif type(delays_beginning) is list:
+                        db = delays_beginning[i:]
+                    if type(paths_audio) is dict:
+                        pa = paths_audio
+                    elif type(paths_audio) is list:
+                        pa = paths_audio[i:]
+                    elif type(paths_audio) is None:
+                        pa = None
+
+                    trim_recursive(input_folder + "/" + c, output_folder + "/" + c, db, pa, verbose)
+
+
+def trim_sequences(sequence_or_sequences, delays_beginning, paths_audio=None, verbose=True):
+    """Realigns sequences and returns them."""
+
+    if sequence_or_sequences is Sequence:
+        sequence_or_sequences = [sequence_or_sequences]
+
+    # Iteration value
+    i = 0
+
+    output_sequences = []
+    for sequence in sequence_or_sequences:
+        print("\n=== "+str(sequence.path)+" ===")
+        if type(delays_beginning) is dict:
+            db = delays_beginning[sequence.path]
+        elif type(delays_beginning) is list:
+            db = delays_beginning[i]
+        else:
+            return Exception("Delays_beginning has to be a list or a dict.")
+        if type(paths_audio) is dict:
+            pa = paths_audio[sequence.path]
+        elif type(paths_audio) is list:
+            pa = paths_audio[i]
+        else:
+            print("Warning: no path_audio defined.")
+            pa = None
+
+        output_sequences.append(sequence.synchronize(db, pa, True, verbose))
+        i += 1
+
+    return (output_sequences)
 
 def load_sequences_folder(input_folder):
     """Opens sequences contained in a folder."""
@@ -323,8 +460,12 @@ def load_sequences(input_folder, recursive=False):
             print("======= " + input_folder + "/" + c + " =======")
             sequence = Sequence(input_folder + "/" + c)
             sequences.append(sequence)
-        except Exception:
+        except Exception as ex:
             print("The path " + input_folder + "/" + c + " is not a valid sequence.")
+            if hasattr(ex, 'message'):
+                print(ex.message)
+            else:
+                print(ex)
             if recursive:
                 if os.path.isdir(input_folder + "/" + c):
                     sequences += load_sequences(input_folder + "/" + c, True)
@@ -332,36 +473,3 @@ def load_sequences(input_folder, recursive=False):
     print("Sequences loaded.")
 
     return(sequences)
-
-if __name__ == '__main__':
-    # Define variables here
-    folder = ""
-    input_folder = ""
-    output_folder = ""
-    velocity_threshold = 10  # in cm per second
-    window = 3  # max number of frames under which something is considered as a twitch, and over which a jump
-    verbose = False  # if you want to see everything that the program does, put True
-    reference_joint = "SpineMid"  # joint to be used as reference in the re-referencing
-    place_at_zero = True  # if you want the re-referencing to place the reference joint at (0, 0, 0)
-
-    # Realignment
-
-    # For one recording
-    # realign_single(input_folder, output_folder, velocity_threshold, window, verbose)
-
-    # For many recordings in one directory
-    # realign_folder(input_folder, output_folder, velocity_threshold, window, verbose)
-
-    # For dealing with all the videos recursively
-    # realign_recursive(input_folder, output_folder, velocity_threshold, window, verbose)
-
-    # Re-referencing
-
-    # For one recording
-    # re_reference_single(input_folder, output_folder, reference_joint, place_at_zero, verbose)
-
-    # For many recordings in one directory
-    # re_reference_folder(input_folder, output_folder, reference_joint, place_at_zero, verbose)
-
-    # For dealing with all the videos recursively
-    re_reference_recursive(input_folder, output_folder, reference_joint, place_at_zero, verbose)
