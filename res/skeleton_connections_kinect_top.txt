@@ -1,0 +1,12 @@
+Head	Neck
+Neck	SpineShoulder
+SpineShoulder	SpineMid
+SpineMid	SpineBase
+SpineShoulder	ShoulderRight
+ShoulderRight	ElbowRight
+ElbowRight	WristRight
+WristRight	HandRight
+SpineShoulder	ShoulderLeft
+ShoulderLeft	ElbowLeft
+ElbowLeft	WristLeft
+WristLeft	HandLeft

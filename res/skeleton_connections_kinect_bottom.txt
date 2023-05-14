@@ -1,0 +1,8 @@
+SpineBase	HipRight
+HipRight	KneeRight
+KneeRight	AnkleRight
+AnkleRight	FootRight
+SpineBase	HipLeft
+HipLeft	KneeLeft
+KneeLeft	AnkleLeft
+AnkleLeft	FootLeft

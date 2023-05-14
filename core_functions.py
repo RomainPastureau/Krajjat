@@ -5,9 +5,8 @@ Author: Romain Pastureau
 This file contains the main core functions. This is the file
 to run to realign one or more recordings.
 """
-
-from sequence import *
-from scipy.io import wavfile
+from classes.audio import Audio
+from classes.sequence import *
 from tool_functions import *
 
 __author__ = "Romain Pastureau"
@@ -33,7 +32,7 @@ def save_sequence(sequence, folder_out, original_sequence=None, name_out="global
         if individual:
             print("Saving " + file_format.upper() + " individual files...")
         else:
-            print("Saving " + file_format.upper() + " global file...")
+            print("Saving " + file_format.upper() + " global file" + folder_out + name_out + "." + file_format + "...")
 
     perc = 10  # Used for the progression percentage
 
@@ -44,7 +43,7 @@ def save_sequence(sequence, folder_out, original_sequence=None, name_out="global
         if original_sequence is not None:
             data = merge_original_and_new_sequences(original_sequence, sequence, correct_timestamp, perc, verbose)
         else:
-            data = sequence.get_json_joint_list(correct_timestamp)
+            data = sequence.convert_to_json(correct_timestamp)
 
         # Save the data
         if not individual:
@@ -63,12 +62,12 @@ def save_sequence(sequence, folder_out, original_sequence=None, name_out="global
 
         # Save the data
         if not individual:
-            data = sequence.get_table(correct_timestamp)
+            data = sequence.convert_to_table(correct_timestamp)
             excel_write(workbook_out, sheet_out, data, folder_out + "/" + name_out + ".xlsx", perc, verbose)
 
         else:
             for p in range(len(sequence.poses)):
-                data = sequence.poses[p].get_table(correct_timestamp)
+                data = sequence.poses[p].convert_to_table(correct_timestamp)
                 perc = show_percentage(verbose, p, len(sequence.poses), perc)
                 excel_write(workbook_out, sheet_out, data, folder_out + "/frame_" + str(p) + ".xlsx", perc, False)
 
@@ -91,12 +90,12 @@ def save_sequence(sequence, folder_out, original_sequence=None, name_out="global
 
         # Save the data
         if not individual:
-            data = table_to_string(sequence.get_table(correct_timestamp), separator, perc, verbose)
+            data = table_to_string(sequence.convert_to_table(correct_timestamp), separator, perc, verbose)
             with open(folder_out + "/" + name_out + "." + file_format, 'w', encoding="utf-16-le") as f:
                 f.write(data)
         else:
             for p in range(len(sequence.poses)):
-                data = table_to_string(sequence.poses[p].get_table(correct_timestamp), separator, perc, False)
+                data = table_to_string(sequence.poses[p].convert_to_table(correct_timestamp), separator, perc, False)
                 perc = show_percentage(verbose, p, len(sequence.poses), perc)
                 with open(folder_out + "/frame_" + str(p) + "." + file_format, 'w', encoding="utf-16-le") as f:
                     f.write(data)
@@ -104,65 +103,89 @@ def save_sequence(sequence, folder_out, original_sequence=None, name_out="global
     print("100% - Done.\n")
 
 
-def get_velocities_joints(sequence, audio=None):
-    """Returns the velocity of each of the joints across time, in order to plot it."""
+def save_audio(audio, folder_out, name_out="audio", file_format="xlsx", individual=False, verbose=1):
 
-    joints_movement = {}
-    joints_velocity = {}
-    times = sequence.get_timestamps()[1:]
-    max_velocity = 0
-    joints_qty_movement = {}
-    audio_array = []
-    audio_times = []
+    # Automatic creation of all the folders of the path if they don't exist
+    subfolder_creation(folder_out)
 
-    for j in sequence.poses[0].joints:
-        movement = []
-        velocity = []
+    file_format = file_format.strip(".")  # We remove the dot in the format
+    if file_format == "xls":
+        file_format = "xlsx"
 
-        for p in range(1, len(sequence.poses)):
+    if verbose:
+        if individual:
+            print("Saving " + file_format.upper() + " individual files...")
+        else:
+            print("Saving " + file_format.upper() + " global file " + folder_out + "/" + name_out
+                  + "." + file_format + "...")
 
-            # Distance
-            j1 = sequence.poses[p - 1].joints[j]
-            j2 = sequence.poses[p].joints[j]
-            dist = sequence.get_distance(j1, j2)
-            movement.append(dist)
+    perc = 10  # Used for the progression percentage
 
-            # Velocity
-            vel = sequence.get_velocity(sequence.poses[p - 1], sequence.poses[p], j)
-            if vel > max_velocity:
-                max_velocity = vel
-            velocity.append(vel)
+    # If file format is JSON
+    if file_format == "json":
 
-        joints_movement[j] = movement
-        joints_velocity[j] = velocity
-        joints_qty_movement[j] = sum(velocity)
+        # Get the data
+        data = audio.get_json_samples()
 
-    if audio is not None:
+        # Save the data
+        if not individual:
+            with open(folder_out + "/" + name_out + ".json", 'w', encoding="utf-16-le") as f:
+                json.dump(data, f)
+        else:
+            for s in range(len(audio.samples)):
+                perc = show_percentage(verbose, s, len(audio.samples), perc)
+                with open(folder_out + "/sample_" + str(s) + ".json", 'w', encoding="utf-16-le") as f:
+                    json.dump(data[s], f)
 
-        print("Opening the audio...")
+    elif file_format == "xlsx":
+        import openpyxl as op
+        workbook_out = op.Workbook()
+        sheet_out = workbook_out.active
 
-        audio_data = wavfile.read(audio)
-        fq = audio_data[0]
-        audio_array = audio_data[1]
+        # Save the data
+        if not individual:
+            data = audio.convert_to_table()
+            excel_write(workbook_out, sheet_out, data, folder_out + "/" + name_out + ".xlsx", perc, verbose)
 
-        audio_times = list(range(len(audio_array)))
+        else:
+            for s in range(len(audio.samples)):
+                data = audio.samples[s].convert_to_table()
+                perc = show_percentage(verbose, s, len(audio.samples), perc)
+                excel_write(workbook_out, sheet_out, data, folder_out + "/sample_" + str(s) + ".xlsx", perc, False)
 
-        perc = 10
-        for i in range(len(audio_times)):
-            if i / len(audio_times) > perc / 100:
-                print(str(perc) + "%", end=" ")
-                perc += 10
-            audio_array[i] = abs(audio_array[i])
-            if audio_array[i] == -32768:
-                audio_array[i] = 32767
-            audio_times[i] = audio_times[i] * (1 / fq)
+    # If the file format is CSV or TXT
+    else:
 
-        print("100% - Done.\n")
+        # Force comma or semicolon separator
+        if file_format == "csv,":
+            separator = ","
+            file_format = "csv"
+        elif file_format == "csv;":
+            separator = ";"
+            file_format = "csv"
+        elif file_format[0:3] == "csv":  # Get the separator from local user (to get , or ;)
+            separator = get_system_separator()
+        elif file_format == "txt":  # For text files, tab separator
+            separator = "\t"
+        else:
+            separator = "\t"
 
-    return joints_velocity, joints_qty_movement, max_velocity, times, audio_array, audio_times
+        # Save the data
+        if not individual:
+            data = table_to_string(audio.convert_to_table(), separator, perc, verbose)
+            with open(folder_out + "/" + name_out + "." + file_format, 'w', encoding="utf-16-le") as f:
+                f.write(data)
+        else:
+            for s in range(len(audio.samples)):
+                data = table_to_string(audio.samples[s].convert_to_table(), separator, perc, False)
+                perc = show_percentage(verbose, s, len(audio.samples), perc)
+                with open(folder_out + "/sample_" + str(s) + "." + file_format, 'w', encoding="utf-16-le") as f:
+                    f.write(data)
+
+    print("100% - Done.\n")
 
 
-def save_stats(sequenceOrSequences, output_file, verbose=True):
+def save_stats(sequenceOrSequences, output_file, verbose=1):
     """Saves the sequence or sequences statistics and information in a table file (xlsx, csv or txt)."""
 
     # Automatic creation of all the folders of the path if they don't exist
@@ -220,15 +243,15 @@ def save_stats(sequenceOrSequences, output_file, verbose=True):
     print("100% - Done.")
 
 
-def realign_single(input_folder, output_folder, velocity_threshold, window, verbose):
+def realign_single(input_folder, output_folder, velocity_threshold, window, verbose=1):
     """Realigns one sequence and saves it in an output folder."""
 
     sequence = Sequence(input_folder)
-    new_sequence = sequence.realign(velocity_threshold, window, verbose)
+    new_sequence = sequence.correct_jitter(velocity_threshold, window, verbose)
     save_sequence(sequence, new_sequence, output_folder)
 
 
-def realign_folder(input_folder, output_folder, velocity_threshold, window, verbose=False):
+def realign_folder(input_folder, output_folder, velocity_threshold, window, verbose=1):
     """Realigns all sequences in a folder and saves them in an output folder."""
 
     contents = os.listdir(input_folder)
@@ -241,7 +264,7 @@ def realign_folder(input_folder, output_folder, velocity_threshold, window, verb
             realign_single(input_folder + "/" + c, output_folder + "/" + c, velocity_threshold, window, verbose)
 
 
-def realign_recursive(input_folder, output_folder, velocity_threshold, window, verbose=False):
+def realign_recursive(input_folder, output_folder, velocity_threshold, window, verbose=1):
     """Realigns all sequences in a recursive fashion, save them using the same folder structure."""
 
     contents = os.listdir(input_folder)
@@ -258,7 +281,7 @@ def realign_recursive(input_folder, output_folder, velocity_threshold, window, v
                 realign_recursive(input_folder + "/" + c, output_folder + "/" + c, velocity_threshold, window, verbose)
 
 
-def realign_sequences(sequence_or_sequences, velocity_threshold, window, verbose=False):
+def realign_sequences(sequence_or_sequences, velocity_threshold, window, verbose=1):
     """Realigns sequences and returns them."""
 
     if sequence_or_sequences is Sequence:
@@ -271,7 +294,7 @@ def realign_sequences(sequence_or_sequences, velocity_threshold, window, verbose
     return(output_sequences)
 
 
-def re_reference_single(input_folder, output_folder, reference_joint, place_at_zero, verbose=True):
+def re_reference_single(input_folder, output_folder, reference_joint, place_at_zero, verbose=1):
     """Realigns one sequence and saves it in an output folder."""
 
     sequence = Sequence(input_folder)
@@ -279,7 +302,7 @@ def re_reference_single(input_folder, output_folder, reference_joint, place_at_z
     save_sequence(sequence, new_sequence, output_folder)
 
 
-def re_reference_folder(input_folder, output_folder, reference_joint, place_at_zero, verbose=True):
+def re_reference_folder(input_folder, output_folder, reference_joint, place_at_zero, verbose=1):
     """Realigns all sequences in a folder and saves them in an output folder."""
 
     contents = os.listdir(input_folder)
@@ -293,7 +316,7 @@ def re_reference_folder(input_folder, output_folder, reference_joint, place_at_z
                                 verbose)
 
 
-def re_reference_recursive(input_folder, output_folder, reference_joint, place_at_zero, verbose=True):
+def re_reference_recursive(input_folder, output_folder, reference_joint, place_at_zero, verbose=1):
     """Realigns all sequences in a recursive fashion, save them using the same folder structure."""
 
     contents = os.listdir(input_folder)
@@ -312,7 +335,7 @@ def re_reference_recursive(input_folder, output_folder, reference_joint, place_a
                                        verbose)
 
 
-def re_reference_sequences(sequence_or_sequences, reference_joint, place_at_zero, verbose=True):
+def re_reference_sequences(sequence_or_sequences, reference_joint, place_at_zero, verbose=1):
     """Realigns sequences and returns them."""
 
     if sequence_or_sequences is Sequence:
@@ -325,16 +348,16 @@ def re_reference_sequences(sequence_or_sequences, reference_joint, place_at_zero
     return (output_sequences)
 
 
-def trim_single(input_folder, output_folder, delay_beginning, path_audio=None, verbose=True):
+def trim_single(input_folder, output_folder, delay_beginning, path_audio=None, verbose=1):
     """Trims a sequence by deleting the poses at the beginning in the duration of delay_beginning, and the poses
     at the end after the duration of the audio file."""
 
     sequence = Sequence(input_folder)
-    new_sequence = sequence.synchronize(delay_beginning, path_audio, True, verbose)
+    new_sequence = sequence.synchronize_with_audio(delay_beginning, path_audio, True, verbose)
     save_sequence(sequence, new_sequence, output_folder)
 
 
-def trim_folder(input_folder, output_folder, delays_beginning, paths_audio=None, verbose=True):
+def trim_folder(input_folder, output_folder, delays_beginning, paths_audio=None, verbose=1):
     """Trims all sequences in a folder and saves them in an output folder."""
 
     contents = os.listdir(input_folder)
@@ -363,7 +386,7 @@ def trim_folder(input_folder, output_folder, delays_beginning, paths_audio=None,
             i += 1
 
 
-def trim_recursive(input_folder, output_folder, delays_beginning, paths_audio=None, verbose=True):
+def trim_recursive(input_folder, output_folder, delays_beginning, paths_audio=None, verbose=1):
     """Trims all sequences in a recursive fashion, save them using the same folder structure."""
 
     contents = os.listdir(input_folder)
@@ -407,7 +430,7 @@ def trim_recursive(input_folder, output_folder, delays_beginning, paths_audio=No
                     trim_recursive(input_folder + "/" + c, output_folder + "/" + c, db, pa, verbose)
 
 
-def trim_sequences(sequence_or_sequences, delays_beginning, paths_audio=None, verbose=True):
+def trim_sequences(sequence_or_sequences, delays_beginning, paths_audio=None, verbose=1):
     """Realigns sequences and returns them."""
 
     if sequence_or_sequences is Sequence:
@@ -438,6 +461,57 @@ def trim_sequences(sequence_or_sequences, delays_beginning, paths_audio=None, ve
 
     return (output_sequences)
 
+
+def resample_single(input_folder, output_folder, frequency, mode="cubic", verbose=1):
+    """Resamples one sequence and saves it in an output folder."""
+
+    sequence = Sequence(input_folder)
+    new_sequence = sequence.resample(frequency, mode, verbose)
+    save_sequence(sequence, new_sequence, output_folder)
+
+
+def resample_folder(input_folder, output_folder, frequency, mode="cubic", verbose=1):
+    """Resamples all sequences in a folder and saves them in an output folder."""
+
+    contents = os.listdir(input_folder)
+
+    for c in contents:
+        if os.path.isdir(input_folder + "/" + c):
+            print("======= " + c + " =======")
+            if not os.path.exists(output_folder + "/" + c):
+                os.mkdir(output_folder + "/" + c)
+            re_reference_single(input_folder + "/" + c, output_folder + "/" + c, frequency, mode, verbose)
+
+
+def resample_recursive(input_folder, output_folder, frequency, mode, verbose=1):
+    """Resamples all sequences in a recursive fashion, save them using the same folder structure."""
+
+    contents = os.listdir(input_folder)
+
+    for c in contents:
+        if os.path.isdir(input_folder + "/" + c):
+            subcontents = os.listdir(input_folder + "/" + c)
+            for file_name in subcontents:
+                if file_name.endswith('.json'):
+                    print("======= " + input_folder + "/" + c + " =======")
+                    re_reference_single(input_folder + "/" + c, output_folder + "/" + c, frequency, mode, verbose)
+                    break
+            else:
+                re_reference_recursive(input_folder + "/" + c, output_folder + "/" + c, frequency, mode, verbose)
+
+
+def resample_sequences(sequence_or_sequences, frequency, mode, verbose=1):
+    """Resamples sequences and returns them."""
+
+    if sequence_or_sequences is Sequence:
+        sequence_or_sequences = [sequence_or_sequences]
+
+    output_sequences = []
+    for sequence in sequence_or_sequences:
+        output_sequences.append(sequence.re_reference(frequency, mode, verbose))
+
+    return (output_sequences)
+
 def load_sequences_folder(input_folder):
     """Opens sequences contained in a folder."""
     print("Loading sequences...")
@@ -458,7 +532,7 @@ def load_sequences(input_folder, recursive=False):
     for c in content:
         try:
             print("======= " + input_folder + "/" + c + " =======")
-            sequence = Sequence(input_folder + "/" + c)
+            sequence = Sequence(input_folder + "/" + c, name=c)
             sequences.append(sequence)
         except Exception as ex:
             print("The path " + input_folder + "/" + c + " is not a valid sequence.")
@@ -470,6 +544,42 @@ def load_sequences(input_folder, recursive=False):
                 if os.path.isdir(input_folder + "/" + c):
                     sequences += load_sequences(input_folder + "/" + c, True)
 
-    print("Sequences loaded.")
+    print("All the sequences have been loaded.")
 
     return(sequences)
+
+def load_audios_folder(input_folder):
+    """Opens sequences contained in a folder."""
+    print("Loading audios...")
+    return (load_audios(input_folder, False))
+
+
+def load_audios_recursive(input_folder):
+    """Finds and opens sequences recursively from a folder."""
+    print("Loading audios recursively...")
+    return (load_audios(input_folder, True))
+
+
+def load_audios(input_folder, recursive=False):
+
+    content = os.listdir(input_folder)
+    audios = []
+
+    for c in content:
+        try:
+            print("======= " + input_folder + "/" + c + " =======")
+            audio = Audio(input_folder + "/" + c, name=c)
+            audios.append(audio)
+        except Exception as ex:
+            print("The path " + input_folder + "/" + c + " is not a valid sequence.")
+            if hasattr(ex, 'message'):
+                print(ex.message)
+            else:
+                print(ex)
+            if recursive:
+                if os.path.isdir(input_folder + "/" + c):
+                    audios += load_sequences(input_folder + "/" + c, True)
+
+    print("All the sequences have been loaded.")
+
+    return(audios)

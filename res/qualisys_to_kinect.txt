@@ -1,0 +1,14 @@
+Head	HeadTop	HeadFront	HeadRight	HeadLeft
+Neck	Head	SpineShoulder
+ShoulderLeft	ShoulderTopLeft	ShoulderBackLeft
+ShoulderRight	ShoulderTopRight	ShoulderBackRight
+SpineMid	Chest	BackRight	BackLeft
+HipLeft	WaistBackLeft	WaistFrontLeft
+HipRight	WaistBackRight	WaistFrontRight
+SpineBase	HipLeft	HipRight
+WristLeft	WristOutLeft	WristInLeft
+WristRight	WristOutRight	WristInRight
+HandLeft	HandOutLeft	HandInLeft
+HandRight	HandOutRight	HandInRight
+FootLeft	ForefootOutLeft	ForefootInLeft	ToetipLeft	HeelLeft
+FootRight	ForefootOutRight	ForefootInRight	ToetipRight	HeelRight
