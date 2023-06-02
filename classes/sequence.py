@@ -512,7 +512,7 @@ class Sequence(object):
 
     def get_joint_velocity_as_list(self, joint_label):
         """Returns a list of all the velocities (distance travelled over time) for a specified joint."""
-        if joint_label not in self.poses[0].keys():
+        if joint_label not in self.poses[0].joints.keys():
             raise Exception("Invalid joint name: " + str(joint_label) + ".")
 
         values = []

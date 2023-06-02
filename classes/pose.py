@@ -105,7 +105,7 @@ class Pose(object):
 
         joints = []
         for j in self.joints:
-            joint = {"JointType": j.joint_type, "Position": {"X": j.x, "Y": j.y, "Z": j.z}}
+            joint = {"JointType": j, "Position": {"X": self.joints[j].x, "Y": self.joints[j].y, "Z": self.joints[j].z}}
             joints.append(joint)
 
         data["Bodies"][0]["Joints"] = joints

@@ -266,7 +266,6 @@ def interpolate_data(data, time_points_incomplete, time_points_complete, mode="l
     return resampled_data, np_time_points_complete
 
 def get_color_scheme(name):
-    name = name.lower()
 
     colors_dict = {"red": (255, 0, 0, 255), "orange": (255, 102, 0, 255), "gold": (255, 204, 0, 255),
                    "yellow": (255, 255, 0, 255), "green": (153, 204, 0, 255), "teal": (32, 178, 170, 255),
@@ -274,45 +273,70 @@ def get_color_scheme(name):
                    "purple": (138, 43, 226, 255), "white": (255, 255, 255, 255), "black": (0, 0, 0, 255),
                    "lightgrey": (64, 64, 64, 255), "grey": (128, 128, 128, 255), "darkgrey": (192, 192, 192, 255)}
 
-    detect_personalized_gradient = False
+    if type(name) is str:
+        name = name.lower()
 
-    colors = []
+        detect_personalized_gradient = False
 
-    if "_" in name:
-        colors_names = name.split("_")
-        for color in colors_names:
-            color = color.lower()
-            if color in colors_dict.keys():
-                detect_personalized_gradient = True
-                colors.append(colors_dict[color])
+        colors = []
+
+        if "_" in name:
+            colors_names = name.split("_")
+            for color in colors_names:
+                color = color.lower()
+                if color in colors_dict.keys():
+                    detect_personalized_gradient = True
+                    colors.append(colors_dict[color])
+                else:
+                    detect_personalized_gradient = False
+                    break
+
+        if detect_personalized_gradient == False:
+
+            if name in ["simple", "default", "apples"]:
+                colors = [colors_dict["green"], colors_dict["red"]]
+
+            elif name == "celsius":
+                colors = [colors_dict["turquoise"], colors_dict["green"], colors_dict["gold"],
+                          colors_dict["orange"], colors_dict["red"]]
+
+            elif name == "cividis":
+                colors = [(0, 32, 78, 255), (254, 234, 90, 255)]
+
+            elif name == "parula":
+                colors = [(49, 41, 138, 255), (17, 134, 211, 255), (51, 183, 160, 255), (213, 186, 85, 255),
+                          (249, 251, 9, 255)]
+
+            elif name == "viridis":
+                colors = [(66, 1, 86, 255), (57, 87, 140, 255), (32, 146, 140, 255), (96, 202, 96, 255),
+                          (252, 233, 59, 255)]
+
             else:
-                detect_personalized_gradient = False
-                break
+                if name not in ["black_to_white", "black_and_white"]:
+                    print("Invalid color scheme name, returning black to white")
+                colors = [colors_dict["black"], colors_dict["white"]]
 
-    if detect_personalized_gradient == False:
+    elif type(name) is list:
 
-        if name in ["simple", "default", "apples"]:
-            colors = [colors_dict["green"], colors_dict["red"]]
+        colors = ["" for _ in range(len(name))]
 
-        elif name == "celsius":
-            colors = [colors_dict["turquoise"], colors_dict["green"], colors_dict["gold"],
-                      colors_dict["orange"], colors_dict["red"]]
-
-        elif name == "cividis":
-            colors = [(0, 32, 78, 255), (254, 234, 90, 255)]
-
-        elif name == "parula":
-            colors = [(49, 41, 138, 255), (17, 134, 211, 255), (51, 183, 160, 255), (213, 186, 85, 255),
-                      (249, 251, 9, 255)]
-
-        elif name == "viridis":
-            colors = [(66, 1, 86, 255), (57, 87, 140, 255), (32, 146, 140, 255), (96, 202, 96, 255),
-                      (252, 233, 59, 255)]
-
-        else:
-            if name != ["black_to_white", "black_and_white"]:
-                print("Invalid color scheme name, returning black to white")
-            colors = [colors_dict["black"], colors_dict["white"]]
+        for i in range(len(name)):
+            if type(name[i]) is tuple:
+                colors[i] = name[i]
+                if len(name[i]) == 3:
+                    name[i] = [name[i][0], name[i][1], name[i][2], 255]
+                for j in range(len(name[i])):
+                    if name[i][j] < 0 or name[i][j] > 255:
+                        print("Invalid color index, returning black instead")
+                        colors[i] = colors_dict["black"]
+                        break
+            elif type(name[i]) is str:
+                if name[i] not in colors_dict.keys():
+                    print("Invalid color name ("+str(name[i])+"), returning black instead")
+                    colors[i] = colors_dict["black"]
+                else:
+                    print(name[i])
+                    colors[i] = colors_dict[name[i]]
 
     return colors
 

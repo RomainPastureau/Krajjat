@@ -286,6 +286,7 @@ def plot_body_graphs(plot_dictionary, min_scale=None, max_scale=None, show_scale
 
 def plot_silhouette(plot_dictionary, min_scale="auto", max_scale="auto", show_scale=True, name=None,
                     color_scheme="default", resolution=(1600, 900), full_screen=False):
+    print(plot_dictionary)
     pygame.init()
 
     # If the resolution is None, we just create a window the size of the screen
@@ -348,7 +349,8 @@ def plot_silhouette(plot_dictionary, min_scale="auto", max_scale="auto", show_sc
     # Calculating the color of the circles and applying a gradient
     circles = {}
     values_to_plot = {}
-    for joint in joints_positions.keys():
+    #for joint in joints_positions.keys():
+    for joint in plot_dictionary.keys():
         ratio = (plot_dictionary[joint] - min_scale) / (max_scale - min_scale)  # Get the ratio of the max value
         color_in = get_color_ratio(colors, ratio)  # Turn that into a color
         color_edge = (color_in[0], color_in[1], color_in[2], 0)  # Transparent color of the circle edge for the gradient
@@ -389,18 +391,20 @@ def plot_silhouette(plot_dictionary, min_scale="auto", max_scale="auto", show_sc
                 break
 
         for joint in order_for_joints_plotting:
-            window.blit(circles[joint], ((joints_positions[joint][0] - circles_radii[joint]) * ratio_w,
-                                         (joints_positions[joint][1] - circles_radii[joint]) * ratio_h))
+            if joint in plot_dictionary.keys():
+                window.blit(circles[joint], ((joints_positions[joint][0] - circles_radii[joint]) * ratio_w,
+                                             (joints_positions[joint][1] - circles_radii[joint]) * ratio_h))
 
         window.blit(silhouette, (0, 0))
 
         to_blit = []
         for joint in order_for_joints_plotting:
-            if (joints_positions[joint][0] - mouse_sensitivity) * ratio_w < mouse_coord[0] < (
-                    joints_positions[joint][0] + mouse_sensitivity) * ratio_w and (
-                    joints_positions[joint][1] - mouse_sensitivity) * ratio_h < mouse_coord[1] < (
-                    joints_positions[joint][1] + mouse_sensitivity) * ratio_h:
-                to_blit.append(joint)
+            if joint in plot_dictionary.keys():
+                if (joints_positions[joint][0] - mouse_sensitivity) * ratio_w < mouse_coord[0] < (
+                        joints_positions[joint][0] + mouse_sensitivity) * ratio_w and (
+                        joints_positions[joint][1] - mouse_sensitivity) * ratio_h < mouse_coord[1] < (
+                        joints_positions[joint][1] + mouse_sensitivity) * ratio_h:
+                    to_blit.append(joint)
 
         height = 0
         for joint in to_blit:
