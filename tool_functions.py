@@ -1,11 +1,12 @@
+"""Functions to perform simple tasks that can be used throughout the toolbox and beyond."""
 import random
 
 import chardet
 import math
 import os
 import json
-import numpy as np
-from scipy import interpolate
+
+from classes.exceptions import ModuleNotFoundException
 from classes.graph_element import *
 from classes.joint import Joint
 
@@ -18,37 +19,139 @@ UNITS = {"ns": 1000000000, "1ns": 1000000000, "10ns": 100000000, "100ns": 100000
 
 
 # === Folder and path functions ===
-def subfolder_creation(path):
-    """Creates all the folders that don't exist in a path."""
+def find_common_parent_path(paths):
+    """Finds the common root to a series of paths. If the root of the paths is different, the function returns an
+    empty string.
 
-    folders = path.split("/")  # We create a list of all the sub-folders of the path
-    for folder in range(len(folders)):
-        partial_path = ""
-        for i in range(folder + 1):
-            partial_path += folders[i] + "/"
-        if "." in folders[i]:
-            print("Not creating " + partial_path + " as it is not a valid folder.")
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    paths: list(str)
+        The list of paths. If the list contains only one element, this element will be returned by the function.
+
+    Returns
+    -------
+    str
+        The common parent path between the paths passed as parameters.
+
+    Example
+    -------
+    >>> path1 = "C:/Users/Olivia/Documents/Word/Novels/Celsius 233.docx"
+    >>> path2 = "C:/Users/Olivia/Documents/Word/Novels/Arrogance and Preconception.docx"
+    >>> path3 = "C:/Users/Olivia/Documents/Word/Documentation/Krajjat documentation.docx"
+    >>> path4 = "C:/Users/Olivia/Documents/Excel/Results/Results_1.xlsx"
+    >>> path5 = "C:/Users/Olivia/Documents/Excel/Results/Results_2.xlsx"
+    >>> path6 = "C:/Users/Olivia/Documents/Contract.pdf"
+    >>> print(find_common_parent_path([path1, path2, path3, path4, path5, path6]))
+    C:/Users/Olivia/Documents/
+    """
+
+    if len(paths) == 1:
+        return paths[0]
+
+    paths_separated = []
+    min_length = None
+
+    for path in paths:
+        sub_paths = path.split("/")
+        paths_separated.append(sub_paths)
+        if min_length is None:
+            min_length = len(sub_paths)
+        elif len(sub_paths) < min_length:
+            min_length = len(sub_paths)
+
+    common_parent_path = ""
+    add_path = True
+    for i in range(min_length):
+        for j in range(1, len(paths_separated)):
+            if not paths_separated[j - 1][i] == paths_separated[j][i]:
+                add_path = False
+                break
+
+        if add_path:
+            common_parent_path += paths_separated[0][i] + "/"
+
+    return common_parent_path
+
+
+def compute_subpath(path1, path2):
+    """Considering two absolute paths path1 and path2, where one is a parent path of the other, this function
+    returns the subdirectories absent from the other.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    path1: str
+        An absolute path.
+    path2: str
+        An absolute path.
+
+    Returns
+    -------
+    str
+        The subdirectories of one of the two paths that is absent from the other.
+
+    Example
+    -------
+    >>> path1 = "C:/Users/Shawn/"
+    >>> path2 = "C:/Users/Shawn/Music/Coldplay/A Rush of Blood to the Head/"
+    >>> print(compute_subpath(path1, path2))
+    Music/Coldplay/A Rush of Blood to the Head/
+    """
+
+    path1 = path1.split("/")
+    path2 = path2.split("/")
+
+    i = 0
+
+    for i in range(min(len(path1), len(path2))):
+        if path1[i] != path2[i]:
             break
-        if not os.path.exists(partial_path):
-            os.mkdir(partial_path)
-            print("Creating folder: " + partial_path)
+
+    if len(path1) > len(path2):
+        sub_path = "/".join(path1[i:])
+    else:
+        sub_path = "/".join(path2[i:])
+
+    return sub_path
 
 
-def get_difference_paths(sequences):
-    """Returns a list of the subfolders differing between sequences paths.
-    For instance, if the sequence A has a path as 'C:/Sequences/Raw/Subject1/Feb1/Sequence1' and the sequence B has a
-    path as 'C:/Sequences/Resampled/Subject1/Mar1/Sequence1', the function will return the following list:
-    [['Raw', 'Feb1'], ['Original', 'Mar1']]. """
-    paths = []
+def get_difference_paths(paths):
+    """Returns, for each path, a list of the subfolders that are not common with all the other paths.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    paths: list(str)
+        The list of paths.
+
+    Returns
+    -------
+    list(list(str))
+        A list containing a list for each path, which itself contains the subfolders that are not common with the other
+        paths.
+
+    Example
+    -------
+    >>> path1 = "C:/Sequences/Raw/Subject1/Feb1/Sequence1"
+    >>> path2 = "C:/Sequences/Resampled/Subject1/Mar1/Sequence1"
+    >>> get_difference_paths([path1, path2])
+    [['Raw', 'Feb1'], ['Original', 'Mar1']]
+    """
+    paths_splitted = []
     min_len = None
 
-    for sequence in sequences:
-        paths.append(sequence.path.split("/"))
-        l = len(sequence.path.split("/"))
+    for path in paths:
+        path_splitted = path.split("/")
+        paths_splitted.append(path_splitted)
+        length_path = len(path_splitted)
         if min_len is None:
-            min_len = l
-        elif min_len > l:
-            min_len = l
+            min_len = length_path
+        elif min_len > length_path:
+            min_len = length_path
 
     new_paths = [[] for _ in range(len(paths))]
 
@@ -69,9 +172,124 @@ def get_difference_paths(sequences):
     return new_paths
 
 
+def get_objects_paths(list_of_objects):
+    """Returns a list of the attributes ``path`` of the objects passed as parameter (Sequence or Audio instances).
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    list_of_objects: list(Sequence) or list(Audio)
+        A list of Sequence or Audio instances.
+
+    Returns
+    -------
+    list(str)
+        A list of paths.
+    """
+    paths = []
+    for element in list_of_objects:
+        paths.append(element.get_path())
+    return paths
+
+
+def create_subfolders(path, verbose=1):
+    """Creates all the subfolders that do not exist in a path. For example, if the folder ``"C:/Recordings/"`` is empty,
+    and the parameter ``"path"`` is set on ``"C:/Recordings/Subject_01/Session_01/Video_01/"``, the function will
+    successively create the folders ``"C:/Recordings/Subject_01/"``,  ``"C:/Recordings/Subject_01/Session_01/"``, and
+    ``"C:/Recordings/Subject_01/Session_01/Video_01/"``.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    path: str
+        The absolute path to a folder.
+
+    verbose: int, optional
+        Sets how much feedback the code will provide in the console output:
+
+        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+          current steps.
+        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+          may clutter the output and slow down the execution.
+    """
+
+    folders = path.split("/")  # We create a list of all the sub-folders of the path
+    for folder in range(len(folders)):
+        partial_path = ""
+        for i in range(folder + 1):
+            partial_path += folders[i] + "/"
+        if "." in folders[-1]:
+            if verbose > 0:
+                print("Not creating " + partial_path + " as it is not a valid folder.")
+            break
+        if not os.path.exists(partial_path):
+            os.mkdir(partial_path)
+            if verbose > 0:
+                print("Creating folder: " + partial_path)
+
+
+# === Name functions ===
+def get_objects_names(list_of_objects):
+    """Returns a list of the attributes ``name`` of the objects passed as parameter (Sequence or Audio instances).
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    list_of_objects: list(Sequence) or list(Audio)
+        A list of Sequence or Audio instances.
+
+    Returns
+    -------
+    list(str)
+        A list of names.
+    """
+    names = []
+    for element in list_of_objects:
+        names.append(element.path)
+    return names
+
+
+# === Sequences functions ===
 def compute_different_joints(sequence1, sequence2, verbose=False):
-    """Returns the number of joints having different coordinates between two sequences. Can be used to check how
-    many joints have been realigned, for example."""
+    """Returns the number of joints having different coordinates between two sequences having the same amount of poses.
+    This function can be used to check how many joints have been modified by a processing function.
+
+    .. versionadded:: 2.0
+
+    Note
+    ----
+    To discard the rounding errors due to other functions, this function rounds the coordinates to the fifth decimal.
+
+    Parameters
+    ----------
+    sequence1: Sequence
+        A Sequence instance.
+    sequence2: Sequence
+        A Sequence instance.
+    verbose: int, optional
+        Sets how much feedback the code will provide in the console output:
+
+        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+          current steps.
+        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+          may clutter the output and slow down the execution.
+
+    Returns
+    -------
+    int
+        The number of different joints between the two sequences.
+    int
+        The total number of joints in each of the sequences.
+    """
+    if len(sequence1) != len(sequence2):
+        raise Exception("The two sequences do not have the same size (" + str(len(sequence1)) + " and " +
+                        str(len(sequence2)) + ").")
+
     different_joints = 0
     total_joints = 0
 
@@ -106,406 +324,261 @@ def compute_different_joints(sequence1, sequence2, verbose=False):
 
 
 def align_two_sequences(sequence1, sequence2):
-    """Checks if one sequence is a subset of another; if true, returns the index of the two sequences for
-    synchronization"""
+    """Checks if one sequence is a subset of another; if true, the function returns the indices at which the two
+    sequences start synchronizing. Otherwise, it returns ``False``.
 
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    sequence1: Sequence
+        A Sequence instance.
+    sequence2: Sequence
+        A Sequence instance.
+
+    Returns
+    -------
+    list or False
+        If one of the sequences is a subsequence of the other, the function returns a list of two integers,
+        corresponding to the indices of the first and the second sequences where the two sequences synchronize,
+        respectively. Otherwise, this function returns ``False``.
+    """
+
+    indices = None
+
+    # Define longest sequence
+    if len(sequence1) > len(sequence2):
+        longest_sequence = 1
+    else:
+        longest_sequence = 2
+
+    joint_labels_1 = sequence1.get_joints()
+    joint_labels_2 = sequence2.get_joints()
+
+    # If the joints are not the same between the two sequences, we return False.
+    if joint_labels_1 != joint_labels_2:
+        return False
+
+    # We compare for the x coordinate of the first joint
     subsequence1 = []
     for p in range(0, len(sequence1.poses)):
-        subsequence1.append(sequence1.poses[p].joints["ElbowRight"].x)
+        subsequence1.append(sequence1.poses[p].joints[joint_labels_1[0]].x)
 
     subsequence2 = []
     for p in range(0, len(sequence2.poses)):
-        subsequence2.append(sequence2.poses[p].joints["ElbowRight"].x)
+        subsequence2.append(sequence2.poses[p].joints[joint_labels_2[0]].x)
 
-    if len(subsequence1) <= len(subsequence2):
+    if longest_sequence == 2:
         for i in range(0, len(subsequence2) - len(subsequence1)):
             if subsequence1 == subsequence2[i:i + len(subsequence1)]:
-                return [0, i]
+                indices = [0, i]
     else:
         for i in range(0, len(subsequence1) - len(subsequence2)):
             if subsequence2 == subsequence1[i:i + len(subsequence2)]:
-                return [i, 0]
+                indices = [i, 0]
 
-    return False
+    # If we didn't find any subsequence, we return False
+    if indices is None:
+        return False
+
+    # Otherwise, we check for every other coordinate
+    for joint_label in joint_labels_1:
+
+        for coordinate in range(0, 3):
+
+            subsequence1 = []
+            for p in range(0, len(sequence1.poses)):
+                subsequence1.append(sequence1.poses[p].joints[joint_label].position[coordinate])
+            subsequence2 = []
+            for p in range(0, len(sequence2.poses)):
+                subsequence2.append(sequence2.poses[p].joints[joint_label].position[coordinate])
+
+            if longest_sequence == 2:
+                if subsequence1 != subsequence2[indices[1]:indices[1] + len(subsequence1)]:
+                    return False
+            else:
+                if subsequence2 != subsequence1[indices[0]:indices[0] + len(subsequence2)]:
+                    return False
+
+    return indices
 
 
-def get_names(sequences):
-    names = []
-    for sequence in sequences:
-        names.append(sequence.name)
-    return names
-
-
-def get_system_separator():
+# === File reading functions ===
+def get_system_csv_separator():
     """Returns the separator (comma or semicolon) of the regional settings of the system; if it can't access it,
-    returns a comma by default."""
+    returns a comma by default.
+
+    .. versionadded:: 2.0
+
+    Note
+    ----
+    This function detects the local decimal separator, and sets the csv delimiter on a semicolon (";") if the local
+    decimal separator is a comma (","). In any other case, the csv delimiter is set on a comma (","). Note that in
+    specific regions of the world, the result may not be ideal. In that case, you can force the csv delimiter to be
+    the symbol of your choice by writing "csv," or "csv;" when asked for a file extension.
+
+    Returns
+    -------
+    str
+        The character used as separator in csv files on the current system.
+    """
     try:
-        from winreg import ConnectRegistry, OpenKey, QueryValueEx, HKEY_CURRENT_USER
-        a_reg = ConnectRegistry(None, HKEY_CURRENT_USER)
-        a_key = OpenKey(a_reg, r"Control Panel\International")
-        separator = QueryValueEx(a_key, "sList")[0]
-    except:
+        import locale
+        locale.setlocale(locale.LC_ALL, '')
+        dec_pt_chr = locale.localeconv()['decimal_point']
+        if dec_pt_chr == ",":
+            separator = ";"
+        else:
+            separator = ","
+    except OSError:
         print("Impossible to get the regional list separator, using default comma.")
         separator = ","
-    finally:
-        pass
+
     return separator
 
 
 # Constant
-SEPARATOR = get_system_separator()
+SEPARATOR = get_system_csv_separator()
 
 
-def get_filetype_separator(path):
-    if path.split(".")[-1] == "csv":  # Get the separator from local user (to get , or ;)
+def get_filetype_separator(extension):
+    """Returns the separator used in specific text format files (comma, semicolon or tab). For csv, returns the
+    separator used on the current system. For txt or tsv files, returns a tabulation symbol.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    extension: str
+        A file extension (csv, tsv or txt).
+
+    Returns
+    -------
+    str
+         The character used as separator between values in the target file extension.
+    """
+    if extension == "csv":  # Get the separator from local user (to get , or ;)
         separator = SEPARATOR
     else:  # For text or tsv files, tab separator
         separator = "\t"
     return separator
 
 
-def show_percentage(verbose, current_iteration, total_value, next_percentage, step=10):
-    """Shows the percentage of progression if verbose is equal to 1."""
+def read_json(path):
+    """Loads and returns the content of a ``.json`` file.
 
-    if verbose == 1 and current_iteration / total_value > next_percentage / 100:
-        print(str(next_percentage) + "%", end=" ")
-        next_percentage += step
+    .. versionadded:: 2.0
 
-    return next_percentage
+    Parameters
+    ----------
+    path: str
+        The path to a json file.
 
+    Returns
+    -------
+    list or dict
+        The content of the json file.
+    """
 
-def open_json(path):
     f = open(path, "r", encoding="utf-16-le")
     content = f.read()
     f.close()
     return json.loads(content)
 
 
-def open_txt(path):
+def read_text_table(path):
+    """Detects the encoding, loads and returns the content of a ``.csv``, ``.tsv`` or ``.txt`` file containing a table.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    path: str
+        The path to a text file.
+
+    Returns
+    -------
+    list(list)
+        The content of the text file, with each sub-list containing the elements of a row of the file.
+    """
+
     rawdata = open(path, "rb").read()
     encoding = chardet.detect(rawdata)['encoding']
 
     file = open(path, "r", encoding=encoding)
     data = file.read().split("\n")
     file.close()
-    return data
+
+    # If the data is exported from QTM (Qualisys), convert the tsv to manageable data
+    if path.split(".")[-1] == "tsv":
+        if data[0].split("\t")[0] == "NO_OF_FRAMES":
+            return convert_data_from_qtm(data)
+
+    separator = get_filetype_separator(path.split(".")[-1])
+
+    new_data = []
+    for line in data:
+        new_data.append(line.split(separator))
+
+    return new_data
 
 
-def open_xlsx(path):
+def read_xlsx(path):
+    """Loads and returns the content of a ``.xlsx`` (Excel) file.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    path: str
+        The path to an Excel file.
+
+    Returns
+    -------
+    list(list)
+        The content of the Excel file, with each element of the list being a row of the Excel file.
+    """
     import openpyxl as op
     workbook = op.load_workbook(path)
     data = workbook[workbook.sheetnames[0]]
 
-    # Get the labels (timestamp and joint labels) from the first row
-    joints_labels = []
-    for cell in data["1"]:
-        joints_labels.append(str(cell.value))
+    # Get the headers (timestamp and joint labels) from the first row
+    table = []
+    for i in range(1, len(data["A"]) + 1):
+        row = []
+        for j in range(1, len(data["1"]) + 1):
+            row.append(data.cell(i, j).value)
+        table.append(row)
 
-    return data, joints_labels
+    return table
 
 
-def table_to_dict_joints(values):
-    json_joints = []
-    timestamp = None
-
-    for value in values.keys():
-        if value[-2:] == "_X":
-            temp_dict = {}
-            label = value[:-2]
-            temp_dict["JointType"] = label
-            temp_dict["Position"] = {"X": values[label + "_X"], "Y": values[label + "_Y"], "Z": values[label + "_Z"]}
-            json_joints.append(temp_dict)
-        elif value == "Timestamp":
-            timestamp = values["Timestamp"]
-
-    return json_joints, timestamp
-
-
-def table_to_string(table, separator, perc, verbose):
-    data = ""
-
-    for i in range(len(table)):
-        perc = show_percentage(verbose, i, len(table), perc)
-        for j in range(len(table[i])):
-            data += str(table[i][j])
-            if j != len(table[i]) - 1:
-                data += separator
-        if i != len(table) - 1:
-            data += "\n"
-
-    return data
-
-
-def excel_write(workbook_out, sheet_out, data, path, perc, verbose):
-    for i in range(len(data)):
-        perc = show_percentage(verbose, i, len(data), perc)
-        for j in range(len(data[i])):
-            sheet_out.cell(i + 1, j + 1, data[i][j])
-    workbook_out.save(path)
-    return perc
-
-
-def resample_data(data, time_points, frequency, mode="linear"):
-    """Resamples non-uniform data to a uniform time series according to a specific frequency."""
-    np_data = np.array(data)
-    np_time_points = np.array(time_points)
-    interp = interpolate.interp1d(np_time_points, np_data, kind=mode)
-
-    resampled_time_points = np.arange(min(time_points), max(time_points), 1 / frequency)
-    resampled_data = interp(resampled_time_points)
-    return resampled_data, resampled_time_points
-
-
-def interpolate_data(data, time_points_incomplete, time_points_complete, mode="linear"):
-    np_data = np.array(data)
-    np_time_points = np.array(time_points_incomplete)
-    np_time_points_complete = np.array(time_points_complete)
-    interp = interpolate.interp1d(np_time_points, np_data, kind=mode)
-
-    resampled_data = interp(np_time_points_complete)
-    return resampled_data, np_time_points_complete
-
-def get_color_scheme(name):
-
-    colors_dict = {"red": (255, 0, 0, 255), "orange": (255, 102, 0, 255), "gold": (255, 204, 0, 255),
-                   "yellow": (255, 255, 0, 255), "green": (153, 204, 0, 255), "teal": (32, 178, 170, 255),
-                   "turquoise": (64, 224, 208, 255), "blue": (100, 149, 237, 255), "navy": (0, 0, 128, 255),
-                   "purple": (138, 43, 226, 255), "white": (255, 255, 255, 255), "black": (0, 0, 0, 255),
-                   "lightgrey": (64, 64, 64, 255), "grey": (128, 128, 128, 255), "darkgrey": (192, 192, 192, 255)}
-
-    if type(name) is str:
-        name = name.lower()
-
-        detect_personalized_gradient = False
-
-        colors = []
-
-        if "_" in name:
-            colors_names = name.split("_")
-            for color in colors_names:
-                color = color.lower()
-                if color in colors_dict.keys():
-                    detect_personalized_gradient = True
-                    colors.append(colors_dict[color])
-                else:
-                    detect_personalized_gradient = False
-                    break
-
-        if detect_personalized_gradient == False:
-
-            if name in ["simple", "default", "apples"]:
-                colors = [colors_dict["green"], colors_dict["red"]]
-
-            elif name == "celsius":
-                colors = [colors_dict["turquoise"], colors_dict["green"], colors_dict["gold"],
-                          colors_dict["orange"], colors_dict["red"]]
-
-            elif name == "cividis":
-                colors = [(0, 32, 78, 255), (254, 234, 90, 255)]
-
-            elif name == "parula":
-                colors = [(49, 41, 138, 255), (17, 134, 211, 255), (51, 183, 160, 255), (213, 186, 85, 255),
-                          (249, 251, 9, 255)]
-
-            elif name == "viridis":
-                colors = [(66, 1, 86, 255), (57, 87, 140, 255), (32, 146, 140, 255), (96, 202, 96, 255),
-                          (252, 233, 59, 255)]
-
-            else:
-                if name not in ["black_to_white", "black_and_white"]:
-                    print("Invalid color scheme name, returning black to white")
-                colors = [colors_dict["black"], colors_dict["white"]]
-
-    elif type(name) is list:
-
-        colors = ["" for _ in range(len(name))]
-
-        for i in range(len(name)):
-            if type(name[i]) is tuple:
-                colors[i] = name[i]
-                if len(name[i]) == 3:
-                    name[i] = [name[i][0], name[i][1], name[i][2], 255]
-                for j in range(len(name[i])):
-                    if name[i][j] < 0 or name[i][j] > 255:
-                        print("Invalid color index, returning black instead")
-                        colors[i] = colors_dict["black"]
-                        break
-            elif type(name[i]) is str:
-                if name[i] not in colors_dict.keys():
-                    print("Invalid color name ("+str(name[i])+"), returning black instead")
-                    colors[i] = colors_dict["black"]
-                else:
-                    print(name[i])
-                    colors[i] = colors_dict[name[i]]
-
-    return colors
-
-
-def get_color_points_on_gradient(color_scheme, no_points):
-    if type(color_scheme) == str:
-        color_scheme = get_color_scheme(color_scheme)
-
-    colors = []
-    for i in range(no_points + 1):
-        colors.append(get_color_ratio(color_scheme, i / no_points))
-
-    return colors
-
-
-def get_color_ratio(colors, ratio, type="rgb", alpha=True):
-    """Returns the color on a gradient scale in function of a ratio."""
-
-    if 0 < ratio < 1:
-        color_start = colors[int((ratio / (1 / (len(colors) - 1))))]
-        color_end = colors[int((ratio / (1 / (len(colors) - 1)))) + 1]
-    elif ratio >= 1:
-        color_start = colors[-2]
-        color_end = colors[-1]
-        ratio = 1
-    else:
-        color_start = colors[0]
-        color_end = colors[1]
-        ratio = 0
-
-    if int((ratio * (len(colors) - 1))) == 0 or ratio == 1:
-        new_ratio = ratio
-    else:
-        new_ratio = (ratio * (len(colors) - 1)) % int((ratio * (len(colors) - 1)))
-
-    diff_r = color_end[0] - color_start[0]
-    diff_g = color_end[1] - color_start[1]
-    diff_b = color_end[2] - color_start[2]
-    if len(color_start) == 4:
-        diff_a = color_end[3] - color_start[3]
-
-    r = color_start[0] + diff_r * new_ratio
-    g = color_start[1] + diff_g * new_ratio
-    b = color_start[2] + diff_b * new_ratio
-
-    if len(color_start) == 4 and alpha == True:
-        a = color_start[3] + diff_a * new_ratio
-        color = (int(r), int(g), int(b), int(a))
-
-        if type == "rgb":
-            return color
-        elif type == "hex":
-            return '#%02x%02x%02x%02x' % color
-
-    else:
-        color = (int(r), int(g), int(b))
-
-        if type == "rgb":
-            return color
-        elif type == "hex":
-            return '#%02x%02x%02x' % color
-
-
-def get_joints_colors_qty_movement(joints_qty_movement, color_scheme="default"):
-    joints_colors = {}
-
-    # Get the min and max quantities of movement
-    qty_mov = []
-    for j in joints_qty_movement.keys():
-        qty_mov.append(joints_qty_movement[j])
-    min_qty = min(qty_mov)  # Determines min global velocity (green)
-    max_qty = max(qty_mov)  # Determines max global velocity (red)
-
-    colors = get_color_scheme(color_scheme)
-
-    # Apply the colors to all joints
-    for j in joints_qty_movement.keys():
-        ratio = (joints_qty_movement[j] - min_qty) / (max_qty - min_qty)
-        joints_colors[j] = get_color_ratio(colors, ratio, type="hex", alpha=False)
-
-    return joints_colors
-
-
-def get_scaled_audio(audio_array, max_velocity, verbose=1):
-    new_audio_array = []
-
-    if verbose > 0:
-        print("Scaling audio...")
-
-    perc = 10
-
-    max_audio_array = max(audio_array)
-
-    for i in range(len(audio_array)):
-        perc = show_percentage(verbose, i, len(audio_array), perc)
-        new_audio_array.append(audio_array[i] / max_audio_array * max_velocity)
-
-    if verbose > 0:
-        print("100% - Done.")
-
-    return new_audio_array
-
-
-def convert_timestamps(timestamps, images, frequency):
-    number_of_frames = math.ceil(timestamps[-1] * frequency) + 1
-    new_timestamps = []
-    new_images = []
-    t = 0
-    duration = 1 / frequency
-
-    for f in range(number_of_frames):
-        new_timestamps.append(t)
-        possible_times = [abs(i - t) for i in timestamps]
-        index_image = possible_times.index(min(possible_times))
-        new_images.append(images[index_image])
-        t += duration
-
-    return (new_timestamps, new_images)
-
-
-def get_min_max_values(plot_dictionary):
-    min_value = 0
-    max_value = 0
-
-    for key in plot_dictionary.keys():
-        if plot_dictionary[key] is list:
-            for series in plot_dictionary[key]:
-                local_min = min(series.y)
-                local_max = max(series.y)
-                if local_min < min_value:
-                    min_value = local_min
-                if local_max > max_value:
-                    max_value = local_max
-        elif type(plot_dictionary[key]) is Graph:
-            for plot in plot_dictionary[key].plots:
-                local_min = min(plot.y)
-                local_max = max(plot.y)
-                if local_min < min_value:
-                    min_value = local_min
-                if local_max > max_value:
-                    max_value = local_max
-        else:
-            if plot_dictionary[key] < min_value:
-                min_value = plot_dictionary[key]
-            if plot_dictionary[key] > max_value:
-                max_value = plot_dictionary[key]
-
-    return min_value, max_value
-
-
-def get_frequency(time_vector):
-    return (1 / (time_vector[1] - time_vector[0]))
-
-
-def import_joints_conversions():
-    file = open("res/qualisys_joints.txt")
-    content = file.read().split("\n")
-    file.close()
-
-    joints_conversions = {}
-
-    for line in content:
-        elements = line.split("\t")
-        joints_conversions[elements[0]] = elements[1]
-
-    return (joints_conversions)
-
-
+# === Conversion functions ===
 def convert_data_from_qtm(data, verbose=1):
+    """Processes and converts the data from a ``.tsv`` file produced by QTM, by stripping the header data,
+    standardizing the name of the joint labels, and converting the distance unit from mm to m. This function then
+    returns the loaded table.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    data: list(str)
+        The data from a ``.tsv`` QTM file with each line separated as the elements of a list.
+    verbose: int, optional
+        Sets how much feedback the code will provide in the console output:
+
+        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+          current steps.
+        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+          may clutter the output and slow down the execution.
+
+    Returns
+    -------
+    list(list(str))
+        A table containing the QTM data, with each sub-list containing the elements of a row of the file.
+    """
     new_data = []
     save_data = False
 
@@ -516,7 +589,7 @@ def convert_data_from_qtm(data, verbose=1):
     elif verbose > 1:
         print("\t\tStandardizing joints labels...")
 
-    joints_conversions = import_joints_conversions()
+    joints_conversions = load_qualisys_joint_label_conversion()
 
     # First, we find where the data starts
     perc = 10
@@ -552,18 +625,18 @@ def convert_data_from_qtm(data, verbose=1):
 
         if save_data:
 
-            perc = show_percentage(verbose, j, len(data), perc)
-            line = ""
+            perc = show_progression(verbose, i, len(data), perc)
+            line = []
 
             for j in range(1, len(elements)):
 
                 # We keep the timestamp in ms
                 if j == 1:
-                    line = elements[j]
+                    line.append(float(elements[j]))
 
                 # We convert the joints coordinates in m
                 else:
-                    line += "\t" + str(float(elements[j]) / 1000)
+                    line.append(float(elements[j]) / 1000)
 
             if line != "":
                 new_data.append(line)
@@ -571,10 +644,923 @@ def convert_data_from_qtm(data, verbose=1):
     if verbose > 0:
         print("100% - Done.")
 
-    return (new_data)
+    return new_data
+
+
+# === File saving functions ===
+def write_text_table(table, separator, path, verbose=1):
+    """Converts a table to a string, where elements on the same row are separated by a defined separator, and each row
+    is separated by a line break.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    table: list(list)
+        A two-dimensional list where each element is a table row.
+    separator: str
+        The character used to separate elements on the same row.
+    path: str
+        The complete path of the text file to save.
+    verbose: int, optional
+        Sets how much feedback the code will provide in the console output:
+
+        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+          current steps.
+        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+          may clutter the output and slow down the execution.
+
+    Returns
+    -------
+    str
+        The table in string version.
+    """
+
+    text = ""
+    perc = 10
+
+    for i in range(len(table)):
+        perc = show_progression(verbose, i, len(table), perc)
+        for j in range(len(table[i])):
+            text += str(table[i][j])
+            if j != len(table[i]) - 1:
+                text += separator
+        if i != len(table) - 1:
+            text += "\n"
+
+    with open(path, 'w', encoding="utf-16-le") as f:
+        f.write(text)
+
+
+def write_xlsx(table, path, verbose=1):
+    """Saves a table in a ``.xlsx`` file.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    table: list(list)
+        A list where each sublist is a row of the table.
+    path: str
+        The complete path of where to store the Excel file.
+    verbose: int, optional
+        Sets how much feedback the code will provide in the console output:
+
+        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+          current steps.
+        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+          may clutter the output and slow down the execution.
+    """
+    try:
+        import openpyxl as op
+    except ImportError:
+        raise ModuleNotFoundException("scipy", "save a file in .xlsx format.")
+    workbook_out = op.Workbook()
+    sheet_out = workbook_out.active
+
+    perc = 10
+    for i in range(len(table)):
+        perc = show_progression(verbose, i, len(table), perc)
+        for j in range(len(table[i])):
+            sheet_out.cell(i + 1, j + 1, table[i][j])
+    workbook_out.save(path)
+
+
+# === Calculation functions ===
+def resample_data(data, time_points, frequency, mode="linear"):
+    """Resamples non-uniform data to a uniform time series according to a specific frequency, by interpolating the data.
+
+    .. versionadded:: 2.0
+
+    Note
+    ----
+    This function is a wrapper for :func:`interpolate_data`, solely creating a new array of time points from the
+    indicated frequency.
+
+    Important
+    ---------
+    This function is dependent of the module `numpy <https://numpy.org/>`_.
+
+    Parameters
+    ----------
+    data: list(float) or numpy.ndarray(float)
+        A list or an array of values.
+    time_points: list(float) or numpy.ndarray(float)
+        A list or an array of the time points corresponding to the values of the data.
+    frequency: int or float
+        The frequency at which you wish to resample the time series.
+    mode: str, optional
+        The way to interpolate the data. This parameter also allows for all the values accepted for the ``kind``
+        parameter in the function :func:`scipy.interpolate.interp1d`: ``"linear"``, ``"nearest"``, ``"nearest-up"``,
+        ``"zero"``, ``"slinear"``, ``"quadratic"``, ``"cubic"``”, ``"previous"``, and ``"next"``. See the
+        `documentation for this Python module
+        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`_ for more.
+
+    Returns
+    -------
+    numpy.ndarray(float)
+        The resampled values.
+    numpy.ndarray(float)
+        The resampled time points, at a fixed frequency.
+    """
+
+    try:
+        from numpy import arange
+    except ImportError:
+        raise ModuleNotFoundException("numpy", "resample data.")
+
+    step = 1 / frequency
+    resampled_time_points = arange(min(time_points), max(time_points) + step/2, step)
+    if resampled_time_points[-1] > max(time_points):
+        resampled_time_points = resampled_time_points[:-1]
+    return interpolate_data(data, time_points, resampled_time_points, mode)
+
+
+def interpolate_data(data, time_points_data, time_points_interpolation, mode="linear"):
+    """Interpolates incomplete data to a linear array of values.
+
+    .. versionadded:: 2.0
+
+    Important
+    ---------
+    This function is dependent of the modules `numpy <https://numpy.org/>`_ and `scipy <https://scipy.org/>`_.
+
+    Parameters
+    ----------
+    data: list(float) or numpy.ndarray(float)
+        A list or an array of values.
+    time_points_data: list(float) or numpy.ndarray(float)
+        A list or an array of the time points corresponding to the values of the data.
+    time_points_interpolation: list(float) or numpy.ndarray(float)
+        A list or an array of the time points to which interpolate the data.
+    mode: str, optional
+        The way to interpolate the data. This parameter also allows for all the values accepted for the ``kind``
+        parameter in the function :func:`scipy.interpolate.interp1d`: ``"linear"``, ``"nearest"``, ``"nearest-up"``,
+        ``"zero"``, ``"slinear"``, ``"quadratic"``, ``"cubic"``”, ``"previous"``, and ``"next"``. See the
+        `documentation for this Python module
+        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`_ for more.
+
+    Returns
+    -------
+    numpy.ndarray(float)
+        The interpolated values.
+    numpy.ndarray(float)
+        The interpolated time points (same as the parameter ``time_points_interpolation``).
+    """
+
+    if len(data) != len(time_points_data):
+        raise Exception("The length of the data array (" + str(len(data)) + ") is inconsistent with the length of " +
+                        "the time points (" + str(len(time_points_data)) + ").")
+
+    try:
+        from numpy import array
+    except ImportError:
+        raise ModuleNotFoundException("numpy", "interpolate data.")
+
+    try:
+        from scipy import interpolate
+    except ImportError:
+        raise ModuleNotFoundException("numpy", "interpolate data.")
+
+    np_data = array(data)
+    np_time_points = array(time_points_data)
+    np_time_points_complete = array(time_points_interpolation)
+    interp = interpolate.interp1d(np_time_points, np_data, kind=mode)
+
+    resampled_data = interp(np_time_points_complete)
+    return resampled_data, np_time_points_complete
+
+
+def calculate_distance(joint1, joint2):
+    """Uses the Euclidian formula to calculate the distance between two joints. This can be used to calculate
+    the distance travelled by one joint between two poses, or the distance between two joints on the same pose.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    joint1: Joint
+        The first Joint object.
+    joint2: Joint
+        The second Joint object.
+
+    Returns
+    -------
+    float
+        The absolute distance, in meters, between the two joints.
+
+    """
+    x = (joint2.x - joint1.x) ** 2
+    y = (joint2.y - joint1.y) ** 2
+    z = (joint2.z - joint1.z) ** 2
+
+    return math.sqrt(x + y + z)
+
+
+def calculate_velocity(pose1, pose2, joint_label):
+    """Given two poses and a joint label, returns the velocity of the joint, i.e. the distance travelled between the
+    two poses, divided by the time elapsed between the two poses.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    pose1: Pose
+        The first Pose object, at the beginning of the movement.
+    pose2: Pose
+        The second Pose object, at the end of the movement.
+    joint_label: str
+        The label of the joint.
+
+    Returns
+    -------
+    float
+        The velocity of the joint between the two poses, in m/s.
+    """
+
+    # Get the distance travelled by a joint between two poses (meters)
+    dist = calculate_distance(pose1.joints[joint_label], pose2.joints[joint_label])
+
+    # Get the time elapsed between two poses (seconds)
+    delay = calculate_delay(pose1, pose2)
+
+    # Calculate the velocity (meters per seconds)
+    velocity = dist / delay
+
+    return velocity
+
+
+def calculate_acceleration(pose1, pose2, pose3, joint_label):
+    """Given three poses and a joint label, returns the acceleration of the joint, i.e. the difference of velocity
+    between pose 1 and pose 2, and pose 2 and pose 3, over the time elapsed between pose 2 and pose 3.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    pose1: Pose
+        The first Pose object.
+    pose2: Pose
+        The second Pose object.
+    pose3: Pose
+        The third Pose object.
+    joint_label: str
+        The label of the joint.
+
+    Returns
+    -------
+    float
+        The velocity of the joint between the two poses, in m/s.
+    """
+
+    velocity1 = calculate_velocity(pose1, pose2, joint_label)
+    velocity2 = calculate_velocity(pose2, pose3, joint_label)
+
+    acceleration = (velocity2 - velocity1) / calculate_delay(pose2, pose3)
+
+    return acceleration
+
+
+def calculate_delay(pose1, pose2):
+    """Returns the delay between two poses, in seconds.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    pose1: Pose
+        The first Pose object.
+    pose2: Pose
+        The second Pose object.
+
+    Returns
+    -------
+    float
+        The time, in seconds, between the two poses.
+
+    Note
+    ----
+    The time returned by the function is **not** an absolute value. In other words, if ``pose1`` has a higher timestamp
+    than ``pose2``, the returned value will be negative.
+    """
+    time_a = pose1.get_relative_timestamp()
+    time_b = pose2.get_relative_timestamp()
+    return time_b - time_a
+
+
+def generate_random_joints(number_of_joints, x_scale=0.2, y_scale=0.3, z_scale=0.5):
+    """Creates and returns a list of Joint objects with random coordinates. The coordinates are generated following
+    a uniform distribution centered around 0 and with limits defined by ``x_scale``, ``y_scale`` and ``z_scale``.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    number_of_joints: int
+        The number of random joints to generate.
+    x_scale: float
+        The absolute maximum value of the random uniform distribution on the x axis.
+    y_scale: float
+        The absolute maximum value of the random uniform distribution on the y axis.
+    z_scale: float
+        The absolute maximum value of the random uniform distribution on the z axis.
+
+    Returns
+    -------
+    list(Joint)
+        A list of joints with randomized coordinates.
+    """
+    random_joints = []
+    for i in range(number_of_joints):
+        x = random.uniform(-x_scale, x_scale)
+        y = random.uniform(-y_scale, y_scale)
+        z = random.uniform(-z_scale, z_scale)
+        j = Joint(None, x, y, z)
+        random_joints.append(j)
+    return random_joints
+
+
+def divide_in_windows(array, window_size, overlap=0, add_incomplete_window=True):
+    """Given an array of values, divides the array in windows of a size ``window_size``, with or without an overlap.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    array: list(int or float) or np.array(int or float)
+        An array of numerical values.
+    window_size: int
+        The number of array elements in each window.
+    overlap: int
+        The number of array elements overlapping in each window.
+    add_incomplete_window: bool
+        If set on ``True``, the last window will be added even if its size is smaller than ``window_size``. Otherwise,
+        it will be ignored.
+
+    Returns
+    -------
+    list(list(int or float))
+        A list where each element is a window of size ``window_size``.
+    """
+    if overlap >= window_size:
+        raise Exception("The size of the overlap (" + str(overlap) + ") cannot be bigger than or equal to the size " +
+                        "of the window (" + str(window_size) + ").")
+    if overlap > len(array) or window_size > len(array):
+        raise Exception("The size of the window (" + str(window_size) + ") or the overlap (" + str(overlap) + ") " +
+                        "cannot be bigger than the size of the array (" + str(len(array)) + ").")
+
+    window_start = 0
+    windows = []
+
+    while window_start + window_size <= len(array):
+        windows.append(array[window_start:window_start+window_size])
+        window_start += window_size - overlap
+
+    if add_incomplete_window:
+        if array[window_start:]:
+            windows.append(array[window_start:])
+
+    return windows
+
+
+# === Color functions ===
+def load_color_names():
+    """Returns a dictionary containing the 140 lower-case, whitespaces-stripped X11 and HTML/CSS colors as keys (plus 7
+    variations of grey/gray), and a tuple of their 256-level RGBA codes as values. The colors are contained in
+    ``res/color_codes.txt``. The color names follow the `140 HTML/CSS color names
+    <https://en.wikipedia.org/wiki/X11_color_names>`_).
+
+    .. versionadded:: 2.0
+
+    Returns
+    -------
+    dict(str: tuple(int))
+        A dictionary of the color names and their RGBA values.
+    """
+    colors_dict = {}
+    file = open("res/color_codes.txt", "r")
+    content = file.read().split("\n")
+    file.close()
+
+    for line in content:
+        els = line.split("\t")
+        colors_dict[els[0]] = (int(els[1]), int(els[2]), int(els[3]), int(els[4]))
+
+    return colors_dict
+
+
+def load_color_schemes():
+    """Returns a dictionary containing the color gradients saved in ``res/color_gradients.txt``.
+
+    .. versionadded:: 2.0
+
+    Returns
+    -------
+    dict(int: list(tuple(int, int, int, int)))
+        A dictionary with the name of color gradients as keys, and a list of their corresponding RGBA colors as values.
+    """
+    color_schemes = {}
+    colors_dict = load_color_names()
+    file = open("res/color_schemes.txt", "r")
+    content = file.read().split("\n")
+    file.close()
+
+    for line in content:
+        elements = line.split("\t")
+        colors = []
+        for e in range(1, len(elements)):
+            if elements[e][0] == "(":
+                colors_string = elements[e][1:-1].split(",")
+                color = []
+                for c in colors_string:
+                    color.append(int(c))
+                colors.append(tuple(color))
+            elif elements[e][0] == "#":
+                if len(elements[e]) == 7:
+                    color = list(int(elements[e][i:i + 2], 16) for i in (1, 3, 5))
+                    color.append(255)
+                else:
+                    color = list(int(elements[e][i:i + 2], 16) for i in (1, 3, 5, 7))
+                colors.append(tuple(color))
+            else:
+                colors.append(colors_dict[elements[e]])
+
+        color_schemes[elements[0]] = colors
+
+    return color_schemes
+
+
+def convert_colors_rgba(color_scheme_or_colors):
+    """Returns a list of RGBA values of colors matching a color scheme or specific color names.
+
+    Parameters
+    ----------
+    color_scheme_or_colors: str or list(str)
+        This parameter can take a number of forms:
+
+        • **The name of a color scheme:** a string matching one of the color gradients available in
+          :doc:`color_schemes`.
+        • **A list of colors:** a list containing colors, either using:
+
+            • Their `HTML/CSS names <https://en.wikipedia.org/wiki/X11_color_names>`_ (e.g. ``"red"`` or
+              ``"blanched almond"``),
+            • Their hexadecimal code, starting with a number sign (``#``, e.g. ``"#ffcc00"`` or ``"#c0ffee"``).
+            • Their RGB or RGBA tuples (e.g. ``(153, 204, 0)`` or ``(77, 77, 77, 255)``).
+
+          These different codes can be used concurrently, e.g. ``["red", (14, 18, 32), "#a1b2c3"]``.
+
+    Returns
+    -------
+    list(tuple(int, int, int, int))
+        A list of RGBA colors.
+
+    """
+    colors_dict = load_color_names()
+
+    colors = []
+
+    if type(color_scheme_or_colors) is str:
+
+        color_schemes = load_color_schemes()
+
+        if color_scheme_or_colors in color_schemes.keys():
+            colors = color_schemes[color_scheme_or_colors]
+
+        else:
+            print("Invalid color scheme name, returning default scheme")
+            colors = color_schemes["default"]
+
+    elif type(color_scheme_or_colors) is list:
+
+        colors = [(0, 0, 0, 0) for _ in range(len(color_scheme_or_colors))]
+
+        for i in range(len(color_scheme_or_colors)):
+
+            # Color: tuple
+            if type(color_scheme_or_colors[i]) is tuple:
+                if len(color_scheme_or_colors[i]) == 3:
+                    color_scheme_or_colors[i] = tuple([color_scheme_or_colors[i][0],
+                                                       color_scheme_or_colors[i][1],
+                                                       color_scheme_or_colors[i][2], 255])
+                colors[i] = color_scheme_or_colors[i]
+
+                for j in range(len(color_scheme_or_colors[i])):
+                    if color_scheme_or_colors[i][j] < 0 or color_scheme_or_colors[i][j] > 255:
+                        print("Invalid color index, returning black instead")
+                        colors[i] = colors_dict["black"]
+                        break
+
+            # Color: string
+            elif type(color_scheme_or_colors[i]) is str:
+                if color_scheme_or_colors[i][0] == "#":
+                    if len(color_scheme_or_colors[i]) == 7:
+                        color = list(int(color_scheme_or_colors[i][i:i + 2], 16) for i in (1, 3, 5))
+                        color.append(255)
+                    else:
+                        color = tuple(int(color_scheme_or_colors[i], 16) for i in (1, 3, 5, 7))
+                    colors[i] = tuple(color)
+
+                elif color_scheme_or_colors[i] not in colors_dict.keys():
+                    print("Invalid color name (" + str(color_scheme_or_colors[i]) + "), returning black instead")
+                    colors[i] = colors_dict["black"]
+
+                else:
+                    colors[i] = colors_dict[color_scheme_or_colors[i]]
+
+    return colors
+
+
+def hex_color_to_rgb(color, include_alpha=False):
+    """Converts a color from its hexadecimal value to its RGB or RGBA value.
+
+    Parameters
+    ----------
+    color: str
+        The hexadecimal value of a color, with or without a leading number sign (``"#"``).
+    include_alpha: bool, optional
+        If ``True``, returns the RBG color with an alpha value. If an alpha value is not present in the hexadecimal
+        value, the alpha channel will be set to 255.
+
+    Returns
+    -------
+    tuple(int, int, int) or tuple(int, int, int, int)
+        A RGB or RGBA value.
+    """
+    if color[0] == "#":
+        expected_length = 7
+    else:
+        expected_length = 6
+
+    if len(color) == expected_length:
+        rgba_color = list(int(color[i][i:i + 2], 16) for i in (1, 3, 5))
+        if include_alpha:
+            rgba_color.append(255)
+        rgba_color = tuple(rgba_color)
+    elif len(color) == expected_length + 2:
+        rgba_color = tuple(int(color[i][i:i + 2], 16) for i in (1, 3, 5, 7))
+        if not include_alpha:
+            rgba_color = rgba_color[0:3]
+    else:
+        raise Exception("Invalid color name.")
+
+    return rgba_color
+
+
+def rgb_color_to_hex(color, include_alpha=False):
+    """Converts a color from its RGB or RGBA value to its hexadecimal value.
+
+    Parameters
+    ----------
+    color: tuple(int, int, int) or tuple(int, int, int, int)
+        The RGB or RGBA value of a color.
+    include_alpha: bool, optional
+        If ``True``, returns the hexadecimal color with an alpha value. If an alpha value is not present in the
+        RGB value, the alpha channel will be set to ff.
+
+    Returns
+    -------
+    str
+        A hexadecimal value, with a leading number sign (``"#"``).
+    """
+    for i in range(len(color)):
+        if color[i] < 0 or color[i] > 255:
+            raise Exception("Invalid color index.")
+
+    if len(color) == 3:
+        if include_alpha:
+            return '#%02x%02x%02xff' % color
+        else:
+            return '#%02x%02x%02x' % color
+
+    elif len(color) == 4:
+        if include_alpha:
+            return '#%02x%02x%02x%02x' % color
+        else:
+            color = color[0:3]
+            return '#%02x%02x%02x' % color
+
+    else:
+        raise Exception("Invalid number of arguments in the color.")
+
+
+def calculate_color_points_on_gradient(color_scheme, no_points):
+    """Given a color scheme and a number of points, creates a list of equidistant colors to create a gradient.
+
+    Parameters
+    ----------
+    color_scheme: str or list(tuple(int, int, int, int))
+        The name of a color scheme (see :doc:`color_schemes` for the available schemes), or a list of RGBA color
+        tuples.
+    no_points: int
+        The number of colors to get on the gradient.
+
+    Returns
+    -------
+    list(tuple(int, int, int, int))
+        A list of colors in a progressive gradient following the colors of the color scheme.
+    """
+    color_scheme = convert_colors_rgba(color_scheme)
+
+    colors = []
+    for i in range(no_points + 1):
+        colors.append(calculate_color_ratio(color_scheme, i / no_points))
+
+    return colors
+
+
+def calculate_color_ratio(colors, ratio, type_return="rgb", include_alpha=True):
+    """Given a gradient of colors, returns a color located at a specific ratio on the gradient.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    colors: list(tuple(int, int, int)) or list(tuple(int, int, int, int))
+        A list of RGB or RGBA color tuples.
+    ratio: float
+        The ratio of the color, between 0 and 1, on the gradient. If this parameter is equal to or inferior to 0, the
+        function will return the first color of the ``colors`` parameter. If the ratio is equal or superior to 1, the
+        function will return the last color of the ``colors`` parameter.
+    type_return: str, optional
+        The way the color should be returned. If set on ``"rgb"`` (default) or ``"rgba"``, the color will be returned
+        as a tuple of integers. If set on ``"hex"``, the color will be returned as a string containing hexadecimal
+        values, with a number sign (``#``) as a leading character.
+    include_alpha: bool, optional
+        If ``True``, returns the hexadecimal color with an alpha value. If an alpha value is not present in the
+        RGB value, the alpha channel will be set to 255.
+
+    Returns
+    -------
+    list(tuple(int, int, int)) or list(tuple(int, int, int, int)) or str
+        A color in RGB, RGBA or hex form.
+    """
+
+    if 0 < ratio < 1:
+        color_start = colors[int((ratio / (1 / (len(colors) - 1))))]
+        color_end = colors[int((ratio / (1 / (len(colors) - 1)))) + 1]
+    elif ratio >= 1:
+        color_start = colors[-2]
+        color_end = colors[-1]
+        ratio = 1
+    else:
+        color_start = colors[0]
+        color_end = colors[1]
+        ratio = 0
+
+    if int((ratio * (len(colors) - 1))) == 0 or ratio == 1:
+        new_ratio = ratio
+    else:
+        new_ratio = (ratio * (len(colors) - 1)) % int((ratio * (len(colors) - 1)))
+
+    diff_r = color_end[0] - color_start[0]
+    diff_g = color_end[1] - color_start[1]
+    diff_b = color_end[2] - color_start[2]
+    if len(color_start) == 4:
+        diff_a = color_end[3] - color_start[3]
+    else:
+        diff_a = 0
+
+    r = color_start[0] + diff_r * new_ratio
+    g = color_start[1] + diff_g * new_ratio
+    b = color_start[2] + diff_b * new_ratio
+
+    if len(color_start) == 4 and include_alpha:
+        a = color_start[3] + diff_a * new_ratio
+        color = (int(r), int(g), int(b), int(a))
+
+    else:
+        color = (int(r), int(g), int(b))
+
+    if type_return in ["rgb", "rgba"]:
+        return color
+    elif type_return == "hex":
+        return rgb_color_to_hex(color, include_alpha)
+
+
+def calculate_colors_by_values(dict_values, color_scheme="default", type_return="rgb", include_alpha=True):
+    """Returns a dictionary of colors on a gradient depending on the values of a dictionary. The extreme colors of the
+    color scheme will be attributed to the extreme values of the dictionary; all the intermediate values are
+    attributed their corresponding intermediate color on the gradient.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    dict_values: dict(str: float or int)
+        A dictionary where keys (e.g., joint labels) are attributed to values (floats or integers).
+    color_scheme: str or list
+        A color scheme or a list of colors that can be parsed by the function
+        :func:`tool_functions.convert_colors_rgba`.
+    type_return: str, optional
+        The way the color should be returned. If set on ``"rgb"`` (default) or ``"rgba"``, the color will be returned
+        as a tuple of integers. If set on ``"hex"``, the color will be returned as a string containing hexadecimal
+        values, with a number sign (``#``) as a leading character.
+    include_alpha: bool, optional
+        If ``True``, returns the hexadecimal color with an alpha value. If an alpha value is not present in the
+        RGB value, the alpha channel will be set to 255.
+
+    Returns
+    -------
+    dict(str: tuple(int, int, int, int))
+        A dictionary where each key is matched to an RGBA color.
+    """
+    keys_colors = {}
+
+    # Get the min and max quantities of movement
+    values = []
+    for j in dict_values.keys():
+        values.append(dict_values[j])
+    min_value = min(values)  # Determines min global velocity (green)
+    max_value = max(values)  # Determines max global velocity (red)
+
+    colors = convert_colors_rgba(color_scheme)
+
+    # Apply the colors to all joints
+    for j in dict_values.keys():
+        ratio = (dict_values[j] - min_value) / (max_value - min_value)
+        keys_colors[j] = calculate_color_ratio(colors, ratio, type_return, include_alpha)
+
+    return keys_colors
+
+
+# === Audio functions ===
+def scale_audio(audio_array, max_value, verbose=1):
+    """Scale an array of audio samples according to a maximum value.
+
+    .. versionadded::2.0
+
+    Parameters
+    ----------
+    audio_array: list(int or float) or numpy.array(int or float)
+        An array of audio samples.
+    max_value: int or float
+        The value that will become the maximum value of the scaled array.
+    verbose: int, optional
+        Sets how much feedback the code will provide in the console output:
+
+        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+          current steps.
+        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+          may clutter the output and slow down the execution.
+
+    Returns
+    -------
+    list(float)
+        An array of scaled audio samples.
+    """
+    new_audio_array = []
+
+    if verbose > 0:
+        print("Scaling audio...")
+
+    perc = 10
+
+    max_audio_array = max(audio_array)
+
+    for i in range(len(audio_array)):
+        perc = show_progression(verbose, i, len(audio_array), perc)
+        new_audio_array.append(audio_array[i] / max_audio_array * max_value)
+
+    if verbose > 0:
+        print("100% - Done.")
+
+    return new_audio_array
+
+
+def stereo_to_mono(audio_arrays, verbose=1):
+    """Turns the sample data into mono by averaging the samples from the audio channels.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    audio_arrays: numpy.ndarray
+        An array containing sub-lists with the sample values from all the channels as elements. Typically, the output
+        of `scipy.io.wavfile.read <https://docs.scipy.org/doc/scipy/reference/generated/scipy.io.wavfile.read.html>`_.
+    verbose: int, optional
+        Sets how much feedback the code will provide in the console output:
+
+        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+          current steps.
+        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+          may clutter the output and slow down the execution.
+
+    Returns
+    -------
+    list(float)
+        A list containing the samples averaged across all channels.
+    """
+
+    if verbose > 0:
+        print("\n\tConverting audio samples from stereo to mono...", end=" ")
+
+    new_audio_array = []
+    perc = 10
+
+    for element in range(len(audio_arrays)):
+        perc = show_progression(verbose, element, len(audio_arrays), perc)
+        new_audio_array.append(sum(audio_arrays[element]) // len(audio_arrays[element]))
+
+    if verbose > 0:
+        print("100% - Done.")
+
+    return new_audio_array
+
+
+# === Joint labels functions ===
+def load_kinect_joint_labels():
+    """Loads the list of the 21 kinect joint labels from ``res/kinect_joints.txt``.
+
+    .. versionadded:: 2.0
+
+    Returns
+    -------
+    list(str)
+        The list of the Kinect joint labels.
+    """
+    file = open("res/kinect_joints.txt")
+    joint_labels = file.read().split("\n")
+    return joint_labels
+
+
+def load_qualisys_joint_labels(label_style="original"):
+    """Loads the list of the 44 Qualisys joint labels from ``res/qualisys_joints.txt``.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    label_style: str, optional
+        If set on ``"original"``, the returned joint labels are the original ones from the Qualisys system. If set
+        on ``"krajjat"`` or ``"kualisys"``, the returned joint labels are the renamed Kualisys joint labels from the
+        Krajjat toolbox. For more information, see :doc:`joint_labels`.
+
+    Returns
+    -------
+    list(str)
+        The list of the Qualisys joint labels.
+    """
+    file = open("res/qualisys_joints.txt")
+    joint_labels = file.read().split("\n")
+
+    joint_labels_original = []
+    joint_labels_krajjat = []
+
+    for line in joint_labels:
+        elements = line.split("\t")
+        joint_labels_original.append(elements[0])
+        joint_labels_krajjat.append(elements[1])
+
+    if label_style == "original":
+        return joint_labels_original
+    elif label_style == "replaced":
+        return joint_labels_krajjat
+
+
+def load_qualisys_joint_label_conversion():
+    """Returns a dictionary containing the original Qualisys joint labels as keys, and the renamed Kualisys joints
+    labels as values. The dictionary is loaded from ``res/qualisys_joints.txt``. For more information, see
+    :doc:`joint_labels`.
+
+    .. versionadded:: 2.0
+
+    Returns
+    -------
+    dict(str: str)
+        A dictionary with the original Qualisys joint labels as keys, and the Kualisys renamed joint labels as values.
+    """
+    file = open("res/qualisys_joints.txt")
+    content = file.read().split("\n")
+    file.close()
+
+    joints_conversions = {}
+
+    for line in content:
+        elements = line.split("\t")
+        joints_conversions[elements[0]] = elements[1]
+
+    return joints_conversions
 
 
 def load_joints_connections(path):
+    """Returns a list of joint pairs between which a line can be traced to form a skeleton.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    path: str
+        The path to a file containing joint label pairs separated by a tabulation on each line.
+
+    Returns
+    -------
+    list(list(str))
+        A list of sub-lists, each containing two elements (two joint labels).
+    """
     file = open("res/" + path)
     content = file.read().split("\n")
     connections = []
@@ -586,6 +1572,17 @@ def load_joints_connections(path):
 
 
 def load_qualisys_to_kinect():
+    """Loads a dictionary containing Kinect joint labels as keys, and a series of Kualisys joint labels as values.
+    The Kinect joints can be averaged from the joints in values. The dictionary is loaded from
+    ``res/qualisys_to_kinect.txt``. For more information, see :doc:`joint_labels`.
+
+    .. versionadded:: 2.0
+
+    Returns
+    -------
+    dict(str: list(str))
+        A dictionary of Kinect joint labels as keys, and a series of Kualisys joint labels as values.
+    """
     file = open("res/qualisys_to_kinect.txt")
     content = file.read().split("\n")
     connections = {}
@@ -597,35 +1594,27 @@ def load_qualisys_to_kinect():
     return connections
 
 
-def load_kinect_joints():
-    file = open("res/kinect_joints.txt")
-    content = file.read().split("\n")
-    return content
+def load_joints_subplot_layout(joint_layout):
+    """Returns a dictionary of the subplot positions of the joints on a skeleton graph. Loads the data from
+    ``"res/joints_subplot_layout_kinect.txt"`` or ``"res/joints_subplot_layout_qualisys.txt"``.
 
+    .. versionadded:: 2.0
 
-def generate_random_joints(number_of_joints):
-    """Creates uniform, random positions for the joints"""
-    random_joints = []
-    for i in range(number_of_joints):
-        x = random.uniform(-0.2, 0.2)
-        y = random.uniform(-0.3, 0.3)
-        z = random.uniform(-0.5, 0.5)
-        j = Joint(None, x, y, z)
-        random_joints.append(j)
-    return random_joints
+    Parameters
+    ----------
+    joint_layout: str
+        The layout to load, either ``"kinect"`` or ``"qualisys"``.
 
+    Returns
+    -------
+    dict(str: int)
+        A dictionary containing joint labels as keys, and subplot positions as values.
+    """
 
-def load_joints_positions(plot_dictionary, joint_layout="auto"):
-    if joint_layout == "auto":
-        if "Chest" in plot_dictionary.keys():
-            joint_layout = "qualisys"
-        else:
-            joint_layout = "kinect"
-
-    if joint_layout == "kinect":
-        file = open("res/joints_positions_kinect.txt")
-    elif joint_layout == "qualisys":
-        file = open("res/joints_positions_qualisys.txt")
+    if joint_layout.lower() == "kinect":
+        file = open("res/joints_subplot_layout_kinect.txt")
+    elif joint_layout.lower() == "qualisys":
+        file = open("res/joints_subplot_layout_qualisys.txt")
     else:
         raise Exception("Wrong layout argument: should be 'kinect' or 'qualisys'.")
 
@@ -639,32 +1628,129 @@ def load_joints_positions(plot_dictionary, joint_layout="auto"):
     return joints_positions, joint_layout
 
 
-def calculate_velocity(pose1, pose2, joint):
+# === Miscellaneous functions ===
+def show_progression(verbose, current_iteration, goal, next_percentage, step=10):
+    """Shows a percentage of progression if verbose is equal to 1.
 
-    # Get the distance travelled by a joint between two poses (meters)
-    dist = calculate_distance(pose1.joints[joint], pose2.joints[joint])
+    .. versionadded:: 2.0
 
-    # Get the time elapsed between two poses (seconds)
-    delay = calculate_delay(pose1, pose2)
+    Parameters
+    ----------
+    verbose: int
+        This parameter must be equal to 1 for the function to print information. If the value is set on 2 (chatty mode),
+        the percentage will not be displayed, in favour of more detailed information related to the ongoing operations.
+    current_iteration: int or float
+        The current iteration in a loop.
+    goal: int or float
+        The stopping value of the loop.
+    next_percentage: int or float
+        The next percentage at which to print the progression.
+    step: int or float, optional
+        The step between each print of the progression.
 
-    # Calculate the velocity (meters per seconds)
-    velocity = dist / delay
+    Returns
+    -------
+    int or float
+        The next percentage at which to print the progression.
 
-    return velocity
+    Example
+    -------
+    >>> next_percentage = 10
+    >>> goal = 100
+    >>> for i in range(goal):
+    ...       next_percentage = show_progression(1, i, goal, next_percentage)
+    10% 20̀% 30% 40% 50% 60% 70% 80M 90%
+    """
+
+    if verbose == 1:
+        while current_iteration / goal > next_percentage / 100:
+            print(str(next_percentage) + "%", end=" ")
+            next_percentage += step
+
+    return next_percentage
 
 
-def calculate_distance(joint1, joint2):
-    """Uses the Euclidian formula to calculate the distance between two joints. This can be used to calculate
-    the distance travelled by one joint between two poses, or the distance between two joints on the same pose."""
-    x = (joint2.x - joint1.x) ** 2
-    y = (joint2.y - joint1.y) ** 2
-    z = (joint2.z - joint1.z) ** 2
+def resample_images_to_frequency(images_paths, timestamps, frequency):
+    """Given a series of images with specific timestamps, returns a new series of images and timestamps, resampled at
+    a given frequency. For example, for images with timestamps at a rate of 20 Hz, and with a frequency set on 100 Hz,
+    each image path will be copied 5 times with 5 different timestamps in the output. This can be used to obtain a
+    video set at a defined framerate, regardless of the original frequency.
 
-    return math.sqrt(x + y + z)
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    images_paths: list(str)
+        A list of images paths.
+    timestamps: list(float)
+        A list of timestamps for each image path.
+    frequency: int or float
+        The frequency at which to resample the images (images per second).
+
+    Returns
+    -------
+    list(str)
+        A list of images paths.
+    list(float)
+        A list of timestamps.
+    """
+    number_of_frames = math.ceil(timestamps[-1] * frequency) + 1
+    new_timestamps = []
+    new_images = []
+    t = 0
+    duration = 1 / frequency
+
+    for f in range(number_of_frames):
+        new_timestamps.append(t)
+        possible_times = [abs(i - t) for i in timestamps]
+        index_image = possible_times.index(min(possible_times))
+        new_images.append(images_paths[index_image])
+        t += duration
+
+    return new_images, new_timestamps
 
 
-def calculate_delay(pose1, pose2):
-    """Returns the delay between two poses, in seconds."""
-    time_a = pose1.get_relative_timestamp()
-    time_b = pose2.get_relative_timestamp()
-    return time_b - time_a
+def get_min_max_values_from_plot_dictionary(plot_dictionary):
+    """Returns the minimum and maximum values of all the graphs contained in a plot dictionary.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    plot_dictionary: dict
+        A dictionary with labels as keys and Graph elements as values.
+
+    Returns
+    -------
+    float
+        The minimum value detected in all the series.
+    float
+        The maximum value detected in all the series.
+    """
+    min_value = 0
+    max_value = 0
+
+    for key in plot_dictionary.keys():
+        if plot_dictionary[key] is list:
+            for series in plot_dictionary[key]:
+                local_min = min(series.y)
+                local_max = max(series.y)
+                if local_min < min_value:
+                    min_value = local_min
+                if local_max > max_value:
+                    max_value = local_max
+        elif type(plot_dictionary[key]) is Graph:
+            for plot in plot_dictionary[key].plots:
+                local_min = min(plot.y)
+                local_max = max(plot.y)
+                if local_min < min_value:
+                    min_value = local_min
+                if local_max > max_value:
+                    max_value = local_max
+        else:
+            if plot_dictionary[key] < min_value:
+                min_value = plot_dictionary[key]
+            if plot_dictionary[key] > max_value:
+                max_value = plot_dictionary[key]
+
+    return min_value, max_value

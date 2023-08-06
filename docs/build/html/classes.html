@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Classes &mdash; krajjat 1.99.3 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Sequence" href="sequence.html" />
+    <link rel="prev" title="Compatible files" href="input.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #99CC00" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            krajjat
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="general.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Classes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="sequence.html">Sequence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pose.html">Pose</a></li>
+<li class="toctree-l2"><a class="reference internal" href="joint.html">Joint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="audio.html">Audio</a></li>
+<li class="toctree-l2"><a class="reference internal" href="graphic_classes.html">Graphic classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="graph_element.html">Graph Elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html">Exceptions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="functions.html">Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix.html">Appendix</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #99CC00" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">krajjat</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Classes</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/classes.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="classes">
+<h1>Classes<a class="headerlink" href="#classes" title="Permalink to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="sequence.html">Sequence</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="sequence.html#description">Description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sequence.html#initialisation">Initialisation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="sequence.html#classes.sequence.Sequence"><code class="docutils literal notranslate"><span class="pre">Sequence</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.path"><code class="docutils literal notranslate"><span class="pre">Sequence.path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.path_audio"><code class="docutils literal notranslate"><span class="pre">Sequence.path_audio</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.name"><code class="docutils literal notranslate"><span class="pre">Sequence.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.files"><code class="docutils literal notranslate"><span class="pre">Sequence.files</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.poses"><code class="docutils literal notranslate"><span class="pre">Sequence.poses</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.randomized"><code class="docutils literal notranslate"><span class="pre">Sequence.randomized</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.date_recording"><code class="docutils literal notranslate"><span class="pre">Sequence.date_recording</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="sequence.html#magic-methods">Magic methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.__len__"><code class="docutils literal notranslate"><span class="pre">__len__</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.__getitem__"><code class="docutils literal notranslate"><span class="pre">__getitem__</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.__repr__"><code class="docutils literal notranslate"><span class="pre">__repr__</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="sequence.html#public-methods">Public methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="sequence.html#setter-functions">Setter functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.set_name"><code class="docutils literal notranslate"><span class="pre">Sequence.set_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.set_path_audio"><code class="docutils literal notranslate"><span class="pre">Sequence.set_path_audio()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.set_first_timestamp"><code class="docutils literal notranslate"><span class="pre">Sequence.set_first_timestamp()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="sequence.html#getter-functions">Getter functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_path"><code class="docutils literal notranslate"><span class="pre">Sequence.get_path()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_name"><code class="docutils literal notranslate"><span class="pre">Sequence.get_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_poses"><code class="docutils literal notranslate"><span class="pre">Sequence.get_poses()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_pose"><code class="docutils literal notranslate"><span class="pre">Sequence.get_pose()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_number_of_poses"><code class="docutils literal notranslate"><span class="pre">Sequence.get_number_of_poses()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_joint_labels"><code class="docutils literal notranslate"><span class="pre">Sequence.get_joint_labels()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_date_recording"><code class="docutils literal notranslate"><span class="pre">Sequence.get_date_recording()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_printable_date_recording"><code class="docutils literal notranslate"><span class="pre">Sequence.get_printable_date_recording()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_timestamps"><code class="docutils literal notranslate"><span class="pre">Sequence.get_timestamps()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_time_between_two_poses"><code class="docutils literal notranslate"><span class="pre">Sequence.get_time_between_two_poses()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_duration"><code class="docutils literal notranslate"><span class="pre">Sequence.get_duration()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_framerates"><code class="docutils literal notranslate"><span class="pre">Sequence.get_framerates()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_framerate"><code class="docutils literal notranslate"><span class="pre">Sequence.get_framerate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_average_framerate"><code class="docutils literal notranslate"><span class="pre">Sequence.get_average_framerate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_min_framerate"><code class="docutils literal notranslate"><span class="pre">Sequence.get_min_framerate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_max_framerate"><code class="docutils literal notranslate"><span class="pre">Sequence.get_max_framerate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_joint_coordinate_as_list"><code class="docutils literal notranslate"><span class="pre">Sequence.get_joint_coordinate_as_list()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_joint_velocity_as_list"><code class="docutils literal notranslate"><span class="pre">Sequence.get_joint_velocity_as_list()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_velocities"><code class="docutils literal notranslate"><span class="pre">Sequence.get_velocities()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_max_velocity_whole_sequence"><code class="docutils literal notranslate"><span class="pre">Sequence.get_max_velocity_whole_sequence()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_max_velocity_single_joint"><code class="docutils literal notranslate"><span class="pre">Sequence.get_max_velocity_single_joint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_max_velocity_per_joint"><code class="docutils literal notranslate"><span class="pre">Sequence.get_max_velocity_per_joint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_total_velocity_whole_sequence"><code class="docutils literal notranslate"><span class="pre">Sequence.get_total_velocity_whole_sequence()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_total_velocity_single_joint"><code class="docutils literal notranslate"><span class="pre">Sequence.get_total_velocity_single_joint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_total_velocity_per_joint"><code class="docutils literal notranslate"><span class="pre">Sequence.get_total_velocity_per_joint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_subject_height"><code class="docutils literal notranslate"><span class="pre">Sequence.get_subject_height()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_subject_arm_length"><code class="docutils literal notranslate"><span class="pre">Sequence.get_subject_arm_length()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_stats"><code class="docutils literal notranslate"><span class="pre">Sequence.get_stats()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="sequence.html#correction-functions">Correction functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.correct_jitter"><code class="docutils literal notranslate"><span class="pre">Sequence.correct_jitter()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.re_reference"><code class="docutils literal notranslate"><span class="pre">Sequence.re_reference()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.trim"><code class="docutils literal notranslate"><span class="pre">Sequence.trim()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.trim_to_audio"><code class="docutils literal notranslate"><span class="pre">Sequence.trim_to_audio()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.resample"><code class="docutils literal notranslate"><span class="pre">Sequence.resample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.correct_zeros"><code class="docutils literal notranslate"><span class="pre">Sequence.correct_zeros()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.randomize"><code class="docutils literal notranslate"><span class="pre">Sequence.randomize()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="sequence.html#copy-functions">Copy functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.copy_pose"><code class="docutils literal notranslate"><span class="pre">Sequence.copy_pose()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.copy_joint"><code class="docutils literal notranslate"><span class="pre">Sequence.copy_joint()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="sequence.html#print-functions">Print functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.print_pose"><code class="docutils literal notranslate"><span class="pre">Sequence.print_pose()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.print_stats"><code class="docutils literal notranslate"><span class="pre">Sequence.print_stats()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="sequence.html#conversion-functions">Conversion functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.convert_to_table"><code class="docutils literal notranslate"><span class="pre">Sequence.convert_to_table()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.convert_to_json"><code class="docutils literal notranslate"><span class="pre">Sequence.convert_to_json()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="sequence.html#saving-functions">Saving functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.save"><code class="docutils literal notranslate"><span class="pre">Sequence.save()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.save_stats"><code class="docutils literal notranslate"><span class="pre">Sequence.save_stats()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="sequence.html#miscellaneous-functions">Miscellaneous functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.average_qualisys_to_kinect"><code class="docutils literal notranslate"><span class="pre">Sequence.average_qualisys_to_kinect()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.average_joints"><code class="docutils literal notranslate"><span class="pre">Sequence.average_joints()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.concatenate"><code class="docutils literal notranslate"><span class="pre">Sequence.concatenate()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="sequence.html#private-methods">Private methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="sequence.html#initialisation-functions">Initialisation functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence._define_name_init"><code class="docutils literal notranslate"><span class="pre">Sequence._define_name_init()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence._load_from_path"><code class="docutils literal notranslate"><span class="pre">Sequence._load_from_path()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence._fetch_files_from_folder"><code class="docutils literal notranslate"><span class="pre">Sequence._fetch_files_from_folder()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence._load_poses"><code class="docutils literal notranslate"><span class="pre">Sequence._load_poses()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence._load_single_pose_file"><code class="docutils literal notranslate"><span class="pre">Sequence._load_single_pose_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence._load_sequence_file"><code class="docutils literal notranslate"><span class="pre">Sequence._load_sequence_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence._create_pose_from_table_row"><code class="docutils literal notranslate"><span class="pre">Sequence._create_pose_from_table_row()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence._create_pose_from_json"><code class="docutils literal notranslate"><span class="pre">Sequence._create_pose_from_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence._load_date_recording"><code class="docutils literal notranslate"><span class="pre">Sequence._load_date_recording()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence._calculate_relative_timestamps"><code class="docutils literal notranslate"><span class="pre">Sequence._calculate_relative_timestamps()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="sequence.html#id3">Correction functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence._correct_jitter_window"><code class="docutils literal notranslate"><span class="pre">Sequence._correct_jitter_window()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence._correct_jitter_single_joint"><code class="docutils literal notranslate"><span class="pre">Sequence._correct_jitter_single_joint()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="sequence.html#id4">Saving functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence._save_json"><code class="docutils literal notranslate"><span class="pre">Sequence._save_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence._save_mat"><code class="docutils literal notranslate"><span class="pre">Sequence._save_mat()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence._save_xlsx"><code class="docutils literal notranslate"><span class="pre">Sequence._save_xlsx()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence._save_txt"><code class="docutils literal notranslate"><span class="pre">Sequence._save_txt()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="sequence.html#id5">Miscellaneous functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence._create_new_sequence_with_timestamps"><code class="docutils literal notranslate"><span class="pre">Sequence._create_new_sequence_with_timestamps()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pose.html">Pose</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pose.html#description">Description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pose.html#initialisation">Initialisation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pose.html#classes.pose.Pose"><code class="docutils literal notranslate"><span class="pre">Pose</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pose.html#classes.pose.Pose.joints"><code class="docutils literal notranslate"><span class="pre">Pose.joints</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pose.html#classes.pose.Pose.timestamp"><code class="docutils literal notranslate"><span class="pre">Pose.timestamp</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pose.html#classes.pose.Pose.relative_timestamp"><code class="docutils literal notranslate"><span class="pre">Pose.relative_timestamp</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pose.html#magic-methods">Magic methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pose.html#classes.pose.Pose.__repr__"><code class="docutils literal notranslate"><span class="pre">Pose.__repr__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pose.html#public-methods">Public methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pose.html#setter-functions">Setter functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pose.html#classes.pose.Pose.set_timestamp"><code class="docutils literal notranslate"><span class="pre">Pose.set_timestamp()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pose.html#getter-functions">Getter functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pose.html#classes.pose.Pose.get_joint"><code class="docutils literal notranslate"><span class="pre">Pose.get_joint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pose.html#classes.pose.Pose.get_joint_labels"><code class="docutils literal notranslate"><span class="pre">Pose.get_joint_labels()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pose.html#classes.pose.Pose.get_timestamp"><code class="docutils literal notranslate"><span class="pre">Pose.get_timestamp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pose.html#classes.pose.Pose.get_relative_timestamp"><code class="docutils literal notranslate"><span class="pre">Pose.get_relative_timestamp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pose.html#classes.pose.Pose.get_copy"><code class="docutils literal notranslate"><span class="pre">Pose.get_copy()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pose.html#joints-functions">Joints functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pose.html#classes.pose.Pose.add_joint"><code class="docutils literal notranslate"><span class="pre">Pose.add_joint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pose.html#classes.pose.Pose.generate_average_joint"><code class="docutils literal notranslate"><span class="pre">Pose.generate_average_joint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pose.html#classes.pose.Pose.remove_joint"><code class="docutils literal notranslate"><span class="pre">Pose.remove_joint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pose.html#classes.pose.Pose.remove_joints"><code class="docutils literal notranslate"><span class="pre">Pose.remove_joints()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pose.html#conversion-functions">Conversion functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pose.html#classes.pose.Pose.convert_to_table"><code class="docutils literal notranslate"><span class="pre">Pose.convert_to_table()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="pose.html#classes.pose.Pose.convert_to_json"><code class="docutils literal notranslate"><span class="pre">Pose.convert_to_json()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pose.html#private-methods">Private methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="pose.html#classes.pose.Pose._calculate_relative_timestamp"><code class="docutils literal notranslate"><span class="pre">Pose._calculate_relative_timestamp()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pose.html#classes.pose.Pose._get_copy_with_empty_joints"><code class="docutils literal notranslate"><span class="pre">Pose._get_copy_with_empty_joints()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="joint.html">Joint</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="joint.html#description">Description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="joint.html#initialisation">Initialisation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="joint.html#classes.joint.Joint"><code class="docutils literal notranslate"><span class="pre">Joint</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="joint.html#classes.joint.Joint.joint_label"><code class="docutils literal notranslate"><span class="pre">Joint.joint_label</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="joint.html#classes.joint.Joint.x"><code class="docutils literal notranslate"><span class="pre">Joint.x</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="joint.html#classes.joint.Joint.y"><code class="docutils literal notranslate"><span class="pre">Joint.y</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="joint.html#classes.joint.Joint.z"><code class="docutils literal notranslate"><span class="pre">Joint.z</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="joint.html#classes.joint.Joint.position"><code class="docutils literal notranslate"><span class="pre">Joint.position</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="joint.html#classes.joint.Joint._has_velocity_over_threshold"><code class="docutils literal notranslate"><span class="pre">Joint._has_velocity_over_threshold</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="joint.html#classes.joint.Joint._is_corrected"><code class="docutils literal notranslate"><span class="pre">Joint._is_corrected</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="joint.html#classes.joint.Joint._is_randomized"><code class="docutils literal notranslate"><span class="pre">Joint._is_randomized</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="joint.html#magic-methods">Magic methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="joint.html#classes.joint.Joint.__repr__"><code class="docutils literal notranslate"><span class="pre">Joint.__repr__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="joint.html#public-methods">Public methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="joint.html#setter-functions">Setter functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="joint.html#classes.joint.Joint.set_joint_label"><code class="docutils literal notranslate"><span class="pre">Joint.set_joint_label()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="joint.html#classes.joint.Joint.set_x"><code class="docutils literal notranslate"><span class="pre">Joint.set_x()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="joint.html#classes.joint.Joint.set_y"><code class="docutils literal notranslate"><span class="pre">Joint.set_y()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="joint.html#classes.joint.Joint.set_z"><code class="docutils literal notranslate"><span class="pre">Joint.set_z()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="joint.html#classes.joint.Joint.set_position"><code class="docutils literal notranslate"><span class="pre">Joint.set_position()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="joint.html#classes.joint.Joint.set_to_zero"><code class="docutils literal notranslate"><span class="pre">Joint.set_to_zero()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="joint.html#getter-functions">Getter functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="joint.html#classes.joint.Joint.get_joint_label"><code class="docutils literal notranslate"><span class="pre">Joint.get_joint_label()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="joint.html#classes.joint.Joint.get_x"><code class="docutils literal notranslate"><span class="pre">Joint.get_x()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="joint.html#classes.joint.Joint.get_y"><code class="docutils literal notranslate"><span class="pre">Joint.get_y()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="joint.html#classes.joint.Joint.get_z"><code class="docutils literal notranslate"><span class="pre">Joint.get_z()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="joint.html#classes.joint.Joint.get_position"><code class="docutils literal notranslate"><span class="pre">Joint.get_position()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="joint.html#classes.joint.Joint.get_has_velocity_over_threshold"><code class="docutils literal notranslate"><span class="pre">Joint.get_has_velocity_over_threshold()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="joint.html#classes.joint.Joint.get_is_corrected"><code class="docutils literal notranslate"><span class="pre">Joint.get_is_corrected()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="joint.html#classes.joint.Joint.get_is_randomized"><code class="docutils literal notranslate"><span class="pre">Joint.get_is_randomized()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="joint.html#classes.joint.Joint.get_copy"><code class="docutils literal notranslate"><span class="pre">Joint.get_copy()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="joint.html#private-methods">Private methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="joint.html#classes.joint.Joint._correct_joint"><code class="docutils literal notranslate"><span class="pre">Joint._correct_joint()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="joint.html#classes.joint.Joint._randomize_coordinates_keep_movement"><code class="docutils literal notranslate"><span class="pre">Joint._randomize_coordinates_keep_movement()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="joint.html#classes.joint.Joint._set_has_velocity_over_threshold"><code class="docutils literal notranslate"><span class="pre">Joint._set_has_velocity_over_threshold()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="joint.html#classes.joint.Joint._set_is_corrected"><code class="docutils literal notranslate"><span class="pre">Joint._set_is_corrected()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="audio.html">Audio</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="audio.html#description">Description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="audio.html#initialisation">Initialisation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="audio.html#classes.audio.Audio"><code class="docutils literal notranslate"><span class="pre">Audio</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio.samples"><code class="docutils literal notranslate"><span class="pre">Audio.samples</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio.timestamps"><code class="docutils literal notranslate"><span class="pre">Audio.timestamps</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio.frequency"><code class="docutils literal notranslate"><span class="pre">Audio.frequency</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio.name"><code class="docutils literal notranslate"><span class="pre">Audio.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio.path"><code class="docutils literal notranslate"><span class="pre">Audio.path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio.files"><code class="docutils literal notranslate"><span class="pre">Audio.files</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="audio.html#magic-methods">Magic methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="audio.html#public-methods">Public methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="audio.html#setter-functions">Setter functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio.set_name"><code class="docutils literal notranslate"><span class="pre">Audio.set_name()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="audio.html#getter-functions">Getter functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio.get_path"><code class="docutils literal notranslate"><span class="pre">Audio.get_path()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio.get_name"><code class="docutils literal notranslate"><span class="pre">Audio.get_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio.get_samples"><code class="docutils literal notranslate"><span class="pre">Audio.get_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio.get_sample"><code class="docutils literal notranslate"><span class="pre">Audio.get_sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio.get_number_of_samples"><code class="docutils literal notranslate"><span class="pre">Audio.get_number_of_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio.get_timestamps"><code class="docutils literal notranslate"><span class="pre">Audio.get_timestamps()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio.get_duration"><code class="docutils literal notranslate"><span class="pre">Audio.get_duration()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio.get_frequency"><code class="docutils literal notranslate"><span class="pre">Audio.get_frequency()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="audio.html#transformation-functions">Transformation functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio.get_envelope"><code class="docutils literal notranslate"><span class="pre">Audio.get_envelope()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio.resample"><code class="docutils literal notranslate"><span class="pre">Audio.resample()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="audio.html#conversion-functions">Conversion functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio.convert_to_table"><code class="docutils literal notranslate"><span class="pre">Audio.convert_to_table()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio.convert_to_json"><code class="docutils literal notranslate"><span class="pre">Audio.convert_to_json()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="audio.html#saving-function">Saving function</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio.save"><code class="docutils literal notranslate"><span class="pre">Audio.save()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="audio.html#private-methods">Private methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="audio.html#initialisation-functions">Initialisation functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio._define_name_init"><code class="docutils literal notranslate"><span class="pre">Audio._define_name_init()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio._load_from_path"><code class="docutils literal notranslate"><span class="pre">Audio._load_from_path()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio._load_from_samples"><code class="docutils literal notranslate"><span class="pre">Audio._load_from_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio._fetch_files_from_folder"><code class="docutils literal notranslate"><span class="pre">Audio._fetch_files_from_folder()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio._load_samples"><code class="docutils literal notranslate"><span class="pre">Audio._load_samples()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio._load_single_sample_file"><code class="docutils literal notranslate"><span class="pre">Audio._load_single_sample_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio._load_audio_file"><code class="docutils literal notranslate"><span class="pre">Audio._load_audio_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio._read_wav"><code class="docutils literal notranslate"><span class="pre">Audio._read_wav()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio._read_text_file"><code class="docutils literal notranslate"><span class="pre">Audio._read_text_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio._calculate_frequency"><code class="docutils literal notranslate"><span class="pre">Audio._calculate_frequency()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio._calculate_timestamps"><code class="docutils literal notranslate"><span class="pre">Audio._calculate_timestamps()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="audio.html#saving-functions">Saving functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio._save_json"><code class="docutils literal notranslate"><span class="pre">Audio._save_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio._save_mat"><code class="docutils literal notranslate"><span class="pre">Audio._save_mat()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio._save_xlsx"><code class="docutils literal notranslate"><span class="pre">Audio._save_xlsx()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio._save_txt"><code class="docutils literal notranslate"><span class="pre">Audio._save_txt()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="graphic_classes.html">Graphic classes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="graphic_classes.html#description">Description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="graphic_classes.html#graphicwindow">GraphicWindow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="graphic_classes.html#initialisation">Initialisation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes._GraphicWindow"><code class="docutils literal notranslate"><span class="pre">_GraphicWindow</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes._GraphicWindow.window"><code class="docutils literal notranslate"><span class="pre">_GraphicWindow.window</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes._GraphicWindow.width"><code class="docutils literal notranslate"><span class="pre">_GraphicWindow.width</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes._GraphicWindow.height"><code class="docutils literal notranslate"><span class="pre">_GraphicWindow.height</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes._GraphicWindow.center_x"><code class="docutils literal notranslate"><span class="pre">_GraphicWindow.center_x</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes._GraphicWindow.center_y"><code class="docutils literal notranslate"><span class="pre">_GraphicWindow.center_y</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes._GraphicWindow.pixel_meter_scale"><code class="docutils literal notranslate"><span class="pre">_GraphicWindow.pixel_meter_scale</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="graphic_classes.html#methods">Methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes._GraphicWindow._convert_x"><code class="docutils literal notranslate"><span class="pre">_GraphicWindow._convert_x()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes._GraphicWindow._convert_y"><code class="docutils literal notranslate"><span class="pre">_GraphicWindow._convert_y()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="graph_element.html">Graph Elements</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="graph_element.html#description">Description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="graph_element.html#graph">Graph</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="graph_element.html#classes.graph_element.Graph"><code class="docutils literal notranslate"><span class="pre">Graph</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="graph_element.html#classes.graph_element.Graph.plots"><code class="docutils literal notranslate"><span class="pre">Graph.plots</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graph_element.html#classes.graph_element.Graph.add_plot"><code class="docutils literal notranslate"><span class="pre">Graph.add_plot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graph_element.html#classes.graph_element.Graph.__repr__"><code class="docutils literal notranslate"><span class="pre">Graph.__repr__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="graph_element.html#graphplot">GraphPlot</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="graph_element.html#classes.graph_element.GraphPlot"><code class="docutils literal notranslate"><span class="pre">GraphPlot</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="graph_element.html#classes.graph_element.GraphPlot.x"><code class="docutils literal notranslate"><span class="pre">GraphPlot.x</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graph_element.html#classes.graph_element.GraphPlot.y"><code class="docutils literal notranslate"><span class="pre">GraphPlot.y</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graph_element.html#classes.graph_element.GraphPlot.line_width"><code class="docutils literal notranslate"><span class="pre">GraphPlot.line_width</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graph_element.html#classes.graph_element.GraphPlot.color"><code class="docutils literal notranslate"><span class="pre">GraphPlot.color</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="exceptions.html">Exceptions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html#description">Description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html#classes">Classes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="exceptions.html#classes.exceptions.InvalidPathException"><code class="docutils literal notranslate"><span class="pre">InvalidPathException</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="exceptions.html#classes.exceptions.EmptySequenceException"><code class="docutils literal notranslate"><span class="pre">EmptySequenceException</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="exceptions.html#classes.exceptions.EmptyAudioException"><code class="docutils literal notranslate"><span class="pre">EmptyAudioException</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="exceptions.html#classes.exceptions.ImpossibleTimeTravelException"><code class="docutils literal notranslate"><span class="pre">ImpossibleTimeTravelException</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="exceptions.html#classes.exceptions.InvalidJointLabelException"><code class="docutils literal notranslate"><span class="pre">InvalidJointLabelException</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="exceptions.html#classes.exceptions.ModuleNotFoundException"><code class="docutils literal notranslate"><span class="pre">ModuleNotFoundException</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="exceptions.html#classes.exceptions.InvalidPoseIndexException"><code class="docutils literal notranslate"><span class="pre">InvalidPoseIndexException</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="input.html" class="btn btn-neutral float-left" title="Compatible files" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="sequence.html" class="btn btn-neutral float-right" title="Sequence" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Romain Pastureau.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,94 +1,203 @@
-#!/usr/bin/env python
-"""Krajjat 1.10
-Kinect Realignment Algorithm for Joint Jumps And Twitches
-Author: Romain Pastureau
-This file contains the main graphic classes, mainly converting
-the classes from the "sequence.py" file to be able to show them
-graphically.
-"""
+"""These classes allow to convert the data from :class:`Sequence`, :class:`Pose` and :class:`Joint` to display them
+in the :doc:`graphic_functions`. All these classes and their methods should be considered private."""
 import os
-
 import pygame
 from pygame import *
-
-__author__ = "Romain Pastureau"
-__version__ = "1.10"
-__email__ = "r.pastureau@bcbl.eu"
-__license__ = "GPL"
-
 from pygame import gfxdraw
 
 from tool_functions import load_joints_connections
 
 # Colors
-#colorJoint = (255, 216, 109)  # Color of the joints: yellow
-colorJoint = (255, 255, 255)  # Color of the joints: white
-colorLine = (93, 183, 247)  # Color of the lines: blue
-colorJointCorrected = (0, 255, 0)  # Color of a joint that has been corrected: green
-colorJointOverThreshold = (255, 0, 0)  # Color of a joint with movement over threshold: red
+# colorJoint = (255, 216, 109)  # Color of the joints: yellow
+COLOR_JOINT = (255, 255, 255)  # Color of the joints: white
+COLOR_LINE = (93, 183, 247)  # Color of the lines: blue
+COLOR_JOINT_CORRECTED = (0, 255, 0)  # Color of a joint that has been corrected: green
+COLOR_JOINT_OVER_THRESHOLD = (255, 0, 0)  # Color of a joint with movement over threshold: red
 
 # Sizes
-size = 10  # Size of the side of the squares for the joints
-sizeHand = 25  # Size of the side of the squares for the hands
-sizeHead = 50  # Size of the side of the squares for the head
-lineWidth = 10  # Width of the lines
+SIZE_GJ = 10  # Size of the side of the squares for the joints
+SIZE_GJ_HAND = 25  # Size of the side of the squares for the hands
+SIZE_GJ_HEAD = 50  # Size of the side of the squares for the head
+WIDTH_LINE = 10  # Width of the lines
 
 # Surfaces
-pt = pygame.Surface((size, size))  # Surface for the joints
-ptHand = pygame.Surface((sizeHand, sizeHand))  # Surface for the hands
-ptHead = pygame.Surface((sizeHead, sizeHead))  # Surface for the head
+GJ = pygame.Surface((SIZE_GJ, SIZE_GJ))  # Surface for the joints
+GJ_HAND = pygame.Surface((SIZE_GJ_HAND, SIZE_GJ_HAND))  # Surface for the hands
+GJ_HEAD = pygame.Surface((SIZE_GJ_HEAD, SIZE_GJ_HEAD))  # Surface for the head
 
 # Fill surfaces with the joint color
-pt.fill(colorJoint)
-ptHand.fill(colorJoint)
-ptHead.fill(colorJoint)
+GJ.fill(COLOR_JOINT)
+GJ_HAND.fill(COLOR_JOINT)
+GJ_HEAD.fill(COLOR_JOINT)
 
 
-class GraphicDisplay(object):
-    """Contains the information of the window to produce the GUI"""
+class _GraphicWindow(object):
+    """Defines the size of the display window and allows to convert and scale the coordinates of the joints to be
+    displayed.
 
-    def __init__(self, window):
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    window: pygame.Surface
+        The main pygame Surface containing all the graphic elements.
+
+    height_window_in_meters: int or float (optional)
+        Defines the distance, in meters, represented by the vertical number of pixels of the window (by default: 3).
+
+    Attributes
+    ----------
+    window: pygame.Surface
+        The main pygame Surface containing all the graphic elements, set during the initialisation.
+
+    width: int
+        The width of the ``window``, in pixels.
+
+    height: int
+        The height of the ``window``, in pixels.
+
+    center_x: int
+        The mid-point on the x-axis of the ``window``, in pixels.
+
+    center_y: int
+        The mid-point on the y-axis of the ``window``, in pixels.
+
+    pixel_meter_scale: float
+        The real-life distance a pixel represents, in meters. For example, if the window is 1000 pixels vertically,
+        and the parameter ``height_window_in_meters`` is set on 1, each pixel will be equivalent to a square of 1 mm ×
+        1 mm.
+    """
+
+    def __init__(self, window, height_window_in_meters=3.0):
         self.window = window
         self.width = window.get_width()
         self.height = window.get_height()
         self.center_x = self.width // 2
         self.center_y = self.height // 2
-        self.scale = 300
+        self.pixel_meter_scale = self.height / height_window_in_meters
 
-    def convert_x(self, x, scale=1):
-        return int(self.center_x - x * self.scale * scale)
+    def _convert_x(self, x, scale=1.0):
+        """Converts the x "real" coordinate to a graphic coordinate to be displayed in the window.
 
-    def convert_y(self, y, scale=1):
-        return int(self.center_y - y * self.scale * scale)
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        x: float
+            The value on the x-axis of a coordinate.
+        scale: float, optional
+            The scale at which to convert the coordinate. A bigger scale will zoom in on the axis.
+
+        Returns
+        -------
+        int
+            The coordinate of the pixel on the x-axis of the window.
+        """
+        return int(self.center_x - x * self.pixel_meter_scale * scale)
+
+    def _convert_y(self, y, scale=1):
+        """Converts the y "real" coordinate to a graphic coordinate to be displayed in the window.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        y: float
+            The value on the y-axis of a coordinate.
+        scale: float, optional
+            The scale at which to convert the coordinate. A bigger scale will zoom in on the axis.
+
+        Returns
+        -------
+        int
+            The coordinate of the pixel on the y-axis of the window.
+        """
+        return int(self.center_y - y * self.pixel_meter_scale * scale)
 
 
-class Time(object):
-    """Allows to set a timer"""
+class _Timer(object):
+    """Creates and sets a timer.
+
+    .. versionadded:: 2.0
+
+    Attributes
+    ----------
+    clock: pygame.time.Clock
+        A Pygame clock object.
+
+    timer: float
+        A timer, in milliseconds.
+    """
 
     def __init__(self):
         self.clock = pygame.time.Clock()
         self.timer = 0
 
-    def get_time(self):
+    def _get_time(self):
+        """Returns the value of the attribute :attr:`timer`.
+
+        .. versionadded:: 2.0
+
+        Returns
+        -------
+        float
+            The time contained in the attribute :attr:`timer`, in milliseconds.
+        """
         return self.timer
 
-    def reset(self):
+    def _reset(self):
+        """Resets the timer to 0.
+
+        .. versionadded:: 2.0
+        """
         self.timer = 0
 
-    def update(self):
-        tick = self.clock.tick()
-        self.timer += tick
+    def _update(self):
+        """Adds the tick of the `pygame.time.Clock <https://www.pygame.org/docs/ref/time.html#pygame.time.Clock>`_
+        object to the timer.
+
+        .. versionadded:: 2.0
+        """
+        self.timer += self.clock.tick()
 
 
-class GraphicSequence(object):
-    """Graphical counterpart to Sequence: allows to convert the original coordinates into graphical coordinates"""
+class _GraphicSequence(object):
+    """Graphical counterpart to the class  :class:`Sequence`. This class allows to convert the original coordinates of
+    the joints into graphical coordinates.
 
-    def __init__(self, sequence, show_lines, ignore_bottom, start_pose, path_images, disp, scale=1):
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    sequence: Sequence
+        A Sequence instance.
+
+    graphic_window: _GraphicWindow
+        The window object, where to display the sequence.
+
+    show_lines: bool, optional
+        If set on `True` (default), the graphic sequence will include lines between certain joints, to create a
+        skeleton. If set on `False`, only the joints will be displayed.
+
+    ignore_bottom: bool
+        If set on `True`, the joints below the waist will not be displayed. If set on `False` (default), all the joints
+        will be displayed. For a complete list of joints being displayed or not, see
+        :ref:`Display the sequence <ignore_bottom>`.
+
+    start_pose: int, optional
+        The index of the pose at which to start the sequence.
+
+    path_images: list(str), str or None, optional
+
+    """
+
+    def __init__(self, sequence, graphic_window, show_lines=True, ignore_bottom=False, start_pose=0, path_images=None,
+                 scale=1):
         self.sequence = sequence  # Saves the original sequence
-        self.display = disp  # Saves the display information
+        self.graphic_window = graphic_window  # Saves the display information
         self.poses = []  # Contains the graphic poses
-        self.load_sequence(show_lines, ignore_bottom, path_images, disp, scale)
-        self.time = Time()  # Creates a time variable
+        self.load_sequence(show_lines, ignore_bottom, path_images, graphic_window, scale)
+        self.time = _Timer()  # Creates a time variable
         self.reset()
         self.current_pose = start_pose
 
@@ -99,6 +208,7 @@ class GraphicSequence(object):
         # Show percentage
         perc = 10
         has_images = None
+        images = []
 
         # Gets the images (in order of the number before the extension) if the path is not none
         if path_images != None:
@@ -142,7 +252,7 @@ class GraphicSequence(object):
     def reset(self):
         """Resets the current pose as the first one, and the time"""
         self.current_pose = 0
-        self.time.reset()
+        self.time._reset()
 
     def get_events(self, ev):
         """Allows to go to the next pose when pressing the Right key, and the previous when pressing the Left"""
@@ -156,10 +266,10 @@ class GraphicSequence(object):
     def show(self, window, show_lines, show_image=False, shift_x=0, shift_y=0, type="square", color_joint="default",
              ratio=1):
         """Shows all the joints of the current pose, and iterates the next pose"""
-        if self.sequence.poses[self.current_pose + 1].get_relative_timestamp() * 1000 < self.time.get_time():
+        if self.sequence.poses[self.current_pose + 1].get_relative_timestamp() * 1000 < self.time._get_time():
             self.next_pose()
         self.poses[self.current_pose].show(window, show_lines, show_image, shift_x, shift_y, type, color_joint, ratio)
-        self.time.update()
+        self.time._update()
 
     def show_pose(self, window, show_lines, show_image, shift_x=0, shift_y=0, type="square", color_joint="default",
                   ratio=1):
@@ -241,8 +351,8 @@ class GraphicJoint(object):
 
     def convert(self, disp, scale=1):
         """Converts the original coordinate into graphic coordinate"""
-        self.x = disp.convert_x(self.joint.x, scale)
-        self.y = disp.convert_y(self.joint.y, scale)
+        self.x = disp._convert_x(self.joint.x, scale)
+        self.y = disp._convert_y(self.joint.y, scale)
 
     def show(self, window, shift_x=0, shift_y=0, type="square", color_joint="default", ratio=1):
         """Displays the joint"""
@@ -255,46 +365,46 @@ class GraphicJoint(object):
     def show_square(self, window, shift_x=0, shift_y=0, color_joint="default", ratio=1):
 
         # Not randomized: apply special joint sizes for head and hands
-        if self.joint.joint_type in ["Head", "HeadFront"] and not self.joint.randomized:
+        if self.joint.joint_label in ["Head", "HeadFront"] and not self.joint._is_randomized:
             if ratio == 1:
-                p = ptHead
+                p = GJ_HEAD
             else:
-                p = pygame.Surface((sizeHead*ratio, sizeHead*ratio))
-        elif self.joint.joint_type in ["HandRight", "HandLeft", "HandInRight", "HandInLeft"] and \
-                not self.joint.randomized:
+                p = pygame.Surface((SIZE_GJ_HEAD * ratio, SIZE_GJ_HEAD * ratio))
+        elif self.joint.joint_label in ["HandRight", "HandLeft", "HandInRight", "HandInLeft"] and \
+                not self.joint._is_randomized:
             if ratio == 1:
-                p = ptHand
+                p = GJ_HAND
             else:
-                p = pygame.Surface((sizeHand*ratio, sizeHand*ratio))
+                p = pygame.Surface((SIZE_GJ_HAND * ratio, SIZE_GJ_HAND * ratio))
 
         # Randomized: apply special joint sizes for hip, left shoulder and mid-spine
-        elif self.joint.joint_type in ["SpineMid", "Chest"] and self.joint.randomized:
+        elif self.joint.joint_label in ["SpineMid", "Chest"] and self.joint._is_randomized:
             if ratio == 1:
-                p = ptHead
+                p = GJ_HEAD
             else:
-                p = pygame.Surface((sizeHead*ratio, sizeHead*ratio))
-        elif self.joint.joint_type in ["ShoulderLeft", "Neck", "ShoulderTopLeft", "HeadRight"] and \
-                self.joint.randomized:
+                p = pygame.Surface((SIZE_GJ_HEAD * ratio, SIZE_GJ_HEAD * ratio))
+        elif self.joint.joint_label in ["ShoulderLeft", "Neck", "ShoulderTopLeft", "HeadRight"] and \
+                self.joint._is_randomized:
             if ratio == 1:
-                p = ptHand
+                p = GJ_HAND
             else:
-                p = pygame.Surface((sizeHand*ratio, sizeHand*ratio))
+                p = pygame.Surface((SIZE_GJ_HAND * ratio, SIZE_GJ_HAND * ratio))
 
         # Other joints: regular size
         else:
             if ratio == 1:
-                p = pt
+                p = GJ
             else:
-                p = pygame.Surface((size*ratio, size*ratio))
+                p = pygame.Surface((SIZE_GJ * ratio, SIZE_GJ * ratio))
 
         # If a joint is corrected or over threshold, change the color
         if color_joint == "default":
-            if self.joint.corrected:
-                p.fill(colorJointCorrected)
-            elif self.joint.movement_over_threshold:
-                p.fill(colorJointOverThreshold)
+            if self.joint._is_corrected:
+                p.fill(COLOR_JOINT_CORRECTED)
+            elif self.joint._has_velocity_over_threshold:
+                p.fill(COLOR_JOINT_OVER_THRESHOLD)
             else:
-                p.fill(colorJoint)
+                p.fill(COLOR_JOINT)
         else:
             p.fill(color_joint)
 
@@ -306,32 +416,32 @@ class GraphicJoint(object):
         shift_head = 0
 
         # Not randomized: apply special joint sizes for head and hands
-        if self.joint.joint_type in ["Head", "HeadFront"] and not self.joint.randomized:
-            radius = sizeHead * ratio
+        if self.joint.joint_label in ["Head", "HeadFront"] and not self.joint._is_randomized:
+            radius = SIZE_GJ_HEAD * ratio
             shift_head = 15
-        elif self.joint.joint_type in ["HandRight", "HandLeft", "HandInRight", "HandInLeft"] and \
-            not self.joint.randomized:
-            radius = sizeHand * ratio
+        elif self.joint.joint_label in ["HandRight", "HandLeft", "HandInRight", "HandInLeft"] and \
+            not self.joint._is_randomized:
+            radius = SIZE_GJ_HAND * ratio
 
         # Randomized: apply special joint sizes for hip, left shoulder and mid-spine
-        elif self.joint.joint_type == ["SpineMid", "Chest"] and self.joint.randomized:
-            radius = sizeHead * ratio
-        elif self.joint.joint_type in ["ShoulderLeft", "Neck", "ShoulderTopLeft", "HeadRight"] and \
-                self.joint.randomized:
-            radius = sizeHand * ratio
+        elif self.joint.joint_label == ["SpineMid", "Chest"] and self.joint._is_randomized:
+            radius = SIZE_GJ_HEAD * ratio
+        elif self.joint.joint_label in ["ShoulderLeft", "Neck", "ShoulderTopLeft", "HeadRight"] and \
+                self.joint._is_randomized:
+            radius = SIZE_GJ_HAND * ratio
 
         # Other joints: regular size
         else:
-            radius = size * ratio
+            radius = SIZE_GJ * ratio
 
         # If a joint is corrected or over threshold, change the color
         if color_joint == "default":
-            if self.joint.corrected:
-                color = colorJointCorrected
-            elif self.joint.movement_over_threshold:
-                color = colorJointOverThreshold
+            if self.joint._is_corrected:
+                color = COLOR_JOINT_CORRECTED
+            elif self.joint._has_velocity_over_threshold:
+                color = COLOR_JOINT_OVER_THRESHOLD
             else:
-                color = colorJoint
+                color = COLOR_JOINT
         else:
             color = color_joint
 
@@ -350,5 +460,5 @@ class GraphicLine(object):
 
     def show(self, window, shift_x=0, shift_y=0):
         """Draws a line joining two joints"""
-        pygame.draw.line(window, colorLine, (self.startX + shift_x, self.startY + shift_y),
-                         (self.endX + shift_x, self.endY + shift_y), lineWidth)
+        pygame.draw.line(window, COLOR_LINE, (self.startX + shift_x, self.startY + shift_y),
+                         (self.endX + shift_x, self.endY + shift_y), WIDTH_LINE)

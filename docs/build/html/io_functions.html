@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>I/O functions &mdash; krajjat 1.99.3 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tool functions" href="tool_functions.html" />
+    <link rel="prev" title="Functions" href="functions.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #99CC00" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            krajjat
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="general.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classes.html">Classes</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="functions.html">Functions</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">I/O functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#functions">Functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#io_functions.load_sequences"><code class="docutils literal notranslate"><span class="pre">load_sequences()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#io_functions.load_audios"><code class="docutils literal notranslate"><span class="pre">load_audios()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#io_functions.save_sequences"><code class="docutils literal notranslate"><span class="pre">save_sequences()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#io_functions.save_audios"><code class="docutils literal notranslate"><span class="pre">save_audios()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#io_functions.save_stats"><code class="docutils literal notranslate"><span class="pre">save_stats()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tool_functions.html">Tool functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="graphic_functions.html">Graphic functions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="appendix.html">Appendix</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #99CC00" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">krajjat</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="functions.html">Functions</a></li>
+      <li class="breadcrumb-item active">I/O functions</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/io_functions.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="i-o-functions">
+<h1>I/O functions<a class="headerlink" href="#i-o-functions" title="Permalink to this heading"></a></h1>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading"></a></h2>
+<p>Functions to load and save multiple sequences, audio clips, and statistics.</p>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="io_functions.load_sequences">
+<span class="sig-prename descclassname"><span class="pre">io_functions.</span></span><span class="sig-name descname"><span class="pre">load_sequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'list'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_empty_sequences</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_loading_errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#io_functions.load_sequences" title="Permalink to this definition"></a></dt>
+<dd><p>Loads multiple sequences and returns a list or a dict containing them.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_folder</strong> (<em>str</em>) – The absolute path of the directory in which to look for sequences (starting from the root of the drive, e.g.
+<code class="docutils literal notranslate"><span class="pre">C:/Users/Desmond/Documents/Recordings</span></code>).</p></li>
+<li><p><strong>recursive</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">True</span></code>, all the subdirectories of the <code class="docutils literal notranslate"><span class="pre">input_folder</span></code> will be analyzed to look for sequences.</p></li>
+<li><p><strong>output_type</strong> (<em>str</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">&quot;list&quot;</span></code> (default), the function will return a list of the loaded sequences. If set on <code class="docutils literal notranslate"><span class="pre">&quot;dict&quot;</span></code>,
+the function will return a dict, in which each key will be the absolute path to the sequence, and the
+corresponding values will be the loaded sequences.</p></li>
+<li><p><strong>ignore_empty_sequences</strong> (<em>bool</em><em>, </em><em>optional</em>) – <p>If set on <code class="docutils literal notranslate"><span class="pre">True</span></code> (default), the function will not stop if it tries to load an empty file or folder. If set
+on <code class="docutils literal notranslate"><span class="pre">False</span></code>, the function will stop at any <code class="xref py py-class docutils literal notranslate"><span class="pre">EmptySequenceException</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you set <code class="docutils literal notranslate"><span class="pre">recursive</span></code> on <code class="docutils literal notranslate"><span class="pre">True</span></code>, you should also set <code class="docutils literal notranslate"><span class="pre">ignore_empty_sequences</span></code> on <code class="docutils literal notranslate"><span class="pre">True</span></code>: as the
+recursive loading starts from the top, the first sequence this function will try to load is the parent
+folder, which will probably not contain any sequence. The function will then return an
+EmptySequenceException and stop if you set <code class="docutils literal notranslate"><span class="pre">ignore_empty_sequences</span></code> on <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+</div>
+</p></li>
+<li><p><strong>ignore_loading_errors</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">True</span></code>, the function will not stop if it tries to load a sequence that raises an
+<code class="xref py py-class docutils literal notranslate"><span class="pre">InvalidPathException</span></code> or an <code class="xref py py-class docutils literal notranslate"><span class="pre">ImpossibleTimeTravelException</span></code>. In that case, the sequences
+in question will not be added to the output of the function, and the reason of the error will be printed in the
+console if <code class="docutils literal notranslate"><span class="pre">verbose</span></code> is 1 or more. If set on <code class="docutils literal notranslate"><span class="pre">False</span></code> (default), any <code class="xref py py-class docutils literal notranslate"><span class="pre">InvalidPathException</span></code> or
+<code class="xref py py-class docutils literal notranslate"><span class="pre">ImpossibleTimeTravelException</span></code> will stop the function.</p></li>
+<li><p><strong>verbose</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list or dict (defined by the parameter <code class="docutils literal notranslate"><span class="pre">output_type</span></code>) of the loaded sequences. If the output is a dict,
+each key is the absolute path to the sequence, and the corresponding values are the loaded sequences.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list or dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="io_functions.load_audios">
+<span class="sig-prename descclassname"><span class="pre">io_functions.</span></span><span class="sig-name descname"><span class="pre">load_audios</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recursive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'list'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_empty_audios</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_loading_errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#io_functions.load_audios" title="Permalink to this definition"></a></dt>
+<dd><p>Loads multiple audio clips and returns a list or a dict containing them.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_folder</strong> (<em>str</em>) – The absolute path of the directory in which to look for audio clips (starting from the root of the drive, e.g.
+<code class="docutils literal notranslate"><span class="pre">C:/Users/Greg/Documents/Audio_clips</span></code>).</p></li>
+<li><p><strong>recursive</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">True</span></code>, all the subdirectories of the <code class="docutils literal notranslate"><span class="pre">input_folder</span></code> will be analyzed to look for audio clips.</p></li>
+<li><p><strong>output_type</strong> (<em>str</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">&quot;list&quot;</span></code> (default), the function will return a list of the loaded audio clips. If set on <code class="docutils literal notranslate"><span class="pre">&quot;dict&quot;</span></code>,
+the function will return a dict, in which each key will be the absolute path to the audio clip, and the
+corresponding values will be the loaded audio clip.</p></li>
+<li><p><strong>ignore_empty_audios</strong> (<em>bool</em><em>, </em><em>optional</em>) – <p>If set on <code class="docutils literal notranslate"><span class="pre">True</span></code> (default), the function will not stop if it tries to load an empty file or folder. If set
+on <code class="docutils literal notranslate"><span class="pre">False</span></code>, the function will stop at any <code class="xref py py-class docutils literal notranslate"><span class="pre">EmptyAudioException</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you set <code class="docutils literal notranslate"><span class="pre">recursive</span></code> on <code class="docutils literal notranslate"><span class="pre">True</span></code>, you should also set <code class="docutils literal notranslate"><span class="pre">ignore_empty_audios</span></code> on <code class="docutils literal notranslate"><span class="pre">True</span></code>: as the
+recursive loading starts from the top, the first sequence this function will try to load is the parent
+folder, which will probably not contain any audio clip. The function will then return an
+EmptyAudioException and stop if you set <code class="docutils literal notranslate"><span class="pre">ignore_empty_audios</span></code> on <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+</div>
+</p></li>
+<li><p><strong>ignore_loading_errors</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">True</span></code>, the function will not stop if it tries to load an audio clip that raises an
+<code class="xref py py-class docutils literal notranslate"><span class="pre">InvalidPathException</span></code> or a <code class="xref py py-class docutils literal notranslate"><span class="pre">ImpossibleTimeTravelException</span></code>. In that case, the audio clips
+in question will not be added to the output of the function, and the reason of the error will be printed in the
+console if <code class="docutils literal notranslate"><span class="pre">verbose</span></code> is 1 or more. If set on <code class="docutils literal notranslate"><span class="pre">False</span></code> (default), any <code class="xref py py-class docutils literal notranslate"><span class="pre">InvalidPathException</span></code> or
+<code class="xref py py-class docutils literal notranslate"><span class="pre">ImpossibleTimeTravelException</span></code> will stop the function.</p></li>
+<li><p><strong>verbose</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list or dict (defined by the parameter <code class="docutils literal notranslate"><span class="pre">output_type</span></code>) of the loaded audio clips. If the output is a dict,
+each key is the absolute path to the audio clip, and the corresponding values are the loaded audio clips.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list or dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="io_functions.save_sequences">
+<span class="sig-prename descclassname"><span class="pre">io_functions.</span></span><span class="sig-name descname"><span class="pre">save_sequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sequence_or_sequences</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'json'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">individual</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_relative_timestamps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_subdirectory_structure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#io_functions.save_sequences" title="Permalink to this definition"></a></dt>
+<dd><p>Saves one or multiple Sequence instances on the disk.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sequence_or_sequences</strong> (<a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a><em> or </em><em>list</em><em>(</em><a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a><em>)</em>) – A Sequence instance or a list of Sequence instances.</p></li>
+<li><p><strong>folder_out</strong> (<em>str</em><em>, </em><em>optional</em>) – The path in which to save the sequences. If one or more subfolders of the path do not exist, they will be
+created automatically.</p></li>
+<li><p><strong>names</strong> (<em>list</em><em>(</em><em>str</em><em>) or </em><em>None</em><em>, </em><em>optional</em>) – The names to give to the saved sequences. If set on None, the attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">Sequence.name</span></code> will be used
+to name the output file or folder. If a list of names is provided, the list must be the same length as the
+parameter <code class="docutils literal notranslate"><span class="pre">sequence_or_sequences</span></code>. If <code class="docutils literal notranslate"><span class="pre">sequence_or_sequences</span></code> is a single Sequence instance, or is a list
+containing a single Sequence instance, <code class="docutils literal notranslate"><span class="pre">names</span></code> can be a string. If you provide a name, do not provide the
+file extension with it: provide the extension in the parameter <code class="docutils literal notranslate"><span class="pre">file_format</span></code> instead.</p></li>
+<li><p><strong>file_format</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>The file format in which to save the sequences. The file format must be <code class="docutils literal notranslate"><span class="pre">&quot;json&quot;</span></code> (default), <code class="docutils literal notranslate"><span class="pre">&quot;xlsx&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;txt&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;csv&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;tsv&quot;</span></code>, or, if you are a masochist, <code class="docutils literal notranslate"><span class="pre">&quot;mat&quot;</span></code>. Notes:</p>
+<blockquote>
+<div><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;xls&quot;</span></code> will save the files with an <code class="docutils literal notranslate"><span class="pre">.xlsx</span></code> extension.</p></li>
+<li><p>Any string starting with a dot will be accepted (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;.csv&quot;</span></code> instead of <code class="docutils literal notranslate"><span class="pre">&quot;csv&quot;</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;csv;&quot;</span></code> will force the value separator on <code class="docutils literal notranslate"><span class="pre">;</span></code>, while <code class="docutils literal notranslate"><span class="pre">&quot;csv,&quot;</span></code> will force the separator
+on <code class="docutils literal notranslate"><span class="pre">,</span></code>. By default, the function will detect which separator the system uses.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;txt&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;tsv&quot;</span></code> both separate the values by a tabulation.</p></li>
+<li><p>Any other string will not return an error, but rather be used as a custom extension. The data will
+be saved as in a text file (using tabulations as values separators).</p></li>
+</ul>
+</div></blockquote>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>While it is possible to save sequences as <code class="docutils literal notranslate"><span class="pre">.mat</span></code> or custom extensions, the toolbox will not recognize
+these files upon opening. The support for <code class="docutils literal notranslate"><span class="pre">.mat</span></code> and custom extensions as input may come in a future
+release, but for now these are just offered as output options.</p>
+</div>
+</p></li>
+<li><p><strong>individual</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">False</span></code> (default), the function will save each sequence in a unique file.
+If set on <code class="docutils literal notranslate"><span class="pre">True</span></code>, the function will save each pose of the sequences in an individual file, appending an
+underscore and the index of the pose (starting at 0) after the name.</p></li>
+<li><p><strong>use_relative_timestamps</strong> (<em>bool</em><em>, </em><em>optional</em>) – Defines if the timestamps that will be saved are absolute (<code class="docutils literal notranslate"><span class="pre">False</span></code>) or relative to the first pose (<code class="docutils literal notranslate"><span class="pre">True</span></code>).</p></li>
+<li><p><strong>keep_subdirectory_structure</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">True</span></code>, sequences in distinct subfolders will remain separated according to the same structure in
+the output directory. For example, if two sequences have for original paths
+<code class="docutils literal notranslate"><span class="pre">C:/Recordings/Subject_01/March_14/recording.json</span></code> and <code class="docutils literal notranslate"><span class="pre">C:/Recordings/Subject_02/May_04/recording.json</span></code>,
+and the <code class="docutils literal notranslate"><span class="pre">folder_out</span></code> provided is <code class="docutils literal notranslate"><span class="pre">D:/Resampled/</span></code>, the recordings will be saved as
+<code class="docutils literal notranslate"><span class="pre">D:/Resampled/Subject_01/March_14/recording.json</span></code> and <code class="docutils literal notranslate"><span class="pre">D:/Resampled/Subject_02/May_04/recording.json</span></code>.</p></li>
+<li><p><strong>verbose</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="io_functions.save_audios">
+<span class="sig-prename descclassname"><span class="pre">io_functions.</span></span><span class="sig-name descname"><span class="pre">save_audios</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">audio_or_audios</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'json'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">individual</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_subdirectory_structure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#io_functions.save_audios" title="Permalink to this definition"></a></dt>
+<dd><p>Saves one or multiple Audio instances on the disk.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>audio_or_audios</strong> (<a class="reference internal" href="audio.html#classes.audio.Audio" title="classes.audio.Audio"><em>Audio</em></a><em> or </em><em>list</em><em>(</em><a class="reference internal" href="audio.html#classes.audio.Audio" title="classes.audio.Audio"><em>Audio</em></a><em>)</em>) – An Audio instance or a list of Audio instances.</p></li>
+<li><p><strong>folder_out</strong> (<em>str</em><em>, </em><em>optional</em>) – The path in which to save the audio clips. If one or more subfolders of the path do not exist, they will be
+created automatically.</p></li>
+<li><p><strong>names</strong> (<em>list</em><em>(</em><em>str</em><em>)</em><em>, </em><em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – The names to give to the saved audio clips. If set on None, the attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">Audio.name</span></code> will be used
+to name the output file or folder. If a list of names is provided, the list must be the same length as the
+parameter <code class="docutils literal notranslate"><span class="pre">audio_or_audios</span></code>. If <code class="docutils literal notranslate"><span class="pre">audio_or_audios</span></code> is a single Audio instance, or is a list containing a
+single Audio instance, <code class="docutils literal notranslate"><span class="pre">names</span></code> can be a string. If you provide a name, do not provide the file extension
+with it: provide the extension in the parameter <code class="docutils literal notranslate"><span class="pre">file_format</span></code> instead.</p></li>
+<li><p><strong>file_format</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>The file format in which to save the sequences. The file format must be <code class="docutils literal notranslate"><span class="pre">&quot;json&quot;</span></code> (default), <code class="docutils literal notranslate"><span class="pre">&quot;xlsx&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;txt&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;csv&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;tsv&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;wav&quot;</span></code>, or, if you are a masochist, <code class="docutils literal notranslate"><span class="pre">&quot;mat&quot;</span></code>. Notes:</p>
+<blockquote>
+<div><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;xls&quot;</span></code> will save the files with an <code class="docutils literal notranslate"><span class="pre">.xlsx</span></code> extension.</p></li>
+<li><p>Any string starting with a dot will be accepted (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;.csv&quot;</span></code> instead of <code class="docutils literal notranslate"><span class="pre">&quot;csv&quot;</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;csv;&quot;</span></code> will force the value separator on <code class="docutils literal notranslate"><span class="pre">;</span></code>, while <code class="docutils literal notranslate"><span class="pre">&quot;csv,&quot;</span></code> will force the separator
+on <code class="docutils literal notranslate"><span class="pre">,</span></code>. By default, the function will detect which separator the system uses.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;txt&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;tsv&quot;</span></code> both separate the values by a tabulation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;wav&quot;</span></code> files can be opened with any compatible software; that being said, wav files that have been
+heavily downsampled may sound unintelligible.</p></li>
+<li><p>Any other string will not return an error, but rather be used as a custom extension. The data will
+be saved as in a text file (using tabulations as values separators).</p></li>
+</ul>
+</div></blockquote>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>While it is possible to save audio clips as <code class="docutils literal notranslate"><span class="pre">.mat</span></code> or custom extensions, the toolbox will not recognize
+these files upon opening. The support for <code class="docutils literal notranslate"><span class="pre">.mat</span></code> and custom extensions as input may come in a future
+release, but for now these are just offered as output options.</p>
+</div>
+</p></li>
+<li><p><strong>individual</strong> (<em>bool</em><em>, </em><em>optional</em>) – <p>If set on <code class="docutils literal notranslate"><span class="pre">False</span></code> (default), the function will save each audio clip in a unique file.
+If set on <code class="docutils literal notranslate"><span class="pre">True</span></code>, the function will save each sample of each audio clip in an individual file, appending an
+underscore and the index of the pose (starting at 0) after the name.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This incredibly tedious way of opening and saving audio files has only been implemented to follow the same
+logic as for the Sequence files, and should be avoided.</p>
+</div>
+</p></li>
+<li><p><strong>keep_subdirectory_structure</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">True</span></code>, audio clips in distinct subfolders will remain separated according to the same structure in
+the output directory. For example, if two audio clips have for original paths
+<code class="docutils literal notranslate"><span class="pre">C:/Recordings/Subject_01/April_27/recording.wav</span></code> and <code class="docutils literal notranslate"><span class="pre">C:/Recordings/Subject_02/October_21/recording.wav</span></code>,
+and the <code class="docutils literal notranslate"><span class="pre">folder_out</span></code> provided is <code class="docutils literal notranslate"><span class="pre">D:/Resampled/</span></code>, the recordings will be saved as
+<code class="docutils literal notranslate"><span class="pre">D:/Resampled/Subject_01/April_27/recording.wav</span></code> and <code class="docutils literal notranslate"><span class="pre">D:/Resampled/Subject_02/October_21/recording.wav</span></code>.</p></li>
+<li><p><strong>verbose</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="io_functions.save_stats">
+<span class="sig-prename descclassname"><span class="pre">io_functions.</span></span><span class="sig-name descname"><span class="pre">save_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sequence_or_sequences</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder_out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'stats'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'json'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">individual</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys_to_exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys_to_include</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#io_functions.save_stats" title="Permalink to this definition"></a></dt>
+<dd><p>Saves the statistics of one or multiple sequences on the disk.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sequence_or_sequences</strong> (<a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a><em> or </em><em>list</em><em>(</em><a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a><em>)</em>) – A Sequence instance or a list of Sequence instances.</p></li>
+<li><p><strong>folder_out</strong> (<em>str</em><em>, </em><em>optional</em>) – The path in which to save the stats. If one or more subfolders of the path do not exist, they will be
+created automatically. If the string provided is empty (by default), the stats will be saved in
+the current working directory. If the string provided contains a file with an extension, the fields <code class="docutils literal notranslate"><span class="pre">name</span></code>
+and <code class="docutils literal notranslate"><span class="pre">file_format</span></code> will be ignored.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Defines the name of the file where to save the stats. By default, it is set on <code class="docutils literal notranslate"><span class="pre">&quot;stats&quot;</span></code>. If <code class="docutils literal notranslate"><span class="pre">individual</span></code>
+is set on <code class="docutils literal notranslate"><span class="pre">True</span></code>, the <a class="reference internal" href="sequence.html#classes.sequence.Sequence.name" title="classes.sequence.Sequence.name"><code class="xref py py-attr docutils literal notranslate"><span class="pre">classes.sequence.Sequence.name</span></code></a> will be appended to the name defined in this
+function for each file.</p></li>
+<li><p><strong>file_format</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>The file format in which to save the stats. The file format must be <code class="docutils literal notranslate"><span class="pre">&quot;json&quot;</span></code> (default), <code class="docutils literal notranslate"><span class="pre">&quot;xlsx&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;txt&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;csv&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;tsv&quot;</span></code>, or, if you are a masochist, <code class="docutils literal notranslate"><span class="pre">&quot;mat&quot;</span></code>. Notes:</p>
+<blockquote>
+<div><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;xls&quot;</span></code> will save the files with an <code class="docutils literal notranslate"><span class="pre">.xlsx</span></code> extension.</p></li>
+<li><p>Any string starting with a dot will be accepted (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;.csv&quot;</span></code> instead of <code class="docutils literal notranslate"><span class="pre">&quot;csv&quot;</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;csv;&quot;</span></code> will force the value separator on <code class="docutils literal notranslate"><span class="pre">;</span></code>, while <code class="docutils literal notranslate"><span class="pre">&quot;csv,&quot;</span></code> will force the separator
+on <code class="docutils literal notranslate"><span class="pre">,</span></code>. By default, the function will detect which separator the system uses.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;txt&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;tsv&quot;</span></code> both separate the values by a tabulation.</p></li>
+<li><p>Any other string will not return an error, but rather be used as a custom extension. The data will
+be saved as in a text file (using tabulations as values separators).</p></li>
+</ul>
+</div></blockquote>
+</p></li>
+<li><p><strong>individual</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">False</span></code> (default), the function will save the stats of all the sequences in the same file, with one
+entry/row per sequence.
+If set on <code class="docutils literal notranslate"><span class="pre">True</span></code>, the function will save the stats of each sequence individually, by appending the attribute
+<a class="reference internal" href="sequence.html#classes.sequence.Sequence.name" title="classes.sequence.Sequence.name"><code class="xref py py-attr docutils literal notranslate"><span class="pre">classes.sequence.Sequence.name</span></code></a> of each sequence to the parameter <code class="docutils literal notranslate"><span class="pre">name</span></code> of this function. If the
+attribute <a class="reference internal" href="sequence.html#classes.sequence.Sequence.name" title="classes.sequence.Sequence.name"><code class="xref py py-attr docutils literal notranslate"><span class="pre">classes.sequence.Sequence.name</span></code></a> of a Sequence is set on <code class="docutils literal notranslate"><span class="pre">None</span></code>, a number will be appended
+instead.</p></li>
+<li><p><strong>keys_to_exclude</strong> (<em>list</em><em>(</em><em>str</em><em>) or </em><em>None</em><em>, </em><em>optional</em>) – A list of the stats that you do not wish to save. Each string must be a valid entry among the keys saved by the
+function <a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_stats" title="classes.sequence.Sequence.get_stats"><code class="xref py py-meth docutils literal notranslate"><span class="pre">classes.sequence.Sequence.get_stats()</span></code></a>. If set on <code class="docutils literal notranslate"><span class="pre">None</span></code>, all the stats will be saved, unless
+some keys are specified in <code class="docutils literal notranslate"><span class="pre">keys_to_include</span></code>.</p></li>
+<li><p><strong>keys_to_include</strong> (<em>list</em><em>(</em><em>str</em><em>) or </em><em>None</em><em>, </em><em>optional</em>) – A list of the stats that you wish to save. Each string must be a valid entry among the keys saved by the
+function <a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_stats" title="classes.sequence.Sequence.get_stats"><code class="xref py py-meth docutils literal notranslate"><span class="pre">classes.sequence.Sequence.get_stats()</span></code></a>. If set on <code class="docutils literal notranslate"><span class="pre">None</span></code>, all the stats will be saved, unless
+some keys are specified in <code class="docutils literal notranslate"><span class="pre">keys_to_exclude</span></code>. If at least one key is entered, all the absent keys will not be
+saved. This parameter will only be considered if <code class="docutils literal notranslate"><span class="pre">keys_to_exclude</span></code> is None.</p></li>
+<li><p><strong>verbose</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="functions.html" class="btn btn-neutral float-left" title="Functions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tool_functions.html" class="btn btn-neutral float-right" title="Tool functions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Romain Pastureau.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -155,12 +155,12 @@ def velocity_plotter(folder_or_sequence, audio=None, overlay=False, line_width=1
     plot_dictionary = {}
 
     # Determine color depending on global velocity
-    joints_colors = get_joints_colors_qty_movement(joints_qty_movement, color_scheme)
+    joints_colors = calculate_colors_by_values(joints_qty_movement, color_scheme, "hex", False)
 
     # Scale the audio
     new_audio_envelope = []
     if audio is not None and overlay:
-        new_audio_envelope = get_scaled_audio(audio.get_envelope(), max_velocity)
+        new_audio_envelope = scale_audio(audio.get_envelope(), max_velocity)
 
     for joint in joints_velocity.keys():
         graph = Graph()
@@ -192,7 +192,7 @@ def framerate_plotter(sequence_or_sequences, line_width=1.0, color="#000000"):
         j = i
     plt.rcParams["figure.figsize"] = (12, 6)
     plt.subplots_adjust(left=0.03, bottom=0.03, right=0.97, top=0.9, wspace=0.3, hspace=0.7)
-    labels = get_names(sequence_or_sequences)
+    labels = get_objects_names(sequence_or_sequences)
     max_framerate = 0
 
     framerates_list = []
@@ -202,7 +202,7 @@ def framerate_plotter(sequence_or_sequences, line_width=1.0, color="#000000"):
     for seq in range(len(sequence_or_sequences)):
 
         sequence = sequence_or_sequences[seq]
-        framerates, timestamps = sequence.get_frequencies()
+        framerates, timestamps = sequence.get_framerates()
         avg = sum(framerates) / len(framerates)
         averages = [avg for _ in range(len(framerates))]
 
@@ -229,7 +229,13 @@ def plot_body_graphs(plot_dictionary, min_scale=None, max_scale=None, show_scale
                      color_scheme="default", joint_layout="auto"):
     # Places the positions of the different joints in the graph to look like a body
 
-    joints_positions, joint_layout = load_joints_positions(plot_dictionary, joint_layout)
+    if joint_layout == "auto":
+        if "Chest" in plot_dictionary.keys():
+            joint_layout = "qualisys"
+        else:
+            joint_layout = "kinect"
+
+    joints_positions, joint_layout = load_joints_subplot_layout(joint_layout)
 
     # Figure parameters
     plt.rcParams["figure.figsize"] = (12, 9)
@@ -243,7 +249,7 @@ def plot_body_graphs(plot_dictionary, min_scale=None, max_scale=None, show_scale
     plt.subplots_adjust(left=0.03, bottom=0.03, right=0.97, top=0.97, wspace=0.3, hspace=0.6)
 
     # Get min and max values
-    min_value, max_value = get_min_max_values(plot_dictionary)
+    min_value, max_value = get_min_max_values_from_plot_dictionary(plot_dictionary)
     if max_scale == "auto":
         max_scale = max_value
 
@@ -272,7 +278,7 @@ def plot_body_graphs(plot_dictionary, min_scale=None, max_scale=None, show_scale
         fig.delaxes(axes[axis_to_delete[0]][axis_to_delete[1]])
 
     # Get colors
-    color_list = get_color_points_on_gradient(color_scheme, 100)
+    color_list = calculate_color_points_on_gradient(color_scheme, 100)
 
     # Show the scale if max_scale is not None
     if show_scale:
@@ -311,11 +317,11 @@ def plot_silhouette(plot_dictionary, min_scale="auto", max_scale="auto", show_sc
     pygame.mouse.set_visible(True)  # Allows the mouse to be visible
     mouse_sensitivity = 50  # Radius around the center in which the mouse position will be detected as inside
     program = True  # Loop variable
-    colors = get_color_scheme(color_scheme)  # Color scheme
+    colors = convert_colors_rgba(color_scheme)  # Color scheme
     font = pygame.font.SysFont("Corbel", int(30 * ratio_h), True)  # Define font
 
     # If the scale is on auto, we scale it the max value
-    min_value, max_value = get_min_max_values(plot_dictionary)
+    min_value, max_value = get_min_max_values_from_plot_dictionary(plot_dictionary)
     if min_scale == "auto":
         min_scale = min_value
     if max_scale == "auto":
@@ -352,7 +358,7 @@ def plot_silhouette(plot_dictionary, min_scale="auto", max_scale="auto", show_sc
     #for joint in joints_positions.keys():
     for joint in plot_dictionary.keys():
         ratio = (plot_dictionary[joint] - min_scale) / (max_scale - min_scale)  # Get the ratio of the max value
-        color_in = get_color_ratio(colors, ratio)  # Turn that into a color
+        color_in = calculate_color_ratio(colors, ratio)  # Turn that into a color
         color_edge = (color_in[0], color_in[1], color_in[2], 0)  # Transparent color of the circle edge for the gradient
         circles[joint] = gradients.radial(int(circles_radii[joint] * ratio_w), color_in, color_edge)
         values_to_plot[joint] = font.render(str(joint) + ": " + str(round(plot_dictionary[joint], 2)), True, (0, 0, 0))

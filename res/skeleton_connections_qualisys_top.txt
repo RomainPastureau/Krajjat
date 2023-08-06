@@ -11,6 +11,8 @@ SpineTop	ShoulderTopRight
 SpineTop	ShoulderBackRight
 ShoulderTopRight	ArmRight
 ShoulderBackRight	ArmRight
+ShoulderTopRight    ShoulderBackRight
+ShoulderTopLeft ShoulderBackLeft
 ArmRight	ElbowRight
 ElbowRight	WristOutRight
 WristOutRight	WristInRight

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Compatible files &mdash; krajjat 1.99.3 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Classes" href="classes.html" />
+    <link rel="prev" title="Example of processing" href="example.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #99CC00" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            krajjat
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="general.html">Introduction</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="install.html">Installing Krajjat</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dependencies.html">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vocabulary.html">Vocabulary of the Krajjat toolbox</a></li>
+<li class="toctree-l2"><a class="reference internal" href="example.html">Example of processing</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Compatible files</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#sequences">Sequences</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#tabled-formats">Tabled formats</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#json-format">JSON format</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#audio-files">Audio files</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#wav-files">WAV files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#text-formats">Text formats</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="classes.html">Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions.html">Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix.html">Appendix</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #99CC00" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">krajjat</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="general.html">Introduction</a></li>
+      <li class="breadcrumb-item active">Compatible files</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/input.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="compatible-files">
+<h1>Compatible files<a class="headerlink" href="#compatible-files" title="Permalink to this heading"></a></h1>
+<p>This page describes the structure of the files accepted by the toolbox. As of the most recent version, the accepted
+file extensions are <code class="docutils literal notranslate"><span class="pre">.csv</span></code>, <code class="docutils literal notranslate"><span class="pre">.json</span></code>, <code class="docutils literal notranslate"><span class="pre">.tsv</span></code>, <code class="docutils literal notranslate"><span class="pre">.txt</span></code>, and <code class="docutils literal notranslate"><span class="pre">.xlsx</span></code>. The toolbox accepts files containing the
+entire information for a sequence (global files), or directories containing a series of files with the same extension,
+with each file containing the information relative to a pose. In that case, the file names should be <code class="docutils literal notranslate"><span class="pre">xxxxxx_0.ext</span></code>,
+where <code class="docutils literal notranslate"><span class="pre">xxxxxx</span></code> can be any series of characters, <code class="docutils literal notranslate"><span class="pre">0</span></code> must be the index of the pose (with or without leading zeros),
+and <code class="docutils literal notranslate"><span class="pre">ext</span></code> must be an accepted extension (<code class="docutils literal notranslate"><span class="pre">.csv</span></code>, <code class="docutils literal notranslate"><span class="pre">.json</span></code>, <code class="docutils literal notranslate"><span class="pre">.tsv</span></code>, <code class="docutils literal notranslate"><span class="pre">.txt</span></code>, or <code class="docutils literal notranslate"><span class="pre">.xlsx</span></code>). The first pose of the
+sequence must have the index 0. If the file does not have an underscore in the name, it is ignored. The indices must be
+coherent with the chronological order of the timestamps.</p>
+<section id="sequences">
+<h2>Sequences<a class="headerlink" href="#sequences" title="Permalink to this heading"></a></h2>
+<section id="tabled-formats">
+<span id="table-example"></span><h3>Tabled formats<a class="headerlink" href="#tabled-formats" title="Permalink to this heading"></a></h3>
+<p>For <code class="docutils literal notranslate"><span class="pre">.csv</span></code> (comma-separated values), <code class="docutils literal notranslate"><span class="pre">.xlsx</span></code> (Microsoft Excel files), <code class="docutils literal notranslate"><span class="pre">.tsv</span></code> (tabulation-separated values) or
+<code class="docutils literal notranslate"><span class="pre">.txt</span></code> (text) files, the first line must always be the labels, with the first being <code class="docutils literal notranslate"><span class="pre">&quot;Timestamp&quot;</span></code> and the
+subsequent labels being in group of three columns for each joint: respectively, one for the X, Y and Z coordinates.
+Line 2 (in case of a single pose file) or lines 2 and on (in case of a global, sequence file) should contain the
+timestamps in chronological order and the X, Y and Z coordinates for each joint. As an example, a file with two joints
+and three poses should look like this:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Timestamp</p></th>
+<th class="head"><p>Head_X</p></th>
+<th class="head"><p>Head_Y</p></th>
+<th class="head"><p>Head_Z</p></th>
+<th class="head"><p>HandRight_X</p></th>
+<th class="head"><p>HandRight_Y</p></th>
+<th class="head"><p>HandRight_Z</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>0.400</p></td>
+<td><p>0.80</p></td>
+<td><p>1.50</p></td>
+<td><p>1.60</p></td>
+<td><p>2.300</p></td>
+<td><p>4.2</p></td>
+</tr>
+<tr class="row-odd"><td><p>0.125</p></td>
+<td><p>0.1123</p></td>
+<td><p>0.5813</p></td>
+<td><p>0.2134</p></td>
+<td><p>0.5589</p></td>
+<td><p>0.1442</p></td>
+<td><p>0.3337</p></td>
+</tr>
+<tr class="row-even"><td><p>0.250</p></td>
+<td><p>0.2008</p></td>
+<td><p>0.0512</p></td>
+<td><p>0.1519</p></td>
+<td><p>0.2018</p></td>
+<td><p>0.1515</p></td>
+<td><p>0.1300</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Global <code class="docutils literal notranslate"><span class="pre">.tsv</span></code> files that are output from the QualiSys software will be detected automatically and do not need any
+type of processing to be used.</p>
+</div>
+</section>
+<section id="json-format">
+<span id="json-example"></span><h3>JSON format<a class="headerlink" href="#json-format" title="Permalink to this heading"></a></h3>
+<p>For <code class="docutils literal notranslate"><span class="pre">.json</span></code> (JavaScript object notation) single-pose files, the structure must be a dictionary with at least two
+entries: <code class="docutils literal notranslate"><span class="pre">&quot;Timestamp&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;Bodies&quot;</span></code>. The value for <code class="docutils literal notranslate"><span class="pre">&quot;Bodies&quot;</span></code> must be a list containing a new dictionary with
+an entry called <code class="docutils literal notranslate"><span class="pre">&quot;Joints&quot;</span></code>. The value for <code class="docutils literal notranslate"><span class="pre">&quot;Joints&quot;</span></code> must be a dictionary containing an entry for each joint, under
+the form of a dictionary with at least two keys: <code class="docutils literal notranslate"><span class="pre">&quot;JointType&quot;</span></code>, which value is a string containing the label of the
+joint, and <code class="docutils literal notranslate"><span class="pre">&quot;Position&quot;</span></code>. The value for <code class="docutils literal notranslate"><span class="pre">&quot;Position&quot;</span></code> must be a final dictionary containing at least the three
+entries <code class="docutils literal notranslate"><span class="pre">&quot;X&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;Y&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;Z&quot;</span></code>, with their coordinates as values. As an example, the data from the two first
+lines in the table above should look like this in json form:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;Timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;Bodies&quot;</span><span class="p">:</span>
+<span class="w">    </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span><span class="nt">&quot;Joints&quot;</span><span class="p">:</span>
+<span class="w">            </span><span class="p">[</span>
+<span class="w">                </span><span class="p">{</span><span class="nt">&quot;JointType&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Head&quot;</span><span class="p">,</span>
+<span class="w">                 </span><span class="nt">&quot;Position&quot;</span><span class="p">:</span>
+<span class="w">                    </span><span class="p">{</span><span class="nt">&quot;X&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.400</span><span class="p">,</span>
+<span class="w">                     </span><span class="nt">&quot;Y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.80</span><span class="p">,</span>
+<span class="w">                     </span><span class="nt">&quot;Z&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.50</span><span class="p">}</span>
+<span class="w">                </span><span class="p">},</span>
+<span class="w">                </span><span class="p">{</span><span class="nt">&quot;JointType&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;HandRight&quot;</span><span class="p">,</span>
+<span class="w">                 </span><span class="nt">&quot;Position&quot;</span><span class="p">:</span>
+<span class="w">                    </span><span class="p">{</span><span class="nt">&quot;X&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.60</span><span class="p">,</span>
+<span class="w">                     </span><span class="nt">&quot;Y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2.300</span><span class="p">,</span>
+<span class="w">                     </span><span class="nt">&quot;Z&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">4.2</span><span class="p">}</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">            </span><span class="p">]</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>If the file is a global file, containing multiple poses, each pose must be an element of a list, with the structure of
+each element being the same as described above. Note that dictionary entries other than the ones mentioned above will
+be ignored by the toolbox.</p>
+</section>
+</section>
+<section id="audio-files">
+<h2>Audio files<a class="headerlink" href="#audio-files" title="Permalink to this heading"></a></h2>
+<section id="wav-files">
+<span id="wav-example"></span><h3>WAV files<a class="headerlink" href="#wav-files" title="Permalink to this heading"></a></h3>
+<p>As of version 2.0, <code class="docutils literal notranslate"><span class="pre">.wav</span></code> files (Waveform Audio File Format) are the only accepted audio input files in the toolbox.
+Other formats may be supported in the future. Upon opening, the toolbox will automatically detect the sample rate of the
+file.</p>
+</section>
+<section id="text-formats">
+<h3>Text formats<a class="headerlink" href="#text-formats" title="Permalink to this heading"></a></h3>
+<p>The audio samples can also be opened when they are in text form, as long as the files contain the samples and their
+matching timestamps. Accepted formats are the same as for the Sequence files: <code class="docutils literal notranslate"><span class="pre">.csv</span></code>, <code class="docutils literal notranslate"><span class="pre">.json</span></code>, <code class="docutils literal notranslate"><span class="pre">.tsv</span></code>, <code class="docutils literal notranslate"><span class="pre">.txt</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">.xlsx</span></code>.</p>
+<p>Here is an acceptable table containing the formants of an audio file sampled at 8 Hz:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Timestamp</p></th>
+<th class="head"><p>Sample</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>0.125</p></td>
+<td><p>-2</p></td>
+</tr>
+<tr class="row-even"><td><p>0.25</p></td>
+<td><p>3</p></td>
+</tr>
+<tr class="row-odd"><td><p>0.375</p></td>
+<td><p>-4</p></td>
+</tr>
+<tr class="row-even"><td><p>0.5</p></td>
+<td><p>-5</p></td>
+</tr>
+<tr class="row-odd"><td><p>0.625</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td><p>0.75</p></td>
+<td><p>63</p></td>
+</tr>
+<tr class="row-odd"><td><p>0.875</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>1</p></td>
+<td><p>-1</p></td>
+</tr>
+</tbody>
+</table>
+<p>In <code class="docutils literal notranslate"><span class="pre">.json</span></code>, the content should be a dictionary with two entries, <code class="docutils literal notranslate"><span class="pre">&quot;Timestamp&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;Sample&quot;</span></code>, both having a
+list as values:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;Timestamp&quot;</span><span class="p">:</span>
+<span class="w">    </span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.125</span><span class="p">,</span><span class="w"> </span><span class="mf">0.25</span><span class="p">,</span><span class="w"> </span><span class="mf">0.375</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">0.625</span><span class="p">,</span><span class="w"> </span><span class="mf">0.75</span><span class="p">,</span><span class="w"> </span><span class="mf">0.875</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">],</span>
+<span class="w"> </span><span class="nt">&quot;Sample&quot;</span><span class="p">:</span>
+<span class="w">    </span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">-2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">-4</span><span class="p">,</span><span class="w"> </span><span class="mi">-5</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">63</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">-1</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>It is possible to have individual files for every sample. In that case, the name of the folder containing the
+individual audio samples should be passed as parameter upon creation of the <code class="xref py py-class docutils literal notranslate"><span class="pre">Audio</span></code> object. This incredibly
+tedious way of opening and saving audio files has only been implemented to follow the same logic as for the Sequence
+files, and should be avoided.</p>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="example.html" class="btn btn-neutral float-left" title="Example of processing" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="classes.html" class="btn btn-neutral float-right" title="Classes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Romain Pastureau.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

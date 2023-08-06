@@ -1,12 +1,13 @@
 #!/usr/bin/env python
-"""Krajjat 1.10
+"""krajjat 1.10
 Kinect Realignment Algorithm for Joint Jumps And Twitches
 Author: Romain Pastureau
 This file contains the main graphic functions. This is the
 file to run to use any of the graphic functions.
 """
 import shutil
-from core_functions import *
+
+from io_functions import *
 from classes.graphic_classes import *
 from tool_functions import *
 import cv2
@@ -32,7 +33,7 @@ def common_displayer(folder_or_sequence1, folder_or_sequence2=None, show_lines=T
     if realign:
         sequence2 = sequence1.correct_jitter(velocity_threshold, w, verbose=False)
         if folder_save:
-            save_sequence(sequence1, sequence2, folder_save)
+            save_sequences(sequence1, sequence2, folder_save)
     else:
         if folder_or_sequence2 is str:
             sequence2 = Sequence(folder_or_sequence2)
@@ -51,13 +52,13 @@ def common_displayer(folder_or_sequence1, folder_or_sequence2=None, show_lines=T
         window = pygame.display.set_mode(resolution)
 
     pygame.mouse.set_visible(True)  # Allows the mouse to be visible
-    disp = GraphicDisplay(window)  # Contains the window and resizing info
+    disp = _GraphicWindow(window)  # Contains the window and resizing info
 
     # Generates a graphic sequence from the sequence
-    animation1 = GraphicSequence(sequence1, show_lines, ignore_bottom, start_pose, path_images, disp, scale)
+    animation1 = _GraphicSequence(sequence1, disp, show_lines, ignore_bottom, start_pose, path_images,  scale)
     animation2 = None
     if sequence2 is not None:
-        animation2 = GraphicSequence(sequence2, show_lines, ignore_bottom, start_pose, path_images, disp, scale)
+        animation2 = _GraphicSequence(sequence2, disp, show_lines, ignore_bottom, start_pose, path_images, scale)
 
     program = True
 
@@ -156,8 +157,8 @@ def save_skeleton_video(sequence, output_name, frequency=25, show_lines=False, i
     else:
         window = pygame.display.set_mode(resolution)
 
-    disp = GraphicDisplay(window)  # Contains the window and resizing info
-    animation = GraphicSequence(sequence, show_lines, ignore_bottom, start_pose, path_images, disp, 1.7)
+    disp = _GraphicWindow(window)  # Contains the window and resizing info
+    animation = _GraphicSequence(sequence, disp, show_lines, ignore_bottom, start_pose, path_images,  1.7)
 
     print("Generating images...", end=" ")
 
@@ -165,7 +166,7 @@ def save_skeleton_video(sequence, output_name, frequency=25, show_lines=False, i
     tempfolder = "tempfolder_"+(output_name.split("/")[-1]).split(".")[0]
     if os.path.exists(tempfolder):
         shutil.rmtree(tempfolder)
-    subfolder_creation(tempfolder)
+    create_subfolders(tempfolder)
     images = []
     perc = 10
 
@@ -176,7 +177,7 @@ def save_skeleton_video(sequence, output_name, frequency=25, show_lines=False, i
                 print("")
             print("\tGenerating image "+str(pose+1)+" of "+str(len(animation.poses))+"...")
         else:
-            perc = show_percentage(verbose, pose, len(animation.poses), perc, step=10)
+            perc = show_progression(verbose, pose, len(animation.poses), perc, step=10)
 
         window.fill((0, 0, 0))
         animation.show_pose(window, show_lines, False, shift_x, shift_y, "circle", (255, 255, 255), 1.7)
@@ -193,11 +194,11 @@ def save_skeleton_video(sequence, output_name, frequency=25, show_lines=False, i
     #print(timestamps)
     #print(images)
 
-    new_timestamps, new_images = convert_timestamps(timestamps, images, frequency)
+    new_images, new_timestamps = resample_images_to_frequency(images, timestamps, frequency)
     #print(new_timestamps)
     #print(new_images)
 
-    subfolder_creation(output_name)
+    create_subfolders(output_name)
 
     #images = [img for img in os.listdir("temp_folder") if img.endswith(".png")]
     frame = cv2.imread(new_images[0])

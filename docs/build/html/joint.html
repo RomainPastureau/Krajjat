@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Joint &mdash; krajjat 1.99.3 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Audio" href="audio.html" />
+    <link rel="prev" title="Pose" href="pose.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #99CC00" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            krajjat
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="general.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="classes.html">Classes</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="sequence.html">Sequence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pose.html">Pose</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Joint</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#initialisation">Initialisation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#classes.joint.Joint"><code class="docutils literal notranslate"><span class="pre">Joint</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#magic-methods">Magic methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#classes.joint.Joint.__repr__"><code class="docutils literal notranslate"><span class="pre">Joint.__repr__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#public-methods">Public methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#setter-functions">Setter functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#getter-functions">Getter functions</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#private-methods">Private methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#classes.joint.Joint._correct_joint"><code class="docutils literal notranslate"><span class="pre">Joint._correct_joint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#classes.joint.Joint._randomize_coordinates_keep_movement"><code class="docutils literal notranslate"><span class="pre">Joint._randomize_coordinates_keep_movement()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#classes.joint.Joint._set_has_velocity_over_threshold"><code class="docutils literal notranslate"><span class="pre">Joint._set_has_velocity_over_threshold()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#classes.joint.Joint._set_is_corrected"><code class="docutils literal notranslate"><span class="pre">Joint._set_is_corrected()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="audio.html">Audio</a></li>
+<li class="toctree-l2"><a class="reference internal" href="graphic_classes.html">Graphic classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="graph_element.html">Graph Elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html">Exceptions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="functions.html">Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix.html">Appendix</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #99CC00" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">krajjat</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="classes.html">Classes</a></li>
+      <li class="breadcrumb-item active">Joint</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/joint.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="joint">
+<h1>Joint<a class="headerlink" href="#joint" title="Permalink to this heading"></a></h1>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading"></a></h2>
+<p>Default class for joints, i.e. points in space at a specific timestamp. The methods in this class are mainly
+handled by the methods in the class Pose, but some of them can be directly accessed.</p>
+</section>
+<section id="initialisation">
+<h2>Initialisation<a class="headerlink" href="#initialisation" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="classes.joint.Joint">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">classes.joint.</span></span><span class="sig-name descname"><span class="pre">Joint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.joint.Joint" title="Permalink to this definition"></a></dt>
+<dd><p>Creates a Joint instance, with a joint label and x, y, and z coordinates.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>joint_label</strong> (<em>str</em><em>, </em><em>optional</em>) – The label of the joint (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Head&quot;</span></code>).</p></li>
+<li><p><strong>x</strong> (<em>float</em><em>, </em><em>optional</em>) – The position of the joint on the x axis (in meters).</p></li>
+<li><p><strong>y</strong> (<em>float</em><em>, </em><em>optional</em>) – The position of the joint on the y axis (in meters).</p></li>
+<li><p><strong>z</strong> (<em>float</em><em>, </em><em>optional</em>) – The position of the joint on the z axis (in meters).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.joint.Joint.joint_label">
+<span class="sig-name descname"><span class="pre">joint_label</span></span><a class="headerlink" href="#classes.joint.Joint.joint_label" title="Permalink to this definition"></a></dt>
+<dd><p>The label of the joint (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Head&quot;</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.joint.Joint.x">
+<span class="sig-name descname"><span class="pre">x</span></span><a class="headerlink" href="#classes.joint.Joint.x" title="Permalink to this definition"></a></dt>
+<dd><p>The position of the joint on the x axis (in meters).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.joint.Joint.y">
+<span class="sig-name descname"><span class="pre">y</span></span><a class="headerlink" href="#classes.joint.Joint.y" title="Permalink to this definition"></a></dt>
+<dd><p>The position of the joint on the y axis (in meters).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.joint.Joint.z">
+<span class="sig-name descname"><span class="pre">z</span></span><a class="headerlink" href="#classes.joint.Joint.z" title="Permalink to this definition"></a></dt>
+<dd><p>The position of the joint on the z axis (in meters).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.joint.Joint.position">
+<span class="sig-name descname"><span class="pre">position</span></span><a class="headerlink" href="#classes.joint.Joint.position" title="Permalink to this definition"></a></dt>
+<dd><p>The coordinates of the joint, equivalent to [x, y, z].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.joint.Joint._has_velocity_over_threshold">
+<span class="sig-name descname"><span class="pre">_has_velocity_over_threshold</span></span><a class="headerlink" href="#classes.joint.Joint._has_velocity_over_threshold" title="Permalink to this definition"></a></dt>
+<dd><p>Defines if the velocity of this joint, compared to the previous joint, has been found to be over threshold
+defined in the parameters <a class="reference internal" href="sequence.html#classes.sequence.Sequence.correct_jitter" title="classes.sequence.Sequence.correct_jitter"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.correct_jitter()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.joint.Joint._is_corrected">
+<span class="sig-name descname"><span class="pre">_is_corrected</span></span><a class="headerlink" href="#classes.joint.Joint._is_corrected" title="Permalink to this definition"></a></dt>
+<dd><p>Defines if the coordinates of this joint have been modified by <a class="reference internal" href="sequence.html#classes.sequence.Sequence.correct_jitter" title="classes.sequence.Sequence.correct_jitter"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.correct_jitter()</span></code></a>,
+<a class="reference internal" href="sequence.html#classes.sequence.Sequence.re_reference" title="classes.sequence.Sequence.re_reference"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.re_reference()</span></code></a> or <a class="reference internal" href="sequence.html#classes.sequence.Sequence.correct_zeros" title="classes.sequence.Sequence.correct_zeros"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.correct_zeros()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.joint.Joint._is_randomized">
+<span class="sig-name descname"><span class="pre">_is_randomized</span></span><a class="headerlink" href="#classes.joint.Joint._is_randomized" title="Permalink to this definition"></a></dt>
+<dd><p>Defines if the coordinates of this joint have been randomly generated by (typically, by
+<a class="reference internal" href="sequence.html#classes.sequence.Sequence.randomize" title="classes.sequence.Sequence.randomize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.randomize()</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="magic-methods">
+<h2>Magic methods<a class="headerlink" href="#magic-methods" title="Permalink to this heading"></a></h2>
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.joint.Joint.__repr__">
+<span class="sig-prename descclassname"><span class="pre">Joint.</span></span><span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.joint.Joint.__repr__" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a string containing the joint label, the x, y ans z coordinates, and adds information if one or more
+of the private attributes <a class="reference internal" href="#classes.joint.Joint._has_velocity_over_threshold" title="classes.joint.Joint._has_velocity_over_threshold"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_has_velocity_over_threshold</span></code></a>, <a class="reference internal" href="#classes.joint.Joint._is_corrected" title="classes.joint.Joint._is_corrected"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_is_corrected</span></code></a> or <a class="reference internal" href="#classes.joint.Joint._is_randomized" title="classes.joint.Joint._is_randomized"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_is_randomized</span></code></a>
+are <cite>True</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A formatted string of the information contained in all the attributes of the object.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sequence</span> <span class="o">=</span> <span class="n">Sequence</span><span class="p">(</span><span class="s2">&quot;C:/Users/Adrian/Sequences/seq1/&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">joint</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">get_pose</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">get_joint</span><span class="p">(</span><span class="s2">&quot;Head&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">joint</span><span class="p">)</span>
+<span class="go">Head: (4.8, 15.16, 23.42) CORRECTED</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="public-methods">
+<h2>Public methods<a class="headerlink" href="#public-methods" title="Permalink to this heading"></a></h2>
+<section id="setter-functions">
+<h3>Setter functions<a class="headerlink" href="#setter-functions" title="Permalink to this heading"></a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.joint.Joint.set_joint_label">
+<span class="sig-prename descclassname"><span class="pre">Joint.</span></span><span class="sig-name descname"><span class="pre">set_joint_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.joint.Joint.set_joint_label" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the <a class="reference internal" href="#classes.joint.Joint.joint_label" title="classes.joint.Joint.joint_label"><code class="xref py py-attr docutils literal notranslate"><span class="pre">joint_label</span></code></a> attribute of the joint.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>joint_label</strong> (<em>str</em>) – The label of the joint (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Head&quot;</span></code>).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.joint.Joint.set_x">
+<span class="sig-prename descclassname"><span class="pre">Joint.</span></span><span class="sig-name descname"><span class="pre">set_x</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.joint.Joint.set_x" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the <a class="reference internal" href="#classes.joint.Joint.x" title="classes.joint.Joint.x"><code class="xref py py-attr docutils literal notranslate"><span class="pre">x</span></code></a> coordinate of the joint.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>float</em>) – The position of the joint on the x axis.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.joint.Joint.set_y">
+<span class="sig-prename descclassname"><span class="pre">Joint.</span></span><span class="sig-name descname"><span class="pre">set_y</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.joint.Joint.set_y" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the <a class="reference internal" href="#classes.joint.Joint.y" title="classes.joint.Joint.y"><code class="xref py py-attr docutils literal notranslate"><span class="pre">y</span></code></a> coordinate of the joint.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>y</strong> (<em>float</em>) – The position of the joint on the y axis.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.joint.Joint.set_z">
+<span class="sig-prename descclassname"><span class="pre">Joint.</span></span><span class="sig-name descname"><span class="pre">set_z</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.joint.Joint.set_z" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the <a class="reference internal" href="#classes.joint.Joint.z" title="classes.joint.Joint.z"><code class="xref py py-attr docutils literal notranslate"><span class="pre">z</span></code></a> coordinate of the joint.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>z</strong> (<em>float</em>) – The position of the joint on the z axis.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.joint.Joint.set_position">
+<span class="sig-prename descclassname"><span class="pre">Joint.</span></span><span class="sig-name descname"><span class="pre">set_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.joint.Joint.set_position" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the <a class="reference internal" href="#classes.joint.Joint.x" title="classes.joint.Joint.x"><code class="xref py py-attr docutils literal notranslate"><span class="pre">x</span></code></a>, <a class="reference internal" href="#classes.joint.Joint.y" title="classes.joint.Joint.y"><code class="xref py py-attr docutils literal notranslate"><span class="pre">y</span></code></a> and <a class="reference internal" href="#classes.joint.Joint.z" title="classes.joint.Joint.z"><code class="xref py py-attr docutils literal notranslate"><span class="pre">z</span></code></a> coordinates of the joint.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>float</em>) – The position of the joint on the x axis.</p></li>
+<li><p><strong>y</strong> (<em>float</em>) – The position of the joint on the y axis.</p></li>
+<li><p><strong>z</strong> (<em>float</em>) – The position of the joint on the z axis.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.joint.Joint.set_to_zero">
+<span class="sig-prename descclassname"><span class="pre">Joint.</span></span><span class="sig-name descname"><span class="pre">set_to_zero</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.joint.Joint.set_to_zero" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the joints coordinates to (0, 0, 0).</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+</dd></dl>
+
+</section>
+<section id="getter-functions">
+<h3>Getter functions<a class="headerlink" href="#getter-functions" title="Permalink to this heading"></a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.joint.Joint.get_joint_label">
+<span class="sig-prename descclassname"><span class="pre">Joint.</span></span><span class="sig-name descname"><span class="pre">get_joint_label</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.joint.Joint.get_joint_label" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the <a class="reference internal" href="#classes.joint.Joint.joint_label" title="classes.joint.Joint.joint_label"><code class="xref py py-attr docutils literal notranslate"><span class="pre">joint_label</span></code></a> attribute.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The label of the joint (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Head&quot;</span></code>).</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.joint.Joint.get_x">
+<span class="sig-prename descclassname"><span class="pre">Joint.</span></span><span class="sig-name descname"><span class="pre">get_x</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.joint.Joint.get_x" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the <a class="reference internal" href="#classes.joint.Joint.x" title="classes.joint.Joint.x"><code class="xref py py-attr docutils literal notranslate"><span class="pre">x</span></code></a> coordinate of the joint.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The x coordinate of the joint (in meters).</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.joint.Joint.get_y">
+<span class="sig-prename descclassname"><span class="pre">Joint.</span></span><span class="sig-name descname"><span class="pre">get_y</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.joint.Joint.get_y" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the <a class="reference internal" href="#classes.joint.Joint.y" title="classes.joint.Joint.y"><code class="xref py py-attr docutils literal notranslate"><span class="pre">y</span></code></a> coordinate of the joint.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The y coordinate of the joint (in meters).</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.joint.Joint.get_z">
+<span class="sig-prename descclassname"><span class="pre">Joint.</span></span><span class="sig-name descname"><span class="pre">get_z</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.joint.Joint.get_z" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the <a class="reference internal" href="#classes.joint.Joint.z" title="classes.joint.Joint.z"><code class="xref py py-attr docutils literal notranslate"><span class="pre">z</span></code></a> coordinate of the joint.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The z coordinate of the joint (in meters).</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.joint.Joint.get_position">
+<span class="sig-prename descclassname"><span class="pre">Joint.</span></span><span class="sig-name descname"><span class="pre">get_position</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.joint.Joint.get_position" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list containing the <a class="reference internal" href="#classes.joint.Joint.x" title="classes.joint.Joint.x"><code class="xref py py-attr docutils literal notranslate"><span class="pre">x</span></code></a>, <a class="reference internal" href="#classes.joint.Joint.y" title="classes.joint.Joint.y"><code class="xref py py-attr docutils literal notranslate"><span class="pre">y</span></code></a> and <a class="reference internal" href="#classes.joint.Joint.z" title="classes.joint.Joint.z"><code class="xref py py-attr docutils literal notranslate"><span class="pre">z</span></code></a> coordinates of the joint.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The x coordinate of the joint (in meters).</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.joint.Joint.get_has_velocity_over_threshold">
+<span class="sig-prename descclassname"><span class="pre">Joint.</span></span><span class="sig-name descname"><span class="pre">get_has_velocity_over_threshold</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.joint.Joint.get_has_velocity_over_threshold" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the value of the attribute <a class="reference internal" href="#classes.joint.Joint._has_velocity_over_threshold" title="classes.joint.Joint._has_velocity_over_threshold"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_has_velocity_over_threshold</span></code></a>, which will be <cite>True</cite> if the
+velocity of this joint, compared to the previous joint, has been found to be over threshold defined in the
+parameters of <a class="reference internal" href="sequence.html#classes.sequence.Sequence.correct_jitter" title="classes.sequence.Sequence.correct_jitter"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.correct_jitter()</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Value of the attribute <a class="reference internal" href="#classes.joint.Joint._has_velocity_over_threshold" title="classes.joint.Joint._has_velocity_over_threshold"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_has_velocity_over_threshold</span></code></a>.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.joint.Joint.get_is_corrected">
+<span class="sig-prename descclassname"><span class="pre">Joint.</span></span><span class="sig-name descname"><span class="pre">get_is_corrected</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.joint.Joint.get_is_corrected" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the value of the attribute <a class="reference internal" href="#classes.joint.Joint._is_corrected" title="classes.joint.Joint._is_corrected"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_is_corrected</span></code></a>, which will be <cite>True</cite> if the coordinates of this
+joint have been modified by <a class="reference internal" href="sequence.html#classes.sequence.Sequence.correct_jitter" title="classes.sequence.Sequence.correct_jitter"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.correct_jitter()</span></code></a>, <a class="reference internal" href="sequence.html#classes.sequence.Sequence.re_reference" title="classes.sequence.Sequence.re_reference"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.re_reference()</span></code></a> or
+<a class="reference internal" href="sequence.html#classes.sequence.Sequence.correct_zeros" title="classes.sequence.Sequence.correct_zeros"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.correct_zeros()</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Value of the attribute <a class="reference internal" href="#classes.joint.Joint._is_corrected" title="classes.joint.Joint._is_corrected"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_is_corrected</span></code></a>.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.joint.Joint.get_is_randomized">
+<span class="sig-prename descclassname"><span class="pre">Joint.</span></span><span class="sig-name descname"><span class="pre">get_is_randomized</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.joint.Joint.get_is_randomized" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the value of the attribute <a class="reference internal" href="#classes.joint.Joint._is_randomized" title="classes.joint.Joint._is_randomized"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_is_randomized</span></code></a>, which will be <cite>True</cite> if the coordinates of this
+joint have been randomly generated by <a class="reference internal" href="sequence.html#classes.sequence.Sequence.randomize" title="classes.sequence.Sequence.randomize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.randomize()</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Value of the attribute <a class="reference internal" href="#classes.joint.Joint._is_randomized" title="classes.joint.Joint._is_randomized"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_is_randomized</span></code></a>.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.joint.Joint.get_copy">
+<span class="sig-prename descclassname"><span class="pre">Joint.</span></span><span class="sig-name descname"><span class="pre">get_copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.joint.Joint.get_copy" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a deep copy of itself.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A deep copy of the Joint instance.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#classes.joint.Joint" title="classes.joint.Joint">Joint</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+<section id="private-methods">
+<h2>Private methods<a class="headerlink" href="#private-methods" title="Permalink to this heading"></a></h2>
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.joint.Joint._correct_joint">
+<span class="sig-prename descclassname"><span class="pre">Joint.</span></span><span class="sig-name descname"><span class="pre">_correct_joint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.joint.Joint._correct_joint" title="Permalink to this definition"></a></dt>
+<dd><p>Assigns new x, y and z coordinates to the joint and marks it as corrected.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>float</em>) – The position of the joint on the x axis.</p></li>
+<li><p><strong>y</strong> (<em>float</em>) – The position of the joint on the y axis.</p></li>
+<li><p><strong>z</strong> (<em>float</em>) – The position of the joint on the z axis.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.joint.Joint._randomize_coordinates_keep_movement">
+<span class="sig-prename descclassname"><span class="pre">Joint.</span></span><span class="sig-name descname"><span class="pre">_randomize_coordinates_keep_movement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_pose_0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_random</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.joint.Joint._randomize_coordinates_keep_movement" title="Permalink to this definition"></a></dt>
+<dd><p>Modifies the coordinates of the joint while keeping the relative position compared to the position of the
+joint at the beginning of the sequence. This function is used by <cite>.Sequence.randomize()</cite>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>joint_pose_0</strong> (<a class="reference internal" href="#classes.joint.Joint" title="classes.joint.Joint"><em>Joint</em></a>) – The joint from the first pose of the sequence, with the same <a class="reference internal" href="#classes.joint.Joint.joint_label" title="classes.joint.Joint.joint_label"><code class="xref py py-attr docutils literal notranslate"><span class="pre">joint_label</span></code></a>.</p></li>
+<li><p><strong>joint_random</strong> (<a class="reference internal" href="#classes.joint.Joint" title="classes.joint.Joint"><em>Joint</em></a>) – A joint with random coordinates, generated by <a class="reference internal" href="sequence.html#classes.sequence.Sequence.randomize" title="classes.sequence.Sequence.randomize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.randomize()</span></code></a></p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.joint.Joint._set_has_velocity_over_threshold">
+<span class="sig-prename descclassname"><span class="pre">Joint.</span></span><span class="sig-name descname"><span class="pre">_set_has_velocity_over_threshold</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">has_velocity_over_threshold</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.joint.Joint._set_has_velocity_over_threshold" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the value of the attribute <a class="reference internal" href="#classes.joint.Joint._has_velocity_over_threshold" title="classes.joint.Joint._has_velocity_over_threshold"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_has_velocity_over_threshold</span></code></a>. This function is used by
+<a class="reference internal" href="sequence.html#classes.sequence.Sequence.correct_jitter" title="classes.sequence.Sequence.correct_jitter"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.correct_jitter()</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>has_velocity_over_threshold</strong> (<em>bool</em>) – If <cite>True</cite>, the velocity of this joint, compared to the previous joint, has been found to be over threshold
+defined in the parameters of <a class="reference internal" href="sequence.html#classes.sequence.Sequence.correct_jitter" title="classes.sequence.Sequence.correct_jitter"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.correct_jitter()</span></code></a>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.joint.Joint._set_is_corrected">
+<span class="sig-prename descclassname"><span class="pre">Joint.</span></span><span class="sig-name descname"><span class="pre">_set_is_corrected</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">is_corrected</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.joint.Joint._set_is_corrected" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the value of the attribute <a class="reference internal" href="#classes.joint.Joint._is_corrected" title="classes.joint.Joint._is_corrected"><code class="xref py py-attr docutils literal notranslate"><span class="pre">_is_corrected</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>is_corrected</strong> (<em>bool</em>) – <dl class="simple">
+<dt>If <cite>True</cite>, the coordinates of this joint have been modified by <a class="reference internal" href="sequence.html#classes.sequence.Sequence.correct_jitter" title="classes.sequence.Sequence.correct_jitter"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.correct_jitter()</span></code></a>,</dt><dd><p><a class="reference internal" href="sequence.html#classes.sequence.Sequence.re_reference" title="classes.sequence.Sequence.re_reference"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.re_reference()</span></code></a> or <a class="reference internal" href="sequence.html#classes.sequence.Sequence.correct_zeros" title="classes.sequence.Sequence.correct_zeros"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.correct_zeros()</span></code></a>.</p>
+</dd>
+</dl>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="pose.html" class="btn btn-neutral float-left" title="Pose" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="audio.html" class="btn btn-neutral float-right" title="Audio" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Romain Pastureau.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

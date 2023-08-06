@@ -1,26 +1,137 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AnalysisUIOptions">
+    <option name="SCOPE_TYPE" value="8" />
+    <option name="CUSTOM_SCOPE_NAME" value="Python files only" />
+  </component>
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
     <list default="true" id="17f5d419-2a1b-432f-83bc-85d48bd70ac2" name="Changes" comment="Changes">
-      <change afterPath="$PROJECT_DIR$/classes/audio.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/classes/graph_element.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/gradients.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/plot_functions.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/res/kinect_joints.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/res/silhouette.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stats_functions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/classes/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/classes/audio_derivatives.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/classes/exceptions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/doctrees/classes.doctree" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/doctrees/environment.pickle" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/doctrees/example.doctree" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/doctrees/general.doctree" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/doctrees/index.doctree" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/doctrees/input.doctree" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/doctrees/install.doctree" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/doctrees/pose.doctree" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/doctrees/sequence.doctree" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/doctrees/vocabulary.doctree" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/.buildinfo" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_sources/audio.rst.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_sources/classes.rst.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_sources/example.rst.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_sources/general.rst.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_sources/index.rst.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_sources/input.rst.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_sources/install.rst.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_sources/joint.rst.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_sources/pose.rst.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_sources/sequence.rst.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_sources/vocabulary.rst.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/_sphinx_javascript_frameworks_compat.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/basic.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/css/badge_only.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/css/fonts/Roboto-Slab-Bold.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/css/fonts/Roboto-Slab-Bold.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/css/fonts/Roboto-Slab-Regular.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/css/fonts/Roboto-Slab-Regular.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/css/fonts/fontawesome-webfont.eot" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/css/fonts/fontawesome-webfont.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/css/fonts/fontawesome-webfont.ttf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/css/fonts/fontawesome-webfont.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/css/fonts/fontawesome-webfont.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/css/fonts/lato-bold-italic.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/css/fonts/lato-bold-italic.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/css/fonts/lato-bold.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/css/fonts/lato-bold.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/css/fonts/lato-normal-italic.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/css/fonts/lato-normal-italic.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/css/fonts/lato-normal.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/css/fonts/lato-normal.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/css/theme.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/doctools.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/documentation_options.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/file.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/jquery.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/js/badge_only.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/js/html5shiv-printshiv.min.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/js/html5shiv.min.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/js/theme.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/language_data.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/minus.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/plus.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/pygments.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/searchtools.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/_static/sphinx_highlight.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/audio.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/classes.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/example.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/general.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/genindex.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/input.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/install.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/joint.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/objects.inv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/pose.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/search.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/searchindex.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/sequence.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/build/html/vocabulary.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/source/appendix.rst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/source/audio.rst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/source/classes.rst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/source/color_schemes.rst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/source/conf.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/source/dependencies.rst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/source/example.rst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/source/exceptions.rst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/source/functions.rst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/source/general.rst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/source/graph_element.rst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/source/graphic_classes.rst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/source/graphic_functions.rst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/source/index.rst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/source/input.rst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/source/install.rst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/source/io_functions.rst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/source/joint.rst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/source/joint_labels.rst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/source/pose.rst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/source/sequence.rst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/source/tool_functions.rst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/source/vocabulary.rst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/io_functions.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/res/color_schemes.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/res/hilbert_transform_chunks.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/res/hilbert_transform_chunks_2.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/Krajjat.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/krajjat.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Realigner algorithm.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/doc/Realigner algorithm.pdf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/citation.cff" beforeDir="false" afterPath="$PROJECT_DIR$/doc/citation.cff" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/core_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/graphic_classes.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/graphic_classes.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/classes/audio.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/audio.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/classes/graph_element.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/graph_element.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/classes/graphic_classes.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/graphic_classes.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/classes/joint.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/joint.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/classes/pose.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/pose.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/classes/sequence.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/sequence.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core_functions.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/doc/KRAJJAT documentation.docx" beforeDir="false" afterPath="$PROJECT_DIR$/doc/KRAJJAT documentation.docx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/doc/citation.cff" beforeDir="false" afterPath="$PROJECT_DIR$/citation.cff" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/graphic_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/graphic_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/joint.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/joint.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pose.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/pose.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sequence.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/sequence.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/plot_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/plot_functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/color_codes.txt" beforeDir="false" afterPath="$PROJECT_DIR$/res/color_codes.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/joints_positions_kinect.txt" beforeDir="false" afterPath="$PROJECT_DIR$/res/joints_subplot_layout_kinect.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/joints_positions_qualisys.txt" beforeDir="false" afterPath="$PROJECT_DIR$/res/joints_subplot_layout_qualisys.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/res/skeleton_connections_qualisys_top.txt" beforeDir="false" afterPath="$PROJECT_DIR$/res/skeleton_connections_qualisys_top.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/stats_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/stats_functions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tool_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/tool_functions.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -41,6 +152,9 @@
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
+  <component name="NamedScopeManager">
+    <scope name="Python files only" pattern="file:*.py&amp;&amp;!ext:*&amp;&amp;!file[krajjat]:.idea/*&amp;&amp;!file[krajjat]:.venv/*" />
+  </component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
   </component>
@@ -52,9 +166,9 @@
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/romai/OneDrive/Documents/GitHub/Krajjat&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/OneDrive/Documents/GitHub/krajjat/res&quot;,
     &quot;run.code.analysis.last.selected.profile&quot;: &quot;aDefault&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;vcs.Git&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;,
     &quot;two.files.diff.last.used.file&quot;: &quot;E:/TV Shows/Angelyne/Season 01 - MULTI/Angelyne - S01E01 - Dream Machine.fr.srt&quot;
   },
   &quot;keyToStringList&quot;: {
@@ -65,19 +179,41 @@
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\OneDrive\Documents\GitHub\krajjat\res" />
       <recent name="D:\OneDrive\Documents\GitHub\Krajjat\lib" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\OneDrive\Documents\GitHub\krajjat" />
+      <recent name="D:\OneDrive\Documents\GitHub\Krajjat\src\res" />
+      <recent name="D:\OneDrive\Documents\GitHub\Krajjat\src" />
       <recent name="D:\OneDrive\Documents\GitHub\Krajjat\doc" />
       <recent name="D:\OneDrive\Documents\GitHub\Krajjat\classes" />
-      <recent name="D:\OneDrive\Documents\GitHub\Krajjat\res" />
-      <recent name="D:\OneDrive\Documents\GitHub\Krajjat" />
-      <recent name="C:\Users\romai\GitHub\Krajjat" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.test_stats">
+  <component name="RunManager" selected="Python.test_file">
+    <configuration name="general_pygame" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="krajjat" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../../Python/Exemples Pygame" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../../Python/Exemples Pygame/general_pygame.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="test_file" type="PythonConfigurationType" factoryName="Python">
-      <module name="Krajjat" />
+      <module name="krajjat" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -98,7 +234,7 @@
       <method v="2" />
     </configuration>
     <configuration name="test_stats" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <module name="Krajjat" />
+      <module name="krajjat" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -109,7 +245,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test_stats.py" />
+      <option name="SCRIPT_NAME" value="D:\OneDrive\Documents\GitHub\Krajjat\src\test_stats.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -118,12 +254,50 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="Docutils Task in input.rst" type="docs" factoryName="Docutils task" temporary="true">
+      <module name="krajjat" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/docs/source" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="docutils_input_file" value="$PROJECT_DIR$/docs/source/input.rst" />
+      <option name="docutils_output_file" value="$PROJECT_DIR$/docs/source/input.html" />
+      <option name="docutils_params" value="" />
+      <option name="docutils_task" value="rst2html" />
+      <option name="docutils_open_in_browser" value="true" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Docutils Task in sequence.rst" type="docs" factoryName="Docutils task" temporary="true">
+      <module name="krajjat" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/docs/source" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="docutils_input_file" value="$PROJECT_DIR$/docs/source/sequence.rst" />
+      <option name="docutils_output_file" value="$PROJECT_DIR$/docs/source/sequence.html" />
+      <option name="docutils_params" value="" />
+      <option name="docutils_task" value="rst2html" />
+      <option name="docutils_open_in_browser" value="true" />
+      <method v="2" />
+    </configuration>
     <list>
       <item itemvalue="Python.test_file" />
+      <item itemvalue="Python.general_pygame" />
       <item itemvalue="Python.test_stats" />
+      <item itemvalue="Python docs.Docutils Task in input.rst" />
+      <item itemvalue="Python docs.Docutils Task in sequence.rst" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.general_pygame" />
+        <item itemvalue="Python docs.Docutils Task in input.rst" />
+        <item itemvalue="Python docs.Docutils Task in sequence.rst" />
         <item itemvalue="Python.test_stats" />
       </list>
     </recent_temporary>

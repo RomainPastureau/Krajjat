@@ -3,3 +3,13 @@ test_file.py
 /delays.txt
 /test_video_generation.py
 /test_stats.py
+/.venv/
+/doc/
+/docs/source/
+/docs/.venv/
+/classes/__pycache__/
+/.venv/bin/__pycache__/
+/__pycache__/
+/.idea/
+/lib/__pycache__/
+/docs/build/doctrees/

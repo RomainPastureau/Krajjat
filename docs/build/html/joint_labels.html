@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Joint labels &mdash; krajjat 1.99.3 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Color schemes" href="color_schemes.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #99CC00" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            krajjat
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="general.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classes.html">Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="functions.html">Functions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="appendix.html">Appendix</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="color_schemes.html">Color schemes</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Joint labels</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#kinect-joint-labels">Kinect joint labels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#qualisys-and-kualisys-joint-labels">Qualisys and Kualisys joint labels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#qualisys-to-kinect-conversion">Qualisys to Kinect conversion</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #99CC00" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">krajjat</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="appendix.html">Appendix</a></li>
+      <li class="breadcrumb-item active">Joint labels</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/joint_labels.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="joint-labels">
+<h1>Joint labels<a class="headerlink" href="#joint-labels" title="Permalink to this heading"></a></h1>
+<section id="kinect-joint-labels">
+<h2>Kinect joint labels<a class="headerlink" href="#kinect-joint-labels" title="Permalink to this heading"></a></h2>
+<p>The Kinect v2 system tracks a skeleton using the following 21 joints:</p>
+<img alt="_images/kinect_joint_labels.png" src="_images/kinect_joint_labels.png" />
+</section>
+<section id="qualisys-and-kualisys-joint-labels">
+<h2>Qualisys and Kualisys joint labels<a class="headerlink" href="#qualisys-and-kualisys-joint-labels" title="Permalink to this heading"></a></h2>
+<p>The standard setup for the Qualisys system uses 44 joint labels. Joints with transparency are located in the back of
+the subject:</p>
+<img alt="_images/qualisys_joint_labels.png" src="_images/qualisys_joint_labels.png" />
+<p>Due to the inconsistency in naming of the joints (e.g. “BackL” and “LArm”), the joints are automatically renamed
+in Krajjat to follow a more consistent approach, based on the Kinect labelling. The toolbox names these <strong>Kualisys
+joint labels</strong> :</p>
+<img alt="_images/qualisys_joint_labels_corrected.png" src="_images/qualisys_joint_labels_corrected.png" />
+</section>
+<section id="qualisys-to-kinect-conversion">
+<h2>Qualisys to Kinect conversion<a class="headerlink" href="#qualisys-to-kinect-conversion" title="Permalink to this heading"></a></h2>
+<p>In order to compare Kinect and Qualisys recordings, an (arbitrary) conversion system based on joint averaging has been
+defined. In the following table, joints with an asterisk are joints obtained by averaging Qualisys joints: they are
+calculated first before being used to create other joints via averaging.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Kinect joint</p></th>
+<th class="head" colspan="4"><p>Averaged joints</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Head</p></td>
+<td><p>HeadTop</p></td>
+<td><p>HeadFront</p></td>
+<td><p>HeadLeft</p></td>
+<td><p>HeadRight</p></td>
+</tr>
+<tr class="row-odd"><td><p>Neck</p></td>
+<td><p>Head*</p></td>
+<td><p>SpineShoulder</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>SpineShoulder</p></td>
+<td><p>SpineShoulder</p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>ShoulderLeft</p></td>
+<td><p>ShoulderTopLeft</p></td>
+<td><p>ShoulderBackLeft</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>ShoulderRight</p></td>
+<td><p>ShoulderTopRight</p></td>
+<td><p>ShoulderBackRight</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>SpineMid</p></td>
+<td><p>Chest</p></td>
+<td><p>BackLeft</p></td>
+<td><p>BackRight</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>ElbowLeft</p></td>
+<td><p>ElbowLeft</p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>ElbowRight</p></td>
+<td><p>ElbowRight</p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>WristLeft</p></td>
+<td><p>WristOutLeft</p></td>
+<td><p>WristInLeft</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>WristRight</p></td>
+<td><p>WristOutRight</p></td>
+<td><p>WristInRight</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>HandLeft</p></td>
+<td><p>HandOutLeft</p></td>
+<td><p>HandInLeft</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>HandRight</p></td>
+<td><p>HandOutRight</p></td>
+<td><p>HandInRight</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>HipLeft</p></td>
+<td><p>WaistBackLeft</p></td>
+<td><p>WaistFrontLeft</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>HipRight</p></td>
+<td><p>WaistBackRight</p></td>
+<td><p>WaistFrontRight</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>SpineBase</p></td>
+<td><p>HipLeft*</p></td>
+<td><p>HipRight*</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>KneeLeft</p></td>
+<td><p>KneeLeft</p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>KneeRight</p></td>
+<td><p>KneeRight</p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>AnkleLeft</p></td>
+<td><p>AnkleLeft</p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>AnkleRight</p></td>
+<td><p>AnkleRight</p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>FootLeft</p></td>
+<td><p>ForefootOutLeft</p></td>
+<td><p>ForefootInLeft</p></td>
+<td><p>ToetipLeft</p></td>
+<td><p>HeelLeft</p></td>
+</tr>
+<tr class="row-even"><td><p>FootRight</p></td>
+<td><p>ForefootOutRight</p></td>
+<td><p>ForefootInRight</p></td>
+<td><p>ToetipRight</p></td>
+<td><p>HeelRight</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="color_schemes.html" class="btn btn-neutral float-left" title="Color schemes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Romain Pastureau.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

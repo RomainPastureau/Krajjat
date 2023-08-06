@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Audio &mdash; krajjat 1.99.3 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Graphic classes" href="graphic_classes.html" />
+    <link rel="prev" title="Joint" href="joint.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #99CC00" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            krajjat
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="general.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="classes.html">Classes</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="sequence.html">Sequence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pose.html">Pose</a></li>
+<li class="toctree-l2"><a class="reference internal" href="joint.html">Joint</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Audio</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#initialisation">Initialisation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#classes.audio.Audio"><code class="docutils literal notranslate"><span class="pre">Audio</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#magic-methods">Magic methods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#public-methods">Public methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#setter-functions">Setter functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#getter-functions">Getter functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#transformation-functions">Transformation functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#conversion-functions">Conversion functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#saving-function">Saving function</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#private-methods">Private methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#initialisation-functions">Initialisation functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#saving-functions">Saving functions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="graphic_classes.html">Graphic classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="graph_element.html">Graph Elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html">Exceptions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="functions.html">Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix.html">Appendix</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #99CC00" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">krajjat</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="classes.html">Classes</a></li>
+      <li class="breadcrumb-item active">Audio</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/audio.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="audio">
+<h1>Audio<a class="headerlink" href="#audio" title="Permalink to this heading"></a></h1>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading"></a></h2>
+<p>Default class for audio recordings matching a Sequence, typically the voice of the subject of the motion capture. This
+class allows to perform a variety of transformations of the audio stream, such as getting the envelope, pitch and
+formants of the speech.</p>
+</section>
+<section id="initialisation">
+<h2>Initialisation<a class="headerlink" href="#initialisation" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="classes.audio.Audio">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">classes.audio.</span></span><span class="sig-name descname"><span class="pre">Audio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_or_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio" title="Permalink to this definition"></a></dt>
+<dd><p>Default class for audio clips matching a Sequence, typically the voice of the subject of the motion
+capture. This class allows to perform a variety of transformations of the audio stream, such as getting the
+envelope, pitch and formants of the speech.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path_or_samples</strong> (<em>str</em><em> or </em><em>list</em><em>(</em><em>int</em><em>)</em>) – The path to the audio file, or a list containing the samples of an audio file. If the file is a path, it should
+either point to a <cite>.wav</cite> file, or to a file containing the timestamps and samples in a text form (<cite>.json</cite>,
+<cite>.csv</cite>, <cite>.tsv</cite>, <cite>.txt</cite> or <cite>.mat</cite>). It is also possible to point to a folder containing one file per sample.
+See <a class="reference internal" href="input.html#wav-example"><span class="std std-ref">Audio formats</span></a> for the acceptable file types.</p></li>
+<li><p><strong>frequency</strong> (<em>int</em><em> or </em><em>float</em><em>, </em><em>optional</em>) – The frequency, in Hz (or samples per sec) at which the parameter <cite>path_or_samples</cite> is set. This parameter
+will be ignored if <code class="docutils literal notranslate"><span class="pre">path_or_samples</span></code> is a path, but will be used to define the <a class="reference internal" href="#classes.audio.Audio.timestamps" title="classes.audio.Audio.timestamps"><code class="xref py py-attr docutils literal notranslate"><span class="pre">timestamps</span></code></a> of the
+Audio object if <code class="docutils literal notranslate"><span class="pre">path_or_samples</span></code> is a list of samples.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Defines a name for the Audio instance. If a string is provided, the attribute <a class="reference internal" href="#classes.audio.Audio.name" title="classes.audio.Audio.name"><code class="xref py py-attr docutils literal notranslate"><span class="pre">name</span></code></a> will take
+its value. If not, see <a class="reference internal" href="#classes.audio.Audio._define_name_init" title="classes.audio.Audio._define_name_init"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Audio._define_name_init()</span></code></a>.</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.audio.Audio.samples">
+<span class="sig-name descname"><span class="pre">samples</span></span><a class="headerlink" href="#classes.audio.Audio.samples" title="Permalink to this definition"></a></dt>
+<dd><p>A list containing the audio samples, in chronological order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(int)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.audio.Audio.timestamps">
+<span class="sig-name descname"><span class="pre">timestamps</span></span><a class="headerlink" href="#classes.audio.Audio.timestamps" title="Permalink to this definition"></a></dt>
+<dd><p>A list containing the timestamps matching each audio sample. Consequently, <a class="reference internal" href="#classes.audio.Audio.samples" title="classes.audio.Audio.samples"><code class="xref py py-attr docutils literal notranslate"><span class="pre">samples</span></code></a> and
+<a class="reference internal" href="#classes.audio.Audio.timestamps" title="classes.audio.Audio.timestamps"><code class="xref py py-attr docutils literal notranslate"><span class="pre">timestamps</span></code></a> should have the same length.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.audio.Audio.frequency">
+<span class="sig-name descname"><span class="pre">frequency</span></span><a class="headerlink" href="#classes.audio.Audio.frequency" title="Permalink to this definition"></a></dt>
+<dd><p>The amount of samples per second.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int or float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.audio.Audio.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#classes.audio.Audio.name" title="Permalink to this definition"></a></dt>
+<dd><p>Custom name given to the audio. If no name has been provided upon initialisation, it will be defined by
+<a class="reference internal" href="#classes.audio.Audio._define_name_init" title="classes.audio.Audio._define_name_init"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Audio._define_name_init()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.audio.Audio.path">
+<span class="sig-name descname"><span class="pre">path</span></span><a class="headerlink" href="#classes.audio.Audio.path" title="Permalink to this definition"></a></dt>
+<dd><p>Path to the audio file passed as a parameter upon creation; if samples were provided, this attribute will be
+<cite>None</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.audio.Audio.files">
+<span class="sig-name descname"><span class="pre">files</span></span><a class="headerlink" href="#classes.audio.Audio.files" title="Permalink to this definition"></a></dt>
+<dd><p>List of files contained in the path. The list will be of size 1 if the path points to a single file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(str)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="magic-methods">
+<h2>Magic methods<a class="headerlink" href="#magic-methods" title="Permalink to this heading"></a></h2>
+</section>
+<section id="public-methods">
+<h2>Public methods<a class="headerlink" href="#public-methods" title="Permalink to this heading"></a></h2>
+<section id="setter-functions">
+<h3>Setter functions<a class="headerlink" href="#setter-functions" title="Permalink to this heading"></a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio.set_name">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">set_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.set_name" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the <a class="reference internal" href="#classes.audio.Audio.name" title="classes.audio.Audio.name"><code class="xref py py-attr docutils literal notranslate"><span class="pre">name</span></code></a> attribute of the Audio instance. This name can be used as display functions or as
+a means to identify the audio.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – The name you want to give to the audio.</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">aud</span> <span class="o">=</span> <span class="n">Audio</span><span class="p">(</span><span class="s2">&quot;C:/Users/Walter/Sequences/audio.wav&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aud</span><span class="o">.</span><span class="n">set_name</span><span class="p">(</span><span class="s2">&quot;Audio 28980&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="getter-functions">
+<h3>Getter functions<a class="headerlink" href="#getter-functions" title="Permalink to this heading"></a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio.get_path">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">get_path</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.get_path" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the attribute <a class="reference internal" href="#classes.audio.Audio.path" title="classes.audio.Audio.path"><code class="xref py py-attr docutils literal notranslate"><span class="pre">path</span></code></a> of the Audio instance.</p>
+<p>. versionadded:: 2.0</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The path of the Audio instance.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio.get_name">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">get_name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.get_name" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the attribute <a class="reference internal" href="#classes.audio.Audio.name" title="classes.audio.Audio.name"><code class="xref py py-attr docutils literal notranslate"><span class="pre">name</span></code></a> of the Audio instance.</p>
+<p>. versionadded:: 2.0</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name of the Audio instance.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio.get_samples">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">get_samples</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.get_samples" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the attribute <a class="reference internal" href="#classes.audio.Audio.samples" title="classes.audio.Audio.samples"><code class="xref py py-attr docutils literal notranslate"><span class="pre">samples</span></code></a> of the Audio instance.</p>
+<p>. versionadded:: 2.0</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The samples of the Audio instance.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list(int)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio.get_sample">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">get_sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample_index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.get_sample" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the sample corresponding to the index passed as parameter.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sample_index</strong> (<em>int</em>) – The index of the sample.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A sample from the sequence.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio.get_number_of_samples">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">get_number_of_samples</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.get_number_of_samples" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the number of samples in the audio clip.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The amount of samples in the audio clip.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio.get_timestamps">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">get_timestamps</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.get_timestamps" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of the timestamps for every sample, in seconds.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of the timestamps of all the samples of the audio clip, in seconds.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list(float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio.get_duration">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">get_duration</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.get_duration" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the duration of the audio clip, in seconds.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The duration of the audio clip, in seconds.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio.get_frequency">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">get_frequency</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.get_frequency" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the frequency of the audio clip, in hertz.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The frequency of the audio clip, in hertz.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int or float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="transformation-functions">
+<h3>Transformation functions<a class="headerlink" href="#transformation-functions" title="Permalink to this heading"></a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio.get_envelope">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">get_envelope</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter_below</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_over</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.get_envelope" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the envelope of the audio clip, applies a band-pass filter if values are provided,
+and returns an Envelope object.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filter_below</strong> (<em>int</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If not None nor 0, this value will be provided as the lowest frequency of the band-pass filter.</p></li>
+<li><p><strong>filter_over</strong> (<em>int</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If not None nor 0, this value will be provided as the highest frequency of the high-pass filter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The filtered envelope of the audio clip.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Envelope</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio.resample">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">resample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cubic'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.resample" title="Permalink to this definition"></a></dt>
+<dd><p>Resamples an audio clip to the <cite>frequency</cite> parameter. It first creates a new set of timestamps at the
+desired frequency, and then interpolates the original data to the new timestamps.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>frequency</strong> (<em>float</em>) – The frequency, in hertz, at which you want to resample the audio clip. A frequency of 4 will return samples
+at 0.25 s intervals.</p></li>
+<li><p><strong>mode</strong> (<em>str</em><em>, </em><em>optional</em>) – This parameter also allows for all the values accepted for the <code class="docutils literal notranslate"><span class="pre">kind</span></code> parameter in the function
+<code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.interpolate.interp1d()</span></code>: <code class="docutils literal notranslate"><span class="pre">&quot;linear&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;nearest&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;nearest-up&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;zero&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;slinear&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;quadratic&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;cubic&quot;</span></code>”, <code class="docutils literal notranslate"><span class="pre">&quot;previous&quot;</span></code>, and <code class="docutils literal notranslate"><span class="pre">&quot;next&quot;</span></code>. See the <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html">documentation
+for this Python module</a> for more.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Defines the name of the output audio clip. If set on <code class="docutils literal notranslate"><span class="pre">None</span></code>, the name will be the same as the input
+audio clip, with the suffix <code class="docutils literal notranslate"><span class="pre">&quot;+RS&quot;</span></code>.</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A new audio clip containing resampled timestamps and samples.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#classes.audio.Audio" title="classes.audio.Audio">Audio</a></p>
+</dd>
+</dl>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This function allows both the <strong>upsampling</strong> and the <strong>downsampling</strong> of audio clips. However, during any of
+these operations, the algorithm only <strong>estimates</strong> the real values of the samples. You should then consider
+the upsampling (and the downsampling, to a lesser extent) with care.
+You can control the frequency of the original audio clip with <a class="reference internal" href="#classes.audio.Audio.get_frequency" title="classes.audio.Audio.get_frequency"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Audio.get_frequency()</span></code></a>.</p>
+</div>
+</dd></dl>
+
+</section>
+<section id="conversion-functions">
+<h3>Conversion functions<a class="headerlink" href="#conversion-functions" title="Permalink to this heading"></a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio.convert_to_table">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">convert_to_table</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.convert_to_table" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of lists where each sublist contains a timestamp and a sample. The first sublist contains the
+headers of the table. The output then resembles the table found in <a class="reference internal" href="input.html#table-example"><span class="std std-ref">Tabled formats</span></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of lists that can be interpreted as a table, containing headers, and with the timestamps and the
+coordinates of the joints from the sequence on each row.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list(list)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio.convert_to_json">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">convert_to_json</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.convert_to_json" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list ready to be exported in JSON. The returned JSON data is a dictionary with two keys:
+“Sample” is the key to the list of samples, while “Frequency” is the key to the sampling frequency of
+the audio clip.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary containing the data of the audio clip, ready to be exported in JSON.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="saving-function">
+<h3>Saving function<a class="headerlink" href="#saving-function" title="Permalink to this heading"></a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio.save">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder_out</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'xlsx'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">individual</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.save" title="Permalink to this definition"></a></dt>
+<dd><p>Saves an audio clip in a file or a folder. The function saves the sequence under
+<code class="docutils literal notranslate"><span class="pre">folder_out/name.file_format</span></code>. All the non-existent subfolders present in the <code class="docutils literal notranslate"><span class="pre">folder_out</span></code> path will be
+created by the function. The function also updates the <a class="reference internal" href="#classes.audio.Audio.path" title="classes.audio.Audio.path"><code class="xref py py-attr docutils literal notranslate"><span class="pre">path</span></code></a> attribute of the Audio clip.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>folder_out</strong> (<em>str</em><em>, </em><em>optional</em>) – The path to the folder where to save the file or files. If one or more subfolders of the path do not exist,
+the function will create them. If the string provided is empty (by default), the audio clip will be saved in
+the current working directory. If the string provided contains a file with an extension, the fields <code class="docutils literal notranslate"><span class="pre">name</span></code>
+and <code class="docutils literal notranslate"><span class="pre">file_format</span></code> will be ignored.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Defines the name of the file or files where to save the audio clip. If set on <code class="docutils literal notranslate"><span class="pre">None</span></code>, the name will be set
+on the attribute <a class="reference internal" href="#classes.audio.Audio.name" title="classes.audio.Audio.name"><code class="xref py py-attr docutils literal notranslate"><span class="pre">name</span></code></a> of the audio clip; if that attribute is also set on <code class="docutils literal notranslate"><span class="pre">None</span></code>, the name will be
+set on <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>. If <code class="docutils literal notranslate"><span class="pre">individual</span></code> is set on <code class="docutils literal notranslate"><span class="pre">True</span></code>, each sample will be saved as a different file,
+having the index of the pose as a suffix after the name (e.g. if the name is <code class="docutils literal notranslate"><span class="pre">&quot;sample&quot;</span></code> and the file
+format is <code class="docutils literal notranslate"><span class="pre">&quot;txt&quot;</span></code>, the poses will be saved as <code class="docutils literal notranslate"><span class="pre">sample_0.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">sample_1.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">sample_2.txt</span></code>, etc.).</p></li>
+<li><p><strong>file_format</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – <p>The file format in which to save the audio clip. The file format must be <code class="docutils literal notranslate"><span class="pre">&quot;json&quot;</span></code> (default), <code class="docutils literal notranslate"><span class="pre">&quot;xlsx&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;txt&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;csv&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;tsv&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;wav&quot;</span></code>, or, if you are a masochist, <code class="docutils literal notranslate"><span class="pre">&quot;mat&quot;</span></code>. Notes:</p>
+<blockquote>
+<div><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;xls&quot;</span></code> will save the file with an <code class="docutils literal notranslate"><span class="pre">.xlsx</span></code> extension.</p></li>
+<li><p>Any string starting with a dot will be accepted (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;.csv&quot;</span></code> instead of <code class="docutils literal notranslate"><span class="pre">&quot;csv&quot;</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;csv;&quot;</span></code> will force the value separator on <code class="docutils literal notranslate"><span class="pre">;</span></code>, while <code class="docutils literal notranslate"><span class="pre">&quot;csv,&quot;</span></code> will force the separator
+on <code class="docutils literal notranslate"><span class="pre">,</span></code>. By default, the function will detect which separator the system uses.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;txt&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;tsv&quot;</span></code> both separate the values by a tabulation.</p></li>
+<li><p>Any other string will not return an error, but rather be used as a custom extension. The data will
+be saved as in a text file (using tabulations as values separators).</p></li>
+</ul>
+</div></blockquote>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>While it is possible to save audio clips as <code class="docutils literal notranslate"><span class="pre">.mat</span></code> or custom extensions, the toolbox will not
+recognize these files upon opening. The support for <code class="docutils literal notranslate"><span class="pre">.mat</span></code> and custom extensions as input may come in
+a future release, but for now these are just offered as output options.</p>
+</div>
+</p></li>
+<li><p><strong>individual</strong> (<em>bool</em><em>, </em><em>optional</em>) – <p>If set on <code class="docutils literal notranslate"><span class="pre">False</span></code> (default), the function will save the audio clip in a unique file.
+If set on <code class="docutils literal notranslate"><span class="pre">True</span></code>, the function will save each sample of the audio clip in an individual file, appending an
+underscore and the index of the sample (starting at 0) after the name.
+This option is not available and will be ignored if <code class="docutils literal notranslate"><span class="pre">file_format</span></code> is set on <code class="docutils literal notranslate"><span class="pre">&quot;wav&quot;</span></code>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>It is not recommended to save each sample in a different file. This incredibly tedious way of handling
+audio files has only been implemented to follow the same logic as for the Sequence files, and should be
+avoided.</p>
+</div>
+</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+<section id="private-methods">
+<h2>Private methods<a class="headerlink" href="#private-methods" title="Permalink to this heading"></a></h2>
+<section id="initialisation-functions">
+<h3>Initialisation functions<a class="headerlink" href="#initialisation-functions" title="Permalink to this heading"></a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio._define_name_init">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">_define_name_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio._define_name_init" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the name attribute for an instance of the Audio class, using the name provided during the
+initialization, or the path. If no <code class="docutils literal notranslate"><span class="pre">name</span></code> is provided, the function will create the name based on the
+<a class="reference internal" href="#classes.audio.Audio.path" title="classes.audio.Audio.path"><code class="xref py py-attr docutils literal notranslate"><span class="pre">path</span></code></a> attribute, by defining the name as the last element of the path hierarchy (last subfolder, or file
+name). For example, if <code class="docutils literal notranslate"><span class="pre">path</span></code> is <code class="docutils literal notranslate"><span class="pre">&quot;C:/Users/Bender/Documents/Recording001/&quot;</span></code>, the function will define the
+name on <code class="docutils literal notranslate"><span class="pre">&quot;Recording001&quot;</span></code>. If both <code class="docutils literal notranslate"><span class="pre">name</span></code> and <code class="docutils literal notranslate"><span class="pre">path</span></code> are set on <code class="docutils literal notranslate"><span class="pre">None</span></code>, the sequence name will be defined
+as <code class="docutils literal notranslate"><span class="pre">&quot;Unnamed</span> <span class="pre">audio&quot;</span></code>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – The name passed as parameter in <code class="xref py py-meth docutils literal notranslate"><span class="pre">Audio.__init__()</span></code></p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio._load_from_path">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">_load_from_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio._load_from_path" title="Permalink to this definition"></a></dt>
+<dd><p>Loads the audio data from the <a class="reference internal" href="#classes.audio.Audio.path" title="classes.audio.Audio.path"><code class="xref py py-attr docutils literal notranslate"><span class="pre">path</span></code></a> provided during the initialization.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>) – Path to the audio file passed as a parameter upon creation.</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio._load_from_samples">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">_load_from_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio._load_from_samples" title="Permalink to this definition"></a></dt>
+<dd><p>Loads the audio data when samples and frequency have been provided upon initialisation.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>samples</strong> (<em>list</em><em>(</em><em>int</em><em>)</em>) – A list containing the audio samples, in chronological order.</p></li>
+<li><p><strong>frequency</strong> (<em>int</em><em> or </em><em>float</em>) – The amount of samples per second.</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio._fetch_files_from_folder">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">_fetch_files_from_folder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio._fetch_files_from_folder" title="Permalink to this definition"></a></dt>
+<dd><p>Finds all the files ending with the accepted extensions (<code class="docutils literal notranslate"><span class="pre">.csv</span></code>, <code class="docutils literal notranslate"><span class="pre">.json</span></code>, <code class="docutils literal notranslate"><span class="pre">.tsv</span></code>, <code class="docutils literal notranslate"><span class="pre">.txt</span></code>, or
+<code class="docutils literal notranslate"><span class="pre">.xlsx</span></code>) in the folder defined by path, and orders the files according to their name.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<dl class="simple">
+<dt>This functions ignores the elements of the directory defined by <a class="reference internal" href="#classes.audio.Audio.path" title="classes.audio.Audio.path"><code class="xref py py-attr docutils literal notranslate"><span class="pre">path</span></code></a> if:</dt><dd><ul class="simple">
+<li><p>They don’t have an extension</p></li>
+<li><p>They are a folder</p></li>
+<li><p>Their extension is not one of the accepted ones (<code class="docutils literal notranslate"><span class="pre">.csv</span></code>, <code class="docutils literal notranslate"><span class="pre">.json</span></code>, <code class="docutils literal notranslate"><span class="pre">.tsv</span></code>, <code class="docutils literal notranslate"><span class="pre">.txt</span></code>, or
+<code class="docutils literal notranslate"><span class="pre">.xlsx</span></code>)</p></li>
+<li><p>The file name does not contain an underscore (<code class="docutils literal notranslate"><span class="pre">_</span></code>)</p></li>
+</ul>
+</dd>
+</dl>
+<p>If a file has a valid extension, the function tries to detect an underscore (<code class="docutils literal notranslate"><span class="pre">_</span></code>) in the name. The file
+names should be <code class="docutils literal notranslate"><span class="pre">xxxxxx_0.ext</span></code>, where <code class="docutils literal notranslate"><span class="pre">xxxxxx</span></code> can be any series of characters, <code class="docutils literal notranslate"><span class="pre">0</span></code> must be the index of
+the sample (with or without leading zeros), and <code class="docutils literal notranslate"><span class="pre">ext</span></code> must be an accepted extension (<code class="docutils literal notranslate"><span class="pre">.csv</span></code>, <code class="docutils literal notranslate"><span class="pre">.json</span></code>,
+<code class="docutils literal notranslate"><span class="pre">.tsv</span></code>, <code class="docutils literal notranslate"><span class="pre">.txt</span></code>, or <code class="docutils literal notranslate"><span class="pre">.xlsx</span></code>). The first pose of the sequence must have the index 0. If the file does not
+have an underscore in the name, it is ignored. The indices must be coherent with the chronological order of the
+timestamps.</p>
+<p>The function uses the number after the underscore to order the samples. This is due to differences in how file
+systems handle numbers without leading zeros: some place <code class="docutils literal notranslate"><span class="pre">sample_11.json</span></code> alphabetically before
+<code class="docutils literal notranslate"><span class="pre">sample_2.json</span></code> (1 comes before 2), while some other systems place it after as 11 is greater than 2. In order
+to avoid these, the function converts the number after the underscore into an integer to place it properly
+according to its index.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul class="simple">
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio._load_samples">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">_load_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio._load_samples" title="Permalink to this definition"></a></dt>
+<dd><p>Loads the single sample files or the global file containing all the samples. Depending on the input, this
+function calls either <a class="reference internal" href="#classes.audio.Audio._load_single_sample_file" title="classes.audio.Audio._load_single_sample_file"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Audio._load_single_sample_file()</span></code></a> or <a class="reference internal" href="#classes.audio.Audio._load_audio_file" title="classes.audio.Audio._load_audio_file"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Audio._load_audio_file()</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul class="simple">
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio._load_single_sample_file">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">_load_single_sample_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio._load_single_sample_file" title="Permalink to this definition"></a></dt>
+<dd><p>Loads the content of a single sample file into the Audio object. Depending on the file type, this function
+handles the content differently (see <a class="reference internal" href="input.html#wav-example"><span class="std std-ref">Audio formats</span></a>).</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em>) – The path of a file containing a single sample and timestamp.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio._load_audio_file">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">_load_audio_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio._load_audio_file" title="Permalink to this definition"></a></dt>
+<dd><p>Loads the content of a file containing all the samples of the audio stream.
+Depending on the file type, this function handles the content differently (see
+<a class="reference internal" href="input.html#wav-example"><span class="std std-ref">Audio formats</span></a>).</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul class="simple">
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio._read_wav">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">_read_wav</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio._read_wav" title="Permalink to this definition"></a></dt>
+<dd><p>Opens a <code class="docutils literal notranslate"><span class="pre">.wav</span></code> file using <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.io.wavfile.read.html">scipy.io.wavfile.read</a>, and loads the attributes
+<a class="reference internal" href="#classes.audio.Audio.samples" title="classes.audio.Audio.samples"><code class="xref py py-attr docutils literal notranslate"><span class="pre">samples</span></code></a> and <a class="reference internal" href="#classes.audio.Audio.frequency" title="classes.audio.Audio.frequency"><code class="xref py py-attr docutils literal notranslate"><span class="pre">frequency</span></code></a>. If the wav file has more than one channel, it is converted to mono by
+averaging the values from all the samples via <a class="reference internal" href="tool_functions.html#tool_functions.stereo_to_mono" title="tool_functions.stereo_to_mono"><code class="xref py py-func docutils literal notranslate"><span class="pre">tool_functions.stereo_to_mono()</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul class="simple">
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio._read_text_file">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">_read_text_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio._read_text_file" title="Permalink to this definition"></a></dt>
+<dd><p>Opens a file containing the samples in <code class="docutils literal notranslate"><span class="pre">.json</span></code>, <code class="docutils literal notranslate"><span class="pre">.xlsx</span></code>, <code class="docutils literal notranslate"><span class="pre">.csv</span></code>, <code class="docutils literal notranslate"><span class="pre">.tsv</span></code> or <code class="docutils literal notranslate"><span class="pre">.txt</span></code> file containing
+the timestamps and samples of the audio and loads the attributes <a class="reference internal" href="#classes.audio.Audio.samples" title="classes.audio.Audio.samples"><code class="xref py py-attr docutils literal notranslate"><span class="pre">samples</span></code></a>, <a class="reference internal" href="#classes.audio.Audio.timestamps" title="classes.audio.Audio.timestamps"><code class="xref py py-attr docutils literal notranslate"><span class="pre">timestamps</span></code></a>, and
+<a class="reference internal" href="#classes.audio.Audio.frequency" title="classes.audio.Audio.frequency"><code class="xref py py-attr docutils literal notranslate"><span class="pre">frequency</span></code></a>. Depending on the file type, this function handles the content differently (see
+<a class="reference internal" href="input.html#wav-example"><span class="std std-ref">Audio formats</span></a>).</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul class="simple">
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio._calculate_frequency">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">_calculate_frequency</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio._calculate_frequency" title="Permalink to this definition"></a></dt>
+<dd><p>Determines the frequency (number of samples per second) of the audio by calculating the time elapsed between
+the two first timestamps. This function is automatically called when reading the timestamps and samples from
+a text file.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio._calculate_timestamps">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">_calculate_timestamps</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio._calculate_timestamps" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the timestamps of the audio samples from the frequency and the number of samples. This function
+is automatically called when reading the frequency and samples from an audio file, or when a list of samples
+and a frequency are passed as a parameters during the initialisation.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+</dd></dl>
+
+</section>
+<section id="saving-functions">
+<h3>Saving functions<a class="headerlink" href="#saving-functions" title="Permalink to this heading"></a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio._save_json">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">_save_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder_out</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">individual</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio._save_json" title="Permalink to this definition"></a></dt>
+<dd><p>Saves an audio clip as a json file or files. This function is called by the <a class="reference internal" href="#classes.audio.Audio.save" title="classes.audio.Audio.save"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Audio.save()</span></code></a>
+method, and saves the Audio instance as <code class="docutils literal notranslate"><span class="pre">folder_out/name.file_format</span></code>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>folder_out</strong> (<em>str</em>) – The path to the folder where to save the file or files. If one or more subfolders of the path do not exist,
+the function will create them.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Defines the name of the file or files where to save the audio clip. If set on <code class="docutils literal notranslate"><span class="pre">None</span></code>, the name will be set
+on <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code> if individual is <code class="docutils literal notranslate"><span class="pre">False</span></code>, or on <code class="docutils literal notranslate"><span class="pre">&quot;sample&quot;</span></code> if individual is <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
+<li><p><strong>individual</strong> (<em>bool</em><em>, </em><em>optional</em>) – <p>If set on <code class="docutils literal notranslate"><span class="pre">False</span></code> (default), the function will save the audio clip in a unique file.
+If set on <code class="docutils literal notranslate"><span class="pre">True</span></code>, the function will save each sample of the audio clip in an individual file, appending an
+underscore and the index of the sample (starting at 0) after the name.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>It is not recommended to save each sample in a different file. This incredibly tedious way of handling
+audio files has only been implemented to follow the same logic as for the Sequence files, and should be
+avoided.</p>
+</div>
+</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio._save_mat">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">_save_mat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder_out</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">individual</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio._save_mat" title="Permalink to this definition"></a></dt>
+<dd><p>Saves an audio clip as a Matlab .mat file or files. This function is called by the <a class="reference internal" href="#classes.audio.Audio.save" title="classes.audio.Audio.save"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Audio.save()</span></code></a>
+method, and saves the Audio instance as <code class="docutils literal notranslate"><span class="pre">folder_out/name.file_format</span></code>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>This function is dependent of the module <a class="reference external" href="https://scipy.org/">scipy</a>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>folder_out</strong> (<em>str</em>) – The path to the folder where to save the file or files. If one or more subfolders of the path do not exist,
+the function will create them.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Defines the name of the file or files where to save the audio clip. If set on <code class="docutils literal notranslate"><span class="pre">None</span></code>, the name will be set
+on <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code> if individual is <code class="docutils literal notranslate"><span class="pre">False</span></code>, or on <code class="docutils literal notranslate"><span class="pre">&quot;sample&quot;</span></code> if individual is <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
+<li><p><strong>individual</strong> (<em>bool</em><em>, </em><em>optional</em>) – <p>If set on <code class="docutils literal notranslate"><span class="pre">False</span></code> (default), the function will save the audio clip in a unique file.
+If set on <code class="docutils literal notranslate"><span class="pre">True</span></code>, the function will save each sample of the audio clip in an individual file, appending an
+underscore and the index of the sample (starting at 0) after the name.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>It is not recommended to save each sample in a different file. This incredibly tedious way of handling
+audio files has only been implemented to follow the same logic as for the Sequence files, and should be
+avoided.</p>
+</div>
+</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio._save_xlsx">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">_save_xlsx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder_out</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">individual</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio._save_xlsx" title="Permalink to this definition"></a></dt>
+<dd><p>Saves an audio clip as an Excel .xlsx file or files. This function is called by the <a class="reference internal" href="#classes.audio.Audio.save" title="classes.audio.Audio.save"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Audio.save()</span></code></a>
+method, and saves the Audio instance as <code class="docutils literal notranslate"><span class="pre">folder_out/name.file_format</span></code>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>This function is dependent of the module <a class="reference external" href="https://pypi.org/project/openpyxl/">openpyxl</a>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>folder_out</strong> (<em>str</em>) – The path to the folder where to save the file or files. If one or more subfolders of the path do not exist,
+the function will create them.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Defines the name of the file or files where to save the audio clip. If set on <code class="docutils literal notranslate"><span class="pre">None</span></code>, the name will be set
+on <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code> if individual is <code class="docutils literal notranslate"><span class="pre">False</span></code>, or on <code class="docutils literal notranslate"><span class="pre">&quot;sample&quot;</span></code> if individual is <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
+<li><p><strong>individual</strong> (<em>bool</em><em>, </em><em>optional</em>) – <p>If set on <code class="docutils literal notranslate"><span class="pre">False</span></code> (default), the function will save the audio clip in a unique file.
+If set on <code class="docutils literal notranslate"><span class="pre">True</span></code>, the function will save each sample of the audio clip in an individual file, appending an
+underscore and the index of the sample (starting at 0) after the name.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>It is not recommended to save each sample in a different file. This incredibly tedious way of handling
+audio files has only been implemented to follow the same logic as for the Sequence files, and should be
+avoided.</p>
+</div>
+</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio._save_txt">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">_save_txt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder_out</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'csv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">individual</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio._save_txt" title="Permalink to this definition"></a></dt>
+<dd><p>Saves an audio clip as a .txt, .csv, .tsv, or custom extension file or files. This function is called by the
+<a class="reference internal" href="#classes.audio.Audio.save" title="classes.audio.Audio.save"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Audio.save()</span></code></a> method, and saves the Audio instance as <code class="docutils literal notranslate"><span class="pre">folder_out/name.file_format</span></code>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>folder_out</strong> (<em>str</em>) – The path to the folder where to save the file or files. If one or more subfolders of the path do not exist,
+the function will create them.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Defines the name of the file or files where to save the audio clip. If set on <code class="docutils literal notranslate"><span class="pre">None</span></code>, the name will be set
+on <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code> if individual is <code class="docutils literal notranslate"><span class="pre">False</span></code>, or on <code class="docutils literal notranslate"><span class="pre">&quot;sample&quot;</span></code> if individual is <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
+<li><p><strong>file_format</strong> (<em>str</em><em>, </em><em>optional</em>) – The file format in which to save the audio clip. The file format can be <code class="docutils literal notranslate"><span class="pre">&quot;txt&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;csv&quot;</span></code> (default) or
+<code class="docutils literal notranslate"><span class="pre">&quot;tsv&quot;</span></code>. <code class="docutils literal notranslate"><span class="pre">&quot;csv;&quot;</span></code> will force the value separator on <code class="docutils literal notranslate"><span class="pre">&quot;;&quot;</span></code>, while <code class="docutils literal notranslate"><span class="pre">&quot;csv,&quot;</span></code> will force the separator
+on <code class="docutils literal notranslate"><span class="pre">&quot;,&quot;</span></code>. By default, the function will detect which separator the system uses. <code class="docutils literal notranslate"><span class="pre">&quot;txt&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;tsv&quot;</span></code>
+both separate the values by a tabulation. Any other string will not return an error, but rather be used as
+a custom extension. The data will be saved as in a text file (using tabulations as values separators).</p></li>
+<li><p><strong>individual</strong> (<em>bool</em><em>, </em><em>optional</em>) – <p>If set on <code class="docutils literal notranslate"><span class="pre">False</span></code> (default), the function will save the audio clip in a unique file.
+If set on <code class="docutils literal notranslate"><span class="pre">True</span></code>, the function will save each sample of the audio clip in an individual file, appending an
+underscore and the index of the sample (starting at 0) after the name.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>It is not recommended to save each sample in a different file. This incredibly tedious way of handling
+audio files has only been implemented to follow the same logic as for the Sequence files, and should be
+avoided.</p>
+</div>
+</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="joint.html" class="btn btn-neutral float-left" title="Joint" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="graphic_classes.html" class="btn btn-neutral float-right" title="Graphic classes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Romain Pastureau.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

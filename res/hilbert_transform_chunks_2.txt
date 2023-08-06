@@ -1,0 +1,107 @@
+sound$ = "sound"
+
+select Sound .sound$
+.duration = Get total duration
+.samplerate = Get sampling frequency
+
+call divide_32768 '.name$'
+
+num_chunks = divide_32768.chunks_analyzed
+
+for sound_part from 1 to num_chunks
+	call get_envelope_TFS '.name$'_part_'sound_part'
+endfor
+
+nocheck select junk
+for sound_part from 1 to num_chunks
+    plus Sound '.name$'_part_'sound_part'_TFS
+endfor
+Override sampling frequency: .samplerate
+Concatenate
+Rename... junk
+Extract part: 0, .duration, "rectangular", 1, "no"
+Rename... '.name$'_TFS
+select Sound junk
+Remove
+
+nocheck select junk
+for sound_part from 1 to num_chunks
+    plus Sound '.name$'_part_'sound_part'_ENV
+endfor
+Override sampling frequency: .samplerate
+Concatenate
+Rename... junk
+Extract part: 0, .duration, "rectangular", 1, "no"
+Rename... '.name$'_ENV
+select Sound junk
+Remove
+
+nocheck select junk
+for sound_part from 1 to num_chunks
+    plus Sound '.name$'_part_'sound_part'
+    plus Sound '.name$'_part_'sound_part'_TFS
+    plus Sound '.name$'_part_'sound_part'_ENV
+endfor
+Remove
+
+procedure divide_32768 .name$
+
+	select Sound '.name$'
+	samplerate = Get sampling frequency
+	duration = Get total duration
+	num_samples = Get number of samples
+
+	samples_collected = 0
+	.chunks_analyzed = 0
+	sample_start = 0
+	while samples_collected < num_samples
+
+		sample_end = sample_start + 32768
+		time_start = Get time from sample number: sample_start
+		time_end = Get time from sample number: sample_end
+
+		selectObject: "Sound '.name$'"
+		Extract part: time_start, time_end, "rectangular", 1, "no"
+
+		samples_collected = samples_collected + 32768
+		.chunks_analyzed = .chunks_analyzed + 1
+		sample_start = sample_start + 32769
+
+		# Optional printing of the timepoints of each chunk
+		#print chunk '.chunks_analyzed' 'time_start:3' 'time_end:3''newline$'
+
+		Rename... '.name$'_part_'.chunks_analyzed'
+
+	endwhile
+
+endproc
+
+procedure get_envelope_TFS .name$
+
+    select Sound '.name$'
+
+	# 1: Time-domain to frequency-domain conversion (DFT)
+	  spectrum = To Spectrum: "no"
+	  #spectrum = To Spectrum: fast_spectrum$
+	  Rename: "original"
+
+	# 2: Hilbert transform
+	  spectrumHilbert = Copy: "hilbert"
+	  Formula: "if row=1 then Spectrum_original[2,col] else -Spectrum_original[1,col] fi"
+	  soundHilbert = To Sound
+
+	# 3: Obtain the ENV from the analytic signal
+	  env = Copy: "'.name$'_ENV"
+	  Formula: "sqrt(self^2 + Sound_'.name$'[]^2)"
+
+	# 4: Obtain the TFS (method 1: cosine of the angle of the analytic signal)
+	  selectObject: soundHilbert
+	  Copy: "'.name$'_TFS"
+	  Formula: "cos(arctan2(self, Sound_'.name$'[]))"
+
+	# 5: cleanup
+	   select Spectrum original
+	   plus Spectrum hilbert
+	   plus Sound hilbert
+	   Remove
+endproc

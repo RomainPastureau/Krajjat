@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Graphic classes &mdash; krajjat 1.99.3 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Graph Elements" href="graph_element.html" />
+    <link rel="prev" title="Audio" href="audio.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #99CC00" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            krajjat
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="general.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="classes.html">Classes</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="sequence.html">Sequence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pose.html">Pose</a></li>
+<li class="toctree-l2"><a class="reference internal" href="joint.html">Joint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="audio.html">Audio</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Graphic classes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphicwindow">GraphicWindow</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#initialisation">Initialisation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#methods">Methods</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="graph_element.html">Graph Elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html">Exceptions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="functions.html">Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix.html">Appendix</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #99CC00" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">krajjat</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="classes.html">Classes</a></li>
+      <li class="breadcrumb-item active">Graphic classes</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/graphic_classes.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="graphic-classes">
+<h1>Graphic classes<a class="headerlink" href="#graphic-classes" title="Permalink to this heading"></a></h1>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading"></a></h2>
+<p>These classes allow to convert the data from <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Pose</span></code> and <code class="xref py py-class docutils literal notranslate"><span class="pre">Joint</span></code> to display them
+in the <a class="reference internal" href="graphic_functions.html"><span class="doc">Graphic functions</span></a>. All these classes and their methods should be considered private.</p>
+</section>
+<section id="graphicwindow">
+<h2>GraphicWindow<a class="headerlink" href="#graphicwindow" title="Permalink to this heading"></a></h2>
+<section id="initialisation">
+<h3>Initialisation<a class="headerlink" href="#initialisation" title="Permalink to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="classes.graphic_classes._GraphicWindow">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">classes.graphic_classes.</span></span><span class="sig-name descname"><span class="pre">_GraphicWindow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_window_in_meters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes._GraphicWindow" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the size of the display window and allows to convert and scale the coordinates of the joints to be
+displayed.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>window</strong> (<em>pygame.Surface</em>) – The main pygame Surface containing all the graphic elements.</p></li>
+<li><p><strong>height_window_in_meters</strong> (<em>int</em><em> or </em><em>float</em><em> (</em><em>optional</em><em>)</em>) – Defines the distance, in meters, represented by the vertical number of pixels of the window (by default: 3).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes._GraphicWindow.window">
+<span class="sig-name descname"><span class="pre">window</span></span><a class="headerlink" href="#classes.graphic_classes._GraphicWindow.window" title="Permalink to this definition"></a></dt>
+<dd><p>The main pygame Surface containing all the graphic elements, set during the initialisation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pygame.Surface</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes._GraphicWindow.width">
+<span class="sig-name descname"><span class="pre">width</span></span><a class="headerlink" href="#classes.graphic_classes._GraphicWindow.width" title="Permalink to this definition"></a></dt>
+<dd><p>The width of the <code class="docutils literal notranslate"><span class="pre">window</span></code>, in pixels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes._GraphicWindow.height">
+<span class="sig-name descname"><span class="pre">height</span></span><a class="headerlink" href="#classes.graphic_classes._GraphicWindow.height" title="Permalink to this definition"></a></dt>
+<dd><p>The height of the <code class="docutils literal notranslate"><span class="pre">window</span></code>, in pixels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes._GraphicWindow.center_x">
+<span class="sig-name descname"><span class="pre">center_x</span></span><a class="headerlink" href="#classes.graphic_classes._GraphicWindow.center_x" title="Permalink to this definition"></a></dt>
+<dd><p>The mid-point on the x-axis of the <code class="docutils literal notranslate"><span class="pre">window</span></code>, in pixels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes._GraphicWindow.center_y">
+<span class="sig-name descname"><span class="pre">center_y</span></span><a class="headerlink" href="#classes.graphic_classes._GraphicWindow.center_y" title="Permalink to this definition"></a></dt>
+<dd><p>The mid-point on the y-axis of the <code class="docutils literal notranslate"><span class="pre">window</span></code>, in pixels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes._GraphicWindow.pixel_meter_scale">
+<span class="sig-name descname"><span class="pre">pixel_meter_scale</span></span><a class="headerlink" href="#classes.graphic_classes._GraphicWindow.pixel_meter_scale" title="Permalink to this definition"></a></dt>
+<dd><p>The real-life distance a pixel represents, in meters. For example, if the window is 1000 pixels vertically,
+and the parameter <code class="docutils literal notranslate"><span class="pre">height_window_in_meters</span></code> is set on 1, each pixel will be equivalent to a square of 1 mm ×
+1 mm.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="methods">
+<h3>Methods<a class="headerlink" href="#methods" title="Permalink to this heading"></a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes._GraphicWindow._convert_x">
+<span class="sig-prename descclassname"><span class="pre">_GraphicWindow.</span></span><span class="sig-name descname"><span class="pre">_convert_x</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes._GraphicWindow._convert_x" title="Permalink to this definition"></a></dt>
+<dd><p>Converts the x “real” coordinate to a graphic coordinate to be displayed in the window.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>float</em>) – The value on the x-axis of a coordinate.</p></li>
+<li><p><strong>scale</strong> (<em>float</em><em>, </em><em>optional</em>) – The scale at which to convert the coordinate. A bigger scale will zoom in on the axis.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The coordinate of the pixel on the x-axis of the window.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes._GraphicWindow._convert_y">
+<span class="sig-prename descclassname"><span class="pre">_GraphicWindow.</span></span><span class="sig-name descname"><span class="pre">_convert_y</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes._GraphicWindow._convert_y" title="Permalink to this definition"></a></dt>
+<dd><p>Converts the y “real” coordinate to a graphic coordinate to be displayed in the window.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y</strong> (<em>float</em>) – The value on the y-axis of a coordinate.</p></li>
+<li><p><strong>scale</strong> (<em>float</em><em>, </em><em>optional</em>) – The scale at which to convert the coordinate. A bigger scale will zoom in on the axis.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The coordinate of the pixel on the y-axis of the window.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="audio.html" class="btn btn-neutral float-left" title="Audio" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="graph_element.html" class="btn btn-neutral float-right" title="Graph Elements" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Romain Pastureau.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

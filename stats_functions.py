@@ -1,4 +1,5 @@
-from classes.audio import Audio
+import copy
+
 from plot_functions import *
 import statsmodels.api as sm
 
@@ -26,7 +27,7 @@ def global_correlating(trials, signals, time_vector, concat_series=False, cross_
         signal = signals[t]
 
         if verbose == 1:
-            perc = show_percentage(verbose, t, len(trials), perc, step=10)
+            perc = show_progression(verbose, t, len(trials), perc, step=10)
         elif verbose > 1:
             print("Calculating correlation for sequence " + str(t + 1) + "/" + str(len(trials)) + "...")
 
@@ -312,13 +313,13 @@ def get_colors_correlations(correlations_dict, max_value, color_scheme="default"
     """Returns a color for every value according to a gradient and a max value."""
 
     if type(color_scheme) == "string":
-        color_scheme = get_color_scheme(color_scheme)
+        color_scheme = convert_colors_rgba(color_scheme)
 
     colors = {}
 
     for key in correlations_dict.keys():
         ratio = abs(correlations_dict[key]) / max_value
-        colors[key] = get_color_ratio(color_scheme, ratio)
+        colors[key] = calculate_color_ratio(color_scheme, ratio)
 
     return colors
 
@@ -374,9 +375,9 @@ def global_coherence(trials, signals, time_vector, concat_series=False, frequenc
         trials, signals, time_vector = concatenate_series(trials, signals, time_vector, verbose)
 
     if frequency == "auto":
-        frequency = int(get_frequency(time_vector[0]))
+        frequency = int(1 / (time_vector[1] - time_vector[0]))
         if verbose > 1:
-            print("Frequency detected automatically: "+str(frequency)+" Hz.")
+            print("Frequency detected automatically: " + str(frequency) + " Hz.")
 
     perc = 10  # Progression marker
     freq = [i * frequency / bands for i in range((bands // 2) + 1)]  # Frequencies for plotting
@@ -396,7 +397,7 @@ def global_coherence(trials, signals, time_vector, concat_series=False, frequenc
     for t in range(len(trials)):
 
         if verbose == 1:
-            perc = show_percentage(verbose, t, len(trials), perc, step=10)
+            perc = show_progression(verbose, t, len(trials), perc, step=10)
         elif verbose > 1:
             print("Calculating coherence for sequence " + str(t+1) + "/" + str(len(trials)) + "...")
 
