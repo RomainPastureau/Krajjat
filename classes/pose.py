@@ -389,3 +389,26 @@ class Pose(object):
         for joint_label in self.joints.keys():
             txt += "\t" + str(self.joints[joint_label]) + "\n"
         return txt
+
+    def __eq__(self, other):
+        """Returns `True` if all the joints in the attribute :attr:`joints` are identical between the two
+        :class:`Pose` objects.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        other: Pose
+            Another :class:`Pose` object.
+        """
+        if len(self.joints) != len(other.joints):
+            return False
+
+        for joint_label in self.joints:
+            if joint_label in other.joints:
+                if self.joints[joint_label] != other.joints[joint_label]:
+                    return False
+            else:
+                return False
+
+        return True

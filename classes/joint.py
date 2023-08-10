@@ -1,6 +1,8 @@
 """Default class for joints, i.e. points in space at a specific timestamp. The methods in this class are mainly
 handled by the methods in the class Pose, but some of them can be directly accessed."""
 
+from math import cos, sin
+
 
 class Joint(object):
     """Creates a Joint instance, with a joint label and x, y, and z coordinates.
@@ -256,6 +258,45 @@ class Joint(object):
         j._is_randomized = self._is_randomized
         return j
 
+    # === Rotation function ===
+    def convert_rotation(self, yaw=0, pitch=0, roll=0):
+        """Returns converted coordinates given three rotations: yaw, pitch and roll.
+
+        .. versionadded:: 2.0
+
+        Warning
+        -------
+        This function is experimental as of version 2.0.
+
+        Parameters
+        ----------
+        yaw: float, optional
+            The angle of yaw, or rotation on the x axis, in degrees (default: 0).
+        pitch: float, optional
+            The angle of pitch, or rotation on the y axis, in degrees (default: 0).
+        roll: float, optional
+            The angle of roll, or rotation on the z axis, in degrees (default: 0).
+
+        Returns
+        -------
+        float
+            The converted x coordinate.
+        float
+            The converted y coordinate.
+        float
+            The converted z coordinate.
+        """
+        x = self.x * cos(yaw) * cos(pitch) + \
+            self.y * (cos(yaw) * sin(pitch) * sin(roll) - sin(yaw) * cos(roll)) + \
+            self.z * (cos(yaw) * sin(pitch) * cos(roll) - sin(yaw) * sin(roll))
+        y = self.x * sin(yaw) * cos(pitch) + \
+            self.y * (sin(yaw) * sin(pitch) * sin(roll) + cos(yaw) * cos(roll)) + \
+            self.z * (sin(yaw) * sin(pitch) * sin(roll) * cos(yaw) * sin(roll))
+        z = self.x * -sin(pitch) + \
+            self.y * cos(pitch) * sin(roll) + \
+            self.z * cos(pitch) * cos(roll)
+        return x, y, z
+
     # === Modification functions ===
     def _correct_joint(self, x, y, z):
         """Assigns new x, y and z coordinates to the joint and marks it as corrected.
@@ -359,3 +400,18 @@ class Joint(object):
         if self._is_randomized:
             txt += " RANDOMIZED"
         return txt
+
+    def __eq__(self, other):
+        """Returns `True` if the attributes :attr:`x`, :attr:`y`, :attr:`z` and :attr:`joint_label` are identical
+        between the two :class:`Joint` objects.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        other: Joint
+            Another :class:`Joint` object.
+        """
+        if self.x == other.x and self.y == other.y and self.z == other.z and self.joint_label == other.joint_label:
+            return True
+        return False

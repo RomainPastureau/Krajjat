@@ -7,6 +7,7 @@
   <title>Tool functions &mdash; krajjat 1.99.3 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -198,7 +199,7 @@ paths.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tool_functions.create_subfolders">
-<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">create_subfolders</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.create_subfolders" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">create_subfolders</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.create_subfolders" title="Permalink to this definition"></a></dt>
 <dd><p>Creates all the subfolders that do not exist in a path. For example, if the folder <code class="docutils literal notranslate"><span class="pre">&quot;C:/Recordings/&quot;</span></code> is empty,
 and the parameter <code class="docutils literal notranslate"><span class="pre">&quot;path&quot;</span></code> is set on <code class="docutils literal notranslate"><span class="pre">&quot;C:/Recordings/Subject_01/Session_01/Video_01/&quot;</span></code>, the function will
 successively create the folders <code class="docutils literal notranslate"><span class="pre">&quot;C:/Recordings/Subject_01/&quot;</span></code>,  <code class="docutils literal notranslate"><span class="pre">&quot;C:/Recordings/Subject_01/Session_01/&quot;</span></code>, and
@@ -210,7 +211,7 @@ successively create the folders <code class="docutils literal notranslate"><span
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>path</strong> (<em>str</em>) – The absolute path to a folder.</p></li>
-<li><p><strong>verbose</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
 <ul>
 <li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
 <li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
@@ -272,7 +273,7 @@ may clutter the output and slow down the execution.</p></li>
 <h3>Sequence comparison functions<a class="headerlink" href="#sequence-comparison-functions" title="Permalink to this heading"></a></h3>
 <dl class="py function">
 <dt class="sig sig-object py" id="tool_functions.compute_different_joints">
-<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">compute_different_joints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sequence1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sequence2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.compute_different_joints" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">compute_different_joints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sequence1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sequence2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.compute_different_joints" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the number of joints having different coordinates between two sequences having the same amount of poses.
 This function can be used to check how many joints have been modified by a processing function.</p>
 <div class="versionadded">
@@ -287,7 +288,7 @@ This function can be used to check how many joints have been modified by a proce
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>sequence1</strong> (<a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a>) – A Sequence instance.</p></li>
 <li><p><strong>sequence2</strong> (<a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a>) – A Sequence instance.</p></li>
-<li><p><strong>verbose</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
 <ul>
 <li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
 <li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
@@ -445,7 +446,7 @@ separator used on the current system. For txt or tsv files, returns a tabulation
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tool_functions.convert_data_from_qtm">
-<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">convert_data_from_qtm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.convert_data_from_qtm" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">convert_data_from_qtm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.convert_data_from_qtm" title="Permalink to this definition"></a></dt>
 <dd><p>Processes and converts the data from a <code class="docutils literal notranslate"><span class="pre">.tsv</span></code> file produced by QTM, by stripping the header data,
 standardizing the name of the joint labels, and converting the distance unit from mm to m. This function then
 returns the loaded table.</p>
@@ -456,7 +457,7 @@ returns the loaded table.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>data</strong> (<em>list</em><em>(</em><em>str</em><em>)</em>) – The data from a <code class="docutils literal notranslate"><span class="pre">.tsv</span></code> QTM file with each line separated as the elements of a list.</p></li>
-<li><p><strong>verbose</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
 <ul>
 <li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
 <li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
@@ -481,7 +482,7 @@ may clutter the output and slow down the execution.</p></li>
 <h3>File saving functions<a class="headerlink" href="#file-saving-functions" title="Permalink to this heading"></a></h3>
 <dl class="py function">
 <dt class="sig sig-object py" id="tool_functions.write_text_table">
-<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">write_text_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">separator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.write_text_table" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">write_text_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">separator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.write_text_table" title="Permalink to this definition"></a></dt>
 <dd><p>Converts a table to a string, where elements on the same row are separated by a defined separator, and each row
 is separated by a line break.</p>
 <div class="versionadded">
@@ -493,7 +494,7 @@ is separated by a line break.</p>
 <li><p><strong>table</strong> (<em>list</em><em>(</em><em>list</em><em>)</em>) – A two-dimensional list where each element is a table row.</p></li>
 <li><p><strong>separator</strong> (<em>str</em>) – The character used to separate elements on the same row.</p></li>
 <li><p><strong>path</strong> (<em>str</em>) – The complete path of the text file to save.</p></li>
-<li><p><strong>verbose</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
 <ul>
 <li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
 <li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
@@ -515,7 +516,7 @@ may clutter the output and slow down the execution.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tool_functions.write_xlsx">
-<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">write_xlsx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.write_xlsx" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">write_xlsx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.write_xlsx" title="Permalink to this definition"></a></dt>
 <dd><p>Saves a table in a <code class="docutils literal notranslate"><span class="pre">.xlsx</span></code> file.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
@@ -525,7 +526,7 @@ may clutter the output and slow down the execution.</p></li>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>table</strong> (<em>list</em><em>(</em><em>list</em><em>)</em>) – A list where each sublist is a row of the table.</p></li>
 <li><p><strong>path</strong> (<em>str</em>) – The complete path of where to store the Excel file.</p></li>
-<li><p><strong>verbose</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
 <ul>
 <li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
 <li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
@@ -809,6 +810,34 @@ variations of grey/gray), and a tuple of their 256-level RGBA codes as values. T
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="tool_functions.convert_color_rgba">
+<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">convert_color_rgba</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.convert_color_rgba" title="Permalink to this definition"></a></dt>
+<dd><p>Returns an RGB or RGBA value from a color in RGB, RGBA, hexadecimal or color name format.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>color</strong> (<em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>) or </em><em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>) or </em><em>str</em>) – <p>A color under any of the following formats:</p>
+<blockquote>
+<div><ul>
+<li><p>A string containing an <a class="reference external" href="https://en.wikipedia.org/wiki/X11_color_names">HTML/CSS name</a> (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;red&quot;</span></code> or
+<code class="docutils literal notranslate"><span class="pre">&quot;blanched</span> <span class="pre">almond&quot;</span></code>),</p></li>
+<li><p>A string containing a hexadecimal code, starting with a number sign (<code class="docutils literal notranslate"><span class="pre">#</span></code>, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;#ffcc00&quot;</span></code> or
+<code class="docutils literal notranslate"><span class="pre">&quot;#c0ffee&quot;</span></code>).</p></li>
+<li><p>A RGB or RGBA tuple (e.g. <code class="docutils literal notranslate"><span class="pre">(153,</span> <span class="pre">204,</span> <span class="pre">0)</span></code> or <code class="docutils literal notranslate"><span class="pre">(77,</span> <span class="pre">77,</span> <span class="pre">77,</span> <span class="pre">255)</span></code>).</p></li>
+</ul>
+</div></blockquote>
+</p></li>
+<li><p><strong>include_alpha</strong> (<em>bool</em><em> or </em><em>None</em><em> (</em><em>optional</em><em>)</em>) – Defines if the returned value will contain an alpha channel (<code class="docutils literal notranslate"><span class="pre">True</span></code>) or not (<code class="docutils literal notranslate"><span class="pre">False</span></code>). If set on <code class="docutils literal notranslate"><span class="pre">None</span></code>,
+the returned value will contain an alpha channel only if the input contains one.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="tool_functions.convert_colors_rgba">
 <span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">convert_colors_rgba</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color_scheme_or_colors</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.convert_colors_rgba" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a list of RGBA values of colors matching a color scheme or specific color names.</p>
@@ -843,14 +872,15 @@ variations of grey/gray), and a tuple of their 256-level RGBA codes as values. T
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tool_functions.hex_color_to_rgb">
-<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">hex_color_to_rgb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.hex_color_to_rgb" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">hex_color_to_rgb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.hex_color_to_rgb" title="Permalink to this definition"></a></dt>
 <dd><p>Converts a color from its hexadecimal value to its RGB or RGBA value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>color</strong> (<em>str</em>) – The hexadecimal value of a color, with or without a leading number sign (<code class="docutils literal notranslate"><span class="pre">&quot;#&quot;</span></code>).</p></li>
-<li><p><strong>include_alpha</strong> (<em>bool</em><em>, </em><em>optional</em>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, returns the RBG color with an alpha value. If an alpha value is not present in the hexadecimal
-value, the alpha channel will be set to 255.</p></li>
+<li><p><strong>include_alpha</strong> (<em>bool</em><em>, </em><em>optional</em>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, returns the RGB color with an alpha value. If an alpha value is not present in the hexadecimal
+value, the alpha channel will be set to 255. If set on <code class="docutils literal notranslate"><span class="pre">None</span></code> (default), the returned value will contain
+and alpha value only if the input color contains one.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -965,19 +995,36 @@ RGB value, the alpha channel will be set to 255.</p></li>
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="tool_functions.generate_random_color">
+<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">generate_random_color</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.generate_random_color" title="Permalink to this definition"></a></dt>
+<dd><p>Generates a random color, and returns its RGBA value (with an alpha value of 255).</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A tuple containing the RGBA values of a random color, with an alpha value of 255.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple(int, int, int, int)</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="audio-functions">
 <h3>Audio functions<a class="headerlink" href="#audio-functions" title="Permalink to this heading"></a></h3>
 <dl class="py function">
 <dt class="sig sig-object py" id="tool_functions.scale_audio">
-<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">scale_audio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">audio_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.scale_audio" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">scale_audio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">audio_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.scale_audio" title="Permalink to this definition"></a></dt>
 <dd><p>Scale an array of audio samples according to a maximum value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>audio_array</strong> (<em>list</em><em>(</em><em>int</em><em> or </em><em>float</em><em>) or </em><em>numpy.array</em><em>(</em><em>int</em><em> or </em><em>float</em><em>)</em>) – An array of audio samples.</p></li>
 <li><p><strong>max_value</strong> (<em>int</em><em> or </em><em>float</em>) – The value that will become the maximum value of the scaled array.</p></li>
-<li><p><strong>verbose</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
 <ul>
 <li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
 <li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
@@ -999,7 +1046,7 @@ may clutter the output and slow down the execution.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tool_functions.stereo_to_mono">
-<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">stereo_to_mono</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">audio_arrays</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.stereo_to_mono" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">stereo_to_mono</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">audio_arrays</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.stereo_to_mono" title="Permalink to this definition"></a></dt>
 <dd><p>Turns the sample data into mono by averaging the samples from the audio channels.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
@@ -1009,7 +1056,7 @@ may clutter the output and slow down the execution.</p></li>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>audio_arrays</strong> (<em>numpy.ndarray</em>) – An array containing sub-lists with the sample values from all the channels as elements. Typically, the output
 of <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.io.wavfile.read.html">scipy.io.wavfile.read</a>.</p></li>
-<li><p><strong>verbose</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
 <ul>
 <li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
 <li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
@@ -1035,7 +1082,7 @@ may clutter the output and slow down the execution.</p></li>
 <dl class="py function">
 <dt class="sig sig-object py" id="tool_functions.load_kinect_joint_labels">
 <span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">load_kinect_joint_labels</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.load_kinect_joint_labels" title="Permalink to this definition"></a></dt>
-<dd><p>Loads the list of the 21 kinect joint labels from <code class="docutils literal notranslate"><span class="pre">res/kinect_joints.txt</span></code>.</p>
+<dd><p>Loads the list of the 21 kinect joint labels from <code class="docutils literal notranslate"><span class="pre">res/kinect_joint_labels.txt</span></code>.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
@@ -1052,7 +1099,7 @@ may clutter the output and slow down the execution.</p></li>
 <dl class="py function">
 <dt class="sig sig-object py" id="tool_functions.load_qualisys_joint_labels">
 <span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">load_qualisys_joint_labels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'original'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.load_qualisys_joint_labels" title="Permalink to this definition"></a></dt>
-<dd><p>Loads the list of the 44 Qualisys joint labels from <code class="docutils literal notranslate"><span class="pre">res/qualisys_joints.txt</span></code>.</p>
+<dd><p>Loads the list of the 44 Qualisys joint labels from <code class="docutils literal notranslate"><span class="pre">res/kualisys_joint_labels.txt</span></code>.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
@@ -1075,7 +1122,7 @@ Krajjat toolbox. For more information, see <a class="reference internal" href="j
 <dt class="sig sig-object py" id="tool_functions.load_qualisys_joint_label_conversion">
 <span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">load_qualisys_joint_label_conversion</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.load_qualisys_joint_label_conversion" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a dictionary containing the original Qualisys joint labels as keys, and the renamed Kualisys joints
-labels as values. The dictionary is loaded from <code class="docutils literal notranslate"><span class="pre">res/qualisys_joints.txt</span></code>. For more information, see
+labels as values. The dictionary is loaded from <code class="docutils literal notranslate"><span class="pre">res/kualisys_joint_labels.txt</span></code>. For more information, see
 <a class="reference internal" href="joint_labels.html"><span class="doc">Joint labels</span></a>.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
@@ -1086,6 +1133,26 @@ labels as values. The dictionary is loaded from <code class="docutils literal no
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>str)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tool_functions.load_joint_labels">
+<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">load_joint_labels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.load_joint_labels" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of joint labels from a path.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em>) – The path to a file containing a joint label on each line.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list containing joint labels.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(str)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1115,7 +1182,7 @@ labels as values. The dictionary is loaded from <code class="docutils literal no
 <span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">load_qualisys_to_kinect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.load_qualisys_to_kinect" title="Permalink to this definition"></a></dt>
 <dd><p>Loads a dictionary containing Kinect joint labels as keys, and a series of Kualisys joint labels as values.
 The Kinect joints can be averaged from the joints in values. The dictionary is loaded from
-<code class="docutils literal notranslate"><span class="pre">res/qualisys_to_kinect.txt</span></code>. For more information, see <a class="reference internal" href="joint_labels.html"><span class="doc">Joint labels</span></a>.</p>
+<code class="docutils literal notranslate"><span class="pre">res/kualisys_to_kinect.txt</span></code>. For more information, see <a class="reference internal" href="joint_labels.html"><span class="doc">Joint labels</span></a>.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
@@ -1133,7 +1200,7 @@ The Kinect joints can be averaged from the joints in values. The dictionary is l
 <dt class="sig sig-object py" id="tool_functions.load_joints_subplot_layout">
 <span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">load_joints_subplot_layout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_layout</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.load_joints_subplot_layout" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a dictionary of the subplot positions of the joints on a skeleton graph. Loads the data from
-<code class="docutils literal notranslate"><span class="pre">&quot;res/joints_subplot_layout_kinect.txt&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;res/joints_subplot_layout_qualisys.txt&quot;</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">&quot;res/kinect_joints_subplot_layout.txt&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;res/kualisys_joints_subplot_layout.txt&quot;</span></code>.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
@@ -1155,15 +1222,15 @@ The Kinect joints can be averaged from the joints in values. The dictionary is l
 <h3>Miscellaneous functions<a class="headerlink" href="#miscellaneous-functions" title="Permalink to this heading"></a></h3>
 <dl class="py function">
 <dt class="sig sig-object py" id="tool_functions.show_progression">
-<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">show_progression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_iteration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">goal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">next_percentage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.show_progression" title="Permalink to this definition"></a></dt>
-<dd><p>Shows a percentage of progression if verbose is equal to 1.</p>
+<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">show_progression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbosity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_iteration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">goal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">next_percentage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.show_progression" title="Permalink to this definition"></a></dt>
+<dd><p>Shows a percentage of progression if verbosity is equal to 1.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>verbose</strong> (<em>int</em>) – This parameter must be equal to 1 for the function to print information. If the value is set on 2 (chatty mode),
+<li><p><strong>verbosity</strong> (<em>int</em>) – This parameter must be equal to 1 for the function to print information. If the value is set on 2 (chatty mode),
 the percentage will not be displayed, in favour of more detailed information related to the ongoing operations.</p></li>
 <li><p><strong>current_iteration</strong> (<em>int</em><em> or </em><em>float</em>) – The current iteration in a loop.</p></li>
 <li><p><strong>goal</strong> (<em>int</em><em> or </em><em>float</em>) – The stopping value of the loop.</p></li>

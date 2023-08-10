@@ -7,6 +7,7 @@
   <title>Sequence &mdash; krajjat 1.99.3 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -56,6 +57,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#classes.sequence.Sequence.__len__"><code class="docutils literal notranslate"><span class="pre">__len__</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#classes.sequence.Sequence.__getitem__"><code class="docutils literal notranslate"><span class="pre">__getitem__</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#classes.sequence.Sequence.__repr__"><code class="docutils literal notranslate"><span class="pre">__repr__</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#classes.sequence.Sequence.__eq__"><code class="docutils literal notranslate"><span class="pre">__eq__</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#public-methods">Public methods</a><ul>
@@ -81,7 +83,7 @@
 <li class="toctree-l2"><a class="reference internal" href="pose.html">Pose</a></li>
 <li class="toctree-l2"><a class="reference internal" href="joint.html">Joint</a></li>
 <li class="toctree-l2"><a class="reference internal" href="audio.html">Audio</a></li>
-<li class="toctree-l2"><a class="reference internal" href="graphic_classes.html">Graphic classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="graphic_classes.html">Graphic Classes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="graph_element.html">Graph Elements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="exceptions.html">Exceptions</a></li>
 </ul>
@@ -226,7 +228,7 @@ may clutter the output and slow down the execution.</p></li>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="classes.sequence.Sequence.poses">
 <span class="sig-name descname"><span class="pre">poses</span></span><a class="headerlink" href="#classes.sequence.Sequence.poses" title="Permalink to this definition"></a></dt>
-<dd><p>List of all the poses objects of the sequence.</p>
+<dd><p>List of all the <code class="xref py py-class docutils literal notranslate"><span class="pre">Pose</span></code> objects of the <a class="reference internal" href="#classes.sequence.Sequence" title="classes.sequence.Sequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list(<a class="reference internal" href="pose.html#classes.pose.Pose" title="classes.pose.Pose">Pose</a>)</p>
@@ -356,6 +358,21 @@ may clutter the output and slow down the execution.</p></li>
 </div>
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.__eq__">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">classes.sequence.Sequence.</span></span><span class="sig-name descname"><span class="pre">__eq__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.__eq__" title="Permalink to this definition"></a></dt>
+<dd><p>Returns <cite>True</cite> if all the poses in the attribute <a class="reference internal" href="#classes.sequence.Sequence.poses" title="classes.sequence.Sequence.poses"><code class="xref py py-attr docutils literal notranslate"><span class="pre">poses</span></code></a> have identical joints between the two
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code> objects.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a>) – Another <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code> object.</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="public-methods">
 <h2>Public methods<a class="headerlink" href="#public-methods" title="Permalink to this heading"></a></h2>
@@ -386,7 +403,7 @@ a means to identify the sequence (typically, <code class="xref py py-func docuti
 <span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">set_path_audio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_audio</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.set_path_audio" title="Permalink to this definition"></a></dt>
 <dd><p>Sets the <a class="reference internal" href="#classes.sequence.Sequence.path_audio" title="classes.sequence.Sequence.path_audio"><code class="xref py py-attr docutils literal notranslate"><span class="pre">path_audio</span></code></a> attribute of the Sequence instance. This path may be used automatically by
 functions using an audio file (typically, <a class="reference internal" href="#classes.sequence.Sequence.trim_to_audio" title="classes.sequence.Sequence.trim_to_audio"><code class="xref py py-func docutils literal notranslate"><span class="pre">Sequence.trim_to_audio()</span></code></a> and
-<code class="xref py py-func docutils literal notranslate"><span class="pre">graphic_functions.sequence_reader()</span></code>).</p>
+<a class="reference internal" href="graphic_functions.html#graphic_functions.sequence_reader" title="graphic_functions.sequence_reader"><code class="xref py py-func docutils literal notranslate"><span class="pre">graphic_functions.sequence_reader()</span></code></a>).</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
@@ -1649,7 +1666,7 @@ may clutter the output and slow down the execution.</p></li>
 <span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">average_qualisys_to_kinect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joints_labels_to_exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_averaged_joints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_non_kinect_joints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.average_qualisys_to_kinect" title="Permalink to this definition"></a></dt>
 <dd><p>Creates missing Kinect joints from the Qualisys labelling system by averaging the distance between Qualisys
 joints. The new joints are located at the midpoint of the arithmetic distance between two or more joints. The
-list of averaged joints is set from the <code class="docutils literal notranslate"><span class="pre">res/qualisys_to_kinect.txt</span></code> file:</p>
+list of averaged joints is set from the <code class="docutils literal notranslate"><span class="pre">res/kualisys_to_kinect.txt</span></code> file:</p>
 <table class="docutils align-default">
 <thead>
 <tr class="row-odd"><th class="head"><p>New joint</p></th>

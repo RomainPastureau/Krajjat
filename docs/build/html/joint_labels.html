@@ -7,6 +7,7 @@
   <title>Joint labels &mdash; krajjat 1.99.3 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -51,6 +52,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#kinect-joint-labels">Kinect joint labels</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#qualisys-and-kualisys-joint-labels">Qualisys and Kualisys joint labels</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#qualisys-to-kinect-conversion">Qualisys to Kinect conversion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#display-the-sequence">Display the sequence</a></li>
 </ul>
 </li>
 </ul>
@@ -239,6 +241,17 @@ calculated first before being used to create other joints via averaging.</p>
 </tr>
 </tbody>
 </table>
+</section>
+<section id="display-the-sequence">
+<span id="ignore-bottom"></span><h2>Display the sequence<a class="headerlink" href="#display-the-sequence" title="Permalink to this heading"></a></h2>
+<p>It is possible to display sequences using the functions in doc:<cite>graphic_functions</cite>. These functions
+allow to show the skeleton with or without the joints below the waist (parameter <code class="docutils literal notranslate"><span class="pre">ignore_bottom</span></code> in most
+functions).
+In the case of <strong>Kinect</strong> recordings, the joints ignored below the waist would be <code class="docutils literal notranslate"><span class="pre">HipRight</span></code>, <code class="docutils literal notranslate"><span class="pre">HipLeft</span></code>,
+<code class="docutils literal notranslate"><span class="pre">KneeRight</span></code>, <code class="docutils literal notranslate"><span class="pre">KneeLeft</span></code>, <code class="docutils literal notranslate"><span class="pre">AnkleRight</span></code>, <code class="docutils literal notranslate"><span class="pre">AnkleLeft</span></code>, <code class="docutils literal notranslate"><span class="pre">FootRight</span></code> and <code class="docutils literal notranslate"><span class="pre">FootLeft</span></code>.
+In the case of <strong>Kualisys</strong> recordings, the joints ignored below the waist are <code class="docutils literal notranslate"><span class="pre">ThighRight</span></code>, <code class="docutils literal notranslate"><span class="pre">ThighLeft</span></code>,
+<code class="docutils literal notranslate"><span class="pre">ShinRight</span></code>, <code class="docutils literal notranslate"><span class="pre">ShinLeft</span></code>, <code class="docutils literal notranslate"><span class="pre">HeelRight</span></code>, <code class="docutils literal notranslate"><span class="pre">HeelLeft</span></code>, <code class="docutils literal notranslate"><span class="pre">AnkleRight</span></code>, <code class="docutils literal notranslate"><span class="pre">AnkleLeft</span></code>, <code class="docutils literal notranslate"><span class="pre">ForefootInRight</span></code>,
+<code class="docutils literal notranslate"><span class="pre">ForefootInLeft</span></code>, <code class="docutils literal notranslate"><span class="pre">ForefootOutRight</span></code>, <code class="docutils literal notranslate"><span class="pre">ForefootOutLeft</span></code>, <code class="docutils literal notranslate"><span class="pre">ToetipRight</span></code> and <code class="docutils literal notranslate"><span class="pre">ToetipLeft</span></code>.</p>
 </section>
 </section>
 

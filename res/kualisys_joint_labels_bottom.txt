@@ -1,0 +1,14 @@
+ThighRight
+ShinRight
+HeelRight
+AnkleRight
+ForefootOutRight
+ToetipRight
+ForefootInRight
+ThighLeft
+ShinLeft
+HeelLeft
+AnkleLeft
+ForefootOutLeft
+ToetipLeft
+ForefootInLeft

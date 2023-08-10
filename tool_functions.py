@@ -193,7 +193,7 @@ def get_objects_paths(list_of_objects):
     return paths
 
 
-def create_subfolders(path, verbose=1):
+def create_subfolders(path, verbosity=1):
     """Creates all the subfolders that do not exist in a path. For example, if the folder ``"C:/Recordings/"`` is empty,
     and the parameter ``"path"`` is set on ``"C:/Recordings/Subject_01/Session_01/Video_01/"``, the function will
     successively create the folders ``"C:/Recordings/Subject_01/"``,  ``"C:/Recordings/Subject_01/Session_01/"``, and
@@ -206,7 +206,7 @@ def create_subfolders(path, verbose=1):
     path: str
         The absolute path to a folder.
 
-    verbose: int, optional
+    verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
 
         • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
@@ -222,12 +222,12 @@ def create_subfolders(path, verbose=1):
         for i in range(folder + 1):
             partial_path += folders[i] + "/"
         if "." in folders[-1]:
-            if verbose > 0:
+            if verbosity > 0:
                 print("Not creating " + partial_path + " as it is not a valid folder.")
             break
         if not os.path.exists(partial_path):
             os.mkdir(partial_path)
-            if verbose > 0:
+            if verbosity > 0:
                 print("Creating folder: " + partial_path)
 
 
@@ -254,7 +254,7 @@ def get_objects_names(list_of_objects):
 
 
 # === Sequences functions ===
-def compute_different_joints(sequence1, sequence2, verbose=False):
+def compute_different_joints(sequence1, sequence2, verbosity=False):
     """Returns the number of joints having different coordinates between two sequences having the same amount of poses.
     This function can be used to check how many joints have been modified by a processing function.
 
@@ -270,7 +270,7 @@ def compute_different_joints(sequence1, sequence2, verbose=False):
         A Sequence instance.
     sequence2: Sequence
         A Sequence instance.
-    verbose: int, optional
+    verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
 
         • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
@@ -303,9 +303,9 @@ def compute_different_joints(sequence1, sequence2, verbose=False):
                 total_joints += 1
 
             else:
-                # If verbose, we show the number of the pose, the name of the joint, and the coordinates of the
+                # If verbosity, we show the number of the pose, the name of the joint, and the coordinates of the
                 # two sequences
-                if verbose:
+                if verbosity:
                     print("Pose n°" + str(p) + ", " + str(j))
                     print("X: " + str(sequence1.poses[p].joints[j].x) +
                           "; Y: " + str(sequence1.poses[p].joints[j].y) +
@@ -554,7 +554,7 @@ def read_xlsx(path):
 
 
 # === Conversion functions ===
-def convert_data_from_qtm(data, verbose=1):
+def convert_data_from_qtm(data, verbosity=1):
     """Processes and converts the data from a ``.tsv`` file produced by QTM, by stripping the header data,
     standardizing the name of the joint labels, and converting the distance unit from mm to m. This function then
     returns the loaded table.
@@ -565,7 +565,7 @@ def convert_data_from_qtm(data, verbose=1):
     ----------
     data: list(str)
         The data from a ``.tsv`` QTM file with each line separated as the elements of a list.
-    verbose: int, optional
+    verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
 
         • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
@@ -582,11 +582,11 @@ def convert_data_from_qtm(data, verbose=1):
     new_data = []
     save_data = False
 
-    if verbose > 0:
+    if verbosity > 0:
         print("\n\tConverting data from Qualisys...")
-    if verbose == 1:
+    if verbosity == 1:
         print("\t\tStandardizing joints labels...", end=" ")
-    elif verbose > 1:
+    elif verbosity > 1:
         print("\t\tStandardizing joints labels...")
 
     joints_conversions = load_qualisys_joint_label_conversion()
@@ -604,7 +604,7 @@ def convert_data_from_qtm(data, verbose=1):
                 if elements[j] not in joints_conversions.keys():
                     for label in joints_conversions.keys():
                         if label in elements[j]:
-                            if verbose > 1:
+                            if verbosity > 1:
                                 print("\t\t\tChanging label name " + elements[j] + " to " +
                                       joints_conversions[label] + ".")
                             elements[j] = label
@@ -615,17 +615,17 @@ def convert_data_from_qtm(data, verbose=1):
                 header += "\t" + joints_conversions[elements[j]] + "_Z"
             new_data.append(header)
 
-            if verbose > 0:
+            if verbosity > 0:
                 print("\t\tLabels standardized.")
 
         if elements[0] == "1":
             save_data = True
-            if verbose > 0:
+            if verbosity > 0:
                 print("\t\tConverting coordinates from mm to m...", end=" ")
 
         if save_data:
 
-            perc = show_progression(verbose, i, len(data), perc)
+            perc = show_progression(verbosity, i, len(data), perc)
             line = []
 
             for j in range(1, len(elements)):
@@ -641,14 +641,14 @@ def convert_data_from_qtm(data, verbose=1):
             if line != "":
                 new_data.append(line)
 
-    if verbose > 0:
+    if verbosity > 0:
         print("100% - Done.")
 
     return new_data
 
 
 # === File saving functions ===
-def write_text_table(table, separator, path, verbose=1):
+def write_text_table(table, separator, path, verbosity=1):
     """Converts a table to a string, where elements on the same row are separated by a defined separator, and each row
     is separated by a line break.
 
@@ -662,7 +662,7 @@ def write_text_table(table, separator, path, verbose=1):
         The character used to separate elements on the same row.
     path: str
         The complete path of the text file to save.
-    verbose: int, optional
+    verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
 
         • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
@@ -681,7 +681,7 @@ def write_text_table(table, separator, path, verbose=1):
     perc = 10
 
     for i in range(len(table)):
-        perc = show_progression(verbose, i, len(table), perc)
+        perc = show_progression(verbosity, i, len(table), perc)
         for j in range(len(table[i])):
             text += str(table[i][j])
             if j != len(table[i]) - 1:
@@ -693,7 +693,7 @@ def write_text_table(table, separator, path, verbose=1):
         f.write(text)
 
 
-def write_xlsx(table, path, verbose=1):
+def write_xlsx(table, path, verbosity=1):
     """Saves a table in a ``.xlsx`` file.
 
     .. versionadded:: 2.0
@@ -704,7 +704,7 @@ def write_xlsx(table, path, verbose=1):
         A list where each sublist is a row of the table.
     path: str
         The complete path of where to store the Excel file.
-    verbose: int, optional
+    verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
 
         • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
@@ -722,7 +722,7 @@ def write_xlsx(table, path, verbose=1):
 
     perc = 10
     for i in range(len(table)):
-        perc = show_progression(verbose, i, len(table), perc)
+        perc = show_progression(verbosity, i, len(table), perc)
         for j in range(len(table[i])):
             sheet_out.cell(i + 1, j + 1, table[i][j])
     workbook_out.save(path)
@@ -1092,6 +1092,63 @@ def load_color_schemes():
     return color_schemes
 
 
+def convert_color_rgba(color, include_alpha=None):
+    """Returns an RGB or RGBA value from a color in RGB, RGBA, hexadecimal or color name format.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    color: tuple(int, int, int) or tuple(int, int, int, int) or str
+        A color under any of the following formats:
+
+            • A string containing an `HTML/CSS name <https://en.wikipedia.org/wiki/X11_color_names>`_ (e.g. ``"red"`` or
+              ``"blanched almond"``),
+            • A string containing a hexadecimal code, starting with a number sign (``#``, e.g. ``"#ffcc00"`` or
+              ``"#c0ffee"``).
+            • A RGB or RGBA tuple (e.g. ``(153, 204, 0)`` or ``(77, 77, 77, 255)``).
+
+    include_alpha: bool or None (optional)
+        Defines if the returned value will contain an alpha channel (``True``) or not (``False``). If set on ``None``,
+        the returned value will contain an alpha channel only if the input contains one.
+    """
+
+    # Color: tuple
+    if type(color) is tuple:
+        for i in range(len(color)):
+            if color[i] < 0 or color[i] > 255:
+                raise Exception("Invalid subpixel value in position " + str(i) + ": " + str(color[i]) + ". The value " +
+                                "must be between 0 and 255.")
+        if len(color) == 3:
+            if include_alpha:
+                return tuple([color[0], color[1], color[2], 255])
+            else:
+                return color
+        elif len(color) == 4:
+            if not include_alpha:
+                return [color][0:3]
+            else:
+                return color
+        else:
+            raise Exception("Invalid tuple length for a color: " + str(len(color)) + ". A color tuple must have 3 or " +
+                            "4 elements.")
+
+    # Color: string
+    elif type(color) is str:
+        if color[0] == "#":
+            return hex_color_to_rgb(color, include_alpha)
+        else:
+            color = color.lower().replace(" ", "")
+            colors_dict = load_color_names()
+            if (len(color) == 3 and include_alpha) or (len(color) == 4 and not include_alpha):
+                return colors_dict[color][0:3]
+            else:
+                return colors_dict[color]
+
+    else:
+        raise Exception("Invalid parameter color: should be tuple or str, not " + str(type(color)) + ".")
+
+
 def convert_colors_rgba(color_scheme_or_colors):
     """Returns a list of RGBA values of colors matching a color scheme or specific color names.
 
@@ -1172,7 +1229,7 @@ def convert_colors_rgba(color_scheme_or_colors):
     return colors
 
 
-def hex_color_to_rgb(color, include_alpha=False):
+def hex_color_to_rgb(color, include_alpha=None):
     """Converts a color from its hexadecimal value to its RGB or RGBA value.
 
     Parameters
@@ -1180,8 +1237,9 @@ def hex_color_to_rgb(color, include_alpha=False):
     color: str
         The hexadecimal value of a color, with or without a leading number sign (``"#"``).
     include_alpha: bool, optional
-        If ``True``, returns the RBG color with an alpha value. If an alpha value is not present in the hexadecimal
-        value, the alpha channel will be set to 255.
+        If ``True``, returns the RGB color with an alpha value. If an alpha value is not present in the hexadecimal
+        value, the alpha channel will be set to 255. If set on ``None`` (default), the returned value will contain
+        and alpha value only if the input color contains one.
 
     Returns
     -------
@@ -1194,16 +1252,16 @@ def hex_color_to_rgb(color, include_alpha=False):
         expected_length = 6
 
     if len(color) == expected_length:
-        rgba_color = list(int(color[i][i:i + 2], 16) for i in (1, 3, 5))
+        rgba_color = list(int(color[i:i + 2], 16) for i in (1, 3, 5))
         if include_alpha:
             rgba_color.append(255)
         rgba_color = tuple(rgba_color)
     elif len(color) == expected_length + 2:
-        rgba_color = tuple(int(color[i][i:i + 2], 16) for i in (1, 3, 5, 7))
+        rgba_color = tuple(int(color[i:i + 2], 16) for i in (1, 3, 5, 7))
         if not include_alpha:
             rgba_color = rgba_color[0:3]
     else:
-        raise Exception("Invalid color name.")
+        raise Exception("Invalid color hexadecimal value: " + str(color))
 
     return rgba_color
 
@@ -1385,8 +1443,25 @@ def calculate_colors_by_values(dict_values, color_scheme="default", type_return=
     return keys_colors
 
 
+def generate_random_color():
+    """Generates a random color, and returns its RGBA value (with an alpha value of 255).
+
+    .. versionadded:: 2.0
+
+    Returns
+    -------
+    tuple(int, int, int, int)
+        A tuple containing the RGBA values of a random color, with an alpha value of 255.
+    """
+    r = random.randrange(0, 256)
+    g = random.randrange(0, 256)
+    b = random.randrange(0, 256)
+    a = 255
+    return r, g, b, a
+
+
 # === Audio functions ===
-def scale_audio(audio_array, max_value, verbose=1):
+def scale_audio(audio_array, max_value, verbosity=1):
     """Scale an array of audio samples according to a maximum value.
 
     .. versionadded::2.0
@@ -1397,7 +1472,7 @@ def scale_audio(audio_array, max_value, verbose=1):
         An array of audio samples.
     max_value: int or float
         The value that will become the maximum value of the scaled array.
-    verbose: int, optional
+    verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
 
         • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
@@ -1413,7 +1488,7 @@ def scale_audio(audio_array, max_value, verbose=1):
     """
     new_audio_array = []
 
-    if verbose > 0:
+    if verbosity > 0:
         print("Scaling audio...")
 
     perc = 10
@@ -1421,16 +1496,16 @@ def scale_audio(audio_array, max_value, verbose=1):
     max_audio_array = max(audio_array)
 
     for i in range(len(audio_array)):
-        perc = show_progression(verbose, i, len(audio_array), perc)
+        perc = show_progression(verbosity, i, len(audio_array), perc)
         new_audio_array.append(audio_array[i] / max_audio_array * max_value)
 
-    if verbose > 0:
+    if verbosity > 0:
         print("100% - Done.")
 
     return new_audio_array
 
 
-def stereo_to_mono(audio_arrays, verbose=1):
+def stereo_to_mono(audio_arrays, verbosity=1):
     """Turns the sample data into mono by averaging the samples from the audio channels.
 
     .. versionadded:: 2.0
@@ -1440,7 +1515,7 @@ def stereo_to_mono(audio_arrays, verbose=1):
     audio_arrays: numpy.ndarray
         An array containing sub-lists with the sample values from all the channels as elements. Typically, the output
         of `scipy.io.wavfile.read <https://docs.scipy.org/doc/scipy/reference/generated/scipy.io.wavfile.read.html>`_.
-    verbose: int, optional
+    verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
 
         • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
@@ -1455,17 +1530,17 @@ def stereo_to_mono(audio_arrays, verbose=1):
         A list containing the samples averaged across all channels.
     """
 
-    if verbose > 0:
+    if verbosity > 0:
         print("\n\tConverting audio samples from stereo to mono...", end=" ")
 
     new_audio_array = []
     perc = 10
 
     for element in range(len(audio_arrays)):
-        perc = show_progression(verbose, element, len(audio_arrays), perc)
+        perc = show_progression(verbosity, element, len(audio_arrays), perc)
         new_audio_array.append(sum(audio_arrays[element]) // len(audio_arrays[element]))
 
-    if verbose > 0:
+    if verbosity > 0:
         print("100% - Done.")
 
     return new_audio_array
@@ -1473,7 +1548,7 @@ def stereo_to_mono(audio_arrays, verbose=1):
 
 # === Joint labels functions ===
 def load_kinect_joint_labels():
-    """Loads the list of the 21 kinect joint labels from ``res/kinect_joints.txt``.
+    """Loads the list of the 21 kinect joint labels from ``res/kinect_joint_labels.txt``.
 
     .. versionadded:: 2.0
 
@@ -1482,13 +1557,13 @@ def load_kinect_joint_labels():
     list(str)
         The list of the Kinect joint labels.
     """
-    file = open("res/kinect_joints.txt")
+    file = open("res/kinect_joint_labels.txt")
     joint_labels = file.read().split("\n")
     return joint_labels
 
 
 def load_qualisys_joint_labels(label_style="original"):
-    """Loads the list of the 44 Qualisys joint labels from ``res/qualisys_joints.txt``.
+    """Loads the list of the 44 Qualisys joint labels from ``res/kualisys_joint_labels.txt``.
 
     .. versionadded:: 2.0
 
@@ -1504,7 +1579,7 @@ def load_qualisys_joint_labels(label_style="original"):
     list(str)
         The list of the Qualisys joint labels.
     """
-    file = open("res/qualisys_joints.txt")
+    file = open("res/kualisys_joint_labels.txt")
     joint_labels = file.read().split("\n")
 
     joint_labels_original = []
@@ -1523,7 +1598,7 @@ def load_qualisys_joint_labels(label_style="original"):
 
 def load_qualisys_joint_label_conversion():
     """Returns a dictionary containing the original Qualisys joint labels as keys, and the renamed Kualisys joints
-    labels as values. The dictionary is loaded from ``res/qualisys_joints.txt``. For more information, see
+    labels as values. The dictionary is loaded from ``res/kualisys_joint_labels.txt``. For more information, see
     :doc:`joint_labels`.
 
     .. versionadded:: 2.0
@@ -1533,7 +1608,7 @@ def load_qualisys_joint_label_conversion():
     dict(str: str)
         A dictionary with the original Qualisys joint labels as keys, and the Kualisys renamed joint labels as values.
     """
-    file = open("res/qualisys_joints.txt")
+    file = open("res/kualisys_joint_labels.txt")
     content = file.read().split("\n")
     file.close()
 
@@ -1544,6 +1619,26 @@ def load_qualisys_joint_label_conversion():
         joints_conversions[elements[0]] = elements[1]
 
     return joints_conversions
+
+
+def load_joint_labels(path):
+    """Returns a list of joint labels from a path.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    path: str
+        The path to a file containing a joint label on each line.
+
+    Returns
+    -------
+    list(str)
+        A list containing joint labels.
+    """
+    with open("res/" + path, 'r') as f:
+        content = f.read().split("\n")
+    return content
 
 
 def load_joints_connections(path):
@@ -1561,8 +1656,8 @@ def load_joints_connections(path):
     list(list(str))
         A list of sub-lists, each containing two elements (two joint labels).
     """
-    file = open("res/" + path)
-    content = file.read().split("\n")
+    with open("res/" + path, 'r') as f:
+        content = f.read().split("\n")
     connections = []
 
     for line in content:
@@ -1574,7 +1669,7 @@ def load_joints_connections(path):
 def load_qualisys_to_kinect():
     """Loads a dictionary containing Kinect joint labels as keys, and a series of Kualisys joint labels as values.
     The Kinect joints can be averaged from the joints in values. The dictionary is loaded from
-    ``res/qualisys_to_kinect.txt``. For more information, see :doc:`joint_labels`.
+    ``res/kualisys_to_kinect.txt``. For more information, see :doc:`joint_labels`.
 
     .. versionadded:: 2.0
 
@@ -1583,7 +1678,7 @@ def load_qualisys_to_kinect():
     dict(str: list(str))
         A dictionary of Kinect joint labels as keys, and a series of Kualisys joint labels as values.
     """
-    file = open("res/qualisys_to_kinect.txt")
+    file = open("res/kualisys_to_kinect.txt")
     content = file.read().split("\n")
     connections = {}
 
@@ -1596,7 +1691,7 @@ def load_qualisys_to_kinect():
 
 def load_joints_subplot_layout(joint_layout):
     """Returns a dictionary of the subplot positions of the joints on a skeleton graph. Loads the data from
-    ``"res/joints_subplot_layout_kinect.txt"`` or ``"res/joints_subplot_layout_qualisys.txt"``.
+    ``"res/kinect_joints_subplot_layout.txt"`` or ``"res/kualisys_joints_subplot_layout.txt"``.
 
     .. versionadded:: 2.0
 
@@ -1612,9 +1707,9 @@ def load_joints_subplot_layout(joint_layout):
     """
 
     if joint_layout.lower() == "kinect":
-        file = open("res/joints_subplot_layout_kinect.txt")
+        file = open("res/kinect_joints_subplot_layout.txt")
     elif joint_layout.lower() == "qualisys":
-        file = open("res/joints_subplot_layout_qualisys.txt")
+        file = open("res/kualisys_joints_subplot_layout.txt")
     else:
         raise Exception("Wrong layout argument: should be 'kinect' or 'qualisys'.")
 
@@ -1629,14 +1724,14 @@ def load_joints_subplot_layout(joint_layout):
 
 
 # === Miscellaneous functions ===
-def show_progression(verbose, current_iteration, goal, next_percentage, step=10):
-    """Shows a percentage of progression if verbose is equal to 1.
+def show_progression(verbosity, current_iteration, goal, next_percentage, step=10):
+    """Shows a percentage of progression if verbosity is equal to 1.
 
     .. versionadded:: 2.0
 
     Parameters
     ----------
-    verbose: int
+    verbosity: int
         This parameter must be equal to 1 for the function to print information. If the value is set on 2 (chatty mode),
         the percentage will not be displayed, in favour of more detailed information related to the ongoing operations.
     current_iteration: int or float
@@ -1662,7 +1757,7 @@ def show_progression(verbose, current_iteration, goal, next_percentage, step=10)
     10% 20̀% 30% 40% 50% 60% 70% 80M 90%
     """
 
-    if verbose == 1:
+    if verbosity == 1:
         while current_iteration / goal > next_percentage / 100:
             print(str(next_percentage) + "%", end=" ")
             next_percentage += step

@@ -14,6 +14,7 @@ Initialisation
 Magic methods
 -------------
 .. automethod:: classes.pose.Pose.__repr__
+.. automethod:: classes.pose.Pose.__eq__
 
 Public methods
 --------------

@@ -7,6 +7,7 @@
   <title>Pose &mdash; krajjat 1.99.3 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -54,6 +55,7 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#magic-methods">Magic methods</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#classes.pose.Pose.__repr__"><code class="docutils literal notranslate"><span class="pre">Pose.__repr__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#classes.pose.Pose.__eq__"><code class="docutils literal notranslate"><span class="pre">Pose.__eq__()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#public-methods">Public methods</a><ul>
@@ -72,6 +74,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="joint.html">Joint</a></li>
 <li class="toctree-l2"><a class="reference internal" href="audio.html">Audio</a></li>
+<li class="toctree-l2"><a class="reference internal" href="graphic_classes.html">Graphic Classes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="graph_element.html">Graph Elements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="exceptions.html">Exceptions</a></li>
 </ul>
@@ -210,6 +213,21 @@ from the Pose instance.</p>
 <span class="go">    FootRight: (0.2288543, -1.20977, 2.095591)</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.pose.Pose.__eq__">
+<span class="sig-prename descclassname"><span class="pre">Pose.</span></span><span class="sig-name descname"><span class="pre">__eq__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.pose.Pose.__eq__" title="Permalink to this definition"></a></dt>
+<dd><p>Returns <cite>True</cite> if all the joints in the attribute <a class="reference internal" href="#classes.pose.Pose.joints" title="classes.pose.Pose.joints"><code class="xref py py-attr docutils literal notranslate"><span class="pre">joints</span></code></a> are identical between the two
+<a class="reference internal" href="#classes.pose.Pose" title="classes.pose.Pose"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pose</span></code></a> objects.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#classes.pose.Pose" title="classes.pose.Pose"><em>Pose</em></a>) – Another <a class="reference internal" href="#classes.pose.Pose" title="classes.pose.Pose"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pose</span></code></a> object.</p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>

@@ -7,6 +7,7 @@
   <title>Classes &mdash; krajjat 1.99.3 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -49,7 +50,7 @@
 <li class="toctree-l2"><a class="reference internal" href="pose.html">Pose</a></li>
 <li class="toctree-l2"><a class="reference internal" href="joint.html">Joint</a></li>
 <li class="toctree-l2"><a class="reference internal" href="audio.html">Audio</a></li>
-<li class="toctree-l2"><a class="reference internal" href="graphic_classes.html">Graphic classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="graphic_classes.html">Graphic Classes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="graph_element.html">Graph Elements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="exceptions.html">Exceptions</a></li>
 </ul>
@@ -105,6 +106,7 @@
 <li class="toctree-l3"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.__len__"><code class="docutils literal notranslate"><span class="pre">__len__</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.__getitem__"><code class="docutils literal notranslate"><span class="pre">__getitem__</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.__repr__"><code class="docutils literal notranslate"><span class="pre">__repr__</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.__eq__"><code class="docutils literal notranslate"><span class="pre">__eq__</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="sequence.html#public-methods">Public methods</a><ul>
@@ -230,6 +232,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="pose.html#magic-methods">Magic methods</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="pose.html#classes.pose.Pose.__repr__"><code class="docutils literal notranslate"><span class="pre">Pose.__repr__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="pose.html#classes.pose.Pose.__eq__"><code class="docutils literal notranslate"><span class="pre">Pose.__eq__()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="pose.html#public-methods">Public methods</a><ul>
@@ -284,6 +287,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="joint.html#magic-methods">Magic methods</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="joint.html#classes.joint.Joint.__repr__"><code class="docutils literal notranslate"><span class="pre">Joint.__repr__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="joint.html#classes.joint.Joint.__eq__"><code class="docutils literal notranslate"><span class="pre">Joint.__eq__()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="joint.html#public-methods">Public methods</a><ul>
@@ -306,6 +310,10 @@
 <li class="toctree-l4"><a class="reference internal" href="joint.html#classes.joint.Joint.get_is_corrected"><code class="docutils literal notranslate"><span class="pre">Joint.get_is_corrected()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="joint.html#classes.joint.Joint.get_is_randomized"><code class="docutils literal notranslate"><span class="pre">Joint.get_is_randomized()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="joint.html#classes.joint.Joint.get_copy"><code class="docutils literal notranslate"><span class="pre">Joint.get_copy()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="joint.html#rotation-function">Rotation function</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="joint.html#classes.joint.Joint.convert_rotation"><code class="docutils literal notranslate"><span class="pre">Joint.convert_rotation()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -392,24 +400,138 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="graphic_classes.html">Graphic classes</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="graphic_classes.html">Graphic Classes</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="graphic_classes.html#description">Description</a></li>
 <li class="toctree-l2"><a class="reference internal" href="graphic_classes.html#graphicwindow">GraphicWindow</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="graphic_classes.html#initialisation">Initialisation</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes._GraphicWindow"><code class="docutils literal notranslate"><span class="pre">_GraphicWindow</span></code></a><ul>
-<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes._GraphicWindow.window"><code class="docutils literal notranslate"><span class="pre">_GraphicWindow.window</span></code></a></li>
-<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes._GraphicWindow.width"><code class="docutils literal notranslate"><span class="pre">_GraphicWindow.width</span></code></a></li>
-<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes._GraphicWindow.height"><code class="docutils literal notranslate"><span class="pre">_GraphicWindow.height</span></code></a></li>
-<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes._GraphicWindow.center_x"><code class="docutils literal notranslate"><span class="pre">_GraphicWindow.center_x</span></code></a></li>
-<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes._GraphicWindow.center_y"><code class="docutils literal notranslate"><span class="pre">_GraphicWindow.center_y</span></code></a></li>
-<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes._GraphicWindow.pixel_meter_scale"><code class="docutils literal notranslate"><span class="pre">_GraphicWindow.pixel_meter_scale</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicWindow"><code class="docutils literal notranslate"><span class="pre">GraphicWindow</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicWindow.window"><code class="docutils literal notranslate"><span class="pre">GraphicWindow.window</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicWindow.width"><code class="docutils literal notranslate"><span class="pre">GraphicWindow.width</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicWindow.height"><code class="docutils literal notranslate"><span class="pre">GraphicWindow.height</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicWindow.center_x"><code class="docutils literal notranslate"><span class="pre">GraphicWindow.center_x</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicWindow.center_y"><code class="docutils literal notranslate"><span class="pre">GraphicWindow.center_y</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicWindow.height_window_in_meters"><code class="docutils literal notranslate"><span class="pre">GraphicWindow.height_window_in_meters</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicWindow.pixel_meter_scale"><code class="docutils literal notranslate"><span class="pre">GraphicWindow.pixel_meter_scale</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="graphic_classes.html#methods">Methods</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes._GraphicWindow._convert_x"><code class="docutils literal notranslate"><span class="pre">_GraphicWindow._convert_x()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes._GraphicWindow._convert_y"><code class="docutils literal notranslate"><span class="pre">_GraphicWindow._convert_y()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicWindow._convert_x"><code class="docutils literal notranslate"><span class="pre">GraphicWindow._convert_x()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicWindow._convert_y"><code class="docutils literal notranslate"><span class="pre">GraphicWindow._convert_y()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="graphic_classes.html#timer">Timer</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="graphic_classes.html#id1">Initialisation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.Timer"><code class="docutils literal notranslate"><span class="pre">Timer</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.Timer.clock"><code class="docutils literal notranslate"><span class="pre">Timer.clock</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.Timer.timer"><code class="docutils literal notranslate"><span class="pre">Timer.timer</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="graphic_classes.html#id2">Methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.Timer._get_timer"><code class="docutils literal notranslate"><span class="pre">Timer._get_timer()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.Timer._set_timer"><code class="docutils literal notranslate"><span class="pre">Timer._set_timer()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.Timer._reset"><code class="docutils literal notranslate"><span class="pre">Timer._reset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.Timer._update"><code class="docutils literal notranslate"><span class="pre">Timer._update()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="graphic_classes.html#graphicsequence">GraphicSequence</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="graphic_classes.html#id3">Initialisation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence"><code class="docutils literal notranslate"><span class="pre">GraphicSequence</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence.sequence"><code class="docutils literal notranslate"><span class="pre">GraphicSequence.sequence</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence.current_pose"><code class="docutils literal notranslate"><span class="pre">GraphicSequence.current_pose</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence.poses"><code class="docutils literal notranslate"><span class="pre">GraphicSequence.poses</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence.timer"><code class="docutils literal notranslate"><span class="pre">GraphicSequence.timer</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence.shape_joint"><code class="docutils literal notranslate"><span class="pre">GraphicSequence.shape_joint</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence.color_joint_default"><code class="docutils literal notranslate"><span class="pre">GraphicSequence.color_joint_default</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence.color_joint_corrected"><code class="docutils literal notranslate"><span class="pre">GraphicSequence.color_joint_corrected</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence.color_line"><code class="docutils literal notranslate"><span class="pre">GraphicSequence.color_line</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence.width_line"><code class="docutils literal notranslate"><span class="pre">GraphicSequence.width_line</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence.size_joint_default"><code class="docutils literal notranslate"><span class="pre">GraphicSequence.size_joint_default</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence.size_joint_hand"><code class="docutils literal notranslate"><span class="pre">GraphicSequence.size_joint_hand</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence.size_joint_head"><code class="docutils literal notranslate"><span class="pre">GraphicSequence.size_joint_head</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence.scale_joint"><code class="docutils literal notranslate"><span class="pre">GraphicSequence.scale_joint</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence.joints_to_show"><code class="docutils literal notranslate"><span class="pre">GraphicSequence.joints_to_show</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence.joint_labels_top"><code class="docutils literal notranslate"><span class="pre">GraphicSequence.joint_labels_top</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence.joint_labels_all"><code class="docutils literal notranslate"><span class="pre">GraphicSequence.joint_labels_all</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence.connections_to_show"><code class="docutils literal notranslate"><span class="pre">GraphicSequence.connections_to_show</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence.connections_top"><code class="docutils literal notranslate"><span class="pre">GraphicSequence.connections_top</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence.connections_all"><code class="docutils literal notranslate"><span class="pre">GraphicSequence.connections_all</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence.ignore_bottom"><code class="docutils literal notranslate"><span class="pre">GraphicSequence.ignore_bottom</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence.show_lines"><code class="docutils literal notranslate"><span class="pre">GraphicSequence.show_lines</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence.joint_surfaces"><code class="docutils literal notranslate"><span class="pre">GraphicSequence.joint_surfaces</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="graphic_classes.html#id5">Methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence._load_poses"><code class="docutils literal notranslate"><span class="pre">GraphicSequence._load_poses()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence._load_joint_labels"><code class="docutils literal notranslate"><span class="pre">GraphicSequence._load_joint_labels()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence._load_connections"><code class="docutils literal notranslate"><span class="pre">GraphicSequence._load_connections()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence._add_entry_joint_surfaces"><code class="docutils literal notranslate"><span class="pre">GraphicSequence._add_entry_joint_surfaces()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence._generate_all_joint_surfaces"><code class="docutils literal notranslate"><span class="pre">GraphicSequence._generate_all_joint_surfaces()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_shape_joint"><code class="docutils literal notranslate"><span class="pre">GraphicSequence._set_shape_joint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_color_joint_default"><code class="docutils literal notranslate"><span class="pre">GraphicSequence._set_color_joint_default()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_color_joint_corrected"><code class="docutils literal notranslate"><span class="pre">GraphicSequence._set_color_joint_corrected()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_color_line"><code class="docutils literal notranslate"><span class="pre">GraphicSequence._set_color_line()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_width_line"><code class="docutils literal notranslate"><span class="pre">GraphicSequence._set_width_line()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_size_joint_default"><code class="docutils literal notranslate"><span class="pre">GraphicSequence._set_size_joint_default()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_size_joint_hand"><code class="docutils literal notranslate"><span class="pre">GraphicSequence._set_size_joint_hand()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_size_joint_head"><code class="docutils literal notranslate"><span class="pre">GraphicSequence._set_size_joint_head()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_scale_joint"><code class="docutils literal notranslate"><span class="pre">GraphicSequence._set_scale_joint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_ignore_bottom"><code class="docutils literal notranslate"><span class="pre">GraphicSequence._set_ignore_bottom()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_show_lines"><code class="docutils literal notranslate"><span class="pre">GraphicSequence._set_show_lines()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_show_joints_corrected"><code class="docutils literal notranslate"><span class="pre">GraphicSequence._set_show_joints_corrected()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence._toggle_ignore_bottom"><code class="docutils literal notranslate"><span class="pre">GraphicSequence._toggle_ignore_bottom()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence._toggle_show_lines"><code class="docutils literal notranslate"><span class="pre">GraphicSequence._toggle_show_lines()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence._toggle_show_joints_corrected"><code class="docutils literal notranslate"><span class="pre">GraphicSequence._toggle_show_joints_corrected()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence._next_pose"><code class="docutils literal notranslate"><span class="pre">GraphicSequence._next_pose()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence._previous_pose"><code class="docutils literal notranslate"><span class="pre">GraphicSequence._previous_pose()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence._reset"><code class="docutils literal notranslate"><span class="pre">GraphicSequence._reset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence._apply_events"><code class="docutils literal notranslate"><span class="pre">GraphicSequence._apply_events()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence._play"><code class="docutils literal notranslate"><span class="pre">GraphicSequence._play()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence._show_pose"><code class="docutils literal notranslate"><span class="pre">GraphicSequence._show_pose()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="graphic_classes.html#graphicpose">GraphicPose</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="graphic_classes.html#id10">Initialisation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicPose"><code class="docutils literal notranslate"><span class="pre">GraphicPose</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicPose.pose"><code class="docutils literal notranslate"><span class="pre">GraphicPose.pose</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicPose.joints"><code class="docutils literal notranslate"><span class="pre">GraphicPose.joints</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="graphic_classes.html#id11">Methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicPose._load_joints"><code class="docutils literal notranslate"><span class="pre">GraphicPose._load_joints()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicPose._show_line"><code class="docutils literal notranslate"><span class="pre">GraphicPose._show_line()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicPose._show"><code class="docutils literal notranslate"><span class="pre">GraphicPose._show()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="graphic_classes.html#graphicjoint">GraphicJoint</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="graphic_classes.html#id16">Initialisation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicJoint"><code class="docutils literal notranslate"><span class="pre">GraphicJoint</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicJoint.joint"><code class="docutils literal notranslate"><span class="pre">GraphicJoint.joint</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicJoint.x"><code class="docutils literal notranslate"><span class="pre">GraphicJoint.x</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicJoint.y"><code class="docutils literal notranslate"><span class="pre">GraphicJoint.y</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="graphic_classes.html#id17">Methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicJoint._convert_coordinates"><code class="docutils literal notranslate"><span class="pre">GraphicJoint._convert_coordinates()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicJoint._rotate"><code class="docutils literal notranslate"><span class="pre">GraphicJoint._rotate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicJoint._show"><code class="docutils literal notranslate"><span class="pre">GraphicJoint._show()</span></code></a></li>
 </ul>
 </li>
 </ul>

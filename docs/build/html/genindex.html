@@ -6,6 +6,7 @@
   <title>Index &mdash; krajjat 1.99.3 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -99,6 +100,14 @@
 <h2 id="_">_</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="sequence.html#classes.sequence.Sequence.__eq__">__eq__ (class in classes.sequence.Sequence)</a>
+</li>
+      <li><a href="joint.html#classes.joint.Joint.__eq__">__eq__() (classes.joint.Joint method)</a>
+
+      <ul>
+        <li><a href="pose.html#classes.pose.Pose.__eq__">(classes.pose.Pose method)</a>
+</li>
+      </ul></li>
       <li><a href="sequence.html#classes.sequence.Sequence.__getitem__">__getitem__ (class in classes.sequence.Sequence)</a>
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence.__len__">__len__ (class in classes.sequence.Sequence)</a>
@@ -113,6 +122,10 @@
         <li><a href="pose.html#classes.pose.Pose.__repr__">(classes.pose.Pose method)</a>
 </li>
       </ul></li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._add_entry_joint_surfaces">_add_entry_joint_surfaces() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._apply_events">_apply_events() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
       <li><a href="audio.html#classes.audio.Audio._calculate_frequency">_calculate_frequency() (classes.audio.Audio method)</a>
 </li>
       <li><a href="pose.html#classes.pose.Pose._calculate_relative_timestamp">_calculate_relative_timestamp() (classes.pose.Pose method)</a>
@@ -121,9 +134,11 @@
 </li>
       <li><a href="audio.html#classes.audio.Audio._calculate_timestamps">_calculate_timestamps() (classes.audio.Audio method)</a>
 </li>
-      <li><a href="graphic_classes.html#classes.graphic_classes._GraphicWindow._convert_x">_convert_x() (classes.graphic_classes._GraphicWindow method)</a>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicJoint._convert_coordinates">_convert_coordinates() (classes.graphic_classes.GraphicJoint method)</a>
 </li>
-      <li><a href="graphic_classes.html#classes.graphic_classes._GraphicWindow._convert_y">_convert_y() (classes.graphic_classes._GraphicWindow method)</a>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicWindow._convert_x">_convert_x() (classes.graphic_classes.GraphicWindow method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicWindow._convert_y">_convert_y() (classes.graphic_classes.GraphicWindow method)</a>
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence._correct_jitter_single_joint">_correct_jitter_single_joint() (classes.sequence.Sequence method)</a>
 </li>
@@ -149,19 +164,21 @@
         <li><a href="sequence.html#classes.sequence.Sequence._fetch_files_from_folder">(classes.sequence.Sequence method)</a>
 </li>
       </ul></li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._generate_all_joint_surfaces">_generate_all_joint_surfaces() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
       <li><a href="pose.html#classes.pose.Pose._get_copy_with_empty_joints">_get_copy_with_empty_joints() (classes.pose.Pose method)</a>
 </li>
-      <li><a href="graphic_classes.html#classes.graphic_classes._GraphicWindow">_GraphicWindow (class in classes.graphic_classes)</a>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Timer._get_timer">_get_timer() (classes.graphic_classes.Timer method)</a>
 </li>
       <li><a href="joint.html#classes.joint.Joint._has_velocity_over_threshold">_has_velocity_over_threshold (classes.joint.Joint attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="joint.html#classes.joint.Joint._is_corrected">_is_corrected (classes.joint.Joint attribute)</a>
 </li>
       <li><a href="joint.html#classes.joint.Joint._is_randomized">_is_randomized (classes.joint.Joint attribute)</a>
 </li>
       <li><a href="audio.html#classes.audio.Audio._load_audio_file">_load_audio_file() (classes.audio.Audio method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._load_connections">_load_connections() (classes.graphic_classes.GraphicSequence method)</a>
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence._load_date_recording">_load_date_recording() (classes.sequence.Sequence method)</a>
 </li>
@@ -173,8 +190,18 @@
       </ul></li>
       <li><a href="audio.html#classes.audio.Audio._load_from_samples">_load_from_samples() (classes.audio.Audio method)</a>
 </li>
-      <li><a href="sequence.html#classes.sequence.Sequence._load_poses">_load_poses() (classes.sequence.Sequence method)</a>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._load_joint_labels">_load_joint_labels() (classes.graphic_classes.GraphicSequence method)</a>
 </li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicPose._load_joints">_load_joints() (classes.graphic_classes.GraphicPose method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._load_poses">_load_poses() (classes.graphic_classes.GraphicSequence method)</a>
+
+      <ul>
+        <li><a href="sequence.html#classes.sequence.Sequence._load_poses">(classes.sequence.Sequence method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="audio.html#classes.audio.Audio._load_samples">_load_samples() (classes.audio.Audio method)</a>
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence._load_sequence_file">_load_sequence_file() (classes.sequence.Sequence method)</a>
@@ -183,11 +210,25 @@
 </li>
       <li><a href="audio.html#classes.audio.Audio._load_single_sample_file">_load_single_sample_file() (classes.audio.Audio method)</a>
 </li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._next_pose">_next_pose() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._play">_play() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._previous_pose">_previous_pose() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
       <li><a href="joint.html#classes.joint.Joint._randomize_coordinates_keep_movement">_randomize_coordinates_keep_movement() (classes.joint.Joint method)</a>
 </li>
       <li><a href="audio.html#classes.audio.Audio._read_text_file">_read_text_file() (classes.audio.Audio method)</a>
 </li>
       <li><a href="audio.html#classes.audio.Audio._read_wav">_read_wav() (classes.audio.Audio method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._reset">_reset() (classes.graphic_classes.GraphicSequence method)</a>
+
+      <ul>
+        <li><a href="graphic_classes.html#classes.graphic_classes.Timer._reset">(classes.graphic_classes.Timer method)</a>
+</li>
+      </ul></li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicJoint._rotate">_rotate() (classes.graphic_classes.GraphicJoint method)</a>
 </li>
       <li><a href="audio.html#classes.audio.Audio._save_json">_save_json() (classes.audio.Audio method)</a>
 
@@ -213,9 +254,53 @@
         <li><a href="sequence.html#classes.sequence.Sequence._save_xlsx">(classes.sequence.Sequence method)</a>
 </li>
       </ul></li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_color_joint_corrected">_set_color_joint_corrected() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_color_joint_default">_set_color_joint_default() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_color_line">_set_color_line() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
       <li><a href="joint.html#classes.joint.Joint._set_has_velocity_over_threshold">_set_has_velocity_over_threshold() (classes.joint.Joint method)</a>
 </li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_ignore_bottom">_set_ignore_bottom() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
       <li><a href="joint.html#classes.joint.Joint._set_is_corrected">_set_is_corrected() (classes.joint.Joint method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_scale_joint">_set_scale_joint() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_shape_joint">_set_shape_joint() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_show_joints_corrected">_set_show_joints_corrected() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_show_lines">_set_show_lines() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_size_joint_default">_set_size_joint_default() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_size_joint_hand">_set_size_joint_hand() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_size_joint_head">_set_size_joint_head() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Timer._set_timer">_set_timer() (classes.graphic_classes.Timer method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_width_line">_set_width_line() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicJoint._show">_show() (classes.graphic_classes.GraphicJoint method)</a>
+
+      <ul>
+        <li><a href="graphic_classes.html#classes.graphic_classes.GraphicPose._show">(classes.graphic_classes.GraphicPose method)</a>
+</li>
+      </ul></li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicPose._show_line">_show_line() (classes.graphic_classes.GraphicPose method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._show_pose">_show_pose() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._toggle_ignore_bottom">_toggle_ignore_bottom() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._toggle_show_joints_corrected">_toggle_show_joints_corrected() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._toggle_show_lines">_toggle_show_lines() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Timer._update">_update() (classes.graphic_classes.Timer method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -257,11 +342,21 @@
 </li>
       <li><a href="tool_functions.html#tool_functions.calculate_velocity">calculate_velocity() (in module tool_functions)</a>
 </li>
-      <li><a href="graphic_classes.html#classes.graphic_classes._GraphicWindow.center_x">center_x (classes.graphic_classes._GraphicWindow attribute)</a>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicWindow.center_x">center_x (classes.graphic_classes.GraphicWindow attribute)</a>
 </li>
-      <li><a href="graphic_classes.html#classes.graphic_classes._GraphicWindow.center_y">center_y (classes.graphic_classes._GraphicWindow attribute)</a>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicWindow.center_y">center_y (classes.graphic_classes.GraphicWindow attribute)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Timer.clock">clock (classes.graphic_classes.Timer attribute)</a>
 </li>
       <li><a href="graph_element.html#classes.graph_element.GraphPlot.color">color (classes.graph_element.GraphPlot attribute)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.color_joint_corrected">color_joint_corrected (classes.graphic_classes.GraphicSequence attribute)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.color_joint_default">color_joint_default (classes.graphic_classes.GraphicSequence attribute)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.color_line">color_line (classes.graphic_classes.GraphicSequence attribute)</a>
+</li>
+      <li><a href="graphic_functions.html#graphic_functions.common_displayer">common_displayer() (in module graphic_functions)</a>
 </li>
       <li><a href="tool_functions.html#tool_functions.compute_different_joints">compute_different_joints() (in module tool_functions)</a>
 </li>
@@ -271,9 +366,19 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.connections_all">connections_all (classes.graphic_classes.GraphicSequence attribute)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.connections_to_show">connections_to_show (classes.graphic_classes.GraphicSequence attribute)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.connections_top">connections_top (classes.graphic_classes.GraphicSequence attribute)</a>
+</li>
+      <li><a href="tool_functions.html#tool_functions.convert_color_rgba">convert_color_rgba() (in module tool_functions)</a>
+</li>
       <li><a href="tool_functions.html#tool_functions.convert_colors_rgba">convert_colors_rgba() (in module tool_functions)</a>
 </li>
       <li><a href="tool_functions.html#tool_functions.convert_data_from_qtm">convert_data_from_qtm() (in module tool_functions)</a>
+</li>
+      <li><a href="joint.html#classes.joint.Joint.convert_rotation">convert_rotation() (classes.joint.Joint method)</a>
 </li>
       <li><a href="audio.html#classes.audio.Audio.convert_to_json">convert_to_json() (classes.audio.Audio method)</a>
 
@@ -300,6 +405,8 @@
       <li><a href="sequence.html#classes.sequence.Sequence.correct_zeros">correct_zeros() (classes.sequence.Sequence method)</a>
 </li>
       <li><a href="tool_functions.html#tool_functions.create_subfolders">create_subfolders() (in module tool_functions)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.current_pose">current_pose (classes.graphic_classes.GraphicSequence attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -350,6 +457,8 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pose.html#classes.pose.Pose.generate_average_joint">generate_average_joint() (classes.pose.Pose method)</a>
+</li>
+      <li><a href="tool_functions.html#tool_functions.generate_random_color">generate_random_color() (in module tool_functions)</a>
 </li>
       <li><a href="tool_functions.html#tool_functions.generate_random_joints">generate_random_joints() (in module tool_functions)</a>
 </li>
@@ -419,10 +528,10 @@
         <li><a href="sequence.html#classes.sequence.Sequence.get_name">(classes.sequence.Sequence method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="sequence.html#classes.sequence.Sequence.get_number_of_poses">get_number_of_poses() (classes.sequence.Sequence method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="audio.html#classes.audio.Audio.get_number_of_samples">get_number_of_samples() (classes.audio.Audio method)</a>
 </li>
       <li><a href="tool_functions.html#tool_functions.get_objects_names">get_objects_names() (in module tool_functions)</a>
@@ -483,6 +592,14 @@
 </li>
       <li><a href="graph_element.html#classes.graph_element.Graph">Graph (class in classes.graph_element)</a>
 </li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicJoint">GraphicJoint (class in classes.graphic_classes)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicPose">GraphicPose (class in classes.graphic_classes)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence">GraphicSequence (class in classes.graphic_classes)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicWindow">GraphicWindow (class in classes.graphic_classes)</a>
+</li>
       <li><a href="graph_element.html#classes.graph_element.GraphPlot">GraphPlot (class in classes.graph_element)</a>
 </li>
   </ul></td>
@@ -491,10 +608,12 @@
 <h2 id="H">H</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="graphic_classes.html#classes.graphic_classes._GraphicWindow.height">height (classes.graphic_classes._GraphicWindow attribute)</a>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicWindow.height">height (classes.graphic_classes.GraphicWindow attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicWindow.height_window_in_meters">height_window_in_meters (classes.graphic_classes.GraphicWindow attribute)</a>
+</li>
       <li><a href="tool_functions.html#tool_functions.hex_color_to_rgb">hex_color_to_rgb() (in module tool_functions)</a>
 </li>
   </ul></td>
@@ -503,6 +622,8 @@
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.ignore_bottom">ignore_bottom (classes.graphic_classes.GraphicSequence attribute)</a>
+</li>
       <li><a href="exceptions.html#classes.exceptions.ImpossibleTimeTravelException">ImpossibleTimeTravelException (class in classes.exceptions)</a>
 </li>
       <li><a href="tool_functions.html#tool_functions.interpolate_data">interpolate_data() (in module tool_functions)</a>
@@ -523,11 +644,25 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="joint.html#classes.joint.Joint">Joint (class in classes.joint)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicJoint.joint">joint (classes.graphic_classes.GraphicJoint attribute)</a>
+</li>
       <li><a href="joint.html#classes.joint.Joint.joint_label">joint_label (classes.joint.Joint attribute)</a>
 </li>
-      <li><a href="pose.html#classes.pose.Pose.joints">joints (classes.pose.Pose attribute)</a>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.joint_labels_all">joint_labels_all (classes.graphic_classes.GraphicSequence attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.joint_labels_top">joint_labels_top (classes.graphic_classes.GraphicSequence attribute)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.joint_surfaces">joint_surfaces (classes.graphic_classes.GraphicSequence attribute)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicPose.joints">joints (classes.graphic_classes.GraphicPose attribute)</a>
+
+      <ul>
+        <li><a href="pose.html#classes.pose.Pose.joints">(classes.pose.Pose attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.joints_to_show">joints_to_show (classes.graphic_classes.GraphicSequence attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -542,6 +677,8 @@
       <li><a href="tool_functions.html#tool_functions.load_color_names">load_color_names() (in module tool_functions)</a>
 </li>
       <li><a href="tool_functions.html#tool_functions.load_color_schemes">load_color_schemes() (in module tool_functions)</a>
+</li>
+      <li><a href="tool_functions.html#tool_functions.load_joint_labels">load_joint_labels() (in module tool_functions)</a>
 </li>
       <li><a href="tool_functions.html#tool_functions.load_joints_connections">load_joints_connections() (in module tool_functions)</a>
 </li>
@@ -593,16 +730,24 @@
       </ul></li>
       <li><a href="sequence.html#classes.sequence.Sequence.path_audio">path_audio (classes.sequence.Sequence attribute)</a>
 </li>
-      <li><a href="graphic_classes.html#classes.graphic_classes._GraphicWindow.pixel_meter_scale">pixel_meter_scale (classes.graphic_classes._GraphicWindow attribute)</a>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicWindow.pixel_meter_scale">pixel_meter_scale (classes.graphic_classes.GraphicWindow attribute)</a>
 </li>
       <li><a href="graph_element.html#classes.graph_element.Graph.plots">plots (classes.graph_element.Graph attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pose.html#classes.pose.Pose">Pose (class in classes.pose)</a>
 </li>
-      <li><a href="sequence.html#classes.sequence.Sequence.poses">poses (classes.sequence.Sequence attribute)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicPose.pose">pose (classes.graphic_classes.GraphicPose attribute)</a>
 </li>
+      <li><a href="graphic_functions.html#graphic_functions.pose_reader">pose_reader() (in module graphic_functions)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.poses">poses (classes.graphic_classes.GraphicSequence attribute)</a>
+
+      <ul>
+        <li><a href="sequence.html#classes.sequence.Sequence.poses">(classes.sequence.Sequence attribute)</a>
+</li>
+      </ul></li>
       <li><a href="joint.html#classes.joint.Joint.position">position (classes.joint.Joint attribute)</a>
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence.print_pose">print_pose() (classes.sequence.Sequence method)</a>
@@ -673,7 +818,15 @@
       </ul></li>
       <li><a href="tool_functions.html#tool_functions.scale_audio">scale_audio() (in module tool_functions)</a>
 </li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.scale_joint">scale_joint (classes.graphic_classes.GraphicSequence attribute)</a>
+</li>
       <li><a href="sequence.html#classes.sequence.Sequence">Sequence (class in classes.sequence)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.sequence">sequence (classes.graphic_classes.GraphicSequence attribute)</a>
+</li>
+      <li><a href="graphic_functions.html#graphic_functions.sequence_comparer">sequence_comparer() (in module graphic_functions)</a>
+</li>
+      <li><a href="graphic_functions.html#graphic_functions.sequence_reader">sequence_reader() (in module graphic_functions)</a>
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence.set_first_timestamp">set_first_timestamp() (classes.sequence.Sequence method)</a>
 </li>
@@ -701,7 +854,17 @@
 </li>
       <li><a href="joint.html#classes.joint.Joint.set_z">set_z() (classes.joint.Joint method)</a>
 </li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.shape_joint">shape_joint (classes.graphic_classes.GraphicSequence attribute)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.show_lines">show_lines (classes.graphic_classes.GraphicSequence attribute)</a>
+</li>
       <li><a href="tool_functions.html#tool_functions.show_progression">show_progression() (in module tool_functions)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.size_joint_default">size_joint_default (classes.graphic_classes.GraphicSequence attribute)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.size_joint_hand">size_joint_hand (classes.graphic_classes.GraphicSequence attribute)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.size_joint_head">size_joint_head (classes.graphic_classes.GraphicSequence attribute)</a>
 </li>
       <li><a href="tool_functions.html#tool_functions.stereo_to_mono">stereo_to_mono() (in module tool_functions)</a>
 </li>
@@ -711,12 +874,20 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Timer">Timer (class in classes.graphic_classes)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.timer">timer (classes.graphic_classes.GraphicSequence attribute)</a>
+
+      <ul>
+        <li><a href="graphic_classes.html#classes.graphic_classes.Timer.timer">(classes.graphic_classes.Timer attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pose.html#classes.pose.Pose.timestamp">timestamp (classes.pose.Pose attribute)</a>
 </li>
       <li><a href="audio.html#classes.audio.Audio.timestamps">timestamps (classes.audio.Audio attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="sequence.html#classes.sequence.Sequence.trim">trim() (classes.sequence.Sequence method)</a>
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence.trim_to_audio">trim_to_audio() (classes.sequence.Sequence method)</a>
@@ -727,12 +898,14 @@
 <h2 id="W">W</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="graphic_classes.html#classes.graphic_classes._GraphicWindow.width">width (classes.graphic_classes._GraphicWindow attribute)</a>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicWindow.width">width (classes.graphic_classes.GraphicWindow attribute)</a>
 </li>
-      <li><a href="graphic_classes.html#classes.graphic_classes._GraphicWindow.window">window (classes.graphic_classes._GraphicWindow attribute)</a>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.width_line">width_line (classes.graphic_classes.GraphicSequence attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicWindow.window">window (classes.graphic_classes.GraphicWindow attribute)</a>
+</li>
       <li><a href="tool_functions.html#tool_functions.write_text_table">write_text_table() (in module tool_functions)</a>
 </li>
       <li><a href="tool_functions.html#tool_functions.write_xlsx">write_xlsx() (in module tool_functions)</a>
@@ -746,6 +919,8 @@
       <li><a href="graph_element.html#classes.graph_element.GraphPlot.x">x (classes.graph_element.GraphPlot attribute)</a>
 
       <ul>
+        <li><a href="graphic_classes.html#classes.graphic_classes.GraphicJoint.x">(classes.graphic_classes.GraphicJoint attribute)</a>
+</li>
         <li><a href="joint.html#classes.joint.Joint.x">(classes.joint.Joint attribute)</a>
 </li>
       </ul></li>
@@ -758,6 +933,8 @@
       <li><a href="graph_element.html#classes.graph_element.GraphPlot.y">y (classes.graph_element.GraphPlot attribute)</a>
 
       <ul>
+        <li><a href="graphic_classes.html#classes.graphic_classes.GraphicJoint.y">(classes.graphic_classes.GraphicJoint attribute)</a>
+</li>
         <li><a href="joint.html#classes.joint.Joint.y">(classes.joint.Joint attribute)</a>
 </li>
       </ul></li>

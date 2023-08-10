@@ -1,8 +1,8 @@
-
-test_file.py
+/coherence_romain.py
 /delays.txt
-/test_video_generation.py
+/test_file.py
 /test_stats.py
+/test_video_generation.py
 /.venv/
 /doc/
 /docs/source/

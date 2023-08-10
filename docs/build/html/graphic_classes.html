@@ -4,9 +4,10 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Graphic classes &mdash; krajjat 1.99.3 documentation</title>
+  <title>Graphic Classes &mdash; krajjat 1.99.3 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -49,11 +50,31 @@
 <li class="toctree-l2"><a class="reference internal" href="pose.html">Pose</a></li>
 <li class="toctree-l2"><a class="reference internal" href="joint.html">Joint</a></li>
 <li class="toctree-l2"><a class="reference internal" href="audio.html">Audio</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Graphic classes</a><ul>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Graphic Classes</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#graphicwindow">GraphicWindow</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#initialisation">Initialisation</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#methods">Methods</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#timer">Timer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id1">Initialisation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id2">Methods</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#graphicsequence">GraphicSequence</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id3">Initialisation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id5">Methods</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#graphicpose">GraphicPose</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id10">Initialisation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id11">Methods</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#graphicjoint">GraphicJoint</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id16">Initialisation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id17">Methods</a></li>
 </ul>
 </li>
 </ul>
@@ -81,7 +102,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="classes.html">Classes</a></li>
-      <li class="breadcrumb-item active">Graphic classes</li>
+      <li class="breadcrumb-item active">Graphic Classes</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/graphic_classes.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -92,7 +113,7 @@
            <div itemprop="articleBody">
              
   <section id="graphic-classes">
-<h1>Graphic classes<a class="headerlink" href="#graphic-classes" title="Permalink to this heading"></a></h1>
+<h1>Graphic Classes<a class="headerlink" href="#graphic-classes" title="Permalink to this heading"></a></h1>
 <section id="description">
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this heading"></a></h2>
 <p>These classes allow to convert the data from <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Pose</span></code> and <code class="xref py py-class docutils literal notranslate"><span class="pre">Joint</span></code> to display them
@@ -103,8 +124,8 @@ in the <a class="reference internal" href="graphic_functions.html"><span class="
 <section id="initialisation">
 <h3>Initialisation<a class="headerlink" href="#initialisation" title="Permalink to this heading"></a></h3>
 <dl class="py class">
-<dt class="sig sig-object py" id="classes.graphic_classes._GraphicWindow">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">classes.graphic_classes.</span></span><span class="sig-name descname"><span class="pre">_GraphicWindow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_window_in_meters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes._GraphicWindow" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicWindow">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">classes.graphic_classes.</span></span><span class="sig-name descname"><span class="pre">GraphicWindow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_window_in_meters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicWindow" title="Permalink to this definition"></a></dt>
 <dd><p>Defines the size of the display window and allows to convert and scale the coordinates of the joints to be
 displayed.</p>
 <div class="versionadded">
@@ -119,8 +140,8 @@ displayed.</p>
 </dd>
 </dl>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="classes.graphic_classes._GraphicWindow.window">
-<span class="sig-name descname"><span class="pre">window</span></span><a class="headerlink" href="#classes.graphic_classes._GraphicWindow.window" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicWindow.window">
+<span class="sig-name descname"><span class="pre">window</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicWindow.window" title="Permalink to this definition"></a></dt>
 <dd><p>The main pygame Surface containing all the graphic elements, set during the initialisation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -130,8 +151,8 @@ displayed.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="classes.graphic_classes._GraphicWindow.width">
-<span class="sig-name descname"><span class="pre">width</span></span><a class="headerlink" href="#classes.graphic_classes._GraphicWindow.width" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicWindow.width">
+<span class="sig-name descname"><span class="pre">width</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicWindow.width" title="Permalink to this definition"></a></dt>
 <dd><p>The width of the <code class="docutils literal notranslate"><span class="pre">window</span></code>, in pixels.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -141,8 +162,8 @@ displayed.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="classes.graphic_classes._GraphicWindow.height">
-<span class="sig-name descname"><span class="pre">height</span></span><a class="headerlink" href="#classes.graphic_classes._GraphicWindow.height" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicWindow.height">
+<span class="sig-name descname"><span class="pre">height</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicWindow.height" title="Permalink to this definition"></a></dt>
 <dd><p>The height of the <code class="docutils literal notranslate"><span class="pre">window</span></code>, in pixels.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -152,8 +173,8 @@ displayed.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="classes.graphic_classes._GraphicWindow.center_x">
-<span class="sig-name descname"><span class="pre">center_x</span></span><a class="headerlink" href="#classes.graphic_classes._GraphicWindow.center_x" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicWindow.center_x">
+<span class="sig-name descname"><span class="pre">center_x</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicWindow.center_x" title="Permalink to this definition"></a></dt>
 <dd><p>The mid-point on the x-axis of the <code class="docutils literal notranslate"><span class="pre">window</span></code>, in pixels.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -163,8 +184,8 @@ displayed.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="classes.graphic_classes._GraphicWindow.center_y">
-<span class="sig-name descname"><span class="pre">center_y</span></span><a class="headerlink" href="#classes.graphic_classes._GraphicWindow.center_y" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicWindow.center_y">
+<span class="sig-name descname"><span class="pre">center_y</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicWindow.center_y" title="Permalink to this definition"></a></dt>
 <dd><p>The mid-point on the y-axis of the <code class="docutils literal notranslate"><span class="pre">window</span></code>, in pixels.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -174,8 +195,19 @@ displayed.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="classes.graphic_classes._GraphicWindow.pixel_meter_scale">
-<span class="sig-name descname"><span class="pre">pixel_meter_scale</span></span><a class="headerlink" href="#classes.graphic_classes._GraphicWindow.pixel_meter_scale" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicWindow.height_window_in_meters">
+<span class="sig-name descname"><span class="pre">height_window_in_meters</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicWindow.height_window_in_meters" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the distance, in meters, represented by the vertical number of pixels of the window.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicWindow.pixel_meter_scale">
+<span class="sig-name descname"><span class="pre">pixel_meter_scale</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicWindow.pixel_meter_scale" title="Permalink to this definition"></a></dt>
 <dd><p>The real-life distance a pixel represents, in meters. For example, if the window is 1000 pixels vertically,
 and the parameter <code class="docutils literal notranslate"><span class="pre">height_window_in_meters</span></code> is set on 1, each pixel will be equivalent to a square of 1 mm ×
 1 mm.</p>
@@ -192,9 +224,9 @@ and the parameter <code class="docutils literal notranslate"><span class="pre">h
 <section id="methods">
 <h3>Methods<a class="headerlink" href="#methods" title="Permalink to this heading"></a></h3>
 <dl class="py method">
-<dt class="sig sig-object py" id="classes.graphic_classes._GraphicWindow._convert_x">
-<span class="sig-prename descclassname"><span class="pre">_GraphicWindow.</span></span><span class="sig-name descname"><span class="pre">_convert_x</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes._GraphicWindow._convert_x" title="Permalink to this definition"></a></dt>
-<dd><p>Converts the x “real” coordinate to a graphic coordinate to be displayed in the window.</p>
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicWindow._convert_x">
+<span class="sig-prename descclassname"><span class="pre">GraphicWindow.</span></span><span class="sig-name descname"><span class="pre">_convert_x</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicWindow._convert_x" title="Permalink to this definition"></a></dt>
+<dd><p>Converts the x “real” coordinate to a graphical coordinate to be displayed in the window.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
@@ -215,9 +247,9 @@ and the parameter <code class="docutils literal notranslate"><span class="pre">h
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="classes.graphic_classes._GraphicWindow._convert_y">
-<span class="sig-prename descclassname"><span class="pre">_GraphicWindow.</span></span><span class="sig-name descname"><span class="pre">_convert_y</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes._GraphicWindow._convert_y" title="Permalink to this definition"></a></dt>
-<dd><p>Converts the y “real” coordinate to a graphic coordinate to be displayed in the window.</p>
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicWindow._convert_y">
+<span class="sig-prename descclassname"><span class="pre">GraphicWindow.</span></span><span class="sig-name descname"><span class="pre">_convert_y</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicWindow._convert_y" title="Permalink to this definition"></a></dt>
+<dd><p>Converts the y “real” coordinate to a graphical coordinate to be displayed in the window.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
@@ -233,6 +265,1126 @@ and the parameter <code class="docutils literal notranslate"><span class="pre">h
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+<section id="timer">
+<h2>Timer<a class="headerlink" href="#timer" title="Permalink to this heading"></a></h2>
+<section id="id1">
+<h3>Initialisation<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="classes.graphic_classes.Timer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">classes.graphic_classes.</span></span><span class="sig-name descname"><span class="pre">Timer</span></span><a class="headerlink" href="#classes.graphic_classes.Timer" title="Permalink to this definition"></a></dt>
+<dd><p>Creates and sets a timer.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.Timer.clock">
+<span class="sig-name descname"><span class="pre">clock</span></span><a class="headerlink" href="#classes.graphic_classes.Timer.clock" title="Permalink to this definition"></a></dt>
+<dd><p>A Pygame clock object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pygame.time.Clock</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.Timer.timer">
+<span class="sig-name descname"><span class="pre">timer</span></span><a class="headerlink" href="#classes.graphic_classes.Timer.timer" title="Permalink to this definition"></a></dt>
+<dd><p>A timer, in milliseconds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="id2">
+<h3>Methods<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.Timer._get_timer">
+<span class="sig-prename descclassname"><span class="pre">Timer.</span></span><span class="sig-name descname"><span class="pre">_get_timer</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.Timer._get_timer" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the value of the attribute <a class="reference internal" href="#classes.graphic_classes.Timer.timer" title="classes.graphic_classes.Timer.timer"><code class="xref py py-attr docutils literal notranslate"><span class="pre">timer</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The time contained in the attribute <a class="reference internal" href="#classes.graphic_classes.Timer.timer" title="classes.graphic_classes.Timer.timer"><code class="xref py py-attr docutils literal notranslate"><span class="pre">timer</span></code></a>, in milliseconds.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.Timer._set_timer">
+<span class="sig-prename descclassname"><span class="pre">Timer.</span></span><span class="sig-name descname"><span class="pre">_set_timer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.Timer._set_timer" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the timer at a specific value.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>t</strong> (<em>float</em>) – The value, in milliseconds, to set the timer on.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.Timer._reset">
+<span class="sig-prename descclassname"><span class="pre">Timer.</span></span><span class="sig-name descname"><span class="pre">_reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.Timer._reset" title="Permalink to this definition"></a></dt>
+<dd><p>Resets the timer to 0.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.Timer._update">
+<span class="sig-prename descclassname"><span class="pre">Timer.</span></span><span class="sig-name descname"><span class="pre">_update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">speed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.Timer._update" title="Permalink to this definition"></a></dt>
+<dd><p>Adds the tick of the <a class="reference external" href="https://www.pygame.org/docs/ref/time.html#pygame.time.Clock">pygame.time.Clock</a>
+object to the timer.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>speed</strong> (<em>int</em><em>, </em><em>optional</em>) – A factor that multiplies the tick of the clock (default: 1). A value of 2 would make the timer go twice
+as fast.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+<section id="graphicsequence">
+<h2>GraphicSequence<a class="headerlink" href="#graphicsequence" title="Permalink to this heading"></a></h2>
+<section id="id3">
+<h3>Initialisation<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">classes.graphic_classes.</span></span><span class="sig-name descname"><span class="pre">GraphicSequence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sequence</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graphic_window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_pose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape_joint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'circle'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_joint_default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'white'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_joint_corrected</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sheen</span> <span class="pre">green'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_line</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'grey'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width_line</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size_joint_default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size_joint_hand</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size_joint_head</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_joint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_bottom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_lines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_joints_corrected</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence" title="Permalink to this definition"></a></dt>
+<dd><p>Graphical counterpart to the class <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code>. This class allows to convert the original coordinates of
+the joints into graphical coordinates.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sequence</strong> (<a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a>) – A Sequence instance.</p></li>
+<li><p><strong>graphic_window</strong> (<a class="reference internal" href="#classes.graphic_classes.GraphicWindow" title="classes.graphic_classes.GraphicWindow"><em>GraphicWindow</em></a>) – The window object, where to display the sequence.</p></li>
+<li><p><strong>start_pose</strong> (<em>int</em><em>, </em><em>optional</em>) – The index of the pose at which to start the sequence.</p></li>
+<li><p><strong>shape_joint</strong> (<em>str</em><em>, </em><em>optional</em>) – The shape that the joints will have: “circle” (default) or “square”.</p></li>
+<li><p><strong>color_joint_default</strong> (<em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>)</em><em>, </em><em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>) or </em><em>str</em><em>, </em><em>optional</em>) – The color of the joints (default: “white”).</p></li>
+<li><p><strong>color_joint_corrected</strong> (<em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>)</em><em>, </em><em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>) or </em><em>str</em><em>, </em><em>optional</em>) – The color of the joints corrected by <code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.correct_jitter()</span></code> or <code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.correct_zeros()</span></code>
+(default: “sheen green”).</p></li>
+<li><p><strong>color_line</strong> (<em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>)</em><em>, </em><em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>) or </em><em>str</em><em>, </em><em>optional</em>) – The color of the lines between the joints (default: “grey”).</p></li>
+<li><p><strong>width_line</strong> (<em>int</em><em>, </em><em>optional</em>) – The width of the lines connecting the joints, in pixels (default: 1).</p></li>
+<li><p><strong>size_joint_default</strong> (<em>int</em><em>, </em><em>optional</em>) – The radius (if <code class="docutils literal notranslate"><span class="pre">shape_joint</span></code> is set on “circle”) or width/height (if <code class="docutils literal notranslate"><span class="pre">shape_joint</span></code> is set on “square”),
+in pixels, of the joints not covered by <code class="docutils literal notranslate"><span class="pre">size_joint_head</span></code> and <code class="docutils literal notranslate"><span class="pre">size_joint_hand</span></code> (default: 10).</p></li>
+<li><p><strong>size_joint_hand</strong> (<em>int</em><em>, </em><em>optional</em>) – The radius (if <code class="docutils literal notranslate"><span class="pre">shape_joint</span></code> is set on “circle”) or width/height (if <code class="docutils literal notranslate"><span class="pre">shape_joint</span></code> is set on “square”),
+in pixels, of the “HandRight” and “HandLeft” joints (Kinect) or the “HandOutRight” and “HandOutLeft” joints
+(Kualysis) (default: 20).</p></li>
+<li><p><strong>size_joint_head</strong> (<em>int</em><em>, </em><em>optional</em>) – The radius (if <code class="docutils literal notranslate"><span class="pre">shape_joint</span></code> is set on “circle”) or width/height (if <code class="docutils literal notranslate"><span class="pre">shape_joint</span></code> is set on “square”),
+in pixels, of the “Head” joint (Kinect) or the “HeadFront” joint (Kualysis) (default: 50).</p></li>
+<li><p><strong>scale_joint</strong> (<em>float</em><em>, </em><em>optional</em>) – Scaling factor for the size of the joints (default: 1).</p></li>
+<li><p><strong>ignore_bottom</strong> (<em>bool</em><em>, </em><em>optional</em>) – Defines if to ignore the joints and lines located in the lower half of the body (default value: <code class="docutils literal notranslate"><span class="pre">False</span></code>).</p></li>
+<li><p><strong>show_lines</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set on <cite>True</cite> (default), the graphic sequence will include lines between certain joints, to create a
+skeleton. If set on <cite>False</cite>, only the joints will be displayed.</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence.sequence">
+<span class="sig-name descname"><span class="pre">sequence</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence.sequence" title="Permalink to this definition"></a></dt>
+<dd><p>The Sequence instance, passed as parameter upon initialisation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence">Sequence</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence.current_pose">
+<span class="sig-name descname"><span class="pre">current_pose</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence.current_pose" title="Permalink to this definition"></a></dt>
+<dd><p>The index of the pose currently being in display. It is initialised with the value from the parameter
+<code class="docutils literal notranslate"><span class="pre">start_pose</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence.poses">
+<span class="sig-name descname"><span class="pre">poses</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence.poses" title="Permalink to this definition"></a></dt>
+<dd><p>List of all the <code class="xref py py-class docutils literal notranslate"><span class="pre">_GraphicPose</span></code> objects counterparts of the <code class="xref py py-class docutils literal notranslate"><span class="pre">Pose</span></code> objects.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(_GraphicPose)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence.timer">
+<span class="sig-name descname"><span class="pre">timer</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence.timer" title="Permalink to this definition"></a></dt>
+<dd><p>A <a class="reference internal" href="#classes.graphic_classes.Timer" title="classes.graphic_classes.Timer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timer</span></code></a> object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#classes.graphic_classes.Timer" title="classes.graphic_classes.Timer">Timer</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence.shape_joint">
+<span class="sig-name descname"><span class="pre">shape_joint</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence.shape_joint" title="Permalink to this definition"></a></dt>
+<dd><p>The shape that the joints will have: “circle” (default) or “square”. Can be modified via
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">_GraphicSequence._shape_joint()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence.color_joint_default">
+<span class="sig-name descname"><span class="pre">color_joint_default</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence.color_joint_default" title="Permalink to this definition"></a></dt>
+<dd><p>The color of the joints (default: “white”). Can be modified via
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">_GraphicSequence._set_color_joint_default()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple(int, int, int, int)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence.color_joint_corrected">
+<span class="sig-name descname"><span class="pre">color_joint_corrected</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence.color_joint_corrected" title="Permalink to this definition"></a></dt>
+<dd><p>The color of the joints corrected by <code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.correct_jitter()</span></code> or <code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.correct_zeros()</span></code>
+(default: “green”). Can be modified via <code class="xref py py-meth docutils literal notranslate"><span class="pre">_GraphicSequence._set_color_joint_corrected()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple(int, int, int, int)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence.color_line">
+<span class="sig-name descname"><span class="pre">color_line</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence.color_line" title="Permalink to this definition"></a></dt>
+<dd><p>The color of the lines between the joints (default: “grey”). Can be modified via
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">_GraphicSequence._set_color_line()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple(int, int, int, int)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence.width_line">
+<span class="sig-name descname"><span class="pre">width_line</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence.width_line" title="Permalink to this definition"></a></dt>
+<dd><p>The width of the lines connecting the joints, in pixels (default: 1). Can be modified via
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">_GraphicSequence._set_width_line()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence.size_joint_default">
+<span class="sig-name descname"><span class="pre">size_joint_default</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence.size_joint_default" title="Permalink to this definition"></a></dt>
+<dd><p>The radius (if <code class="docutils literal notranslate"><span class="pre">shape_joint</span></code> is set on “circle”) or width/height (if <code class="docutils literal notranslate"><span class="pre">shape_joint</span></code> is set on “square”),
+in pixels, of the joints not covered by <code class="docutils literal notranslate"><span class="pre">size_joint_head</span></code> and <code class="docutils literal notranslate"><span class="pre">size_joint_hand</span></code> (default: 10).
+Can be modified via <code class="xref py py-meth docutils literal notranslate"><span class="pre">_GraphicSequence._set_size_joint_default()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence.size_joint_hand">
+<span class="sig-name descname"><span class="pre">size_joint_hand</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence.size_joint_hand" title="Permalink to this definition"></a></dt>
+<dd><p>The radius (if <code class="docutils literal notranslate"><span class="pre">shape_joint</span></code> is set on “circle”) or width/height (if <code class="docutils literal notranslate"><span class="pre">shape_joint</span></code> is set on “square”),
+in pixels, of the “HandRight” and “HandLeft” joints (Kinect) or the “HandOutRight” and “HandOutLeft” joints
+(Kualysis) (default: 20). Can be modified via <code class="xref py py-meth docutils literal notranslate"><span class="pre">_GraphicSequence._set_size_joint_hand()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence.size_joint_head">
+<span class="sig-name descname"><span class="pre">size_joint_head</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence.size_joint_head" title="Permalink to this definition"></a></dt>
+<dd><p>The radius (if <code class="docutils literal notranslate"><span class="pre">shape_joint</span></code> is set on “circle”) or width/height (if <code class="docutils literal notranslate"><span class="pre">shape_joint</span></code> is set on “square”),
+in pixels, of the “Head” joint (Kinect) or the “HeadFront” joint (Kualysis) (default: 50).
+Can be modified via <code class="xref py py-meth docutils literal notranslate"><span class="pre">_GraphicSequence._set_size_joint_head()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence.scale_joint">
+<span class="sig-name descname"><span class="pre">scale_joint</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence.scale_joint" title="Permalink to this definition"></a></dt>
+<dd><p>Scaling factor for the size of the joints (default: 1). Can be modified via <code class="xref py py-meth docutils literal notranslate"><span class="pre">_GraphicSequence._set_scale()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence.joints_to_show">
+<span class="sig-name descname"><span class="pre">joints_to_show</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence.joints_to_show" title="Permalink to this definition"></a></dt>
+<dd><p>A list of joint labels to be displayed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(str)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence.joint_labels_top">
+<span class="sig-name descname"><span class="pre">joint_labels_top</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence.joint_labels_top" title="Permalink to this definition"></a></dt>
+<dd><p>A list of the joints from the top of the body, loaded from <code class="docutils literal notranslate"><span class="pre">res/kinect_joint_labels_top.txt</span></code> or
+<code class="docutils literal notranslate"><span class="pre">res/kualisys_joint_labels_top.txt</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(str)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence.joint_labels_all">
+<span class="sig-name descname"><span class="pre">joint_labels_all</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence.joint_labels_all" title="Permalink to this definition"></a></dt>
+<dd><p>A list of all the joints from the body, concatenating the list from <a class="reference internal" href="#classes.graphic_classes.GraphicSequence.joint_labels_top" title="classes.graphic_classes.GraphicSequence.joint_labels_top"><code class="xref py py-attr docutils literal notranslate"><span class="pre">joint_labels_top</span></code></a> to the list
+contained in either <code class="docutils literal notranslate"><span class="pre">res/kinect_joint_labels_bottom.txt</span></code> or
+<code class="docutils literal notranslate"><span class="pre">res/kualisys_joint_labels_top.txt</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(str)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence.connections_to_show">
+<span class="sig-name descname"><span class="pre">connections_to_show</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence.connections_to_show" title="Permalink to this definition"></a></dt>
+<dd><p>A list of the connections that will be displayed as lines between joints.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(list(str, str))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence.connections_top">
+<span class="sig-name descname"><span class="pre">connections_top</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence.connections_top" title="Permalink to this definition"></a></dt>
+<dd><p>A list of the connections from the top of the body, loaded from <code class="docutils literal notranslate"><span class="pre">res/kinect_skeleton_connections_top.txt</span></code> or
+<code class="docutils literal notranslate"><span class="pre">res/kualisys_skeleton_connections_top.txt</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(list(str, str))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence.connections_all">
+<span class="sig-name descname"><span class="pre">connections_all</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence.connections_all" title="Permalink to this definition"></a></dt>
+<dd><p>A list of all the connections from the body, concatenating the list from <a class="reference internal" href="#classes.graphic_classes.GraphicSequence.connections_top" title="classes.graphic_classes.GraphicSequence.connections_top"><code class="xref py py-attr docutils literal notranslate"><span class="pre">connections_top</span></code></a> to the list
+contained in either <code class="docutils literal notranslate"><span class="pre">res/kinect_skeleton_connections_bottom.txt</span></code> or
+<code class="docutils literal notranslate"><span class="pre">res/kualisys_skeleton_connections_bottom.txt</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(list(str, str))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence.ignore_bottom">
+<span class="sig-name descname"><span class="pre">ignore_bottom</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence.ignore_bottom" title="Permalink to this definition"></a></dt>
+<dd><p>Defines if to ignore the joints and lines located in the lower half of the body (default value: <code class="docutils literal notranslate"><span class="pre">False</span></code>). Can
+be modified via <code class="xref py py-meth docutils literal notranslate"><span class="pre">_GraphicSequence._set_ignore_bottom()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence.show_lines">
+<span class="sig-name descname"><span class="pre">show_lines</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence.show_lines" title="Permalink to this definition"></a></dt>
+<dd><p>Defines if to show the lines connecting the joints (default: <code class="docutils literal notranslate"><span class="pre">True</span></code>). Can be modified via
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">_GraphicSequence._set_show_lines()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence.joint_surfaces">
+<span class="sig-name descname"><span class="pre">joint_surfaces</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence.joint_surfaces" title="Permalink to this definition"></a></dt>
+<dd><p>A dictionary containing the different <a class="reference external" href="https://www.pygame.org/docs/ref/surface.html">pygame.Surface</a> objects
+representing single joints.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict(str: <a class="reference external" href="https://www.pygame.org/docs/ref/surface.html">pygame.Surface</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="id5">
+<h3>Methods<a class="headerlink" href="#id5" title="Permalink to this heading"></a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence._load_poses">
+<span class="sig-prename descclassname"><span class="pre">GraphicSequence.</span></span><span class="sig-name descname"><span class="pre">_load_poses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graphic_window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence._load_poses" title="Permalink to this definition"></a></dt>
+<dd><p>Converts a <code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code> into a <code class="xref py py-class docutils literal notranslate"><span class="pre">_GraphicSequence</span></code> and add them to the <a class="reference internal" href="#classes.graphic_classes.GraphicSequence.poses" title="classes.graphic_classes.GraphicSequence.poses"><code class="xref py py-attr docutils literal notranslate"><span class="pre">poses</span></code></a>
+attribute.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphic_window</strong> (<a class="reference internal" href="#classes.graphic_classes.GraphicWindow" title="classes.graphic_classes.GraphicWindow"><em>GraphicWindow</em></a>) – The window object, where to display the sequence.</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence._load_joint_labels">
+<span class="sig-prename descclassname"><span class="pre">GraphicSequence.</span></span><span class="sig-name descname"><span class="pre">_load_joint_labels</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence._load_joint_labels" title="Permalink to this definition"></a></dt>
+<dd><p>Loads two lists of joint labels, <a class="reference internal" href="#classes.graphic_classes.GraphicSequence.joint_labels_top" title="classes.graphic_classes.GraphicSequence.joint_labels_top"><code class="xref py py-attr docutils literal notranslate"><span class="pre">joint_labels_top</span></code></a> and <a class="reference internal" href="#classes.graphic_classes.GraphicSequence.joint_labels_all" title="classes.graphic_classes.GraphicSequence.joint_labels_all"><code class="xref py py-attr docutils literal notranslate"><span class="pre">joint_labels_all</span></code></a>, defining which joints
+will be displayed depending if the attribute <a class="reference internal" href="#classes.graphic_classes.GraphicSequence.ignore_bottom" title="classes.graphic_classes.GraphicSequence.ignore_bottom"><code class="xref py py-attr docutils literal notranslate"><span class="pre">ignore_bottom</span></code></a> is set on <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>. The joint
+labels list are loaded from <code class="docutils literal notranslate"><span class="pre">res/kinect_joint_labels_top.txt</span></code> and <code class="docutils literal notranslate"><span class="pre">res/kinect_joint_labels_bottom.txt</span></code> or
+<code class="docutils literal notranslate"><span class="pre">res/kualisys_joint_labels_top.txt</span></code> and <code class="docutils literal notranslate"><span class="pre">res/kualisys_joint_labels_bottom.txt</span></code>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence._load_connections">
+<span class="sig-prename descclassname"><span class="pre">GraphicSequence.</span></span><span class="sig-name descname"><span class="pre">_load_connections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence._load_connections" title="Permalink to this definition"></a></dt>
+<dd><p>Loads the list of pairs of joints that will be connected by a line. This function automatically recognizes
+the system (Kinect or Kualisys) and creates two lists of connections, one for the top of the body (loaded
+from <code class="docutils literal notranslate"><span class="pre">res/kinect_skeleton_connections_top.txt</span></code> or <code class="docutils literal notranslate"><span class="pre">res/kualisys_skeleton_connections_top.txt</span></code>), and one
+concatenating this list with the connections for the bottom of the body (loaded from
+<code class="docutils literal notranslate"><span class="pre">res/kinect_skeleton_connections_bottom.txt</span></code> or <code class="docutils literal notranslate"><span class="pre">res/kualisys_skeleton_connections_bottom.txt</span></code>), which will
+be ignored if :attr:ignore_bottom is set on <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence._add_entry_joint_surfaces">
+<span class="sig-prename descclassname"><span class="pre">GraphicSequence.</span></span><span class="sig-name descname"><span class="pre">_add_entry_joint_surfaces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entry</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence._add_entry_joint_surfaces" title="Permalink to this definition"></a></dt>
+<dd><p>Adds or modifies an entry in the dictionary of Surface objects <a class="reference internal" href="#classes.graphic_classes.GraphicSequence.joint_surfaces" title="classes.graphic_classes.GraphicSequence.joint_surfaces"><code class="xref py py-attr docutils literal notranslate"><span class="pre">joint_surfaces</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>entry</strong> (<em>str</em>) – <p>The name of the entry. Typically, it should be “joint_X_Y” where:</p>
+<blockquote>
+<div><ul>
+<li><p>X is the size of the joint, influenced by its position on the body (default, hand or head)</p></li>
+<li><p>Y is the color of the joint, depending on if it was corrected or not (default or corrected).</p></li>
+</ul>
+</div></blockquote>
+</p></li>
+<li><p><strong>size</strong> (<em>int</em>) – The radius (if <code class="docutils literal notranslate"><span class="pre">shape_joint</span></code> is set on “circle”) or width/height (if <code class="docutils literal notranslate"><span class="pre">shape_joint</span></code> is set on “square”),
+in pixels, of the joint.</p></li>
+<li><p><strong>color</strong> (<em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>)</em>) – The color of the joint.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence._generate_all_joint_surfaces">
+<span class="sig-prename descclassname"><span class="pre">GraphicSequence.</span></span><span class="sig-name descname"><span class="pre">_generate_all_joint_surfaces</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence._generate_all_joint_surfaces" title="Permalink to this definition"></a></dt>
+<dd><p>Generates all the Surface objects in <code class="xref py py-attr docutils literal notranslate"><span class="pre">self.joint_surfaces.</span></code></p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence._set_shape_joint">
+<span class="sig-prename descclassname"><span class="pre">GraphicSequence.</span></span><span class="sig-name descname"><span class="pre">_set_shape_joint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape_joint</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence._set_shape_joint" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the attribute <a class="reference internal" href="#classes.graphic_classes.GraphicSequence.shape_joint" title="classes.graphic_classes.GraphicSequence.shape_joint"><code class="xref py py-attr docutils literal notranslate"><span class="pre">shape_joint</span></code></a>, and re-generates the Surface objects in <code class="xref py py-attr docutils literal notranslate"><span class="pre">self.joint_surfaces</span></code>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>shape_joint</strong> (<em>str</em>) – The shape that the joints will have: “circle”  or “square”.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence._set_color_joint_default">
+<span class="sig-prename descclassname"><span class="pre">GraphicSequence.</span></span><span class="sig-name descname"><span class="pre">_set_color_joint_default</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence._set_color_joint_default" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the attribute <a class="reference internal" href="#classes.graphic_classes.GraphicSequence.color_joint_default" title="classes.graphic_classes.GraphicSequence.color_joint_default"><code class="xref py py-attr docutils literal notranslate"><span class="pre">color_joint_default</span></code></a>, and re-generates the relevant Surface objects in
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">self.joint_surfaces</span></code>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>color</strong> (<em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>)</em><em>, </em><em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>) or </em><em>str</em>) – <p>The color of the joint (default: “white”). This parameter can be:</p>
+<ul class="simple">
+<li><p>A RGB or RGBA tuple (e.g. (255, 255, 255) or (255, 255, 255, 255)). In the case of an RGBA tuple, the last
+number is used for opacity.</p></li>
+<li><p>A hexadecimal value, with a leading number sign (<code class="docutils literal notranslate"><span class="pre">&quot;#&quot;</span></code>), with or without opacity value.</p></li>
+<li><p>A string containing one of the
+<a class="reference external" href="https://en.wikipedia.org/wiki/X11_color_names">140 HTML/CSS color names</a>).</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence._set_color_joint_corrected">
+<span class="sig-prename descclassname"><span class="pre">GraphicSequence.</span></span><span class="sig-name descname"><span class="pre">_set_color_joint_corrected</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence._set_color_joint_corrected" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the attribute <a class="reference internal" href="#classes.graphic_classes.GraphicSequence.color_joint_corrected" title="classes.graphic_classes.GraphicSequence.color_joint_corrected"><code class="xref py py-attr docutils literal notranslate"><span class="pre">color_joint_corrected</span></code></a>, and re-generates the relevant Surface objects in
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">self.joint_surfaces</span></code>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>color</strong> (<em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>)</em><em>, </em><em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>) or </em><em>str</em>) – <p>The color of the joints corrected by <code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.correct_jitter()</span></code> or <code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.correct_zeros()</span></code>
+(default: “green”). This parameter can be:</p>
+<ul class="simple">
+<li><p>A RGB or RGBA tuple (e.g. (255, 255, 255) or (255, 255, 255, 255)). In the case of an RGBA tuple, the last
+number is used for opacity.</p></li>
+<li><p>A hexadecimal value, with a leading number sign (<code class="docutils literal notranslate"><span class="pre">&quot;#&quot;</span></code>), with or without opacity value.</p></li>
+<li><p>A string containing one of the
+<a class="reference external" href="https://en.wikipedia.org/wiki/X11_color_names">140 HTML/CSS color names</a>).</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence._set_color_line">
+<span class="sig-prename descclassname"><span class="pre">GraphicSequence.</span></span><span class="sig-name descname"><span class="pre">_set_color_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence._set_color_line" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the attribute <a class="reference internal" href="#classes.graphic_classes.GraphicSequence.color_line" title="classes.graphic_classes.GraphicSequence.color_line"><code class="xref py py-attr docutils literal notranslate"><span class="pre">color_line</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>color</strong> (<em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>)</em><em>, </em><em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>) or </em><em>str</em>) – <p>The color of the lines between the joints (default: “grey”). This parameter can be:</p>
+<ul class="simple">
+<li><p>A RGB or RGBA tuple (e.g. (255, 255, 255) or (255, 255, 255, 255)). In the case of an RGBA tuple, the last
+number is used for opacity.</p></li>
+<li><p>A hexadecimal value, with a leading number sign (<code class="docutils literal notranslate"><span class="pre">&quot;#&quot;</span></code>), with or without opacity value.</p></li>
+<li><p>A string containing one of the
+<a class="reference external" href="https://en.wikipedia.org/wiki/X11_color_names">140 HTML/CSS color names</a>).</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence._set_width_line">
+<span class="sig-prename descclassname"><span class="pre">GraphicSequence.</span></span><span class="sig-name descname"><span class="pre">_set_width_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">width</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence._set_width_line" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the attribute <a class="reference internal" href="#classes.graphic_classes.GraphicSequence.width_line" title="classes.graphic_classes.GraphicSequence.width_line"><code class="xref py py-attr docutils literal notranslate"><span class="pre">width_line</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>width</strong> (<em>int</em>) – The width of the lines connecting the joints.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence._set_size_joint_default">
+<span class="sig-prename descclassname"><span class="pre">GraphicSequence.</span></span><span class="sig-name descname"><span class="pre">_set_size_joint_default</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence._set_size_joint_default" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the attribute <a class="reference internal" href="#classes.graphic_classes.GraphicSequence.size_joint_default" title="classes.graphic_classes.GraphicSequence.size_joint_default"><code class="xref py py-attr docutils literal notranslate"><span class="pre">size_joint_default</span></code></a>, and re-generates the relevant Surface objects in
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">self.joint_surfaces</span></code>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>size</strong> (<em>int</em>) – The radius (if <code class="docutils literal notranslate"><span class="pre">shape_joint</span></code> is set on “circle”) or width/height (if <code class="docutils literal notranslate"><span class="pre">shape_joint</span></code> is set on “square”),
+in pixels, of the joints not covered by <code class="docutils literal notranslate"><span class="pre">size_joint_head</span></code> and <code class="docutils literal notranslate"><span class="pre">size_joint_hand</span></code> (default: 10).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence._set_size_joint_hand">
+<span class="sig-prename descclassname"><span class="pre">GraphicSequence.</span></span><span class="sig-name descname"><span class="pre">_set_size_joint_hand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence._set_size_joint_hand" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the attribute <a class="reference internal" href="#classes.graphic_classes.GraphicSequence.size_joint_hand" title="classes.graphic_classes.GraphicSequence.size_joint_hand"><code class="xref py py-attr docutils literal notranslate"><span class="pre">size_joint_hand</span></code></a>, and re-generates the relevant Surface objects in
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">self.joint_surfaces</span></code>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>size</strong> (<em>int</em>) – The radius (if <code class="docutils literal notranslate"><span class="pre">shape_joint</span></code> is set on “circle”) or width/height (if <code class="docutils literal notranslate"><span class="pre">shape_joint</span></code> is set on “square”),
+in pixels, of the “HandRight” and “HandLeft” joints (Kinect) or the “HandOutRight” and “HandOutLeft” joints
+(Kualysis) (default: 20).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence._set_size_joint_head">
+<span class="sig-prename descclassname"><span class="pre">GraphicSequence.</span></span><span class="sig-name descname"><span class="pre">_set_size_joint_head</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence._set_size_joint_head" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the attribute <a class="reference internal" href="#classes.graphic_classes.GraphicSequence.size_joint_head" title="classes.graphic_classes.GraphicSequence.size_joint_head"><code class="xref py py-attr docutils literal notranslate"><span class="pre">size_joint_head</span></code></a>, and re-generates the relevant Surface objects in
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">self.joint_surfaces</span></code>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>size</strong> (<em>int</em>) – The radius (if <code class="docutils literal notranslate"><span class="pre">shape_joint</span></code> is set on “circle”) or width/height (if <code class="docutils literal notranslate"><span class="pre">shape_joint</span></code> is set on “square”),
+in pixels, of the “Head” joint (Kinect) or the “HeadFront” joint (Kualysis) (default: 50).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence._set_scale_joint">
+<span class="sig-prename descclassname"><span class="pre">GraphicSequence.</span></span><span class="sig-name descname"><span class="pre">_set_scale_joint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale_joint</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence._set_scale_joint" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the attribute <a class="reference internal" href="#classes.graphic_classes.GraphicSequence.scale_joint" title="classes.graphic_classes.GraphicSequence.scale_joint"><code class="xref py py-attr docutils literal notranslate"><span class="pre">scale_joint</span></code></a>, and re-generates the relevant Surface objects in
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">self.joint_surfaces</span></code>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>scale_joint</strong> (<em>float</em>) – Scaling factor for the size of the joints (default: 1).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence._set_ignore_bottom">
+<span class="sig-prename descclassname"><span class="pre">GraphicSequence.</span></span><span class="sig-name descname"><span class="pre">_set_ignore_bottom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ignore_bottom</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence._set_ignore_bottom" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the attribute <a class="reference internal" href="#classes.graphic_classes.GraphicSequence.ignore_bottom" title="classes.graphic_classes.GraphicSequence.ignore_bottom"><code class="xref py py-attr docutils literal notranslate"><span class="pre">ignore_bottom</span></code></a> and updates the attribute :attr:<code class="docutils literal notranslate"><span class="pre">connections</span></code>, which contains
+a list of the lines that will be displayed.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ignore_bottom</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set on <cite>True</cite>, the joints below the waist will not be displayed. If set on <cite>False</cite> (default), all the
+joints will be displayed. For a complete list of joints being displayed or not, see
+<a class="reference internal" href="joint_labels.html#ignore-bottom"><span class="std std-ref">Display the sequence</span></a>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence._set_show_lines">
+<span class="sig-prename descclassname"><span class="pre">GraphicSequence.</span></span><span class="sig-name descname"><span class="pre">_set_show_lines</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">show_lines</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence._set_show_lines" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the attribute <a class="reference internal" href="#classes.graphic_classes.GraphicSequence.show_lines" title="classes.graphic_classes.GraphicSequence.show_lines"><code class="xref py py-attr docutils literal notranslate"><span class="pre">show_lines</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>show_lines</strong> (<em>bool</em>) – If set on <cite>True</cite> (default), the graphic sequence will include lines between certain joints, to create a
+skeleton. If set on <cite>False</cite>, only the joints will be displayed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence._set_show_joints_corrected">
+<span class="sig-prename descclassname"><span class="pre">GraphicSequence.</span></span><span class="sig-name descname"><span class="pre">_set_show_joints_corrected</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">show_joints_corrected</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence._set_show_joints_corrected" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">show_joints_corrected</span></code>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>show_joints_corrected</strong> (<em>bool</em>) – If set on <code class="docutils literal notranslate"><span class="pre">True</span></code>, the joints corrected by <code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.correct_jitter()</span></code> or
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.correct_zeros()</span></code> will appear colored by <a class="reference internal" href="#classes.graphic_classes.GraphicSequence.color_joint_corrected" title="classes.graphic_classes.GraphicSequence.color_joint_corrected"><code class="xref py py-attr docutils literal notranslate"><span class="pre">color_joint_corrected</span></code></a>. Otherwise, the joints
+will appear colored by <a class="reference internal" href="#classes.graphic_classes.GraphicSequence.color_joint_default" title="classes.graphic_classes.GraphicSequence.color_joint_default"><code class="xref py py-attr docutils literal notranslate"><span class="pre">color_joint_default</span></code></a>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence._toggle_ignore_bottom">
+<span class="sig-prename descclassname"><span class="pre">GraphicSequence.</span></span><span class="sig-name descname"><span class="pre">_toggle_ignore_bottom</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence._toggle_ignore_bottom" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the attribute <a class="reference internal" href="#classes.graphic_classes.GraphicSequence.ignore_bottom" title="classes.graphic_classes.GraphicSequence.ignore_bottom"><code class="xref py py-attr docutils literal notranslate"><span class="pre">ignore_bottom</span></code></a> on the opposite of its current value.</p>
+<p>..versionadded:: 2.0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence._toggle_show_lines">
+<span class="sig-prename descclassname"><span class="pre">GraphicSequence.</span></span><span class="sig-name descname"><span class="pre">_toggle_show_lines</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence._toggle_show_lines" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the attribute <a class="reference internal" href="#classes.graphic_classes.GraphicSequence.show_lines" title="classes.graphic_classes.GraphicSequence.show_lines"><code class="xref py py-attr docutils literal notranslate"><span class="pre">show_lines</span></code></a> on the opposite of its current value.</p>
+<p>..versionadded:: 2.0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence._toggle_show_joints_corrected">
+<span class="sig-prename descclassname"><span class="pre">GraphicSequence.</span></span><span class="sig-name descname"><span class="pre">_toggle_show_joints_corrected</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence._toggle_show_joints_corrected" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">show_joints_corrected</span></code> on the opposite of its current value.</p>
+<p>..versionadded:: 2.0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence._next_pose">
+<span class="sig-prename descclassname"><span class="pre">GraphicSequence.</span></span><span class="sig-name descname"><span class="pre">_next_pose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence._next_pose" title="Permalink to this definition"></a></dt>
+<dd><p>Increments the parameter <a class="reference internal" href="#classes.graphic_classes.GraphicSequence.current_pose" title="classes.graphic_classes.GraphicSequence.current_pose"><code class="xref py py-attr docutils literal notranslate"><span class="pre">current_pose</span></code></a>; if the last pose is reached, the function
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">_GraphicSequence.reset()</span></code> is called.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="simple">
+<dt>verbosity: int, optional</dt><dd><p>Sets how much feedback the code will provide in the console output:</p>
+<ul class="simple">
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence._previous_pose">
+<span class="sig-prename descclassname"><span class="pre">GraphicSequence.</span></span><span class="sig-name descname"><span class="pre">_previous_pose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence._previous_pose" title="Permalink to this definition"></a></dt>
+<dd><p>Decrements the parameter <a class="reference internal" href="#classes.graphic_classes.GraphicSequence.current_pose" title="classes.graphic_classes.GraphicSequence.current_pose"><code class="xref py py-attr docutils literal notranslate"><span class="pre">current_pose</span></code></a>; if the first pose is reached, the pose is set on the last
+one from the sequence.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="simple">
+<dt>verbosity: int, optional</dt><dd><p>Sets how much feedback the code will provide in the console output:</p>
+<ul class="simple">
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence._reset">
+<span class="sig-prename descclassname"><span class="pre">GraphicSequence.</span></span><span class="sig-name descname"><span class="pre">_reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence._reset" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the current pose to the first of the sequence, and resets the timer to 0.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence._apply_events">
+<span class="sig-prename descclassname"><span class="pre">GraphicSequence.</span></span><span class="sig-name descname"><span class="pre">_apply_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence._apply_events" title="Permalink to this definition"></a></dt>
+<dd><p>Gets a Pygame keypress event, and calls the <code class="xref py py-func docutils literal notranslate"><span class="pre">_GraphicSequence._next_pose()</span></code> if the key pressed is the
+right arrow key, or <code class="xref py py-func docutils literal notranslate"><span class="pre">_GraphicSequence._previous_pose()</span></code> if the key pressed is the left arrow key.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event</strong> (<a class="reference external" href="https://www.pygame.org/docs/ref/event.html">Pygame.event</a>) – A Pygame event.</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence._play">
+<span class="sig-prename descclassname"><span class="pre">GraphicSequence.</span></span><span class="sig-name descname"><span class="pre">_play</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graphic_window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence._play" title="Permalink to this definition"></a></dt>
+<dd><p>Displays on the window object the poses in real time.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphic_window</strong> (<a class="reference internal" href="#classes.graphic_classes.GraphicWindow" title="classes.graphic_classes.GraphicWindow"><em>GraphicWindow</em></a>) – <p>A GraphicWindow instance containing a <a class="reference external" href="https://www.pygame.org/docs/ref/surface.html">pygame.Surface</a>
+element on which to display the sequence.</p>
+</p></li>
+<li><p><strong>shift_x</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of pixels to shift the display of the joints on the horizontal axis (default: 0).</p></li>
+<li><p><strong>shift_y</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of pixels to shift the display of the joints on the vertical axis (default: 0).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicSequence._show_pose">
+<span class="sig-prename descclassname"><span class="pre">GraphicSequence.</span></span><span class="sig-name descname"><span class="pre">_show_pose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graphic_window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicSequence._show_pose" title="Permalink to this definition"></a></dt>
+<dd><p>Displays the pose with the index <a class="reference internal" href="#classes.graphic_classes.GraphicSequence.current_pose" title="classes.graphic_classes.GraphicSequence.current_pose"><code class="xref py py-attr docutils literal notranslate"><span class="pre">current_pose</span></code></a> on the <code class="docutils literal notranslate"><span class="pre">window</span></code> object.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphic_window</strong> (<a class="reference internal" href="#classes.graphic_classes.GraphicWindow" title="classes.graphic_classes.GraphicWindow"><em>GraphicWindow</em></a>) – <p>A GraphicWindow instance containing a <a class="reference external" href="https://www.pygame.org/docs/ref/surface.html">pygame.Surface</a>
+element on which to display the sequence.</p>
+</p></li>
+<li><p><strong>shift_x</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of pixels to shift the display of the joints on the horizontal axis (default: 0).</p></li>
+<li><p><strong>shift_y</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of pixels to shift the display of the joints on the vertical axis (default: 0).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+<section id="graphicpose">
+<h2>GraphicPose<a class="headerlink" href="#graphicpose" title="Permalink to this heading"></a></h2>
+<section id="id10">
+<h3>Initialisation<a class="headerlink" href="#id10" title="Permalink to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicPose">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">classes.graphic_classes.</span></span><span class="sig-name descname"><span class="pre">GraphicPose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pose</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graphic_window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicPose" title="Permalink to this definition"></a></dt>
+<dd><p>Graphical counterpart to the class <code class="xref py py-class docutils literal notranslate"><span class="pre">Pose</span></code>. This class allows to save the <code class="xref py py-class docutils literal notranslate"><span class="pre">_GraphicJoint</span></code> objects.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pose</strong> (<a class="reference internal" href="pose.html#classes.pose.Pose" title="classes.pose.Pose"><em>Pose</em></a>) – A Pose instance.</p></li>
+<li><p><strong>graphic_window</strong> (<a class="reference internal" href="#classes.graphic_classes.GraphicWindow" title="classes.graphic_classes.GraphicWindow"><em>GraphicWindow</em></a>) – The window object, where to display the sequence.</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicPose.pose">
+<span class="sig-name descname"><span class="pre">pose</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicPose.pose" title="Permalink to this definition"></a></dt>
+<dd><p>The Pose instance, passed as parameter upon initialisation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="pose.html#classes.pose.Pose" title="classes.pose.Pose">Pose</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicPose.joints">
+<span class="sig-name descname"><span class="pre">joints</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicPose.joints" title="Permalink to this definition"></a></dt>
+<dd><p>List of all the <code class="xref py py-class docutils literal notranslate"><span class="pre">_GraphicJoint</span></code> objects counterparts of the <code class="xref py py-class docutils literal notranslate"><span class="pre">Joint</span></code> objects.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict(str: _GraphicJoint)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="id11">
+<h3>Methods<a class="headerlink" href="#id11" title="Permalink to this heading"></a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicPose._load_joints">
+<span class="sig-prename descclassname"><span class="pre">GraphicPose.</span></span><span class="sig-name descname"><span class="pre">_load_joints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graphic_window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicPose._load_joints" title="Permalink to this definition"></a></dt>
+<dd><p>Creates <code class="xref py py-class docutils literal notranslate"><span class="pre">_GraphicJoint</span></code> elements for each joint of the pose and add them to the <a class="reference internal" href="#classes.graphic_classes.GraphicPose.joints" title="classes.graphic_classes.GraphicPose.joints"><code class="xref py py-attr docutils literal notranslate"><span class="pre">joints</span></code></a>
+attribute.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphic_window</strong> (<a class="reference internal" href="#classes.graphic_classes.GraphicWindow" title="classes.graphic_classes.GraphicWindow"><em>GraphicWindow</em></a>) – The window object, where to display the sequence.</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicPose._show_line">
+<span class="sig-prename descclassname"><span class="pre">GraphicPose.</span></span><span class="sig-name descname"><span class="pre">_show_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graphic_window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_line</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width_line</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicPose._show_line" title="Permalink to this definition"></a></dt>
+<dd><p>Shows a single line between two joints specified in <code class="docutils literal notranslate"><span class="pre">connection</span></code> on the <code class="docutils literal notranslate"><span class="pre">window</span></code> object.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphic_window</strong> (<a class="reference internal" href="#classes.graphic_classes.GraphicWindow" title="classes.graphic_classes.GraphicWindow"><em>GraphicWindow</em></a>) – <p>A GraphicWindow instance containing a <a class="reference external" href="https://www.pygame.org/docs/ref/surface.html">pygame.Surface</a>
+element on which to display the sequence.</p>
+</p></li>
+<li><p><strong>connection</strong> (<em>str</em><em>(</em><em>list</em><em>, </em><em>list</em><em>)</em>) – A list of two joint labels to connect by a line.</p></li>
+<li><p><strong>color_line</strong> (<em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>)</em>) – The color of the lines connecting the joints.</p></li>
+<li><p><strong>width_line</strong> (<em>int</em>) – The width, in pixels, of the lines connecting the joints.</p></li>
+<li><p><strong>shift_x</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of pixels to shift the display of the joints on the horizontal axis (default: 0).</p></li>
+<li><p><strong>shift_y</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of pixels to shift the display of the joints on the vertical axis (default: 0).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicPose._show">
+<span class="sig-prename descclassname"><span class="pre">GraphicPose.</span></span><span class="sig-name descname"><span class="pre">_show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graphic_window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_surfaces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joints_to_show</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connections_to_show</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_line</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width_line</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_lines</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicPose._show" title="Permalink to this definition"></a></dt>
+<dd><p>Displays the pose on the <code class="docutils literal notranslate"><span class="pre">window</span></code> object.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphic_window</strong> (<a class="reference internal" href="#classes.graphic_classes.GraphicWindow" title="classes.graphic_classes.GraphicWindow"><em>GraphicWindow</em></a>) – <p>A GraphicWindow instance containing a <a class="reference external" href="https://www.pygame.org/docs/ref/surface.html">pygame.Surface</a>
+element on which to display the sequence.</p>
+</p></li>
+<li><p><strong>joint_surfaces</strong> – <p>A dictionary containing the different <a class="reference external" href="https://www.pygame.org/docs/ref/surface.html">pygame.Surface</a>
+objects representing single joints.</p>
+</p></li>
+<li><p><strong>joints_to_show</strong> (<em>list</em><em>(</em><em>str</em><em>)</em>) – A list of joint labels to be displayed.</p></li>
+<li><p><strong>connections_to_show</strong> (<em>list</em><em>(</em><em>list</em><em>(</em><em>str</em><em>, </em><em>str</em><em>)</em><em>)</em>) – A list of lines to be displayed to connect joints.</p></li>
+<li><p><strong>color_line</strong> (<em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>)</em>) – The color of the lines connecting the joints.</p></li>
+<li><p><strong>width_line</strong> (<em>int</em>) – The width, in pixels, of the lines connecting the joints.</p></li>
+<li><p><strong>show_lines</strong> (<em>bool</em><em>, </em><em>optional</em>) – Defines if to show the lines connecting the joints (default: <code class="docutils literal notranslate"><span class="pre">True</span></code>).</p></li>
+<li><p><strong>shift_x</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of pixels to shift the display of the joints on the horizontal axis (default: 0).</p></li>
+<li><p><strong>shift_y</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of pixels to shift the display of the joints on the vertical axis (default: 0).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+<section id="graphicjoint">
+<h2>GraphicJoint<a class="headerlink" href="#graphicjoint" title="Permalink to this heading"></a></h2>
+<section id="id16">
+<h3>Initialisation<a class="headerlink" href="#id16" title="Permalink to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicJoint">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">classes.graphic_classes.</span></span><span class="sig-name descname"><span class="pre">GraphicJoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graphic_window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicJoint" title="Permalink to this definition"></a></dt>
+<dd><p>Graphical counterpart to the class <code class="xref py py-class docutils literal notranslate"><span class="pre">Joint</span></code>. This class allows to convert the original coordinates and save
+them into graphical coordinates.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>joint</strong> (<a class="reference internal" href="joint.html#classes.joint.Joint" title="classes.joint.Joint"><em>Joint</em></a>) – A Joint instance.</p></li>
+<li><p><strong>graphic_window</strong> (<a class="reference internal" href="#classes.graphic_classes.GraphicWindow" title="classes.graphic_classes.GraphicWindow"><em>GraphicWindow</em></a>) – The window object, where to display the sequence.</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicJoint.joint">
+<span class="sig-name descname"><span class="pre">joint</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicJoint.joint" title="Permalink to this definition"></a></dt>
+<dd><p>The Joint instance passed as parameter upon initialisation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="joint.html#classes.joint.Joint" title="classes.joint.Joint">Joint</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicJoint.x">
+<span class="sig-name descname"><span class="pre">x</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicJoint.x" title="Permalink to this definition"></a></dt>
+<dd><p>The x coordinate, in pixels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicJoint.y">
+<span class="sig-name descname"><span class="pre">y</span></span><a class="headerlink" href="#classes.graphic_classes.GraphicJoint.y" title="Permalink to this definition"></a></dt>
+<dd><p>The y coordinate, in pixels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="id17">
+<h3>Methods<a class="headerlink" href="#id17" title="Permalink to this heading"></a></h3>
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicJoint._convert_coordinates">
+<span class="sig-prename descclassname"><span class="pre">GraphicJoint.</span></span><span class="sig-name descname"><span class="pre">_convert_coordinates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graphic_window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicJoint._convert_coordinates" title="Permalink to this definition"></a></dt>
+<dd><p>Converts the original coordinates into graphic coordinates.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphic_window</strong> (<a class="reference internal" href="#classes.graphic_classes.GraphicWindow" title="classes.graphic_classes.GraphicWindow"><em>GraphicWindow</em></a>) – The window object, where to display the sequence.</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicJoint._rotate">
+<span class="sig-prename descclassname"><span class="pre">GraphicJoint.</span></span><span class="sig-name descname"><span class="pre">_rotate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graphic_window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yaw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pitch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roll</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicJoint._rotate" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the attributes <a class="reference internal" href="#classes.graphic_classes.GraphicJoint.x" title="classes.graphic_classes.GraphicJoint.x"><code class="xref py py-attr docutils literal notranslate"><span class="pre">x</span></code></a> and <a class="reference internal" href="#classes.graphic_classes.GraphicJoint.y" title="classes.graphic_classes.GraphicJoint.y"><code class="xref py py-attr docutils literal notranslate"><span class="pre">y</span></code></a> given three rotations from the original coordinates: yaw, pitch
+and roll.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This function is experimental as of version 2.0.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphic_window</strong> (<a class="reference internal" href="#classes.graphic_classes.GraphicWindow" title="classes.graphic_classes.GraphicWindow"><em>GraphicWindow</em></a>) – The window object, where to display the sequence.</p></li>
+<li><p><strong>yaw</strong> (<em>float</em><em>, </em><em>optional</em>) – The angle of yaw, or rotation on the x axis, in degrees (default: 0).</p></li>
+<li><p><strong>pitch</strong> (<em>float</em><em>, </em><em>optional</em>) – The angle of pitch, or rotation on the y axis, in degrees (default: 0).</p></li>
+<li><p><strong>roll</strong> (<em>float</em><em>, </em><em>optional</em>) – The angle of roll, or rotation on the z axis, in degrees (default: 0).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.graphic_classes.GraphicJoint._show">
+<span class="sig-prename descclassname"><span class="pre">GraphicJoint.</span></span><span class="sig-name descname"><span class="pre">_show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graphic_window</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_surfaces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.graphic_classes.GraphicJoint._show" title="Permalink to this definition"></a></dt>
+<dd><p>Displays the joint on the <code class="docutils literal notranslate"><span class="pre">window</span></code> surface.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>graphic_window</strong> (<a class="reference internal" href="#classes.graphic_classes.GraphicWindow" title="classes.graphic_classes.GraphicWindow"><em>GraphicWindow</em></a>) – <p>A GraphicWindow instance containing a <a class="reference external" href="https://www.pygame.org/docs/ref/surface.html">pygame.Surface</a>
+element on which to display the sequence.</p>
+</p></li>
+<li><p><strong>joint_surfaces</strong> – A dictionary containing the elements representing the joints that can be displayed.</p></li>
+<li><p><strong>shift_x</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of pixels to shift the display of the joints on the horizontal axis (default: 0).</p></li>
+<li><p><strong>shift_y</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of pixels to shift the display of the joints on the vertical axis (default: 0).</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>

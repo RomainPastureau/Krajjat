@@ -16,6 +16,7 @@ Magic methods
 .. autoclass:: classes.sequence.Sequence.__len__
 .. autoclass:: classes.sequence.Sequence.__getitem__
 .. autoclass:: classes.sequence.Sequence.__repr__
+.. autoclass:: classes.sequence.Sequence.__eq__
 
 Public methods
 --------------

@@ -13,6 +13,7 @@ Initialisation
 Magic methods
 -------------
 .. automethod:: classes.joint.Joint.__repr__
+.. automethod:: classes.joint.Joint.__eq__
 
 Public methods
 --------------
@@ -36,6 +37,10 @@ Getter functions
 .. automethod:: classes.joint.Joint.get_is_corrected
 .. automethod:: classes.joint.Joint.get_is_randomized
 .. automethod:: classes.joint.Joint.get_copy
+
+Rotation function
+^^^^^^^^^^^^^^^^^
+.. automethod:: classes.joint.Joint.convert_rotation
 
 Private methods
 ---------------

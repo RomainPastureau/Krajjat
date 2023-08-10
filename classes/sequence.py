@@ -81,7 +81,7 @@ class Sequence(object):
     files: list(str)
         List of files contained in the path. The list will be of size 1 if the path points to a single file.
     poses: list(Pose)
-        List of all the poses objects of the sequence.
+        List of all the :class:`Pose` objects of the :class:`Sequence`.
     randomized: bool
         Testifies if the starting position of the joints have been randomized by the function
         :meth:`Sequence.randomize()`. Is ``False`` upon initialisation.
@@ -2912,7 +2912,7 @@ class Sequence(object):
                                    remove_non_kinect_joints=False):
         """Creates missing Kinect joints from the Qualisys labelling system by averaging the distance between Qualisys
         joints. The new joints are located at the midpoint of the arithmetic distance between two or more joints. The
-        list of averaged joints is set from the ``res/qualisys_to_kinect.txt`` file:
+        list of averaged joints is set from the ``res/kualisys_to_kinect.txt`` file:
 
         +---------------+------------------+-------------------+-------------+-----------+
         |   New joint   | Averaged joints                                                |
@@ -3583,3 +3583,23 @@ class Sequence(object):
         my_sequence
         """
         return self.name
+
+    def __eq__(self, other):
+        """Returns `True` if all the poses in the attribute :attr:`poses` have identical joints between the two
+        :class:`Sequence` objects.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        other: Sequence
+            Another :class:`Sequence` object.
+        """
+        if len(self.poses) != len(other.poses):
+            return False
+
+        for pose_index in range(len(self.poses)):
+            if self.poses[pose_index] != other.poses[pose_index]:
+                return False
+
+        return True

@@ -144,3 +144,4 @@ class InvalidPoseIndexException(Exception):
         self.pose_index = pose_index
         self.number_of_poses = number_of_poses
         self.message = "The pose index must be between 0 and " + str(self.number_of_poses - 1) + ". "
+
