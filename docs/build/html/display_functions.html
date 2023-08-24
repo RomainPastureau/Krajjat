@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Display functions &mdash; krajjat 1.99.3 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tool functions" href="tool_functions.html" />
+    <link rel="prev" title="I/O functions" href="io_functions.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #99CC00" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            krajjat
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="general.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classes.html">Classes</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="functions.html">Functions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="io_functions.html">I/O functions</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Display functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#shortcuts">Shortcuts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#functions">Functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#display_functions.common_displayer"><code class="docutils literal notranslate"><span class="pre">common_displayer()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#display_functions.sequence_reader"><code class="docutils literal notranslate"><span class="pre">sequence_reader()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#display_functions.sequence_comparer"><code class="docutils literal notranslate"><span class="pre">sequence_comparer()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#display_functions.pose_reader"><code class="docutils literal notranslate"><span class="pre">pose_reader()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#display_functions._process_events"><code class="docutils literal notranslate"><span class="pre">_process_events()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#display_functions.save_video_sequence"><code class="docutils literal notranslate"><span class="pre">save_video_sequence()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#keyword-arguments">Keyword arguments</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tool_functions.html">Tool functions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="appendix.html">Appendix</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #99CC00" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">krajjat</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="functions.html">Functions</a></li>
+      <li class="breadcrumb-item active">Display functions</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/display_functions.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="display-functions">
+<h1>Display functions<a class="headerlink" href="#display-functions" title="Permalink to this heading"></a></h1>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading"></a></h2>
+<p>Functions to display and compare sequences graphically.</p>
+</section>
+<section id="shortcuts">
+<h2>Shortcuts<a class="headerlink" href="#shortcuts" title="Permalink to this heading"></a></h2>
+<p>While playing a sequence, the following keyboard shortcuts can perform some modifications.</p>
+<p>First, the modifier keys A and B allow to modify a sequence independently of the other:</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Modifiers</span><a class="headerlink" href="#id1" title="Permalink to this table"></a></caption>
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 70%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Modifier key</p></th>
+<th class="head"><p>Action</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><img alt="_images/a.png" src="_images/a.png" />
+</td>
+<td><p>Applies the action to the first sequence only.</p></td>
+</tr>
+<tr class="row-odd"><td><img alt="_images/b.png" src="_images/b.png" />
+</td>
+<td><p>Applies the action to the second sequence only.</p></td>
+</tr>
+<tr class="row-even"><td><img alt="_images/none.png" src="_images/none.png" />
+</td>
+<td><p>Applies the action to both sequences.</p></td>
+</tr>
+</tbody>
+</table>
+<p>In the following shortcuts, the ones followed by an asterisk (*) can be applied to one of
+the sequences only by using a modifier.</p>
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text">General shortcuts</span><a class="headerlink" href="#id2" title="Permalink to this table"></a></caption>
+<colgroup>
+<col style="width: 70%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Operation</p></th>
+<th class="head"><p>Key or key combination</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Pause/Unpause</p></td>
+<td><img alt="_images/space.png" src="_images/space.png" />
+</td>
+</tr>
+<tr class="row-odd"><td><p>Increase the display speed by 0.25</p></td>
+<td><img alt="_images/%2B.png" src="_images/%2B.png" />
+</td>
+</tr>
+<tr class="row-even"><td><p>Decrease the display speed by 0.25</p></td>
+<td><img alt="_images/-.png" src="_images/-.png" />
+</td>
+</tr>
+<tr class="row-odd"><td><p>Next pose (manual or paused only)</p></td>
+<td><img alt="_images/right.png" src="_images/right.png" />
+</td>
+</tr>
+<tr class="row-even"><td><p>Previous pose (manual or paused only)</p></td>
+<td><img alt="_images/left.png" src="_images/left.png" />
+</td>
+</tr>
+<tr class="row-odd"><td><p>Show/hide corrected joints*</p></td>
+<td><img alt="_images/c.png" src="_images/c.png" />
+</td>
+</tr>
+<tr class="row-even"><td><p>Assign new random background color*</p></td>
+<td><img alt="_images/g.png" src="_images/g.png" />
+</td>
+</tr>
+<tr class="row-odd"><td><p>Show/hide bottom joints*</p></td>
+<td><img alt="_images/i.png" src="_images/i.png" />
+</td>
+</tr>
+<tr class="row-even"><td><p>Assign new random default joint color*</p></td>
+<td><img alt="_images/j.png" src="_images/j.png" />
+</td>
+</tr>
+<tr class="row-odd"><td><p>Show/hide lines*</p></td>
+<td><img alt="_images/l.png" src="_images/l.png" />
+</td>
+</tr>
+<tr class="row-even"><td><p>Show/hide pose index</p></td>
+<td><img alt="_images/p.png" src="_images/p.png" />
+</td>
+</tr>
+<tr class="row-odd"><td><p>Move the animation*</p></td>
+<td><img alt="_images/left_click.png" src="_images/left_click.png" />
+<img alt="_images/plus.png" src="_images/plus.png" />
+<img alt="_images/move.png" src="_images/move.png" />
+</td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default" id="id3">
+<caption><span class="caption-text">Size shortcuts</span><a class="headerlink" href="#id3" title="Permalink to this table"></a></caption>
+<colgroup>
+<col style="width: 70%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Operation</p></th>
+<th class="head"><p>Key or key combination</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Zoom in*</p></td>
+<td><img alt="_images/scroll_up.png" src="_images/scroll_up.png" />
+</td>
+</tr>
+<tr class="row-odd"><td><p>Zoom out*</p></td>
+<td><img alt="_images/scroll_down.png" src="_images/scroll_down.png" />
+</td>
+</tr>
+<tr class="row-even"><td><p>Increase default joint size*</p></td>
+<td><img alt="_images/ctrl.png" src="_images/ctrl.png" />
+<img alt="_images/plus.png" src="_images/plus.png" />
+<img alt="_images/scroll_up.png" src="_images/scroll_up.png" />
+</td>
+</tr>
+<tr class="row-odd"><td><p>Decrease default joint size*</p></td>
+<td><img alt="_images/ctrl.png" src="_images/ctrl.png" />
+<img alt="_images/plus.png" src="_images/plus.png" />
+<img alt="_images/scroll_down.png" src="_images/scroll_down.png" />
+</td>
+</tr>
+<tr class="row-even"><td><p>Increase hand joint size*</p></td>
+<td><img alt="_images/alt.png" src="_images/alt.png" />
+<img alt="_images/plus.png" src="_images/plus.png" />
+<img alt="_images/scroll_up.png" src="_images/scroll_up.png" />
+</td>
+</tr>
+<tr class="row-odd"><td><p>Decrease hand joint size*</p></td>
+<td><img alt="_images/alt.png" src="_images/alt.png" />
+<img alt="_images/plus.png" src="_images/plus.png" />
+<img alt="_images/scroll_down.png" src="_images/scroll_down.png" />
+</td>
+</tr>
+<tr class="row-even"><td><p>Increase head joint size*</p></td>
+<td><img alt="_images/ctrl.png" src="_images/ctrl.png" />
+<img alt="_images/plus.png" src="_images/plus.png" />
+<img alt="_images/alt.png" src="_images/alt.png" />
+<img alt="_images/plus.png" src="_images/plus.png" />
+<img alt="_images/scroll_up.png" src="_images/scroll_up.png" />
+</td>
+</tr>
+<tr class="row-odd"><td><p>Decrease head joint size*</p></td>
+<td><img alt="_images/ctrl.png" src="_images/ctrl.png" />
+<img alt="_images/plus.png" src="_images/plus.png" />
+<img alt="_images/alt.png" src="_images/alt.png" />
+<img alt="_images/plus.png" src="_images/plus.png" />
+<img alt="_images/scroll_down.png" src="_images/scroll_down.png" />
+</td>
+</tr>
+<tr class="row-even"><td><p>Increase line width*</p></td>
+<td><img alt="_images/shift.png" src="_images/shift.png" />
+<img alt="_images/plus.png" src="_images/plus.png" />
+<img alt="_images/scroll_up.png" src="_images/scroll_up.png" />
+</td>
+</tr>
+<tr class="row-odd"><td><p>Decrease line width*</p></td>
+<td><img alt="_images/shift.png" src="_images/shift.png" />
+<img alt="_images/plus.png" src="_images/plus.png" />
+<img alt="_images/scroll_down.png" src="_images/scroll_down.png" />
+</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="display_functions.common_displayer">
+<span class="sig-prename descclassname"><span class="pre">display_functions.</span></span><span class="sig-name descname"><span class="pre">common_displayer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sequence1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sequence2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_audio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_video</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position_sequences</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'side'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position_video</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'superimposed'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_window_in_meters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_screen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manual</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_pose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#display_functions.common_displayer" title="Permalink to this definition"></a></dt>
+<dd><p>Common displayer function wrapped in all the other graphic functions. Allows to display one or two sequences,
+in a Pygame window, in a highly customizable way. A sequence can be displayed jointly with an audio file or a
+video file.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sequence1</strong> (<a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a>) – A Sequence instance.</p></li>
+<li><p><strong>sequence2</strong> (<a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a><em>, </em><em>optional</em>) – A second, optional Sequence instance that can be displayed superimposed or next to the previous one, for
+comparison purposes.</p></li>
+<li><p><strong>path_audio</strong> (<em>str</em><em>, </em><em>optional</em>) – The path of an audio file (<code class="docutils literal notranslate"><span class="pre">.wav</span></code> format) to read with the Sequence instance(s).</p></li>
+<li><p><strong>path_video</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>The path of a video file (ending in <code class="docutils literal notranslate"><span class="pre">.mp4</span></code>) to read behind or next to the Sequence instance(s).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The audio from the video will not be read. If you wish to hear audio, provide a .wav file in the parameter
+<code class="docutils literal notranslate"><span class="pre">path_audio</span></code>.</p>
+</div>
+</p></li>
+<li><p><strong>position_sequences</strong> (<em>str</em><em>, </em><em>optional</em>) – Defines if the sequences should be displayed next to each other (<code class="docutils literal notranslate"><span class="pre">&quot;side&quot;</span></code>, default), or on top of each other
+(<code class="docutils literal notranslate"><span class="pre">&quot;superimposed&quot;</span></code>).  This parameter is ignored if only one sequence is provided.</p></li>
+<li><p><strong>position_video</strong> (<em>str</em><em>, </em><em>optional</em>) – Defines if the video should be displayed behind the sequence(s) (<code class="docutils literal notranslate"><span class="pre">&quot;superimposed&quot;</span></code>, default), or next to the
+sequence(s) (<code class="docutils literal notranslate"><span class="pre">&quot;side&quot;</span></code>)  This parameter is ignored if no video is provided.</p></li>
+<li><p><strong>resolution</strong> (<em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>) or </em><em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – <p>The resolution of the Pygame window that will display the Sequence instance(s). This parameter can be:</p>
+<blockquote>
+<div><ul>
+<li><p>A tuple with two integers, representing the width and height of the window in pixels.</p></li>
+<li><p>A float, representing the ratio of the total screen width and height; for example, setting
+this parameter on 0.5 on a screen that is 1920 × 1080 pixels will create a window of 960 × 540 pixels.
+Note: if a video is provided and set on the side of the sequence, or if two sequences are provided,
+side by side, the horizontal resolution will be set to be twice the size. A parameter of 0.5 on a screen
+that is 1920 × 1080 pixels will, in that case, create a window of 1920 × 540 pixels.</p></li>
+<li><p>None: in that case, the window will be the size of the screen.</p></li>
+</ul>
+</div></blockquote>
+</p></li>
+<li><p><strong>height_window_in_meters</strong> (<em>float</em><em>, </em><em>optional</em>) – Defines the distance, in meters, represented by the vertical number of pixels of the window (by default: 3.0).</p></li>
+<li><p><strong>full_screen</strong> (<em>bool</em><em>, </em><em>optional</em>) – Defines if the window will be set full screen (<code class="docutils literal notranslate"><span class="pre">True</span></code>, default) or not.</p></li>
+<li><p><strong>manual</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">False</span></code> (default), the poses of the Sequence will be displayed in real time. If set on <code class="docutils literal notranslate"><span class="pre">True</span></code>,
+the poses will be static, allowing the user to move to the next or previous pose using the right or left arrow
+keys, respectively.</p></li>
+<li><p><strong>start_pose</strong> (<em>int</em><em>, </em><em>optional</em>) – The index of the pose at which to start the sequence.</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em><em>, </em><em>optional</em>) – A dictionary of optional arguments. See <a class="reference internal" href="#keyword-arguments-display-functions"><span class="std std-ref">Keyword arguments</span></a>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="display_functions.sequence_reader">
+<span class="sig-prename descclassname"><span class="pre">display_functions.</span></span><span class="sig-name descname"><span class="pre">sequence_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sequence</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_audio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_video</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position_video</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'superimposed'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_window_in_meters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_screen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_pose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#display_functions.sequence_reader" title="Permalink to this definition"></a></dt>
+<dd><p>Displays the joints of the sequence in real time and loops back to the beginning when over.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This function is a wrapper for the function <a class="reference internal" href="#display_functions.common_displayer" title="display_functions.common_displayer"><code class="xref py py-func docutils literal notranslate"><span class="pre">common_displayer()</span></code></a>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sequence</strong> (<a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a>) – A Sequence instance.</p></li>
+<li><p><strong>path_audio</strong> (<em>str</em><em>, </em><em>optional</em>) – The path of an audio file (ending in <code class="docutils literal notranslate"><span class="pre">.wav</span></code>, <code class="docutils literal notranslate"><span class="pre">.mp3</span></code> or <code class="docutils literal notranslate"><span class="pre">.ogg</span></code>) to read with the Sequence instance(s).</p></li>
+<li><p><strong>path_video</strong> (<em>str</em><em>, </em><em>optional</em>) – The path of a video file (ending in <code class="docutils literal notranslate"><span class="pre">.mp4</span></code>) to read behind or next to the Sequence instance(s).</p></li>
+<li><p><strong>position_video</strong> (<em>str</em><em>, </em><em>optional</em>) – Defines if the video should be displayed behind the sequence(s) (<code class="docutils literal notranslate"><span class="pre">&quot;background&quot;</span></code>, default), or next to the
+sequence(s) (<code class="docutils literal notranslate"><span class="pre">&quot;side&quot;</span></code>). This parameter is ignored if no video is provided.</p></li>
+<li><p><strong>resolution</strong> (<em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>) or </em><em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – <p>The resolution of the Pygame window that will display the Sequence instance(s). This parameter can be:</p>
+<blockquote>
+<div><ul>
+<li><p>A tuple with two integers, representing the width and height of the window in pixels.</p></li>
+<li><p>A float, representing the ratio of the total screen width and height; for example, setting
+this parameter on 0.5 on a screen that is 1920 × 1080 pixels will create a window of 960 × 540 pixels.
+Note: if a video is provided and set on the side of the sequence, or if two sequences are provided,
+side by side, the horizontal resolution will be set to be twice the size. A parameter of 0.5 on a screen
+that is 1920 × 1080 pixels will, in that case, create a window of 1920 × 540 pixels.</p></li>
+<li><p>None: in that case, the window will be the size of the screen.</p></li>
+</ul>
+</div></blockquote>
+</p></li>
+<li><p><strong>height_window_in_meters</strong> (<em>float</em><em>, </em><em>optional</em>) – Defines the distance, in meters, represented by the vertical number of pixels of the window (by default: 3.0).</p></li>
+<li><p><strong>full_screen</strong> (<em>bool</em><em>, </em><em>optional</em>) – Defines if the window will be set full screen (<code class="docutils literal notranslate"><span class="pre">True</span></code>, default) or not.</p></li>
+<li><p><strong>start_pose</strong> (<em>int</em><em>, </em><em>optional</em>) – The index of the pose at which to start the sequence.</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em><em>, </em><em>optional</em>) – A dictionary of optional arguments. See <a class="reference internal" href="#keyword-arguments-display-functions"><span class="std std-ref">Keyword arguments</span></a>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="display_functions.sequence_comparer">
+<span class="sig-prename descclassname"><span class="pre">display_functions.</span></span><span class="sig-name descname"><span class="pre">sequence_comparer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sequence1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sequence2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_audio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_video</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position_sequences</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'side'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_window_in_meters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_screen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manual</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_pose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#display_functions.sequence_comparer" title="Permalink to this definition"></a></dt>
+<dd><p>Compares two sequences side by side or on top of each other.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This function is a wrapper for the function <a class="reference internal" href="#display_functions.common_displayer" title="display_functions.common_displayer"><code class="xref py py-func docutils literal notranslate"><span class="pre">common_displayer()</span></code></a>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sequence1</strong> (<a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a>) – A first Sequence instance.</p></li>
+<li><p><strong>sequence2</strong> (<a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a>) – A second Sequence instance.</p></li>
+<li><p><strong>path_audio</strong> (<em>str</em><em>, </em><em>optional</em>) – The path of an audio file (ending in <code class="docutils literal notranslate"><span class="pre">.wav</span></code>, <code class="docutils literal notranslate"><span class="pre">.mp3</span></code> or <code class="docutils literal notranslate"><span class="pre">.ogg</span></code>) to read with the Sequence instance(s).</p></li>
+<li><p><strong>path_video</strong> (<em>str</em><em>, </em><em>optional</em>) – The path of a video file (ending in <code class="docutils literal notranslate"><span class="pre">.mp4</span></code>) to read behind or next to the Sequence instance(s).</p></li>
+<li><p><strong>position_sequences</strong> (<em>str</em><em>, </em><em>optional</em>) – Defines if the sequences should be displayed next to each other (<code class="docutils literal notranslate"><span class="pre">&quot;side&quot;</span></code>, default), or on top of each other
+(<code class="docutils literal notranslate"><span class="pre">&quot;superimposed&quot;</span></code>). This parameter is ignored if only one sequence is provided.</p></li>
+<li><p><strong>resolution</strong> (<em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>) or </em><em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – <p>The resolution of the Pygame window that will display the Sequence instance(s). This parameter can be:</p>
+<blockquote>
+<div><ul>
+<li><p>A tuple with two integers, representing the width and height of the window in pixels.</p></li>
+<li><p>A float, representing the ratio of the total screen width and height; for example, setting
+this parameter on 0.5 on a screen that is 1920 × 1080 pixels will create a window of 960 × 540 pixels.
+Note: if a video is provided and set on the side of the sequence, or if two sequences are provided,
+side by side, the horizontal resolution will be set to be twice the size. A parameter of 0.5 on a screen
+that is 1920 × 1080 pixels will, in that case, create a window of 1920 × 540 pixels.</p></li>
+<li><p>None: in that case, the window will be the size of the screen.</p></li>
+</ul>
+</div></blockquote>
+</p></li>
+<li><p><strong>height_window_in_meters</strong> (<em>float</em><em>, </em><em>optional</em>) – Defines the distance, in meters, represented by the vertical number of pixels of the window (by default: 3.0).</p></li>
+<li><p><strong>full_screen</strong> (<em>bool</em><em>, </em><em>optional</em>) – Defines if the window will be set full screen (<code class="docutils literal notranslate"><span class="pre">True</span></code>, default) or not.</p></li>
+<li><p><strong>manual</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">False</span></code> (default), the poses of the Sequence will be displayed in real time. If set on <code class="docutils literal notranslate"><span class="pre">True</span></code>,
+the poses will be static, allowing the user to move to the next or previous pose using the right or left arrow
+keys, respectively.</p></li>
+<li><p><strong>start_pose</strong> (<em>int</em><em>, </em><em>optional</em>) – The index of the pose at which to start the sequence.</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em><em>, </em><em>optional</em>) – A dictionary of optional arguments. See <a class="reference internal" href="#keyword-arguments-display-functions"><span class="std std-ref">Keyword arguments</span></a>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="display_functions.pose_reader">
+<span class="sig-prename descclassname"><span class="pre">display_functions.</span></span><span class="sig-name descname"><span class="pre">pose_reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sequence</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_pose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_window_in_meters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_screen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#display_functions.pose_reader" title="Permalink to this definition"></a></dt>
+<dd><p>Reads a sequence and offers a manuel control over the poses, with the arrows of the keyboard.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sequence</strong> (<a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a>) – A Sequence instance.</p></li>
+<li><p><strong>start_pose</strong> (<em>int</em><em>, </em><em>optional</em>) – The index of the pose at which to start the sequence.</p></li>
+<li><p><strong>resolution</strong> (<em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>) or </em><em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – <p>The resolution of the Pygame window that will display the Sequence instance(s). This parameter can be:</p>
+<blockquote>
+<div><ul>
+<li><p>A tuple with two integers, representing the width and height of the window in pixels.</p></li>
+<li><p>A float, representing the ratio of the total screen width and height; for example, setting
+this parameter on 0.5 on a screen that is 1920 × 1080 pixels will create a window of 960 × 540 pixels.
+Note: if a video is provided and set on the side of the sequence, or if two sequences are provided,
+side by side, the horizontal resolution will be set to be twice the size. A parameter of 0.5 on a screen
+that is 1920 × 1080 pixels will, in that case, create a window of 1920 × 540 pixels.</p></li>
+<li><p>None: in that case, the window will be the size of the screen.</p></li>
+</ul>
+</div></blockquote>
+</p></li>
+<li><p><strong>height_window_in_meters</strong> (<em>float</em><em>, </em><em>optional</em>) – Defines the distance, in meters, represented by the vertical number of pixels of the window (by default: 3.0).</p></li>
+<li><p><strong>full_screen</strong> (<em>bool</em><em>, </em><em>optional</em>) – Defines if the window will be set full screen (<code class="docutils literal notranslate"><span class="pre">True</span></code>, default) or not.</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em><em>, </em><em>optional</em>) – A dictionary of optional arguments. See <a class="reference internal" href="#keyword-arguments-display-functions"><span class="std std-ref">Keyword arguments</span></a>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="display_functions._process_events">
+<span class="sig-prename descclassname"><span class="pre">display_functions.</span></span><span class="sig-name descname"><span class="pre">_process_events</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">animation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_area</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modif_this</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modif_other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seq_num</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manual</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modifiers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">move_animation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#display_functions._process_events" title="Permalink to this definition"></a></dt>
+<dd><p>For one animation, gets the user input and modifies the attributes of the animation accordingly.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>animation</strong> (<a class="reference internal" href="graphic_classes.html#classes.graphic_classes.GraphicSequence" title="classes.graphic_classes.GraphicSequence"><em>GraphicSequence</em></a>) – An instance of a GraphicSequence</p></li>
+<li><p><strong>window_area</strong> (<a class="reference internal" href="graphic_classes.html#classes.graphic_classes.WindowArea" title="classes.graphic_classes.WindowArea"><em>WindowArea</em></a>) – The WindowArea instance the mouse currently is in.</p></li>
+<li><p><strong>modif_this</strong> (<em>int</em>) – The Pygame integer code of a keyboard modifier key for this sequence (K_A for the first sequence, K_B for the
+second).</p></li>
+<li><p><strong>modif_other</strong> (<em>int</em>) – The Pygame integer code of a keyboard modifier key for the other sequence (K_B for the first sequence,
+K_A for the second).</p></li>
+<li><p><strong>seq_num</strong> (<em>int</em>) – The number of the animation (1 or 2).</p></li>
+<li><p><strong>manual</strong> (<em>bool</em>) – The value of the variable <code class="docutils literal notranslate"><span class="pre">manual</span></code> from the function <a class="reference internal" href="#display_functions.common_displayer" title="display_functions.common_displayer"><code class="xref py py-func docutils literal notranslate"><span class="pre">common_displayer()</span></code></a>.</p></li>
+<li><p><strong>event</strong> (<a class="reference external" href="https://www.pygame.org/docs/ref/event.html">Pygame.event</a>)) – A Pygame event.</p></li>
+<li><p><strong>modifiers</strong> (<em>dict</em><em>(</em><em>int: bool</em><em>)</em>) – A dictionary containing the current state of the modifier keys (pressed or not).</p></li>
+<li><p><strong>steps</strong> (<em>dict</em><em>(</em><em>str: float</em><em>)</em>) – A dictionary containing the incrementing steps for each parameter.</p></li>
+<li><p><strong>move_animation</strong> (<em>dict</em><em> or </em><em>None</em>) – An dictionary containing the starting position of the animation and the starting position of the mouse when a
+movement of the animation was initiated by the mouse, or None if no movement was initiated.</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>manual</strong> – The variable <code class="docutils literal notranslate"><span class="pre">manual</span></code> from the function <a class="reference internal" href="#display_functions.common_displayer" title="display_functions.common_displayer"><code class="xref py py-func docutils literal notranslate"><span class="pre">common_displayer()</span></code></a>, that was passed as parameter.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="display_functions.save_video_sequence">
+<span class="sig-prename descclassname"><span class="pre">display_functions.</span></span><span class="sig-name descname"><span class="pre">save_video_sequence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sequence1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_output</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sequence2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_audio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_video</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position_sequences</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'side'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position_video</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'superimposed'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1920,</span> <span class="pre">1080)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_window_in_meters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_selection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lower'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'PNG'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quality</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#display_functions.save_video_sequence" title="Permalink to this definition"></a></dt>
+<dd><p>Creates a video from a sequence and saves it on the disk. The function generates images using Pygame, following
+all the arguments in parameters. Each image is then saved in a temporary folder. Using ffmpeg, a video is
+created, using the mpeg4 encoding.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sequence1</strong> (<a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a>) – A Sequence instance.</p></li>
+<li><p><strong>path_output</strong> (<em>str</em>) – The full path to the video file where to save the video, including the extension of the file (e.g.
+<code class="docutils literal notranslate"><span class="pre">&quot;C:/Recordings/Leorio/Session7/video_003.mp4&quot;</span></code>.</p></li>
+<li><p><strong>fps</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of frames per second in the output video. For each frame, the pose with the closest timestamp
+will be displayed.</p></li>
+<li><p><strong>sequence2</strong> (<a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a><em>, </em><em>optional</em>) – A second, optional Sequence instance that can be displayed superimposed or next to the previous one, for
+comparison purposes.</p></li>
+<li><p><strong>path_audio</strong> (<em>str</em><em>, </em><em>optional</em>) – The path of an audio file (ending in .wav) to add to the video. If not provided, the video will be silent.</p></li>
+<li><p><strong>path_video</strong> (<em>str</em><em>, </em><em>optional</em>) – The path of a video file to add as a background to the skeleton.</p></li>
+<li><p><strong>position_sequences</strong> (<em>str</em><em>, </em><em>optional</em>) – Defines if the sequences should be displayed next to each other (<code class="docutils literal notranslate"><span class="pre">&quot;side&quot;</span></code>, default), or on top of each other
+(<code class="docutils literal notranslate"><span class="pre">&quot;superimposed&quot;</span></code>). This parameter is ignored if only one sequence is provided.</p></li>
+<li><p><strong>position_video</strong> (<em>str</em><em>, </em><em>optional</em>) – Defines if the video should be displayed behind the sequence(s) (<code class="docutils literal notranslate"><span class="pre">&quot;superimposed&quot;</span></code>, default), or next to the
+sequence(s) (<code class="docutils literal notranslate"><span class="pre">&quot;side&quot;</span></code>)  This parameter is ignored if no video is provided.</p></li>
+<li><p><strong>resolution</strong> (<em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>) or </em><em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – <p>The resolution of the output video. This parameter can be:</p>
+<blockquote>
+<div><ul>
+<li><p>A tuple with two integers, representing the width and height of the window in pixels
+(default: (1920, 1080))</p></li>
+<li><p>A float, representing the ratio of the total screen width and height; for example, setting
+this parameter on 0.5 on a screen that is 1920 × 1080 pixels will create a window of 960 × 540 pixels.
+Note: if a video is provided and set on the side of the sequence, or if two sequences are provided,
+side by side, the horizontal resolution will be set to be twice the size. A parameter of 0.5 on a screen
+that is 1920 × 1080 pixels will, in that case, create a window of 1920 × 540 pixels.</p></li>
+<li><p>None: in that case, the window will be the size of the screen.</p></li>
+</ul>
+</div></blockquote>
+</p></li>
+<li><p><strong>height_window_in_meters</strong> (<em>float</em><em>, </em><em>optional</em>) – Defines the distance, in meters, represented by the vertical number of pixels of the window (by default: 3.0).</p></li>
+<li><p><strong>frame_selection</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>Defines which pose or frame is selected based on the timestamp.</p>
+<blockquote>
+<div><ul>
+<li><p>If set on <code class="docutils literal notranslate"><span class="pre">&quot;closest&quot;</span></code> (default), the closest frame/pose from the timestamp is used.</p></li>
+<li><p>If set on <code class="docutils literal notranslate"><span class="pre">&quot;below&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;lower&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;under&quot;</span></code>, the closest frame/pose below the timestamp is used.</p></li>
+<li><p>If set on <code class="docutils literal notranslate"><span class="pre">&quot;above&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;higher&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;over&quot;</span></code>, the closest frame/pose above the timestamp is used.</p></li>
+</ul>
+</div></blockquote>
+</p></li>
+<li><p><strong>image_type</strong> (<em>str</em><em>, </em><em>optional</em>) – Defines the image type for the video codec. This parameter can be set on “PNG” (default), or “JPEG”. PNG format
+has a better quality than JPEG, but will result in a larger file size for the video.</p></li>
+<li><p><strong>quality</strong> (<em>int</em><em>, </em><em>optional</em>) – The quality of the mpeg4 encoding for the video. The value should be between 1 and 31 (default: 5); a lower
+number induces a better quality, but a larger file size. For more details,
+<a class="reference external" href="https://trac.ffmpeg.org/wiki/Encode/MPEG-4">see FFmpeg resources</a>.</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em><em>, </em><em>optional</em>) – A dictionary of optional arguments. See <a class="reference internal" href="#keyword-arguments-display-functions"><span class="std std-ref">Keyword arguments</span></a>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="keyword-arguments">
+<span id="keyword-arguments-display-functions"></span><h2>Keyword arguments<a class="headerlink" href="#keyword-arguments" title="Permalink to this heading"></a></h2>
+<p>The functions <code class="xref py py-func docutils literal notranslate"><span class="pre">common_displayer()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">sequence_reader()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">sequence_comparer()</span></code> and <code class="xref py py-func docutils literal notranslate"><span class="pre">pose_reader()</span></code> allow
+other arguments to be passed as keyword arguments, allowing for complete customisation of the display. These arguments
+can be passed as the other arguments, but given their large number, they are not defined in the docstring of the
+function; instead, they are defined in the table below.</p>
+<p>For example, you can call:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sequence</span> <span class="o">=</span> <span class="n">Sequence</span><span class="p">(</span><span class="s2">&quot;C:/Users/Zoidberg/Recording/&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sequence_reader</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="n">color_joint_default</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span> <span class="n">line_width</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Most of the following keyword arguments come in three variations: the first refers to both sequences, the second to
+the first sequence, and the last to the second sequence. For example, <cite>shape_joint</cite> sets the shape of the joints for
+both sequences (or the only sequence if only one is displayed), while <cite>shape_joint_seq1</cite> will set the shape of the
+joints for the first sequence, and <cite>shape_joint_seq2</cite> for the second sequence. The keyword arguments coming without
+variations</p>
+</div>
+<table class="docutils align-default" id="id4">
+<caption><span class="caption-text">Keyword arguments</span><a class="headerlink" href="#id4" title="Permalink to this table"></a></caption>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 25%" />
+<col style="width: 40%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Keyword</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Default value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><cite>ignore_bottom</cite> <br /> <cite>ignore_bottom_seq1</cite> <br /> <cite>ignore_bottom_seq2</cite></p></td>
+<td><p>bool</p></td>
+<td><p>Defines if to ignore the joints and lines located in the lower half of the body.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>show_lines</cite> <br /> <cite>show_lines_seq1</cite> <br /> <cite>show_lines_seq2</cite></p></td>
+<td><p>bool</p></td>
+<td><p>If set on <code class="docutils literal notranslate"><span class="pre">True</span></code>, the graphic sequence will include lines between certain joints, to create a skeleton. If set
+on <code class="docutils literal notranslate"><span class="pre">False</span></code>, only the joints will be displayed.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><cite>show_joint_corrected</cite> <br /> <cite>show_joint_corrected_seq1</cite> <br /> <cite>show_joint_corrected_seq2</cite></p></td>
+<td><p>bool</p></td>
+<td><p>If set on <code class="docutils literal notranslate"><span class="pre">True</span></code>, the joints corrected by <code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.correct_jitter()</span></code> or <code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.correct_zeros()</span></code>
+will appear colored by <code class="docutils literal notranslate"><span class="pre">color_joint_corrected</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>shape_joint</cite> <br /> <cite>shape_joint_seq1</cite> <br /> <cite>shape_joint_seq2</cite></p></td>
+<td><p>str</p></td>
+<td><p>The shape that the joints will have: <code class="docutils literal notranslate"><span class="pre">&quot;circle&quot;</span></code> (default) or <code class="docutils literal notranslate"><span class="pre">&quot;square&quot;</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;circle&quot;</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><cite>color_background</cite> <br /> <cite>color_background_seq1</cite> <br /> <cite>color_background_seq2</cite></p></td>
+<td><p>tuple(int, int, int, int) <br /> tuple(int, int, int) <br /> str</p></td>
+<td><p>The background color for the window (if only one sequence is displayed) or for one half of the window
+(if two sequences are displayed).</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;black&quot;</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>color_joint</cite> <br /> <cite>color_joint_seq1</cite> <br /> <cite>color_joint_seq2</cite> <br /> <cite>color_joint_default</cite>
+<br /> <cite>color_joint_default_seq1</cite> <br /> <cite>color_joint_default_seq2</cite></p></td>
+<td><p>tuple(int, int, int, int) <br /> tuple(int, int, int) <br /> str</p></td>
+<td><p>The color of the joints.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;white&quot;</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><cite>color_joint_corrected</cite> <br /> <cite>color_joint_corrected_seq1</cite> <br /> <cite>color_joint_corrected_seq2</cite></p></td>
+<td><p>tuple(int, int, int, int) <br /> tuple(int, int, int) <br /> str</p></td>
+<td><p>The color of the joints corrected by <code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.correct_jitter()</span></code> or <code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.correct_zeros()</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;sheen</span> <span class="pre">green&quot;</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>color_line</cite> <br /> <cite>color_line_seq1</cite> <br /> <cite>color_line_seq2</cite></p></td>
+<td><p>tuple(int, int, int, int) <br /> tuple(int, int, int) <br /> str</p></td>
+<td><p>The color of the lines between the joints.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;grey&quot;</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><cite>width_line</cite> <br /> <cite>width_line_seq1</cite> <br /> <cite>width_line_seq2</cite></p></td>
+<td><p>int</p></td>
+<td><p>The width of the lines connecting the joints, in pixels.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>size_joint_default</cite> <br /> <cite>size_joint_default_seq1</cite> <br /> <cite>size_joint_default_seq2</cite></p></td>
+<td><p>int</p></td>
+<td><p>The radius (if <code class="docutils literal notranslate"><span class="pre">shape_joint</span></code> is set on “circle”) or width/height (if <code class="docutils literal notranslate"><span class="pre">shape_joint</span></code> is set on “square”),
+in pixels, of the joints not covered by <code class="docutils literal notranslate"><span class="pre">size_joint_head</span></code> and <code class="docutils literal notranslate"><span class="pre">size_joint_hand</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">10</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><cite>size_joint_hand</cite> <br /> <cite>size_joint_hand_seq1</cite> <br /> <cite>size_joint_hand_seq2</cite></p></td>
+<td><p>int</p></td>
+<td><p>The radius (if <code class="docutils literal notranslate"><span class="pre">shape_joint</span></code> is set on “circle”) or width/height (if <code class="docutils literal notranslate"><span class="pre">shape_joint</span></code> is set on “square”),
+in pixels, of the “HandRight” and “HandLeft” joints (Kinect) or the “HandOutRight” and “HandOutLeft” joints
+(Kualysis).</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">20</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>size_joint_head</cite> <br /> <cite>size_joint_head_seq1</cite> <br /> <cite>size_joint_head_seq2</cite></p></td>
+<td><p>int</p></td>
+<td><p>The radius (if <code class="docutils literal notranslate"><span class="pre">shape_joint</span></code> is set on “circle”) or width/height (if <code class="docutils literal notranslate"><span class="pre">shape_joint</span></code> is set on “square”),
+in pixels, of the “Head” joint (Kinect) or the “HeadFront” joint (Kualysis).</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">50</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><cite>scale_joint</cite> <br /> <cite>scale_joint_seq1</cite> <br /> <cite>scale_joint_seq2</cite></p></td>
+<td><p>float</p></td>
+<td><p>Scaling factor for the size of the joints.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>shift</cite> <br /> <cite>shift_seq1</cite> <br /> <cite>shift_seq2</cite></p></td>
+<td><p>tuple(int, int)</p></td>
+<td><p>The number of pixels to shift the display of the joints from the first sequence on the horizontal and vertical
+axes, respectively.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(0,</span> <span class="pre">0)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><cite>zoom_level</cite> <br /> <cite>zoom_level_seq1</cite> <br /> <cite>zoom_level_seq2</cite></p></td>
+<td><p>float</p></td>
+<td><p>Defines the zoom level compared to the original view. A zoom level of 2 will make the joints appear twice as
+close.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>speed</cite></p></td>
+<td><p>float</p></td>
+<td><p>The speed at which to display the sequences.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><cite>font_color</cite></p></td>
+<td><p>tuple(int, int, int, int) <br /> tuple(int, int, int) <br /> str</p></td>
+<td><p>The color of the font indicating the current pose and time marker.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;white&quot;</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>show_progress</cite></p></td>
+<td><p>bool</p></td>
+<td><p>If set on <code class="docutils literal notranslate"><span class="pre">True</span></code>, shows the current pose and timestamp in the bottom right corner.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="io_functions.html" class="btn btn-neutral float-left" title="I/O functions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tool_functions.html" class="btn btn-neutral float-right" title="Tool functions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Romain Pastureau.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

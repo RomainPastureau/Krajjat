@@ -20,8 +20,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Graphic functions" href="graphic_functions.html" />
-    <link rel="prev" title="I/O functions" href="io_functions.html" /> 
+    <link rel="next" title="Appendix" href="appendix.html" />
+    <link rel="prev" title="Display functions" href="display_functions.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -48,6 +48,7 @@
 <li class="toctree-l1"><a class="reference internal" href="classes.html">Classes</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="functions.html">Functions</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="io_functions.html">I/O functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="display_functions.html">Display functions</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Tool functions</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#functions">Functions</a><ul>
@@ -65,7 +66,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="graphic_functions.html">Graphic functions</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="appendix.html">Appendix</a></li>
@@ -545,7 +545,7 @@ may clutter the output and slow down the execution.</p></li>
 <h3>Calculation functions<a class="headerlink" href="#calculation-functions" title="Permalink to this heading"></a></h3>
 <dl class="py function">
 <dt class="sig sig-object py" id="tool_functions.resample_data">
-<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">resample_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.resample_data" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">resample_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'s'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.resample_data" title="Permalink to this definition"></a></dt>
 <dd><p>Resamples non-uniform data to a uniform time series according to a specific frequency, by interpolating the data.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
@@ -569,6 +569,7 @@ indicated frequency.</p>
 parameter in the function <code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.interpolate.interp1d()</span></code>: <code class="docutils literal notranslate"><span class="pre">&quot;linear&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;nearest&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;nearest-up&quot;</span></code>,
 <code class="docutils literal notranslate"><span class="pre">&quot;zero&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;slinear&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;quadratic&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;cubic&quot;</span></code>”, <code class="docutils literal notranslate"><span class="pre">&quot;previous&quot;</span></code>, and <code class="docutils literal notranslate"><span class="pre">&quot;next&quot;</span></code>. See the
 <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html">documentation for this Python module</a> for more.</p></li>
+<li><p><strong>time_unit</strong> (<em>str</em><em>, </em><em>optional</em>) – The time unit of the time points. By default, it is set on “s” (seconds).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -611,6 +612,66 @@ parameter in the function <code class="xref py py-func docutils literal notransl
 <li><p><em>numpy.ndarray(float)</em> – The interpolated time points (same as the parameter <code class="docutils literal notranslate"><span class="pre">time_points_interpolation</span></code>).</p></li>
 </ul>
 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tool_functions.pad_with_zeros">
+<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">pad_with_zeros</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_points_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_points_padding</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.pad_with_zeros" title="Permalink to this definition"></a></dt>
+<dd><p>Given an array of values (<code class="docutils literal notranslate"><span class="pre">data</span></code>) and its corresponding <code class="docutils literal notranslate"><span class="pre">time_points_data</span></code>, and a larger array
+<code class="docutils literal notranslate"><span class="pre">time_points_padding</span></code>, pads the data array with zeros for the time points present in <code class="docutils literal notranslate"><span class="pre">time_points_padding</span></code> that
+are absent from <code class="docutils literal notranslate"><span class="pre">time_points_data</span></code>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>list</em><em>(</em><em>float</em><em>) or </em><em>numpy.ndarray</em><em>(</em><em>float</em><em>)</em>) – A list or an array of values.</p></li>
+<li><p><strong>time_points_data</strong> (<em>list</em><em>(</em><em>float</em><em>) or </em><em>numpy.ndarray</em><em>(</em><em>float</em><em>)</em>) – A list or an array of the time points corresponding to the values of the data.</p></li>
+<li><p><strong>time_points_padding</strong> (<em>list</em><em>(</em><em>float</em><em>) or </em><em>numpy.ndarray</em><em>(</em><em>float</em><em>)</em>) – A list or an array of time points containing the values from <code class="docutils literal notranslate"><span class="pre">time_points_data</span></code> (or values equal up to the
+fifth decimal), with additional values at the beginning and/or at the end.</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>np.ndarray</em> – The original data array, padded with zeros.</p></li>
+<li><p><em>list</em> – The array <code class="docutils literal notranslate"><span class="pre">time_points_padding</span></code>, passed as parameter.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tool_functions.add_delay">
+<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">add_delay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delay</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.add_delay" title="Permalink to this definition"></a></dt>
+<dd><p>Given an array of timestamps, adds or removes a delay to each timestamp.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>timestamps</strong> (<em>list</em><em>(</em><em>float</em><em>)</em>) – An array of timestamps.</p></li>
+<li><p><strong>delay</strong> (<em>float</em>) – The delay, positive or negative to add to each timestamp.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An array of timestamps with the delay specified as parameter.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(float)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1217,6 +1278,16 @@ The Kinect joints can be averaged from the joints in values. The dictionary is l
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="tool_functions.load_steps_gui">
+<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">load_steps_gui</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.load_steps_gui" title="Permalink to this definition"></a></dt>
+<dd><p>Loads the steps for the modification of the parameters in the GUI of the graphic functions, from the file
+<code class="docutils literal notranslate"><span class="pre">res/steps_gui.txt</span></code>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+</dd></dl>
+
 </section>
 <section id="miscellaneous-functions">
 <h3>Miscellaneous functions<a class="headerlink" href="#miscellaneous-functions" title="Permalink to this heading"></a></h3>
@@ -1304,6 +1375,45 @@ video set at a defined framerate, regardless of the original frequency.</p>
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="tool_functions.kwargs_parser">
+<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">kwargs_parser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dictionary</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suffix</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.kwargs_parser" title="Permalink to this definition"></a></dt>
+<dd><p>Given a dictionary of keyword arguments and a suffix, returns a dictionary that removes the suffix from the given
+keywords. If a key without the suffix already exists in the dictionary, it is left untouched and the key with the
+suffix is removed.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dictionary</strong> (<em>dict</em>) – A dictionary of keyword arguments.</p></li>
+<li><p><strong>suffix</strong> (<em>str</em>) – The suffix to look for in the keys of the dictionary.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tool_functions.format_time">
+<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">format_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'s'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'hh:mm:ss'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.format_time" title="Permalink to this definition"></a></dt>
+<dd><p>Formats a given time in a given unit according to a time format.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>time</strong> (<em>int</em><em> or </em><em>float</em>) – A value of time.</p></li>
+<li><p><strong>time_unit</strong> (<em>str</em><em>, </em><em>optional</em>) – The unit of the <code class="docutils literal notranslate"><span class="pre">time</span></code> parameter. This parameter can take the following values: “ns”, “1ns”, “10ns”, “100ns”,
+“µs”, “1µs”, “10µs”, “100µs”, “ms”, “1ms”, “10ms”, “100ms”, “s”, “sec”, “1s”, “min”, “mn”, “h”, “hr”, “d”,
+“day”.</p></li>
+<li><p><strong>time_format</strong> (<em>str</em><em>, </em><em>optional</em>) – The format in which to return the time. Can be either “hh:mm:ss”, “hh:mm:ss.ms”, “hh:mm”, “mm:ss” or “mm:ss.ms”.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 </section>
@@ -1312,8 +1422,8 @@ video set at a defined framerate, regardless of the original frequency.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="io_functions.html" class="btn btn-neutral float-left" title="I/O functions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="graphic_functions.html" class="btn btn-neutral float-right" title="Graphic functions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="display_functions.html" class="btn btn-neutral float-left" title="Display functions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="appendix.html" class="btn btn-neutral float-right" title="Appendix" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

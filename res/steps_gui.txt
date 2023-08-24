@@ -1,0 +1,8 @@
+size_joint_default	5
+size_joint_hand	5
+size_joint_head	5
+width_line	1
+speed	0.25
+zoom_level	0.1
+shift_x	1
+shift_y	1

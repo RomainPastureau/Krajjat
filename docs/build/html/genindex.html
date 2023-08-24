@@ -76,6 +76,7 @@
 <div class="genindex-jumpbox">
  <a href="#_"><strong>_</strong></a>
  | <a href="#A"><strong>A</strong></a>
+ | <a href="#B"><strong>B</strong></a>
  | <a href="#C"><strong>C</strong></a>
  | <a href="#D"><strong>D</strong></a>
  | <a href="#E"><strong>E</strong></a>
@@ -84,6 +85,7 @@
  | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
  | <a href="#J"><strong>J</strong></a>
+ | <a href="#K"><strong>K</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
  | <a href="#N"><strong>N</strong></a>
@@ -91,6 +93,8 @@
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
+ | <a href="#U"><strong>U</strong></a>
+ | <a href="#V"><strong>V</strong></a>
  | <a href="#W"><strong>W</strong></a>
  | <a href="#X"><strong>X</strong></a>
  | <a href="#Y"><strong>Y</strong></a>
@@ -110,8 +114,20 @@
       </ul></li>
       <li><a href="sequence.html#classes.sequence.Sequence.__getitem__">__getitem__ (class in classes.sequence.Sequence)</a>
 </li>
+      <li><a href="audio.html#classes.audio.Audio.__getitem__">__getitem__() (classes.audio.Audio method)</a>
+
+      <ul>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.__getitem__">(classes.audio_derivatives.AudioDerivative method)</a>
+</li>
+      </ul></li>
       <li><a href="sequence.html#classes.sequence.Sequence.__len__">__len__ (class in classes.sequence.Sequence)</a>
 </li>
+      <li><a href="audio.html#classes.audio.Audio.__len__">__len__() (classes.audio.Audio method)</a>
+
+      <ul>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.__len__">(classes.audio_derivatives.AudioDerivative method)</a>
+</li>
+      </ul></li>
       <li><a href="sequence.html#classes.sequence.Sequence.__repr__">__repr__ (class in classes.sequence.Sequence)</a>
 </li>
       <li><a href="graph_element.html#classes.graph_element.Graph.__repr__">__repr__() (classes.graph_element.Graph method)</a>
@@ -124,8 +140,6 @@
       </ul></li>
       <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._add_entry_joint_surfaces">_add_entry_joint_surfaces() (classes.graphic_classes.GraphicSequence method)</a>
 </li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._apply_events">_apply_events() (classes.graphic_classes.GraphicSequence method)</a>
-</li>
       <li><a href="audio.html#classes.audio.Audio._calculate_frequency">_calculate_frequency() (classes.audio.Audio method)</a>
 </li>
       <li><a href="pose.html#classes.pose.Pose._calculate_relative_timestamp">_calculate_relative_timestamp() (classes.pose.Pose method)</a>
@@ -133,12 +147,6 @@
       <li><a href="sequence.html#classes.sequence.Sequence._calculate_relative_timestamps">_calculate_relative_timestamps() (classes.sequence.Sequence method)</a>
 </li>
       <li><a href="audio.html#classes.audio.Audio._calculate_timestamps">_calculate_timestamps() (classes.audio.Audio method)</a>
-</li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicJoint._convert_coordinates">_convert_coordinates() (classes.graphic_classes.GraphicJoint method)</a>
-</li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicWindow._convert_x">_convert_x() (classes.graphic_classes.GraphicWindow method)</a>
-</li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicWindow._convert_y">_convert_y() (classes.graphic_classes.GraphicWindow method)</a>
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence._correct_jitter_single_joint">_correct_jitter_single_joint() (classes.sequence.Sequence method)</a>
 </li>
@@ -168,12 +176,12 @@
 </li>
       <li><a href="pose.html#classes.pose.Pose._get_copy_with_empty_joints">_get_copy_with_empty_joints() (classes.pose.Pose method)</a>
 </li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.Timer._get_timer">_get_timer() (classes.graphic_classes.Timer method)</a>
-</li>
       <li><a href="joint.html#classes.joint.Joint._has_velocity_over_threshold">_has_velocity_over_threshold (classes.joint.Joint attribute)</a>
 </li>
       <li><a href="joint.html#classes.joint.Joint._is_corrected">_is_corrected (classes.joint.Joint attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="joint.html#classes.joint.Joint._is_randomized">_is_randomized (classes.joint.Joint attribute)</a>
 </li>
       <li><a href="audio.html#classes.audio.Audio._load_audio_file">_load_audio_file() (classes.audio.Audio method)</a>
@@ -181,6 +189,8 @@
       <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._load_connections">_load_connections() (classes.graphic_classes.GraphicSequence method)</a>
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence._load_date_recording">_load_date_recording() (classes.sequence.Sequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Video._load_frame">_load_frame() (classes.graphic_classes.Video method)</a>
 </li>
       <li><a href="audio.html#classes.audio.Audio._load_from_path">_load_from_path() (classes.audio.Audio method)</a>
 
@@ -200,8 +210,6 @@
         <li><a href="sequence.html#classes.sequence.Sequence._load_poses">(classes.sequence.Sequence method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="audio.html#classes.audio.Audio._load_samples">_load_samples() (classes.audio.Audio method)</a>
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence._load_sequence_file">_load_sequence_file() (classes.sequence.Sequence method)</a>
@@ -210,25 +218,15 @@
 </li>
       <li><a href="audio.html#classes.audio.Audio._load_single_sample_file">_load_single_sample_file() (classes.audio.Audio method)</a>
 </li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._next_pose">_next_pose() (classes.graphic_classes.GraphicSequence method)</a>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Video._load_video">_load_video() (classes.graphic_classes.Video method)</a>
 </li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._play">_play() (classes.graphic_classes.GraphicSequence method)</a>
-</li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._previous_pose">_previous_pose() (classes.graphic_classes.GraphicSequence method)</a>
+      <li><a href="display_functions.html#display_functions._process_events">_process_events() (in module display_functions)</a>
 </li>
       <li><a href="joint.html#classes.joint.Joint._randomize_coordinates_keep_movement">_randomize_coordinates_keep_movement() (classes.joint.Joint method)</a>
 </li>
       <li><a href="audio.html#classes.audio.Audio._read_text_file">_read_text_file() (classes.audio.Audio method)</a>
 </li>
       <li><a href="audio.html#classes.audio.Audio._read_wav">_read_wav() (classes.audio.Audio method)</a>
-</li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._reset">_reset() (classes.graphic_classes.GraphicSequence method)</a>
-
-      <ul>
-        <li><a href="graphic_classes.html#classes.graphic_classes.Timer._reset">(classes.graphic_classes.Timer method)</a>
-</li>
-      </ul></li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicJoint._rotate">_rotate() (classes.graphic_classes.GraphicJoint method)</a>
 </li>
       <li><a href="audio.html#classes.audio.Audio._save_json">_save_json() (classes.audio.Audio method)</a>
 
@@ -248,59 +246,17 @@
         <li><a href="sequence.html#classes.sequence.Sequence._save_txt">(classes.sequence.Sequence method)</a>
 </li>
       </ul></li>
+      <li><a href="audio.html#classes.audio.Audio._save_wav">_save_wav() (classes.audio.Audio method)</a>
+</li>
       <li><a href="audio.html#classes.audio.Audio._save_xlsx">_save_xlsx() (classes.audio.Audio method)</a>
 
       <ul>
         <li><a href="sequence.html#classes.sequence.Sequence._save_xlsx">(classes.sequence.Sequence method)</a>
 </li>
       </ul></li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_color_joint_corrected">_set_color_joint_corrected() (classes.graphic_classes.GraphicSequence method)</a>
-</li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_color_joint_default">_set_color_joint_default() (classes.graphic_classes.GraphicSequence method)</a>
-</li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_color_line">_set_color_line() (classes.graphic_classes.GraphicSequence method)</a>
-</li>
       <li><a href="joint.html#classes.joint.Joint._set_has_velocity_over_threshold">_set_has_velocity_over_threshold() (classes.joint.Joint method)</a>
 </li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_ignore_bottom">_set_ignore_bottom() (classes.graphic_classes.GraphicSequence method)</a>
-</li>
       <li><a href="joint.html#classes.joint.Joint._set_is_corrected">_set_is_corrected() (classes.joint.Joint method)</a>
-</li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_scale_joint">_set_scale_joint() (classes.graphic_classes.GraphicSequence method)</a>
-</li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_shape_joint">_set_shape_joint() (classes.graphic_classes.GraphicSequence method)</a>
-</li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_show_joints_corrected">_set_show_joints_corrected() (classes.graphic_classes.GraphicSequence method)</a>
-</li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_show_lines">_set_show_lines() (classes.graphic_classes.GraphicSequence method)</a>
-</li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_size_joint_default">_set_size_joint_default() (classes.graphic_classes.GraphicSequence method)</a>
-</li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_size_joint_hand">_set_size_joint_hand() (classes.graphic_classes.GraphicSequence method)</a>
-</li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_size_joint_head">_set_size_joint_head() (classes.graphic_classes.GraphicSequence method)</a>
-</li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.Timer._set_timer">_set_timer() (classes.graphic_classes.Timer method)</a>
-</li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._set_width_line">_set_width_line() (classes.graphic_classes.GraphicSequence method)</a>
-</li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicJoint._show">_show() (classes.graphic_classes.GraphicJoint method)</a>
-
-      <ul>
-        <li><a href="graphic_classes.html#classes.graphic_classes.GraphicPose._show">(classes.graphic_classes.GraphicPose method)</a>
-</li>
-      </ul></li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicPose._show_line">_show_line() (classes.graphic_classes.GraphicPose method)</a>
-</li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._show_pose">_show_pose() (classes.graphic_classes.GraphicSequence method)</a>
-</li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._toggle_ignore_bottom">_toggle_ignore_bottom() (classes.graphic_classes.GraphicSequence method)</a>
-</li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._toggle_show_joints_corrected">_toggle_show_joints_corrected() (classes.graphic_classes.GraphicSequence method)</a>
-</li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence._toggle_show_lines">_toggle_show_lines() (classes.graphic_classes.GraphicSequence method)</a>
-</li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.Timer._update">_update() (classes.graphic_classes.Timer method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -308,6 +264,10 @@
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="tool_functions.html#tool_functions.add_delay">add_delay() (in module tool_functions)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.WindowArea.add_element">add_element() (classes.graphic_classes.WindowArea method)</a>
+</li>
       <li><a href="pose.html#classes.pose.Pose.add_joint">add_joint() (classes.pose.Pose method)</a>
 </li>
       <li><a href="graph_element.html#classes.graph_element.Graph.add_plot">add_plot() (classes.graph_element.Graph method)</a>
@@ -316,11 +276,29 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.apply_events">apply_events() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
       <li><a href="audio.html#classes.audio.Audio">Audio (class in classes.audio)</a>
+</li>
+      <li><a href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative">AudioDerivative (class in classes.audio_derivatives)</a>
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence.average_joints">average_joints() (classes.sequence.Sequence method)</a>
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence.average_qualisys_to_kinect">average_qualisys_to_kinect() (classes.sequence.Sequence method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="B">B</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="graphic_classes.html#classes.graphic_classes.WindowArea.blit">blit() (classes.graphic_classes.WindowArea method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="graphic_classes.html#classes.graphic_classes.WindowArea.blit_background_surface">blit_background_surface() (classes.graphic_classes.WindowArea method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.WindowArea.blit_coordinates">blit_coordinates (classes.graphic_classes.WindowArea attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -342,9 +320,9 @@
 </li>
       <li><a href="tool_functions.html#tool_functions.calculate_velocity">calculate_velocity() (in module tool_functions)</a>
 </li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicWindow.center_x">center_x (classes.graphic_classes.GraphicWindow attribute)</a>
+      <li><a href="graphic_classes.html#classes.graphic_classes.WindowArea.center_x">center_x (classes.graphic_classes.WindowArea attribute)</a>
 </li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicWindow.center_y">center_y (classes.graphic_classes.GraphicWindow attribute)</a>
+      <li><a href="graphic_classes.html#classes.graphic_classes.WindowArea.center_y">center_y (classes.graphic_classes.WindowArea attribute)</a>
 </li>
       <li><a href="graphic_classes.html#classes.graphic_classes.Timer.clock">clock (classes.graphic_classes.Timer attribute)</a>
 </li>
@@ -356,7 +334,7 @@
 </li>
       <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.color_line">color_line (classes.graphic_classes.GraphicSequence attribute)</a>
 </li>
-      <li><a href="graphic_functions.html#graphic_functions.common_displayer">common_displayer() (in module graphic_functions)</a>
+      <li><a href="display_functions.html#display_functions.common_displayer">common_displayer() (in module display_functions)</a>
 </li>
       <li><a href="tool_functions.html#tool_functions.compute_different_joints">compute_different_joints() (in module tool_functions)</a>
 </li>
@@ -364,17 +342,21 @@
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence.concatenate">concatenate() (classes.sequence.Sequence method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.connections_all">connections_all (classes.graphic_classes.GraphicSequence attribute)</a>
 </li>
       <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.connections_to_show">connections_to_show (classes.graphic_classes.GraphicSequence attribute)</a>
 </li>
       <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.connections_top">connections_top (classes.graphic_classes.GraphicSequence attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="graphic_classes.html#classes.graphic_classes.WindowArea.contains">contains() (classes.graphic_classes.WindowArea method)</a>
+</li>
       <li><a href="tool_functions.html#tool_functions.convert_color_rgba">convert_color_rgba() (in module tool_functions)</a>
 </li>
       <li><a href="tool_functions.html#tool_functions.convert_colors_rgba">convert_colors_rgba() (in module tool_functions)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicJoint.convert_coordinates">convert_coordinates() (classes.graphic_classes.GraphicJoint method)</a>
 </li>
       <li><a href="tool_functions.html#tool_functions.convert_data_from_qtm">convert_data_from_qtm() (in module tool_functions)</a>
 </li>
@@ -396,6 +378,10 @@
         <li><a href="sequence.html#classes.sequence.Sequence.convert_to_table">(classes.sequence.Sequence method)</a>
 </li>
       </ul></li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.WindowArea.convert_x">convert_x() (classes.graphic_classes.WindowArea method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.WindowArea.convert_y">convert_y() (classes.graphic_classes.WindowArea method)</a>
+</li>
       <li><a href="sequence.html#classes.sequence.Sequence.copy_joint">copy_joint() (classes.sequence.Sequence method)</a>
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence.copy_pose">copy_pose() (classes.sequence.Sequence method)</a>
@@ -406,7 +392,11 @@
 </li>
       <li><a href="tool_functions.html#tool_functions.create_subfolders">create_subfolders() (in module tool_functions)</a>
 </li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.current_pose">current_pose (classes.graphic_classes.GraphicSequence attribute)</a>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Video.current_frame_index">current_frame_index (classes.graphic_classes.Video attribute)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Video.current_frame_surface">current_frame_surface (classes.graphic_classes.Video attribute)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.current_pose_index">current_pose_index (classes.graphic_classes.GraphicSequence attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -426,11 +416,17 @@
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="graphic_classes.html#classes.graphic_classes.WindowArea.elements">elements (classes.graphic_classes.WindowArea attribute)</a>
+</li>
       <li><a href="exceptions.html#classes.exceptions.EmptyAudioException">EmptyAudioException (class in classes.exceptions)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="exceptions.html#classes.exceptions.EmptySequenceException">EmptySequenceException (class in classes.exceptions)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Timer.end_update">end_update() (classes.graphic_classes.Timer method)</a>
+</li>
+      <li><a href="audio_derivatives.html#classes.audio_derivatives.Envelope">Envelope (class in classes.audio_derivatives)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -444,12 +440,36 @@
         <li><a href="sequence.html#classes.sequence.Sequence.files">(classes.sequence.Sequence attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="graphic_classes.html#classes.graphic_classes.WindowArea.fill">fill() (classes.graphic_classes.WindowArea method)</a>
+</li>
+      <li><a href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.filter_frequencies">filter_frequencies() (classes.audio_derivatives.AudioDerivative method)</a>
+</li>
       <li><a href="tool_functions.html#tool_functions.find_common_parent_path">find_common_parent_path() (in module tool_functions)</a>
 </li>
-      <li><a href="audio.html#classes.audio.Audio.frequency">frequency (classes.audio.Audio attribute)</a>
+      <li><a href="audio_derivatives.html#classes.audio_derivatives.Formant">Formant (class in classes.audio_derivatives)</a>
 </li>
+      <li><a href="audio_derivatives.html#classes.audio_derivatives.Formant.formant_number">formant_number (classes.audio_derivatives.Formant attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="tool_functions.html#tool_functions.format_time">format_time() (in module tool_functions)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Video.fps">fps (classes.graphic_classes.Video attribute)</a>
+</li>
+      <li><a href="audio.html#classes.audio.Audio.frequency">frequency (classes.audio.Audio attribute)</a>
+
+      <ul>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.frequency">(classes.audio_derivatives.AudioDerivative attribute)</a>
+</li>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.Envelope.frequency">(classes.audio_derivatives.Envelope attribute)</a>
+</li>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.Formant.frequency">(classes.audio_derivatives.Formant attribute)</a>
+</li>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.Intensity.frequency">(classes.audio_derivatives.Intensity attribute)</a>
+</li>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.Pitch.frequency">(classes.audio_derivatives.Pitch attribute)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -470,6 +490,10 @@
         <li><a href="pose.html#classes.pose.Pose.get_copy">(classes.pose.Pose method)</a>
 </li>
       </ul></li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Video.get_current_frame_index">get_current_frame_index() (classes.graphic_classes.Video method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.get_current_pose_index">get_current_pose_index() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
       <li><a href="sequence.html#classes.sequence.Sequence.get_date_recording">get_date_recording() (classes.sequence.Sequence method)</a>
 </li>
       <li><a href="tool_functions.html#tool_functions.get_difference_paths">get_difference_paths() (in module tool_functions)</a>
@@ -477,6 +501,10 @@
       <li><a href="audio.html#classes.audio.Audio.get_duration">get_duration() (classes.audio.Audio method)</a>
 
       <ul>
+        <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.get_duration">(classes.graphic_classes.GraphicSequence method)</a>
+</li>
+        <li><a href="graphic_classes.html#classes.graphic_classes.Video.get_duration">(classes.graphic_classes.Video method)</a>
+</li>
         <li><a href="sequence.html#classes.sequence.Sequence.get_duration">(classes.sequence.Sequence method)</a>
 </li>
       </ul></li>
@@ -484,13 +512,23 @@
 </li>
       <li><a href="tool_functions.html#tool_functions.get_filetype_separator">get_filetype_separator() (in module tool_functions)</a>
 </li>
+      <li><a href="audio.html#classes.audio.Audio.get_formant">get_formant() (classes.audio.Audio method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Video.get_fps">get_fps() (classes.graphic_classes.Video method)</a>
+</li>
       <li><a href="sequence.html#classes.sequence.Sequence.get_framerate">get_framerate() (classes.sequence.Sequence method)</a>
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence.get_framerates">get_framerates() (classes.sequence.Sequence method)</a>
 </li>
       <li><a href="audio.html#classes.audio.Audio.get_frequency">get_frequency() (classes.audio.Audio method)</a>
+
+      <ul>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.get_frequency">(classes.audio_derivatives.AudioDerivative method)</a>
 </li>
+      </ul></li>
       <li><a href="joint.html#classes.joint.Joint.get_has_velocity_over_threshold">get_has_velocity_over_threshold() (classes.joint.Joint method)</a>
+</li>
+      <li><a href="audio.html#classes.audio.Audio.get_intensity">get_intensity() (classes.audio.Audio method)</a>
 </li>
       <li><a href="joint.html#classes.joint.Joint.get_is_corrected">get_is_corrected() (classes.joint.Joint method)</a>
 </li>
@@ -510,6 +548,10 @@
       </ul></li>
       <li><a href="sequence.html#classes.sequence.Sequence.get_joint_velocity_as_list">get_joint_velocity_as_list() (classes.sequence.Sequence method)</a>
 </li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Timer.get_last_full_second">get_last_full_second() (classes.graphic_classes.Timer method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Timer.get_last_tick">get_last_tick() (classes.graphic_classes.Timer method)</a>
+</li>
       <li><a href="sequence.html#classes.sequence.Sequence.get_max_framerate">get_max_framerate() (classes.sequence.Sequence method)</a>
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence.get_max_velocity_per_joint">get_max_velocity_per_joint() (classes.sequence.Sequence method)</a>
@@ -525,15 +567,27 @@
       <li><a href="audio.html#classes.audio.Audio.get_name">get_name() (classes.audio.Audio method)</a>
 
       <ul>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.get_name">(classes.audio_derivatives.AudioDerivative method)</a>
+</li>
         <li><a href="sequence.html#classes.sequence.Sequence.get_name">(classes.sequence.Sequence method)</a>
 </li>
       </ul></li>
-      <li><a href="sequence.html#classes.sequence.Sequence.get_number_of_poses">get_number_of_poses() (classes.sequence.Sequence method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="audio.html#classes.audio.Audio.get_number_of_samples">get_number_of_samples() (classes.audio.Audio method)</a>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Video.get_number_of_frames">get_number_of_frames() (classes.graphic_classes.Video method)</a>
 </li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.get_number_of_poses">get_number_of_poses() (classes.graphic_classes.GraphicSequence method)</a>
+
+      <ul>
+        <li><a href="sequence.html#classes.sequence.Sequence.get_number_of_poses">(classes.sequence.Sequence method)</a>
+</li>
+      </ul></li>
+      <li><a href="audio.html#classes.audio.Audio.get_number_of_samples">get_number_of_samples() (classes.audio.Audio method)</a>
+
+      <ul>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.get_number_of_samples">(classes.audio_derivatives.AudioDerivative method)</a>
+</li>
+      </ul></li>
       <li><a href="tool_functions.html#tool_functions.get_objects_names">get_objects_names() (in module tool_functions)</a>
 </li>
       <li><a href="tool_functions.html#tool_functions.get_objects_paths">get_objects_paths() (in module tool_functions)</a>
@@ -544,6 +598,8 @@
         <li><a href="sequence.html#classes.sequence.Sequence.get_path">(classes.sequence.Sequence method)</a>
 </li>
       </ul></li>
+      <li><a href="audio.html#classes.audio.Audio.get_pitch">get_pitch() (classes.audio.Audio method)</a>
+</li>
       <li><a href="sequence.html#classes.sequence.Sequence.get_pose">get_pose() (classes.sequence.Sequence method)</a>
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence.get_poses">get_poses() (classes.sequence.Sequence method)</a>
@@ -554,10 +610,16 @@
 </li>
       <li><a href="pose.html#classes.pose.Pose.get_relative_timestamp">get_relative_timestamp() (classes.pose.Pose method)</a>
 </li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.WindowArea.get_resolution">get_resolution() (classes.graphic_classes.WindowArea method)</a>
+</li>
       <li><a href="audio.html#classes.audio.Audio.get_sample">get_sample() (classes.audio.Audio method)</a>
 </li>
       <li><a href="audio.html#classes.audio.Audio.get_samples">get_samples() (classes.audio.Audio method)</a>
+
+      <ul>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.get_samples">(classes.audio_derivatives.AudioDerivative method)</a>
 </li>
+      </ul></li>
       <li><a href="sequence.html#classes.sequence.Sequence.get_stats">get_stats() (classes.sequence.Sequence method)</a>
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence.get_subject_arm_length">get_subject_arm_length() (classes.sequence.Sequence method)</a>
@@ -568,11 +630,21 @@
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence.get_time_between_two_poses">get_time_between_two_poses() (classes.sequence.Sequence method)</a>
 </li>
-      <li><a href="pose.html#classes.pose.Pose.get_timestamp">get_timestamp() (classes.pose.Pose method)</a>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Timer.get_timer">get_timer() (classes.graphic_classes.Timer method)</a>
 </li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.get_timestamp">get_timestamp() (classes.graphic_classes.GraphicSequence method)</a>
+
+      <ul>
+        <li><a href="graphic_classes.html#classes.graphic_classes.Video.get_timestamp">(classes.graphic_classes.Video method)</a>
+</li>
+        <li><a href="pose.html#classes.pose.Pose.get_timestamp">(classes.pose.Pose method)</a>
+</li>
+      </ul></li>
       <li><a href="audio.html#classes.audio.Audio.get_timestamps">get_timestamps() (classes.audio.Audio method)</a>
 
       <ul>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.get_timestamps">(classes.audio_derivatives.AudioDerivative method)</a>
+</li>
         <li><a href="sequence.html#classes.sequence.Sequence.get_timestamps">(classes.sequence.Sequence method)</a>
 </li>
       </ul></li>
@@ -598,8 +670,6 @@
 </li>
       <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence">GraphicSequence (class in classes.graphic_classes)</a>
 </li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicWindow">GraphicWindow (class in classes.graphic_classes)</a>
-</li>
       <li><a href="graph_element.html#classes.graph_element.GraphPlot">GraphPlot (class in classes.graph_element)</a>
 </li>
   </ul></td>
@@ -608,11 +678,11 @@
 <h2 id="H">H</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicWindow.height">height (classes.graphic_classes.GraphicWindow attribute)</a>
+      <li><a href="graphic_classes.html#classes.graphic_classes.WindowArea.height">height (classes.graphic_classes.WindowArea attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicWindow.height_window_in_meters">height_window_in_meters (classes.graphic_classes.GraphicWindow attribute)</a>
+      <li><a href="graphic_classes.html#classes.graphic_classes.WindowArea.height_window_in_meters">height_window_in_meters (classes.graphic_classes.WindowArea attribute)</a>
 </li>
       <li><a href="tool_functions.html#tool_functions.hex_color_to_rgb">hex_color_to_rgb() (in module tool_functions)</a>
 </li>
@@ -626,10 +696,12 @@
 </li>
       <li><a href="exceptions.html#classes.exceptions.ImpossibleTimeTravelException">ImpossibleTimeTravelException (class in classes.exceptions)</a>
 </li>
-      <li><a href="tool_functions.html#tool_functions.interpolate_data">interpolate_data() (in module tool_functions)</a>
+      <li><a href="audio_derivatives.html#classes.audio_derivatives.Intensity">Intensity (class in classes.audio_derivatives)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="tool_functions.html#tool_functions.interpolate_data">interpolate_data() (in module tool_functions)</a>
+</li>
       <li><a href="exceptions.html#classes.exceptions.InvalidJointLabelException">InvalidJointLabelException (class in classes.exceptions)</a>
 </li>
       <li><a href="exceptions.html#classes.exceptions.InvalidPathException">InvalidPathException (class in classes.exceptions)</a>
@@ -667,9 +739,21 @@
   </ul></td>
 </tr></table>
 
+<h2 id="K">K</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="tool_functions.html#tool_functions.kwargs_parser">kwargs_parser() (in module tool_functions)</a>
+</li>
+  </ul></td>
+</tr></table>
+
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Timer.last_full_second">last_full_second (classes.graphic_classes.Timer attribute)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Timer.last_tick">last_tick (classes.graphic_classes.Timer attribute)</a>
+</li>
       <li><a href="graph_element.html#classes.graph_element.GraphPlot.line_width">line_width (classes.graph_element.GraphPlot attribute)</a>
 </li>
       <li><a href="io_functions.html#io_functions.load_audios">load_audios() (in module io_functions)</a>
@@ -680,10 +764,10 @@
 </li>
       <li><a href="tool_functions.html#tool_functions.load_joint_labels">load_joint_labels() (in module tool_functions)</a>
 </li>
-      <li><a href="tool_functions.html#tool_functions.load_joints_connections">load_joints_connections() (in module tool_functions)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="tool_functions.html#tool_functions.load_joints_connections">load_joints_connections() (in module tool_functions)</a>
+</li>
       <li><a href="tool_functions.html#tool_functions.load_joints_subplot_layout">load_joints_subplot_layout() (in module tool_functions)</a>
 </li>
       <li><a href="tool_functions.html#tool_functions.load_kinect_joint_labels">load_kinect_joint_labels() (in module tool_functions)</a>
@@ -695,6 +779,8 @@
       <li><a href="tool_functions.html#tool_functions.load_qualisys_to_kinect">load_qualisys_to_kinect() (in module tool_functions)</a>
 </li>
       <li><a href="io_functions.html#io_functions.load_sequences">load_sequences() (in module io_functions)</a>
+</li>
+      <li><a href="tool_functions.html#tool_functions.load_steps_gui">load_steps_gui() (in module tool_functions)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -713,34 +799,64 @@
       <li><a href="audio.html#classes.audio.Audio.name">name (classes.audio.Audio attribute)</a>
 
       <ul>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.name">(classes.audio_derivatives.AudioDerivative attribute)</a>
+</li>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.Envelope.name">(classes.audio_derivatives.Envelope attribute)</a>
+</li>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.Formant.name">(classes.audio_derivatives.Formant attribute)</a>
+</li>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.Intensity.name">(classes.audio_derivatives.Intensity attribute)</a>
+</li>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.Pitch.name">(classes.audio_derivatives.Pitch attribute)</a>
+</li>
         <li><a href="sequence.html#classes.sequence.Sequence.name">(classes.sequence.Sequence attribute)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Video.next_frame">next_frame() (classes.graphic_classes.Video method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.next_pose">next_pose() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Video.number_of_frames">number_of_frames (classes.graphic_classes.Video attribute)</a>
+</li>
   </ul></td>
 </tr></table>
 
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="tool_functions.html#tool_functions.pad_with_zeros">pad_with_zeros() (in module tool_functions)</a>
+</li>
       <li><a href="audio.html#classes.audio.Audio.path">path (classes.audio.Audio attribute)</a>
 
       <ul>
+        <li><a href="graphic_classes.html#classes.graphic_classes.Video.path">(classes.graphic_classes.Video attribute)</a>
+</li>
         <li><a href="sequence.html#classes.sequence.Sequence.path">(classes.sequence.Sequence attribute)</a>
 </li>
       </ul></li>
       <li><a href="sequence.html#classes.sequence.Sequence.path_audio">path_audio (classes.sequence.Sequence attribute)</a>
 </li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicWindow.pixel_meter_scale">pixel_meter_scale (classes.graphic_classes.GraphicWindow attribute)</a>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Timer.pause">pause() (classes.graphic_classes.Timer method)</a>
 </li>
+      <li><a href="audio_derivatives.html#classes.audio_derivatives.Pitch">Pitch (class in classes.audio_derivatives)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.WindowArea.pixel_meter_scale">pixel_meter_scale (classes.graphic_classes.WindowArea attribute)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Timer.play">play (classes.graphic_classes.Timer attribute)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.play">play() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="graph_element.html#classes.graph_element.Graph.plots">plots (classes.graph_element.Graph attribute)</a>
 </li>
       <li><a href="pose.html#classes.pose.Pose">Pose (class in classes.pose)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="graphic_classes.html#classes.graphic_classes.GraphicPose.pose">pose (classes.graphic_classes.GraphicPose attribute)</a>
 </li>
-      <li><a href="graphic_functions.html#graphic_functions.pose_reader">pose_reader() (in module graphic_functions)</a>
+      <li><a href="display_functions.html#display_functions.pose_reader">pose_reader() (in module display_functions)</a>
 </li>
       <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.poses">poses (classes.graphic_classes.GraphicSequence attribute)</a>
 
@@ -749,6 +865,8 @@
 </li>
       </ul></li>
       <li><a href="joint.html#classes.joint.Joint.position">position (classes.joint.Joint attribute)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.previous_pose">previous_pose() (classes.graphic_classes.GraphicSequence method)</a>
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence.print_pose">print_pose() (classes.sequence.Sequence method)</a>
 </li>
@@ -774,8 +892,8 @@
 </li>
       <li><a href="pose.html#classes.pose.Pose.relative_timestamp">relative_timestamp (classes.pose.Pose attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="graphic_classes.html#classes.graphic_classes.WindowArea.remove_element">remove_element() (classes.graphic_classes.WindowArea method)</a>
+</li>
       <li><a href="pose.html#classes.pose.Pose.remove_joint">remove_joint() (classes.pose.Pose method)</a>
 </li>
       <li><a href="pose.html#classes.pose.Pose.remove_joints">remove_joints() (classes.pose.Pose method)</a>
@@ -783,14 +901,34 @@
       <li><a href="audio.html#classes.audio.Audio.resample">resample() (classes.audio.Audio method)</a>
 
       <ul>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.resample">(classes.audio_derivatives.AudioDerivative method)</a>
+</li>
         <li><a href="sequence.html#classes.sequence.Sequence.resample">(classes.sequence.Sequence method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="tool_functions.html#tool_functions.resample_data">resample_data() (in module tool_functions)</a>
 </li>
       <li><a href="tool_functions.html#tool_functions.resample_images_to_frequency">resample_images_to_frequency() (in module tool_functions)</a>
 </li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.reset">reset() (classes.graphic_classes.GraphicSequence method)</a>
+
+      <ul>
+        <li><a href="graphic_classes.html#classes.graphic_classes.Timer.reset">(classes.graphic_classes.Timer method)</a>
+</li>
+        <li><a href="graphic_classes.html#classes.graphic_classes.Video.reset">(classes.graphic_classes.Video method)</a>
+</li>
+      </ul></li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Video.resolution">resolution (classes.graphic_classes.Video attribute)</a>
+
+      <ul>
+        <li><a href="graphic_classes.html#classes.graphic_classes.WindowArea.resolution">(classes.graphic_classes.WindowArea attribute)</a>
+</li>
+      </ul></li>
       <li><a href="tool_functions.html#tool_functions.rgb_color_to_hex">rgb_color_to_hex() (in module tool_functions)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicJoint.rotate">rotate() (classes.graphic_classes.GraphicJoint method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -799,7 +937,19 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="audio.html#classes.audio.Audio.samples">samples (classes.audio.Audio attribute)</a>
+
+      <ul>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.samples">(classes.audio_derivatives.AudioDerivative attribute)</a>
 </li>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.Envelope.samples">(classes.audio_derivatives.Envelope attribute)</a>
+</li>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.Formant.samples">(classes.audio_derivatives.Formant attribute)</a>
+</li>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.Intensity.samples">(classes.audio_derivatives.Intensity attribute)</a>
+</li>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.Pitch.samples">(classes.audio_derivatives.Pitch attribute)</a>
+</li>
+      </ul></li>
       <li><a href="audio.html#classes.audio.Audio.save">save() (classes.audio.Audio method)</a>
 
       <ul>
@@ -816,6 +966,8 @@
         <li><a href="io_functions.html#io_functions.save_stats">(in module io_functions)</a>
 </li>
       </ul></li>
+      <li><a href="display_functions.html#display_functions.save_video_sequence">save_video_sequence() (in module display_functions)</a>
+</li>
       <li><a href="tool_functions.html#tool_functions.scale_audio">scale_audio() (in module tool_functions)</a>
 </li>
       <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.scale_joint">scale_joint (classes.graphic_classes.GraphicSequence attribute)</a>
@@ -824,29 +976,81 @@
 </li>
       <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.sequence">sequence (classes.graphic_classes.GraphicSequence attribute)</a>
 </li>
-      <li><a href="graphic_functions.html#graphic_functions.sequence_comparer">sequence_comparer() (in module graphic_functions)</a>
+      <li><a href="display_functions.html#display_functions.sequence_comparer">sequence_comparer() (in module display_functions)</a>
 </li>
-      <li><a href="graphic_functions.html#graphic_functions.sequence_reader">sequence_reader() (in module graphic_functions)</a>
+      <li><a href="display_functions.html#display_functions.sequence_reader">sequence_reader() (in module display_functions)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.WindowArea.set_blit_coordinates">set_blit_coordinates() (classes.graphic_classes.WindowArea method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.set_color_background">set_color_background() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.set_color_joint_corrected">set_color_joint_corrected() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.set_color_joint_default">set_color_joint_default() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.set_color_line">set_color_line() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.WindowArea.set_elements">set_elements() (classes.graphic_classes.WindowArea method)</a>
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence.set_first_timestamp">set_first_timestamp() (classes.sequence.Sequence method)</a>
 </li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Video.set_frame_from_index">set_frame_from_index() (classes.graphic_classes.Video method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Video.set_frame_from_timestamp">set_frame_from_timestamp() (classes.graphic_classes.Video method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.WindowArea.set_height_window_in_meters">set_height_window_in_meters() (classes.graphic_classes.WindowArea method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.set_ignore_bottom">set_ignore_bottom() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
       <li><a href="joint.html#classes.joint.Joint.set_joint_label">set_joint_label() (classes.joint.Joint method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="audio.html#classes.audio.Audio.set_name">set_name() (classes.audio.Audio method)</a>
 
       <ul>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.set_name">(classes.audio_derivatives.AudioDerivative method)</a>
+</li>
         <li><a href="sequence.html#classes.sequence.Sequence.set_name">(classes.sequence.Sequence method)</a>
 </li>
       </ul></li>
       <li><a href="sequence.html#classes.sequence.Sequence.set_path_audio">set_path_audio() (classes.sequence.Sequence method)</a>
 </li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.set_pose_from_index">set_pose_from_index() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.set_pose_from_timestamp">set_pose_from_timestamp() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="joint.html#classes.joint.Joint.set_position">set_position() (classes.joint.Joint method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.WindowArea.set_resolution">set_resolution() (classes.graphic_classes.WindowArea method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.set_scale_joint">set_scale_joint() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.set_shape_joint">set_shape_joint() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.set_shift_x">set_shift_x() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.set_shift_y">set_shift_y() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.set_show_joints_corrected">set_show_joints_corrected() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.set_show_lines">set_show_lines() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.set_size_joint_default">set_size_joint_default() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.set_size_joint_hand">set_size_joint_hand() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.set_size_joint_head">set_size_joint_head() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Timer.set_speed">set_speed() (classes.graphic_classes.Timer method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Timer.set_timer">set_timer() (classes.graphic_classes.Timer method)</a>
 </li>
       <li><a href="pose.html#classes.pose.Pose.set_timestamp">set_timestamp() (classes.pose.Pose method)</a>
 </li>
       <li><a href="joint.html#classes.joint.Joint.set_to_zero">set_to_zero() (classes.joint.Joint method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.set_width_line">set_width_line() (classes.graphic_classes.GraphicSequence method)</a>
 </li>
       <li><a href="joint.html#classes.joint.Joint.set_x">set_x() (classes.joint.Joint method)</a>
 </li>
@@ -854,9 +1058,31 @@
 </li>
       <li><a href="joint.html#classes.joint.Joint.set_z">set_z() (classes.joint.Joint method)</a>
 </li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.set_zoom_level">set_zoom_level() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
       <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.shape_joint">shape_joint (classes.graphic_classes.GraphicSequence attribute)</a>
 </li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.shift_x">shift_x (classes.graphic_classes.GraphicSequence attribute)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.shift_y">shift_y (classes.graphic_classes.GraphicSequence attribute)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicJoint.show">show() (classes.graphic_classes.GraphicJoint method)</a>
+
+      <ul>
+        <li><a href="graphic_classes.html#classes.graphic_classes.GraphicPose.show">(classes.graphic_classes.GraphicPose method)</a>
+</li>
+        <li><a href="graphic_classes.html#classes.graphic_classes.Video.show">(classes.graphic_classes.Video method)</a>
+</li>
+        <li><a href="graphic_classes.html#classes.graphic_classes.WindowArea.show">(classes.graphic_classes.WindowArea method)</a>
+</li>
+      </ul></li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Video.show_frame">show_frame() (classes.graphic_classes.Video method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicPose.show_line">show_line() (classes.graphic_classes.GraphicPose method)</a>
+</li>
       <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.show_lines">show_lines (classes.graphic_classes.GraphicSequence attribute)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.show_pose">show_pose() (classes.graphic_classes.GraphicSequence method)</a>
 </li>
       <li><a href="tool_functions.html#tool_functions.show_progression">show_progression() (in module tool_functions)</a>
 </li>
@@ -866,6 +1092,8 @@
 </li>
       <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.size_joint_head">size_joint_head (classes.graphic_classes.GraphicSequence attribute)</a>
 </li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Timer.speed">speed (classes.graphic_classes.Timer attribute)</a>
+</li>
       <li><a href="tool_functions.html#tool_functions.stereo_to_mono">stereo_to_mono() (in module tool_functions)</a>
 </li>
   </ul></td>
@@ -874,19 +1102,37 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Video.time_next_frame">time_next_frame (classes.graphic_classes.Video attribute)</a>
+</li>
+      <li><a href="sequence.html#classes.sequence.Sequence.time_unit">time_unit (classes.sequence.Sequence attribute)</a>
+</li>
       <li><a href="graphic_classes.html#classes.graphic_classes.Timer">Timer (class in classes.graphic_classes)</a>
 </li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.timer">timer (classes.graphic_classes.GraphicSequence attribute)</a>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Timer.timer">timer (classes.graphic_classes.Timer attribute)</a>
+</li>
+      <li><a href="pose.html#classes.pose.Pose.timestamp">timestamp (classes.pose.Pose attribute)</a>
+</li>
+      <li><a href="audio.html#classes.audio.Audio.timestamps">timestamps (classes.audio.Audio attribute)</a>
 
       <ul>
-        <li><a href="graphic_classes.html#classes.graphic_classes.Timer.timer">(classes.graphic_classes.Timer attribute)</a>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.timestamps">(classes.audio_derivatives.AudioDerivative attribute)</a>
+</li>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.Envelope.timestamps">(classes.audio_derivatives.Envelope attribute)</a>
+</li>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.Formant.timestamps">(classes.audio_derivatives.Formant attribute)</a>
+</li>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.Intensity.timestamps">(classes.audio_derivatives.Intensity attribute)</a>
+</li>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.Pitch.timestamps">(classes.audio_derivatives.Pitch attribute)</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pose.html#classes.pose.Pose.timestamp">timestamp (classes.pose.Pose attribute)</a>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.toggle_ignore_bottom">toggle_ignore_bottom() (classes.graphic_classes.GraphicSequence method)</a>
 </li>
-      <li><a href="audio.html#classes.audio.Audio.timestamps">timestamps (classes.audio.Audio attribute)</a>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.toggle_show_joints_corrected">toggle_show_joints_corrected() (classes.graphic_classes.GraphicSequence method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.toggle_show_lines">toggle_show_lines() (classes.graphic_classes.GraphicSequence method)</a>
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence.trim">trim() (classes.sequence.Sequence method)</a>
 </li>
@@ -895,16 +1141,44 @@
   </ul></td>
 </tr></table>
 
-<h2 id="W">W</h2>
+<h2 id="U">U</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicWindow.width">width (classes.graphic_classes.GraphicWindow attribute)</a>
-</li>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.width_line">width_line (classes.graphic_classes.GraphicSequence attribute)</a>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Timer.unpause">unpause() (classes.graphic_classes.Timer method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicWindow.window">window (classes.graphic_classes.GraphicWindow attribute)</a>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Timer.update">update() (classes.graphic_classes.Timer method)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Timer.update_marker">update_marker (classes.graphic_classes.Timer attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="V">V</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Video">Video (class in classes.graphic_classes)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="graphic_classes.html#classes.graphic_classes.Video.video">video (classes.graphic_classes.Video attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="W">W</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="graphic_classes.html#classes.graphic_classes.WindowArea.width">width (classes.graphic_classes.WindowArea attribute)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.width_line">width_line (classes.graphic_classes.GraphicSequence attribute)</a>
+</li>
+      <li><a href="graphic_classes.html#classes.graphic_classes.WindowArea.window_area">window_area (classes.graphic_classes.WindowArea attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="graphic_classes.html#classes.graphic_classes.WindowArea">WindowArea (class in classes.graphic_classes)</a>
 </li>
       <li><a href="tool_functions.html#tool_functions.write_text_table">write_text_table() (in module tool_functions)</a>
 </li>
@@ -945,6 +1219,10 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="joint.html#classes.joint.Joint.z">z (classes.joint.Joint attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.zoom_level">zoom_level (classes.graphic_classes.GraphicSequence attribute)</a>
 </li>
   </ul></td>
 </tr></table>

@@ -223,7 +223,7 @@ def create_subfolders(path, verbosity=1):
             partial_path += folders[i] + "/"
         if "." in folders[-1]:
             if verbosity > 0:
-                print("Not creating " + partial_path + " as it is not a valid folder.")
+                print("Not creating " + path + " as it is not a valid folder.")
             break
         if not os.path.exists(partial_path):
             os.mkdir(partial_path)
@@ -729,7 +729,7 @@ def write_xlsx(table, path, verbosity=1):
 
 
 # === Calculation functions ===
-def resample_data(data, time_points, frequency, mode="linear"):
+def resample_data(data, time_points, frequency, mode="linear", time_unit="s"):
     """Resamples non-uniform data to a uniform time series according to a specific frequency, by interpolating the data.
 
     .. versionadded:: 2.0
@@ -757,6 +757,8 @@ def resample_data(data, time_points, frequency, mode="linear"):
         ``"zero"``, ``"slinear"``, ``"quadratic"``, ``"cubic"``”, ``"previous"``, and ``"next"``. See the
         `documentation for this Python module
         <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`_ for more.
+    time_unit: str, optional
+        The time unit of the time points. By default, it is set on "s" (seconds).
 
     Returns
     -------
@@ -771,7 +773,7 @@ def resample_data(data, time_points, frequency, mode="linear"):
     except ImportError:
         raise ModuleNotFoundException("numpy", "resample data.")
 
-    step = 1 / frequency
+    step = (1 / frequency) * UNITS[time_unit]
     resampled_time_points = arange(min(time_points), max(time_points) + step/2, step)
     if resampled_time_points[-1] > max(time_points):
         resampled_time_points = resampled_time_points[:-1]
@@ -831,6 +833,111 @@ def interpolate_data(data, time_points_data, time_points_interpolation, mode="li
 
     resampled_data = interp(np_time_points_complete)
     return resampled_data, np_time_points_complete
+
+
+def pad_with_zeros(data, time_points_data, time_points_padding, verbosity=1):
+    """Given an array of values (``data``) and its corresponding ``time_points_data``, and a larger array
+    ``time_points_padding``, pads the data array with zeros for the time points present in ``time_points_padding`` that
+    are absent from ``time_points_data``.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    data: list(float) or numpy.ndarray(float)
+        A list or an array of values.
+    time_points_data: list(float) or numpy.ndarray(float)
+        A list or an array of the time points corresponding to the values of the data.
+    time_points_padding: list(float) or numpy.ndarray(float)
+        A list or an array of time points containing the values from ``time_points_data`` (or values equal up to the
+        fifth decimal), with additional values at the beginning and/or at the end.
+    verbosity: int, optional
+        Sets how much feedback the code will provide in the console output:
+
+        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+          current steps.
+        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+          may clutter the output and slow down the execution.
+
+    Returns
+    -------
+    np.ndarray
+        The original data array, padded with zeros.
+    list
+        The array ``time_points_padding``, passed as parameter.
+    """
+
+    if len(data) != len(time_points_data):
+        raise Exception("The length of the data array (" + str(len(data)) + ") is inconsistent with the length of " +
+                        "the time points (" + str(len(time_points_data)) + ").")
+
+    if time_points_data[0] < time_points_padding[0]:
+        raise Exception("The first point of the time points padding array (" + str(time_points_padding[0]) + ") must " +
+                        "be inferior or equal to the first time point of the data (" + str(time_points_data[0]) + ").")
+
+    if time_points_data[-1] > time_points_padding[-1]:
+        raise Exception("The last point of the time points padding array (" + str(time_points_padding[-1]) + ") must " +
+                        "be superior or equal to the last time point of the data (" + str(time_points_data[-1]) + ").")
+
+    import numpy as np
+
+    padded_data = np.zeros(np.shape(time_points_padding), dtype=np.float64)
+    inconsistency = False
+
+    i = 0
+    while round(time_points_padding[i], 5) < round(time_points_data[0], 5):
+        padded_data[i] = 0
+        if verbosity > 1:
+            print("Padding · Iteration: " + str(i) + "/" + str(len(time_points_padding)) + " · Timestamp padding: " +
+                  str(time_points_padding[i]) + ".")
+        i += 1
+
+    for j in range(len(time_points_data)):
+        if round(time_points_padding[i], 5) != round(time_points_data[j], 5) and not inconsistency:
+            print("Warning: the original time points and the time points used for the padding seem inconsistent with "
+                  "each other: " + str(round(time_points_padding[i], 5)) + " and " +
+                  str(round(time_points_data[j], 5)) + ".")
+            inconsistency = True
+        padded_data[i] = data[j]
+        if verbosity > 1:
+            print("Copying · Iteration: " + str(i) + "/" + str(len(time_points_padding)) + " · Timestamp padding: " +
+                  str(time_points_padding[i]) + " · Iteration original: " + str(j) + "/" + str(len(time_points_data)) +
+                  " · Original timestamp: " + str(time_points_data[j]) + ".")
+        i += 1
+    while i < len(time_points_padding):
+        padded_data[i] = 0
+        if verbosity > 1:
+            print("Padding · Iteration: " + str(i) + "/" + str(len(time_points_padding)) + " · Timestamp padding: " +
+                  str(time_points_padding[i]) + ".")
+        i += 1
+
+    return padded_data, time_points_padding
+
+
+def add_delay(timestamps, delay):
+    """Given an array of timestamps, adds or removes a delay to each timestamp.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    timestamps: list(float)
+        An array of timestamps.
+    delay: float
+        The delay, positive or negative to add to each timestamp.
+
+    Returns
+    -------
+    list(float)
+        An array of timestamps with the delay specified as parameter.
+    """
+
+    new_timestamps = []
+    for t in timestamps:
+        new_timestamps.append(t + delay)
+
+    return new_timestamps
 
 
 def calculate_distance(joint1, joint2):
@@ -1723,6 +1830,23 @@ def load_joints_subplot_layout(joint_layout):
     return joints_positions, joint_layout
 
 
+def load_steps_gui():
+    """Loads the steps for the modification of the parameters in the GUI of the graphic functions, from the file
+    ``res/steps_gui.txt``.
+
+    .. versionadded:: 2.0
+    """
+    with open("res/steps_gui.txt") as f:
+        lines = f.read().split("\n")
+
+    steps = {}
+    for line in lines:
+        elements = line.split("\t")
+        steps[elements[0]] = float(elements[1])
+
+    return steps
+
+
 # === Miscellaneous functions ===
 def show_progression(verbosity, current_iteration, goal, next_percentage, step=10):
     """Shows a percentage of progression if verbosity is equal to 1.
@@ -1849,3 +1973,71 @@ def get_min_max_values_from_plot_dictionary(plot_dictionary):
                 max_value = plot_dictionary[key]
 
     return min_value, max_value
+
+
+def kwargs_parser(dictionary, suffix):
+    """Given a dictionary of keyword arguments and a suffix, returns a dictionary that removes the suffix from the given
+    keywords. If a key without the suffix already exists in the dictionary, it is left untouched and the key with the
+    suffix is removed.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    dictionary: dict
+        A dictionary of keyword arguments.
+    suffix: str
+        The suffix to look for in the keys of the dictionary.
+    """
+    new_dictionary = {}
+
+    for key in dictionary.keys():
+        if key.endswith(suffix):
+            if len(key) >= len(suffix):
+                key_without_suffix = key[:len(key)-len(suffix)]
+                if key_without_suffix not in dictionary:
+                    new_dictionary[key_without_suffix] = dictionary[key]
+        else:
+            new_dictionary[key] = dictionary[key]
+
+    return new_dictionary
+
+
+def format_time(time, time_unit="s", time_format="hh:mm:ss"):
+    """Formats a given time in a given unit according to a time format.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    time: int or float
+        A value of time.
+    time_unit: str, optional
+        The unit of the ``time`` parameter. This parameter can take the following values: "ns", "1ns", "10ns", "100ns",
+        "µs", "1µs", "10µs", "100µs", "ms", "1ms", "10ms", "100ms", "s", "sec", "1s", "min", "mn", "h", "hr", "d",
+        "day".
+    time_format: str, optional
+        The format in which to return the time. Can be either "hh:mm:ss", "hh:mm:ss.ms", "hh:mm", "mm:ss" or "mm:ss.ms".
+    """
+    time = time / UNITS[time_unit]
+    hour = int(time // 3600)
+    minute = int((time // 60) % 60)
+    second = int((time % 60) // 1)
+    millisecond = int((time % 1) * 1000)
+    if time_format.startswith("hh:mm:ss"):
+        if time_format.endswith(".ms"):
+            return str(hour).zfill(2) + ":" + str(minute).zfill(2) + ":" + str(second).zfill(2) + "." + \
+                   str(millisecond).zfill(3)
+        else:
+            return str(hour).zfill(2) + ":" + str(minute).zfill(2) + ":" + str(second).zfill(2)
+    elif time_format == "hh:mm":
+        return str(hour).zfill(2) + ":" + str(minute).zfill(2)
+    elif time_format.startswith("mm:ss"):
+        minute = int(time // 60)
+        if time_format.endswith(".ms"):
+            return str(minute).zfill(2) + ":" + str(second).zfill(2) + "." + str(millisecond).zfill(3)
+        else:
+            return str(minute).zfill(2) + ":" + str(second).zfill(2)
+
+    else:
+        raise Exception('Wrong value for the time_format parameter. It should be "hh:mm:ss" or "mm:ss".')

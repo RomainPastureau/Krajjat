@@ -13,6 +13,8 @@ Initialisation
 
 Magic methods
 -------------
+.. automethod:: classes.audio.Audio.__len__
+.. automethod:: classes.audio.Audio.__getitem__
 
 Public methods
 --------------
@@ -34,6 +36,9 @@ Getter functions
 Transformation functions
 ^^^^^^^^^^^^^^^^^^^^^^^^
 .. automethod:: classes.audio.Audio.get_envelope
+.. automethod:: classes.audio.Audio.get_pitch
+.. automethod:: classes.audio.Audio.get_intensity
+.. automethod:: classes.audio.Audio.get_formant
 .. automethod:: classes.audio.Audio.resample
 
 Conversion functions
@@ -66,4 +71,5 @@ Saving functions
 .. automethod:: classes.audio.Audio._save_json
 .. automethod:: classes.audio.Audio._save_mat
 .. automethod:: classes.audio.Audio._save_xlsx
+.. automethod:: classes.audio.Audio._save_wav
 .. automethod:: classes.audio.Audio._save_txt

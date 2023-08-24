@@ -209,9 +209,9 @@ class Pose(object):
         timestamp_first_pose: float
             The timestamp of the first pose of the sequence, in its original time unit.
         time_unit: str, optional
-            The time unit of the timestamps of the sequence. This parameter can take the following values: among the
-            following values: "ns", "1ns", "10ns", "100ns", "µs", "1µs", "10µs", "100µs", "ms", "1ms", "10ms", "100ms",
-            "s", "sec", "1s", "min", "mn", "h", "hr", "d", "day".
+            The time unit of the timestamps of the sequence. This parameter can take the following values:  "ns", "1ns",
+             "10ns", "100ns", "µs", "1µs", "10µs", "100µs", "ms", "1ms", "10ms", "100ms", "s", "sec", "1s", "min", "mn",
+              "h", "hr", "d", "day".
 
         """
         self.relative_timestamp = (self.timestamp - timestamp_first_pose) / UNITS[time_unit]

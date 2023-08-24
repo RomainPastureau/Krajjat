@@ -30,17 +30,27 @@ Looking at the data
 -------------------
 
 We can take a look at the data by using various visualisation functions. First, let's just show the tracked points.
-As we only want to see the joints, and not a skeleton, we will set ``show_lines`` on ``False``.
+As we only want to see the joints, and not a skeleton, we will set ``show_lines`` on ``False``. We also want the joints
+to appear in blue over a dark grey background:
 
 .. code-block:: python
 
-    >>> sequence_reader(sequence, show_lines=False)
+    >>> sequence_reader(sequence, show_lines=False, color_joint="sky blue", color_background=(20, 20, 20))
+
+This function (along with all of the :doc:`display_functions`) allow for deep customization. You can find all of the
+details in the :ref:`keyword_arguments_display_functions`.
 
 We can also plot how the joints velocity vary across time:
 
 .. code-block:: python
 
     >>> velocity_plotter(sequence)
+
+Finally, we can print some statistics about the current sequence.
+
+.. code-block:: python
+
+    >>> sequence.print_stats()
 
 Pre-processing
 --------------

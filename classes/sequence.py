@@ -50,7 +50,9 @@ class Sequence(object):
             • If set on ``"ms"``, divides the timestamps from the file by 1 000.
             • If set on ``"s"``, the function will preserve the timestamps as they are in the file.
 
-        The parameter also allows other units. See the documentation for the function
+        The parameter also allows other units: ``"ns"``, ``"1ns"``, ``"10ns"``, ``"100ns"``, ``"µs"``, ``"1µs"``,
+        ``"10µs"``, ``"100µs"``, ``"ms"``, ``"1ms"``, ``"10ms"``, ``"100ms"``, ``"s"``, ``"sec"``, ``"1s"``, ``"min"``,
+        ``"mn"``, ``"h"``, ``"hr"``, ``"d"``, ``"day"``. See the documentation for the function
         :meth:`Sequence._calculate_relative_timestamps()`.
 
     start_timestamps_at_zero: bool, optional
@@ -87,6 +89,8 @@ class Sequence(object):
         :meth:`Sequence.randomize()`. Is ``False`` upon initialisation.
     date_recording: datetime
         The date at which the recording was performed, extracted from the file.
+    time_unit: str
+        The time unit of the timestamps.
     """
 
     def __init__(self, path=None, path_audio=None, name=None, time_unit="auto", start_timestamps_at_zero=False,
@@ -101,13 +105,14 @@ class Sequence(object):
         self.poses = []  # List of the poses in the sequence, ordered
         self.randomized = False  # True if the joints positions are randomized
         self.date_recording = None  # Placeholder for the date of the recording.
+        self.time_unit = time_unit  # Time unit of the timestamps
 
         # In the case where a file or folder is passed as argument,
         # we load the sequence
         self.path = path  # Placeholder for the path
 
         if path is not None:
-            self._load_from_path(time_unit)
+            self._load_from_path()
 
         if start_timestamps_at_zero:
             self.set_first_timestamp(0)
@@ -215,7 +220,7 @@ class Sequence(object):
                     self.name) + " was attributed to the " +
                       "sequence.")
 
-    def _load_from_path(self, time_unit, verbosity=1):
+    def _load_from_path(self, verbosity=1):
         """Loads the sequence data from the :attr:`path` provided during the initialization, and calculates the relative
         timestamps from the first pose for each pose.
 
@@ -223,22 +228,6 @@ class Sequence(object):
 
         Parameters
         ----------
-        time_unit: str or None, optional
-            The unit of time of the timestamps in the original file. Depending on the value put as parameter, the
-            timestamps will be converted to seconds.
-
-            • If set on ``"auto"``, the function :meth:`Sequence._calculate_relative_timestamps()` will try to
-              automatically detect the unit of the timestamps based on the difference of time between the two first
-              frames, and will divide the timestamps by 10 000 000 (if it detects the timestamps to be in 100 ns), by
-              1 000 (if the timestamps are in ms), or won't divide them (if the timestamps are already in s).
-            • If set on ``"100ns"``, divides the timestamps from the file by 10 000 000. Typically, this is due to
-              the output timestamps from Kinect being in tenth of microsecond (C# system time).
-            • If set on ``"ms"``, divides the timestamps from the file by 1 000.
-            • If set on ``"s"``, the function will preserve the timestamps as they are in the file.
-
-            The parameter also allows other units. See the documentation for the function
-            :meth:`Sequence._calculate_relative_timestamps()`.
-
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
 
@@ -265,7 +254,7 @@ class Sequence(object):
         if len(self.poses) == 0:
             raise EmptySequenceException()
 
-        self._calculate_relative_timestamps(time_unit)  # Sets the relative time from the first pose for each pose
+        self._calculate_relative_timestamps()  # Sets the relative time from the first pose for each pose
 
     def _fetch_files_from_folder(self, verbosity=1):
         """Finds all the files ending with the accepted extensions (``.csv``, ``.json``, ``.tsv``, ``.txt``, or
@@ -559,12 +548,12 @@ class Sequence(object):
         for i in range(len(headers)):
             data[headers[i]] = values[i]
 
-        pose = Pose(float(table["Timestamp"]))
+        pose = Pose(float(data["Timestamp"]))
 
         for value in headers:
             if value[-2:] == "_X":
                 label = value[:-2]
-                joint = Joint(label, float(table[label + "_X"]), float(table[label + "_Y"]), float(table[label + "_Z"]))
+                joint = Joint(label, float(data[label + "_X"]), float(data[label + "_Y"]), float(data[label + "_Z"]))
                 pose.add_joint(label, joint)
 
         self.poses.append(pose)
@@ -636,10 +625,10 @@ class Sequence(object):
 
     # === Calculation functions ===
 
-    def _calculate_relative_timestamps(self, time_unit="auto"):
+    def _calculate_relative_timestamps(self):
         """For all the poses of the sequence, sets and converts the relative_timestamp attribute taking the first pose
         of the sequence as reference. This function is called internally any time a sequence is created. It first
-        defines the unit if the parameter ``time_unit`` is set on ``"auto"``. To do so, it checks if the difference
+        defines the unit if the attribute :attr:`time_unit` is set on ``"auto"``. To do so, it checks if the difference
         between the timestamps of the two first poses of the sequence:
 
             • If it is over 1000, the function presumes that the unit is in hundreds of ns (C# precision unit,
@@ -648,34 +637,28 @@ class Sequence(object):
             • If it is below that threshold, or if there is only one pose in the sequence, it presumes that the unit
               is in seconds.
 
+        Otherwise, it is possible to manually define the unit, among the following values: ``"ns"``, ``"1ns"``,
+        ``"10ns"``, ``"100ns"``, ``"µs"``, ``"1µs"``, ``"10µs"``, ``"100µs"``, ``"ms"``, ``"1ms"``, ``"10ms"``,
+        ``"100ms"``, ``"s"``, ``"sec"``, ``"1s"``, ``"min"``, ``"mn"``, ``"h"``, ``"hr"``, ``"d"``, ``"day"``.
+
         .. versionadded:: 2.0
-
-        Parameters
-        ----------
-        time_unit: str (optional)
-            If set on "auto" (default), the function automatically tries to detect if the timestamps are in hundreds of
-            nanoseconds, in milliseconds or in seconds. Otherwise, it is possible to manually define the unit, among
-            the following values: ``"ns"``, ``"1ns"``, ``"10ns"``, ``"100ns"``, ``"µs"``, ``"1µs"``, ``"10µs"``,
-            ``"100µs"``, ``"ms"``, ``"1ms"``, ``"10ms"``, ``"100ms"``, ``"s"``, ``"sec"``, ``"1s"``, ``"min"``,
-            ``"mn"``, ``"h"``, ``"hr"``, ``"d"``, ``"day"``.
-
-"""
-        if time_unit == "auto":
+        """
+        if self.time_unit == "auto":
             if len(self.poses) > 1:
                 if self.poses[1].get_timestamp() - self.poses[0].get_timestamp() >= 1000:
-                    time_unit = "100ns"
+                    self.time_unit = "100ns"
                 elif self.poses[1].get_timestamp() - self.poses[0].get_timestamp() >= 1:
-                    time_unit = "ms"
+                    self.time_unit = "ms"
                 else:
-                    time_unit = "s"
+                    self.time_unit = "s"
             else:
-                time_unit = "s"
+                self.time_unit = "s"
 
         # Validity check
-        time_unit = time_unit.lower().replace(" ", "")  # Removes spaces
+        self.time_unit = self.time_unit.lower().replace(" ", "")  # Removes spaces
         units = ["ns", "1ns", "10ns", "100ns", "µs", "1µs", "10µs", "100µs", "ms", "1ms", "10ms", "100ms",
                  "s", "sec", "1s", "min", "mn", "h", "hr", "d", "day"]
-        if time_unit not in units:
+        if self.time_unit not in units:
             raise Exception("Invalid time unit. Should be ns, µs, ms or s.")
 
         t = self.poses[0].get_timestamp()
@@ -686,7 +669,7 @@ class Sequence(object):
                 if self.poses[p].timestamp - self.poses[p - 1].timestamp < 0:
                     raise ImpossibleTimeTravelException(p, p-1, self.poses[p].timestamp, self.poses[p - 1].timestamp,
                                                         len(self.poses), "pose")
-            self.poses[p]._calculate_relative_timestamp(t, time_unit)
+            self.poses[p]._calculate_relative_timestamp(t, self.time_unit)
 
     # === Getter functions ===
 
@@ -747,6 +730,79 @@ class Sequence(object):
             raise InvalidPoseIndexException(pose_index, len(self.poses))
 
         return self.poses[pose_index]
+
+    def get_pose_index_from_timestamp(self, timestamp, method="closest"):
+        """Returns the closest pose index from the provided timestamp.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        timestamp: float
+            A relative timestamp, in seconds.
+        method: str, optional
+            This parameter can take multiple values:
+
+            • If set on ``"closest"`` (default), returns the closest pose index from the timestamp.
+            • If set on ``"below"``, ``"lower"`` or ``"under"``, returns the closest pose index below the timestamp.
+            • If set on ``"above"``, ``"higher"`` or ``"over"``, returns the closest pose index above the timestamp.
+        """
+
+        if timestamp <= self.get_duration()/2:
+            pose_index_before = 0
+            pose_index_after = 0
+            for pose_index in range(0, len(self.poses)):
+                if self.poses[pose_index].relative_timestamp <= timestamp:
+                    pose_index_before = pose_index
+                    if pose_index != len(self.poses) - 1:
+                        pose_index_after = pose_index + 1
+                else:
+                    break
+        else:
+            pose_index_before = len(self.poses)-1
+            pose_index_after = len(self.poses)-1
+            for pose_index in range(len(self.poses)-1, -1, -1):
+                if self.poses[pose_index].relative_timestamp >= timestamp:
+                    pose_index_after = pose_index
+                    if pose_index != 0:
+                        pose_index_before = pose_index - 1
+                else:
+                    break
+
+        if method == "closest":
+            if abs(timestamp - self.poses[pose_index_before].relative_timestamp) <= \
+                    abs(timestamp - self.poses[pose_index_after].relative_timestamp):
+                return pose_index_before
+            else:
+                return pose_index_after
+        elif method in ["below", "lower", "under"]:
+            return pose_index_before
+        elif method in ["above", "higher", "over"]:
+            return pose_index_after
+        else:
+            raise Exception('Invalid parameter "method": the value should be "lower", "higher" or "closest".')
+
+    def get_pose_from_timestamp(self, timestamp, method="closest"):
+        """Returns the closest pose from the provided timestamp.
+
+        .. versionadded:: 2.0
+
+        Note
+        ----
+        This function is a wrapper for the function :meth:`get_pose_index_from_timestamp`.
+
+        Parameters
+        ----------
+        timestamp: float
+            A relative timestamp.
+        method: str, optional
+            This parameter can take multiple values:
+
+            • If set on ``"closest"`` (default), returns the closest pose index from the timestamp.
+            • If set on ``"below"``, ``"lower"`` or ``"under"``, returns the closest pose index below the timestamp.
+            • If set on ``"above"``, ``"higher"`` or ``"over"``, returns the closest pose index above the timestamp.
+        """
+        return self.poses[self.get_pose_index_from_timestamp(timestamp, method)]
 
     def get_number_of_poses(self):
         """Returns the number of poses in the sequence.
@@ -1172,11 +1228,11 @@ class Sequence(object):
         """
         total_velocity_single_joint = 0
 
-        if joint_label not in self.poses[0].keys():
+        if joint_label not in self.poses[0].joints.keys():
             raise InvalidJointLabelException(joint_label)
 
         for p in range(1, len(self.poses)):
-            if joint_label not in self.poses[p].keys():
+            if joint_label not in self.poses[p].joints.keys():
                 raise InvalidJointLabelException(joint_label)
             total_velocity_single_joint += calculate_velocity(self.poses[p - 1], self.poses[p], joint_label)
 
@@ -2303,13 +2359,15 @@ class Sequence(object):
         i = 0
 
         for joint_label in x_points.keys():
+            if verbosity > 1:
+                print("\t\tJoint label: " + str(joint_label))
             perc = show_progression(verbosity, i, no_joints, perc)
             new_x_points[joint_label], new_time_points = resample_data(x_points[joint_label],
-                                                                       time_points, frequency, mode)
+                                                                       time_points, frequency, mode, self.time_unit)
             new_y_points[joint_label], new_time_points = resample_data(y_points[joint_label],
-                                                                       time_points, frequency, mode)
+                                                                       time_points, frequency, mode, self.time_unit)
             new_z_points[joint_label], new_time_points = resample_data(z_points[joint_label],
-                                                                       time_points, frequency, mode)
+                                                                       time_points, frequency, mode, self.time_unit)
             i += 1
 
         # Define the percentage counter
@@ -3521,7 +3579,7 @@ class Sequence(object):
         return len(self.poses)
 
     def __getitem__(self, index):
-        """Returns the pose or poses of index specified by the parameter key.
+        """Returns the pose of index specified by the parameter ``index``.
 
         Parameters
         ----------

@@ -20,7 +20,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Graphic Classes" href="graphic_classes.html" />
+    <link rel="next" title="Audio derivatives" href="audio_derivatives.html" />
     <link rel="prev" title="Joint" href="joint.html" /> 
 </head>
 
@@ -55,7 +55,11 @@
 <li class="toctree-l4"><a class="reference internal" href="#classes.audio.Audio"><code class="docutils literal notranslate"><span class="pre">Audio</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#magic-methods">Magic methods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#magic-methods">Magic methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#classes.audio.Audio.__len__"><code class="docutils literal notranslate"><span class="pre">Audio.__len__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#classes.audio.Audio.__getitem__"><code class="docutils literal notranslate"><span class="pre">Audio.__getitem__()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#public-methods">Public methods</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#setter-functions">Setter functions</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#getter-functions">Getter functions</a></li>
@@ -71,6 +75,7 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="audio_derivatives.html">Audio derivatives</a></li>
 <li class="toctree-l2"><a class="reference internal" href="graphic_classes.html">Graphic Classes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="graph_element.html">Graph Elements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="exceptions.html">Exceptions</a></li>
@@ -222,6 +227,40 @@ may clutter the output and slow down the execution.</p></li>
 </section>
 <section id="magic-methods">
 <h2>Magic methods<a class="headerlink" href="#magic-methods" title="Permalink to this heading"></a></h2>
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio.__len__">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">__len__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.__len__" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the number of samples in the audio clip (i.e., the length of the attribute <a class="reference internal" href="#classes.audio.Audio.samples" title="classes.audio.Audio.samples"><code class="xref py py-attr docutils literal notranslate"><span class="pre">samples</span></code></a>).</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The number of samples in the audio clip.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio.__getitem__">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.__getitem__" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the sample of index specified by the parameter <code class="docutils literal notranslate"><span class="pre">index</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>index</strong> (<em>int</em>) – The index of the sample to return.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A sample from the attribute <a class="reference internal" href="#classes.audio.Audio.samples" title="classes.audio.Audio.samples"><code class="xref py py-attr docutils literal notranslate"><span class="pre">samples</span></code></a>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="public-methods">
 <h2>Public methods<a class="headerlink" href="#public-methods" title="Permalink to this heading"></a></h2>
@@ -237,7 +276,7 @@ a means to identify the audio.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – The name you want to give to the audio.</p>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – A name to describe the audio clip.</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
@@ -405,7 +444,65 @@ and returns an Envelope object.</p>
 <dd class="field-even"><p>The filtered envelope of the audio clip.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Envelope</p>
+<dd class="field-odd"><p><a class="reference internal" href="audio_derivatives.html#classes.audio_derivatives.Envelope" title="classes.audio_derivatives.Envelope">Envelope</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio.get_pitch">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">get_pitch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zeros_as_nan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.get_pitch" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the pitch of the voice in the audio clip, and returns a Pitch object.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>zeros_as_nan</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set on True, the values where the pitch is equal to 0 will be replaced by
+<a class="reference external" href="https://numpy.org/doc/stable/reference/constants.html#numpy.nan">numpy.nan</a> objects.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The pitch of the voice in the audio clip.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="audio_derivatives.html#classes.audio_derivatives.Pitch" title="classes.audio_derivatives.Pitch">Pitch</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio.get_intensity">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">get_intensity</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.get_intensity" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the intensity of the voice in the audio clip, and returns an Intensity object.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The intensity of the voice in the audio clip.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="audio_derivatives.html#classes.audio_derivatives.Intensity" title="classes.audio_derivatives.Intensity">Intensity</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio.get_formant">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">get_formant</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">formant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.get_formant" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the formants of the voice in the audio clip, and returns a Formant object.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>formant</strong> (<em>int</em><em>, </em><em>optional.</em>) – One of the formants of the voice in the audio clip (1 (default), 2, 3, 4 or 5).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The value of a formant of the voice in the audio clip.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="audio_derivatives.html#classes.audio_derivatives.Formant" title="classes.audio_derivatives.Formant">Formant</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -962,6 +1059,26 @@ may clutter the output and slow down the execution.</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="classes.audio.Audio._save_wav">
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">_save_wav</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder_out</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio._save_wav" title="Permalink to this definition"></a></dt>
+<dd><p>Saves an audio clip as a .wav file or files. This function is called by the <a class="reference internal" href="#classes.audio.Audio.save" title="classes.audio.Audio.save"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Audio.save()</span></code></a> method, and
+saves the Audio instance as <code class="docutils literal notranslate"><span class="pre">folder_out/name.file_format</span></code>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>folder_out</strong> (<em>str</em>) – The path to the folder where to save the file or files. If one or more subfolders of the path do not exist,
+the function will create them.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Defines the name of the file or files where to save the audio clip. If set on <code class="docutils literal notranslate"><span class="pre">None</span></code>, the name will be set
+on <code class="docutils literal notranslate"><span class="pre">&quot;out&quot;</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="classes.audio.Audio._save_txt">
 <span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">_save_txt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder_out</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'csv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">individual</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio._save_txt" title="Permalink to this definition"></a></dt>
 <dd><p>Saves an audio clip as a .txt, .csv, .tsv, or custom extension file or files. This function is called by the
@@ -1014,7 +1131,7 @@ may clutter the output and slow down the execution.</p></li>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="joint.html" class="btn btn-neutral float-left" title="Joint" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="graphic_classes.html" class="btn btn-neutral float-right" title="Graphic Classes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="audio_derivatives.html" class="btn btn-neutral float-right" title="Audio derivatives" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

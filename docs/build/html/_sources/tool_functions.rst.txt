@@ -43,6 +43,8 @@ Calculation functions
 ^^^^^^^^^^^^^^^^^^^^^
 .. autofunction:: tool_functions.resample_data
 .. autofunction:: tool_functions.interpolate_data
+.. autofunction:: tool_functions.pad_with_zeros
+.. autofunction:: tool_functions.add_delay
 .. autofunction:: tool_functions.calculate_distance
 .. autofunction:: tool_functions.calculate_velocity
 .. autofunction:: tool_functions.calculate_acceleration
@@ -77,9 +79,12 @@ Joint labels loading functions
 .. autofunction:: tool_functions.load_joints_connections
 .. autofunction:: tool_functions.load_qualisys_to_kinect
 .. autofunction:: tool_functions.load_joints_subplot_layout
+.. autofunction:: tool_functions.load_steps_gui
 
 Miscellaneous functions
 ^^^^^^^^^^^^^^^^^^^^^^^
 .. autofunction:: tool_functions.show_progression
 .. autofunction:: tool_functions.resample_images_to_frequency
 .. autofunction:: tool_functions.get_min_max_values_from_plot_dictionary
+.. autofunction:: tool_functions.kwargs_parser
+.. autofunction:: tool_functions.format_time

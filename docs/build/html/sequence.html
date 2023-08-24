@@ -83,6 +83,7 @@
 <li class="toctree-l2"><a class="reference internal" href="pose.html">Pose</a></li>
 <li class="toctree-l2"><a class="reference internal" href="joint.html">Joint</a></li>
 <li class="toctree-l2"><a class="reference internal" href="audio.html">Audio</a></li>
+<li class="toctree-l2"><a class="reference internal" href="audio_derivatives.html">Audio derivatives</a></li>
 <li class="toctree-l2"><a class="reference internal" href="graphic_classes.html">Graphic Classes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="graph_element.html">Graph Elements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="exceptions.html">Exceptions</a></li>
@@ -162,7 +163,9 @@ the output timestamps from Kinect being in tenth of microsecond (C# system time)
 <li><p>If set on <code class="docutils literal notranslate"><span class="pre">&quot;s&quot;</span></code>, the function will preserve the timestamps as they are in the file.</p></li>
 </ul>
 </div></blockquote>
-<p>The parameter also allows other units. See the documentation for the function
+<p>The parameter also allows other units: <code class="docutils literal notranslate"><span class="pre">&quot;ns&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;1ns&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;10ns&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;100ns&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;µs&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;1µs&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;10µs&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;100µs&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;ms&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;1ms&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;10ms&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;100ms&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;s&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;sec&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;1s&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;min&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;mn&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;h&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;hr&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;d&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;day&quot;</span></code>. See the documentation for the function
 <a class="reference internal" href="#classes.sequence.Sequence._calculate_relative_timestamps" title="classes.sequence.Sequence._calculate_relative_timestamps"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence._calculate_relative_timestamps()</span></code></a>.</p>
 </p></li>
 <li><p><strong>start_timestamps_at_zero</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">True</span></code>, the timestamp of the first pose of the sequence will be
@@ -259,6 +262,17 @@ may clutter the output and slow down the execution.</p></li>
 </dl>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.time_unit">
+<span class="sig-name descname"><span class="pre">time_unit</span></span><a class="headerlink" href="#classes.sequence.Sequence.time_unit" title="Permalink to this definition"></a></dt>
+<dd><p>The time unit of the timestamps.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 </section>
@@ -290,7 +304,7 @@ may clutter the output and slow down the execution.</p></li>
 <dl class="py class">
 <dt class="sig sig-object py" id="classes.sequence.Sequence.__getitem__">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">classes.sequence.Sequence.</span></span><span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.__getitem__" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the pose or poses of index specified by the parameter key.</p>
+<dd><p>Returns the pose of index specified by the parameter <code class="docutils literal notranslate"><span class="pre">index</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>index</strong> (<em>int</em>) – The index of the pose to return.</p>
@@ -403,7 +417,7 @@ a means to identify the sequence (typically, <code class="xref py py-func docuti
 <span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">set_path_audio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_audio</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.set_path_audio" title="Permalink to this definition"></a></dt>
 <dd><p>Sets the <a class="reference internal" href="#classes.sequence.Sequence.path_audio" title="classes.sequence.Sequence.path_audio"><code class="xref py py-attr docutils literal notranslate"><span class="pre">path_audio</span></code></a> attribute of the Sequence instance. This path may be used automatically by
 functions using an audio file (typically, <a class="reference internal" href="#classes.sequence.Sequence.trim_to_audio" title="classes.sequence.Sequence.trim_to_audio"><code class="xref py py-func docutils literal notranslate"><span class="pre">Sequence.trim_to_audio()</span></code></a> and
-<a class="reference internal" href="graphic_functions.html#graphic_functions.sequence_reader" title="graphic_functions.sequence_reader"><code class="xref py py-func docutils literal notranslate"><span class="pre">graphic_functions.sequence_reader()</span></code></a>).</p>
+<code class="xref py py-func docutils literal notranslate"><span class="pre">graphic_functions.sequence_reader()</span></code>).</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
@@ -1849,7 +1863,7 @@ may clutter the output and slow down the execution.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.sequence.Sequence._load_from_path">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">_load_from_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time_unit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence._load_from_path" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">_load_from_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence._load_from_path" title="Permalink to this definition"></a></dt>
 <dd><p>Loads the sequence data from the <a class="reference internal" href="#classes.sequence.Sequence.path" title="classes.sequence.Sequence.path"><code class="xref py py-attr docutils literal notranslate"><span class="pre">path</span></code></a> provided during the initialization, and calculates the relative
 timestamps from the first pose for each pose.</p>
 <div class="versionadded">
@@ -1857,32 +1871,15 @@ timestamps from the first pose for each pose.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>time_unit</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – <p>The unit of time of the timestamps in the original file. Depending on the value put as parameter, the
-timestamps will be converted to seconds.</p>
-<ul>
-<li><p>If set on <code class="docutils literal notranslate"><span class="pre">&quot;auto&quot;</span></code>, the function <a class="reference internal" href="#classes.sequence.Sequence._calculate_relative_timestamps" title="classes.sequence.Sequence._calculate_relative_timestamps"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence._calculate_relative_timestamps()</span></code></a> will try to
-automatically detect the unit of the timestamps based on the difference of time between the two first
-frames, and will divide the timestamps by 10 000 000 (if it detects the timestamps to be in 100 ns), by
-1 000 (if the timestamps are in ms), or won’t divide them (if the timestamps are already in s).</p></li>
-<li><p>If set on <code class="docutils literal notranslate"><span class="pre">&quot;100ns&quot;</span></code>, divides the timestamps from the file by 10 000 000. Typically, this is due to
-the output timestamps from Kinect being in tenth of microsecond (C# system time).</p></li>
-<li><p>If set on <code class="docutils literal notranslate"><span class="pre">&quot;ms&quot;</span></code>, divides the timestamps from the file by 1 000.</p></li>
-<li><p>If set on <code class="docutils literal notranslate"><span class="pre">&quot;s&quot;</span></code>, the function will preserve the timestamps as they are in the file.</p></li>
-</ul>
-<p>The parameter also allows other units. See the documentation for the function
-<a class="reference internal" href="#classes.sequence.Sequence._calculate_relative_timestamps" title="classes.sequence.Sequence._calculate_relative_timestamps"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence._calculate_relative_timestamps()</span></code></a>.</p>
-</p></li>
-<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
-<ul>
+<dd class="field-odd"><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul class="simple">
 <li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
 <li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
 current steps.</p></li>
 <li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
 may clutter the output and slow down the execution.</p></li>
 </ul>
-</p></li>
-</ul>
+</p>
 </dd>
 </dl>
 </dd></dl>
@@ -2063,10 +2060,10 @@ may clutter the output and slow down the execution.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.sequence.Sequence._calculate_relative_timestamps">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">_calculate_relative_timestamps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time_unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence._calculate_relative_timestamps" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">_calculate_relative_timestamps</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence._calculate_relative_timestamps" title="Permalink to this definition"></a></dt>
 <dd><p>For all the poses of the sequence, sets and converts the relative_timestamp attribute taking the first pose
 of the sequence as reference. This function is called internally any time a sequence is created. It first
-defines the unit if the parameter <code class="docutils literal notranslate"><span class="pre">time_unit</span></code> is set on <code class="docutils literal notranslate"><span class="pre">&quot;auto&quot;</span></code>. To do so, it checks if the difference
+defines the unit if the attribute <a class="reference internal" href="#classes.sequence.Sequence.time_unit" title="classes.sequence.Sequence.time_unit"><code class="xref py py-attr docutils literal notranslate"><span class="pre">time_unit</span></code></a> is set on <code class="docutils literal notranslate"><span class="pre">&quot;auto&quot;</span></code>. To do so, it checks if the difference
 between the timestamps of the two first poses of the sequence:</p>
 <blockquote>
 <div><ul class="simple">
@@ -2077,18 +2074,12 @@ Kinect output unit).</p></li>
 is in seconds.</p></li>
 </ul>
 </div></blockquote>
+<p>Otherwise, it is possible to manually define the unit, among the following values: <code class="docutils literal notranslate"><span class="pre">&quot;ns&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;1ns&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;10ns&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;100ns&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;µs&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;1µs&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;10µs&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;100µs&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;ms&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;1ms&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;10ms&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;100ms&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;s&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;sec&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;1s&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;min&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;mn&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;h&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;hr&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;d&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;day&quot;</span></code>.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>time_unit</strong> (<em>str</em><em> (</em><em>optional</em><em>)</em>) – If set on “auto” (default), the function automatically tries to detect if the timestamps are in hundreds of
-nanoseconds, in milliseconds or in seconds. Otherwise, it is possible to manually define the unit, among
-the following values: <code class="docutils literal notranslate"><span class="pre">&quot;ns&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;1ns&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;10ns&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;100ns&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;µs&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;1µs&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;10µs&quot;</span></code>,
-<code class="docutils literal notranslate"><span class="pre">&quot;100µs&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;ms&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;1ms&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;10ms&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;100ms&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;s&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;sec&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;1s&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;min&quot;</span></code>,
-<code class="docutils literal notranslate"><span class="pre">&quot;mn&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;h&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;hr&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;d&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;day&quot;</span></code>.</p>
-</dd>
-</dl>
 </dd></dl>
 
 </section>

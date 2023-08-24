@@ -74,6 +74,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="joint.html">Joint</a></li>
 <li class="toctree-l2"><a class="reference internal" href="audio.html">Audio</a></li>
+<li class="toctree-l2"><a class="reference internal" href="audio_derivatives.html">Audio derivatives</a></li>
 <li class="toctree-l2"><a class="reference internal" href="graphic_classes.html">Graphic Classes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="graph_element.html">Graph Elements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="exceptions.html">Exceptions</a></li>
@@ -485,9 +486,14 @@ existing sequence), and sets a value to the attribute <a class="reference intern
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>timestamp_first_pose</strong> (<em>float</em>) – The timestamp of the first pose of the sequence, in its original time unit.</p></li>
-<li><p><strong>time_unit</strong> (<em>str</em><em>, </em><em>optional</em>) – The time unit of the timestamps of the sequence. This parameter can take the following values: among the
-following values: “ns”, “1ns”, “10ns”, “100ns”, “µs”, “1µs”, “10µs”, “100µs”, “ms”, “1ms”, “10ms”, “100ms”,
-“s”, “sec”, “1s”, “min”, “mn”, “h”, “hr”, “d”, “day”.</p></li>
+<li><p><strong>time_unit</strong> (<em>str</em><em>, </em><em>optional</em>) – <dl class="simple">
+<dt>The time unit of the timestamps of the sequence. This parameter can take the following values:  “ns”, “1ns”,</dt><dd><dl class="simple">
+<dt>”10ns”, “100ns”, “µs”, “1µs”, “10µs”, “100µs”, “ms”, “1ms”, “10ms”, “100ms”, “s”, “sec”, “1s”, “min”, “mn”,</dt><dd><p>”h”, “hr”, “d”, “day”.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</p></li>
 </ul>
 </dd>
 </dl>

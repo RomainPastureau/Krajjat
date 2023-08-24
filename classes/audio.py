@@ -3,7 +3,7 @@ This class allows to perform a variety of transformations of the audio stream, s
 formants of the speech.
 """
 
-from classes.audio_derivatives import Envelope
+from classes.audio_derivatives import *
 from classes.exceptions import *
 from tool_functions import *
 
@@ -87,7 +87,7 @@ class Audio(object):
 
     # === Setter functions ===
     def set_name(self, name):
-        """Sets the :py:attr:`name` attribute of the Audio instance. This name can be used as display functions or as
+        """Sets the :attr:`name` attribute of the Audio instance. This name can be used as display functions or as
         a means to identify the audio.
 
         .. versionadded:: 2.0
@@ -95,7 +95,7 @@ class Audio(object):
         Parameters
         ----------
         name : str
-            The name you want to give to the audio.
+            A name to describe the audio clip.
 
         Example
         -------
@@ -712,8 +712,55 @@ class Audio(object):
             The filtered envelope of the audio clip.
         """
         envelope = Envelope(self)
-        envelope.filter_frequencies(filter_below, filter_over)
+        envelope = envelope.filter_frequencies(filter_below, filter_over)
         return envelope
+
+    def get_pitch(self, zeros_as_nan=False):
+        """Calculates the pitch of the voice in the audio clip, and returns a Pitch object.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        zeros_as_nan: bool, optional
+            If set on True, the values where the pitch is equal to 0 will be replaced by
+            `numpy.nan <https://numpy.org/doc/stable/reference/constants.html#numpy.nan>`_ objects.
+
+        Returns
+        -------
+        Pitch
+            The pitch of the voice in the audio clip.
+        """
+        return Pitch(self, zeros_as_nan=zeros_as_nan)
+
+    def get_intensity(self):
+        """Calculates the intensity of the voice in the audio clip, and returns an Intensity object.
+
+        .. versionadded:: 2.0
+
+        Returns
+        -------
+        Intensity
+            The intensity of the voice in the audio clip.
+        """
+        return Intensity(self)
+
+    def get_formant(self, formant=1):
+        """Calculates the formants of the voice in the audio clip, and returns a Formant object.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        formant: int, optional.
+            One of the formants of the voice in the audio clip (1 (default), 2, 3, 4 or 5).
+
+        Returns
+        -------
+        Formant
+            The value of a formant of the voice in the audio clip.
+        """
+        return Formant(self, formant_number=formant)
 
     def resample(self, frequency, mode="cubic", name=None, verbosity=1):
         """Resamples an audio clip to the `frequency` parameter. It first creates a new set of timestamps at the
@@ -763,14 +810,6 @@ class Audio(object):
         if verbosity > 0:
             print("Resampling the audio clip at " + str(frequency) + " Hz (mode: " + str(mode) + ")...")
             print("\tOriginal frequency: " + str(round(self.get_frequency(), 2)))
-
-        # Create an empty Audio object
-        new_audio = Audio(None)
-        if name is None:
-            new_audio.name = self.name + " +RS" + str(frequency)
-        else:
-            new_audio.name = name
-        new_audio.path = self.path
 
         if verbosity > 0:
             print("\tPerforming the resampling...", end=" ")
@@ -1217,3 +1256,30 @@ class Audio(object):
                 write_text_table(self.samples[s].convert_to_table(), separator,
                                  folder_out + "/" + name + "_" + str(s) + "." + file_format, 0)
                 perc = show_progression(verbosity, s, len(self.samples), perc)
+
+    def __len__(self):
+        """Returns the number of samples in the audio clip (i.e., the length of the attribute :attr:`samples`).
+
+        .. versionadded:: 2.0
+
+        Returns
+        -------
+        int
+            The number of samples in the audio clip.
+        """
+        return len(self.samples)
+
+    def __getitem__(self, index):
+        """Returns the sample of index specified by the parameter ``index``.
+
+        Parameters
+        ----------
+        index: int
+            The index of the sample to return.
+
+        Returns
+        -------
+        float
+            A sample from the attribute :attr:`samples`.
+        """
+        return self.samples[index]

@@ -113,12 +113,19 @@ dictionary.</p>
 <section id="looking-at-the-data">
 <h2>Looking at the data<a class="headerlink" href="#looking-at-the-data" title="Permalink to this heading"></a></h2>
 <p>We can take a look at the data by using various visualisation functions. First, let’s just show the tracked points.
-As we only want to see the joints, and not a skeleton, we will set <code class="docutils literal notranslate"><span class="pre">show_lines</span></code> on <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sequence_reader</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="n">show_lines</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+As we only want to see the joints, and not a skeleton, we will set <code class="docutils literal notranslate"><span class="pre">show_lines</span></code> on <code class="docutils literal notranslate"><span class="pre">False</span></code>. We also want the joints
+to appear in blue over a dark grey background:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sequence_reader</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="n">show_lines</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">color_joint</span><span class="o">=</span><span class="s2">&quot;sky blue&quot;</span><span class="p">,</span> <span class="n">color_background</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">))</span>
 </pre></div>
 </div>
+<p>This function (along with all of the <a class="reference internal" href="display_functions.html"><span class="doc">Display functions</span></a>) allow for deep customization. You can find all of the
+details in the <a class="reference internal" href="display_functions.html#keyword-arguments-display-functions"><span class="std std-ref">Keyword arguments</span></a>.</p>
 <p>We can also plot how the joints velocity vary across time:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">velocity_plotter</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Finally, we can print some statistics about the current sequence.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sequence</span><span class="o">.</span><span class="n">print_stats</span><span class="p">()</span>
 </pre></div>
 </div>
 </section>

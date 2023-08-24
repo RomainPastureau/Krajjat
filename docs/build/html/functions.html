@@ -48,8 +48,8 @@
 <li class="toctree-l1"><a class="reference internal" href="classes.html">Classes</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Functions</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="io_functions.html">I/O functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="display_functions.html">Display functions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tool_functions.html">Tool functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="graphic_functions.html">Graphic functions</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="appendix.html">Appendix</a></li>
@@ -95,6 +95,21 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="display_functions.html">Display functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="display_functions.html#description">Description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="display_functions.html#shortcuts">Shortcuts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="display_functions.html#functions">Functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="display_functions.html#display_functions.common_displayer"><code class="docutils literal notranslate"><span class="pre">common_displayer()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="display_functions.html#display_functions.sequence_reader"><code class="docutils literal notranslate"><span class="pre">sequence_reader()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="display_functions.html#display_functions.sequence_comparer"><code class="docutils literal notranslate"><span class="pre">sequence_comparer()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="display_functions.html#display_functions.pose_reader"><code class="docutils literal notranslate"><span class="pre">pose_reader()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="display_functions.html#display_functions._process_events"><code class="docutils literal notranslate"><span class="pre">_process_events()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="display_functions.html#display_functions.save_video_sequence"><code class="docutils literal notranslate"><span class="pre">save_video_sequence()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="display_functions.html#keyword-arguments">Keyword arguments</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="tool_functions.html">Tool functions</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="tool_functions.html#description">Description</a></li>
 <li class="toctree-l2"><a class="reference internal" href="tool_functions.html#functions">Functions</a><ul>
@@ -132,6 +147,8 @@
 <li class="toctree-l3"><a class="reference internal" href="tool_functions.html#calculation-functions">Calculation functions</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.resample_data"><code class="docutils literal notranslate"><span class="pre">resample_data()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.interpolate_data"><code class="docutils literal notranslate"><span class="pre">interpolate_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.pad_with_zeros"><code class="docutils literal notranslate"><span class="pre">pad_with_zeros()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.add_delay"><code class="docutils literal notranslate"><span class="pre">add_delay()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.calculate_distance"><code class="docutils literal notranslate"><span class="pre">calculate_distance()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.calculate_velocity"><code class="docutils literal notranslate"><span class="pre">calculate_velocity()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.calculate_acceleration"><code class="docutils literal notranslate"><span class="pre">calculate_acceleration()</span></code></a></li>
@@ -166,29 +183,19 @@
 <li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.load_joints_connections"><code class="docutils literal notranslate"><span class="pre">load_joints_connections()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.load_qualisys_to_kinect"><code class="docutils literal notranslate"><span class="pre">load_qualisys_to_kinect()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.load_joints_subplot_layout"><code class="docutils literal notranslate"><span class="pre">load_joints_subplot_layout()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.load_steps_gui"><code class="docutils literal notranslate"><span class="pre">load_steps_gui()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="tool_functions.html#miscellaneous-functions">Miscellaneous functions</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.show_progression"><code class="docutils literal notranslate"><span class="pre">show_progression()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.resample_images_to_frequency"><code class="docutils literal notranslate"><span class="pre">resample_images_to_frequency()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.get_min_max_values_from_plot_dictionary"><code class="docutils literal notranslate"><span class="pre">get_min_max_values_from_plot_dictionary()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.kwargs_parser"><code class="docutils literal notranslate"><span class="pre">kwargs_parser()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.format_time"><code class="docutils literal notranslate"><span class="pre">format_time()</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="graphic_functions.html">Graphic functions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="graphic_functions.html#description">Description</a></li>
-<li class="toctree-l2"><a class="reference internal" href="graphic_functions.html#shortcuts">Shortcuts</a></li>
-<li class="toctree-l2"><a class="reference internal" href="graphic_functions.html#functions">Functions</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="graphic_functions.html#graphic_functions.common_displayer"><code class="docutils literal notranslate"><span class="pre">common_displayer()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="graphic_functions.html#graphic_functions.sequence_reader"><code class="docutils literal notranslate"><span class="pre">sequence_reader()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="graphic_functions.html#graphic_functions.sequence_comparer"><code class="docutils literal notranslate"><span class="pre">sequence_comparer()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="graphic_functions.html#graphic_functions.pose_reader"><code class="docutils literal notranslate"><span class="pre">pose_reader()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="graphic_functions.html#keyword-arguments">Keyword arguments</a></li>
 </ul>
 </li>
 </ul>
