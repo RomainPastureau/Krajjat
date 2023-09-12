@@ -5,10 +5,14 @@
 
 Author: Romain Pastureau
 
+Find all
+
+
 ## What is Krajjat?
 Krajjat is a **Python module** allowing to handle **motion capture recordings** and to explore the relationship
 between **body movements** and **speech**. More precisely, it contains a variety of functions allowing to 
 **pre-process** sequences of tracked movements, to **display** them and to **analyze** them.
+You can find more details in the **`documentation <https://krajjat.readthedocs.io/en/latest/>`_**.
 
 ### Pre-processing
 The pre-processing functions allow to:
@@ -37,7 +41,8 @@ The toolbox comes with a series of functions for analyses of the sequences to:
   the significance of the relationship between the two arrays of values.
 
 ## How to
-The best way to install the toolbox is to follow the recommendations in the documentation (link to come).
+The best way to install the toolbox is to follow the recommendations in the 
+`documentation <https://krajjat.readthedocs.io/en/latest/>`_.
 
 ### Dependencies
 * **Scipy** and **Numpy** for handling audio files and large numeric arrays
@@ -47,7 +52,7 @@ The best way to install the toolbox is to follow the recommendations in the docu
 * **Parselmouth** to use Praat functions to process the audio files
 
 ## What's new?
-See the release notes.
+See the `release notes <https://krajjat.readthedocs.io/en/latest/release_notes.html>`_.
 
 If you detect any bug, please contact me at r.pastureau@bcbl.eu
 
