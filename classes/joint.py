@@ -3,6 +3,8 @@ handled by the methods in the class Pose, but some of them can be directly acces
 
 from math import cos, sin
 
+from classes.exceptions import InvalidParameterValueException
+
 
 class Joint(object):
     """Creates a Joint instance, with a joint label and x, y, and z coordinates.
@@ -187,6 +189,30 @@ class Joint(object):
             The z coordinate of the joint (in meters).
         """
         return self.z
+
+    def get_coordinate(self, axis):
+        """Returns the coordinate on the specified axis (x, y, or z).
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        axis: str
+            The axis (``"x"``, ``"y"``, or ``"z"``) from which to get the coordinate.
+
+        Returns
+        -------
+        float
+            The x, y or z coordinate of the joint (in meters).
+        """
+        if axis == "x":
+            return self.x
+        elif axis == "y":
+            return self.y
+        elif axis == "z":
+            return self.z
+        else:
+            raise InvalidParameterValueException("axis", axis, ["x", "y", "z"])
 
     def get_position(self):
         """Returns a list containing the :attr:`x`, :attr:`y` and :attr:`z` coordinates of the joint.

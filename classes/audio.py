@@ -43,7 +43,7 @@ class Audio(object):
 
     Attributes
     ----------
-    samples: list(int)
+    samples: np.ndarray(int)
         A list containing the audio samples, in chronological order.
     timestamps: list(float)
         A list containing the timestamps matching each audio sample. Consequently, :attr:`samples` and
@@ -58,6 +58,8 @@ class Audio(object):
         `None`.
     files: list(str)
         List of files contained in the path. The list will be of size 1 if the path points to a single file.
+    kind: str
+        A parameter that is set on ``"Audio"``, to differentiate it from the different types of AudioDerivative.
     """
 
     def __init__(self, path_or_samples, frequency=None, name=None, verbosity=1):
@@ -67,6 +69,7 @@ class Audio(object):
         self.name = None  # Placeholder for the name of the sequence
         self.path = None
         self.files = None
+        self.kind = "Audio"
 
         if type(path_or_samples) is str:
             self._load_from_path(path_or_samples, verbosity)
@@ -479,7 +482,7 @@ class Audio(object):
         self.frequency = audio_data[0]
 
         # Turn stereo to mono if the file is stereo
-        if audio_data[1].shape[1] == 2:
+        if len(np.shape(audio_data[1])) != 1:
             self.samples = stereo_to_mono(audio_data[1])
         else:
             self.samples = audio_data[1]
@@ -693,7 +696,7 @@ class Audio(object):
         return self.frequency
 
     # === Transformation functions ===
-    def get_envelope(self, filter_below=0, filter_over=50):
+    def get_envelope(self, filter_below=0, filter_over=10, verbosity=1):
         """Calculates the envelope of the audio clip, applies a band-pass filter if values are provided,
         and returns an Envelope object.
 
@@ -705,17 +708,25 @@ class Audio(object):
             If not None nor 0, this value will be provided as the lowest frequency of the band-pass filter.
         filter_over: int or None, optional
             If not None nor 0, this value will be provided as the highest frequency of the high-pass filter.
+        verbosity: int, optional
+            Sets how much feedback the code will provide in the console output:
+
+            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+              current steps.
+            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+              may clutter the output and slow down the execution.
 
         Returns
         -------
         Envelope
             The filtered envelope of the audio clip.
         """
-        envelope = Envelope(self)
-        envelope = envelope.filter_frequencies(filter_below, filter_over)
+        envelope = Envelope(self, verbosity)
+        envelope = envelope.filter_frequencies(filter_below, filter_over, verbosity)
         return envelope
 
-    def get_pitch(self, zeros_as_nan=False):
+    def get_pitch(self, zeros_as_nan=False, verbosity=1):
         """Calculates the pitch of the voice in the audio clip, and returns a Pitch object.
 
         .. versionadded:: 2.0
@@ -725,27 +736,46 @@ class Audio(object):
         zeros_as_nan: bool, optional
             If set on True, the values where the pitch is equal to 0 will be replaced by
             `numpy.nan <https://numpy.org/doc/stable/reference/constants.html#numpy.nan>`_ objects.
+        verbosity: int, optional
+            Sets how much feedback the code will provide in the console output:
+
+            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+              current steps.
+            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+              may clutter the output and slow down the execution.
 
         Returns
         -------
         Pitch
             The pitch of the voice in the audio clip.
         """
-        return Pitch(self, zeros_as_nan=zeros_as_nan)
+        return Pitch(self, zeros_as_nan=zeros_as_nan, verbosity=verbosity)
 
-    def get_intensity(self):
+    def get_intensity(self, verbosity=1):
         """Calculates the intensity of the voice in the audio clip, and returns an Intensity object.
 
         .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        verbosity: int, optional
+            Sets how much feedback the code will provide in the console output:
+
+            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+              current steps.
+            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+              may clutter the output and slow down the execution.
 
         Returns
         -------
         Intensity
             The intensity of the voice in the audio clip.
         """
-        return Intensity(self)
+        return Intensity(self, verbosity=verbosity)
 
-    def get_formant(self, formant=1):
+    def get_formant(self, formant=1, verbosity=1):
         """Calculates the formants of the voice in the audio clip, and returns a Formant object.
 
         .. versionadded:: 2.0
@@ -754,13 +784,21 @@ class Audio(object):
         ----------
         formant: int, optional.
             One of the formants of the voice in the audio clip (1 (default), 2, 3, 4 or 5).
+        verbosity: int, optional
+            Sets how much feedback the code will provide in the console output:
+
+            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+              current steps.
+            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+              may clutter the output and slow down the execution.
 
         Returns
         -------
         Formant
             The value of a formant of the voice in the audio clip.
         """
-        return Formant(self, formant_number=formant)
+        return Formant(self, formant_number=formant, verbosity=verbosity)
 
     def resample(self, frequency, mode="cubic", name=None, verbosity=1):
         """Resamples an audio clip to the `frequency` parameter. It first creates a new set of timestamps at the

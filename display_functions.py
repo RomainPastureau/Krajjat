@@ -60,7 +60,7 @@ def common_displayer(sequence1, sequence2=None, path_audio=None, path_video=None
         Defines the distance, in meters, represented by the vertical number of pixels of the window (by default: 3.0).
 
     full_screen: bool, optional
-        Defines if the window will be set full screen (``True``, default) or not.
+        Defines if the window will be set full screen (``True``) or not (``False``, default).
 
     manual: bool, optional
         If set on ``False`` (default), the poses of the Sequence will be displayed in real time. If set on ``True``,
@@ -86,11 +86,10 @@ def common_displayer(sequence1, sequence2=None, path_audio=None, path_video=None
     pygame.init()
 
     # Setting up the resolution
+    info = pygame.display.Info()
     if resolution is None:
-        info = pygame.display.Info()
         resolution = (info.current_w, info.current_h)
     elif isinstance(resolution, float):
-        info = pygame.display.Info()
         if (position_sequences == "side" and sequence2 is not None) or \
                 (position_video == "side" and path_video is not None):
             resolution = (int(info.current_w * resolution * 2), int(info.current_h * resolution))
@@ -180,7 +179,10 @@ def common_displayer(sequence1, sequence2=None, path_audio=None, path_video=None
     last_recorded_second = 0
     last_recorded_pose = 0
     show_progress = kwargs.get("show_progress", True)
-    font = pygame.font.Font("res/junction_bold.otf", int(resolution[1] * 0.04))
+    if "font" in kwargs.keys():
+        font = pygame.font.SysFont(kwargs.get("font"), int(resolution[1] * 0.04), True)
+    else:
+        font = pygame.font.Font("res/junction_bold.otf", int(resolution[1] * 0.04))
     font_color = kwargs.get("font_color", "white")
     progress_pose_text = str(animation1.get_current_pose_index() + 1) + "/" + \
                          str(animation1.sequence.get_number_of_poses())
@@ -383,7 +385,7 @@ def sequence_reader(sequence, path_audio=None, path_video=None, position_video="
         Defines the distance, in meters, represented by the vertical number of pixels of the window (by default: 3.0).
 
     full_screen: bool, optional
-        Defines if the window will be set full screen (``True``, default) or not.
+        Defines if the window will be set full screen (``True``) or not (``False``, default).
 
     start_pose: int, optional
         The index of the pose at which to start the sequence.
@@ -450,7 +452,7 @@ def sequence_comparer(sequence1, sequence2, path_audio=None, path_video=None, po
         Defines the distance, in meters, represented by the vertical number of pixels of the window (by default: 3.0).
 
     full_screen: bool, optional
-        Defines if the window will be set full screen (``True``, default) or not.
+        Defines if the window will be set full screen (``True``) or not (``False``, default).
 
     manual: bool, optional
         If set on ``False`` (default), the poses of the Sequence will be displayed in real time. If set on ``True``,
@@ -508,7 +510,7 @@ def pose_reader(sequence, start_pose=0, resolution=0.5, height_window_in_meters=
         Defines the distance, in meters, represented by the vertical number of pixels of the window (by default: 3.0).
 
     full_screen: bool, optional
-        Defines if the window will be set full screen (``True``, default) or not.
+        Defines if the window will be set full screen (``True``) or not (``False``, default).
 
     verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
@@ -724,6 +726,10 @@ def save_video_sequence(sequence1, path_output, fps=25, sequence2=None, path_aud
         The full path to the video file where to save the video, including the extension of the file (e.g.
         ``"C:/Recordings/Leorio/Session7/video_003.mp4"``.
 
+        .. warning::
+            Using ffmpeg, theoretically all output formats are supported; however, the output file generation was
+            only tested with ``.mp4`` files. Compatibility with other formats is not guaranteed.
+
     fps: int, optional
         The number of frames per second in the output video. For each frame, the pose with the closest timestamp
         will be displayed.
@@ -733,7 +739,8 @@ def save_video_sequence(sequence1, path_output, fps=25, sequence2=None, path_aud
         comparison purposes.
 
     path_audio: str, optional
-        The path of an audio file (ending in .wav) to add to the video. If not provided, the video will be silent.
+        The path of an audio file (ending in .wav) to add to the video. If not provided, the video will be silent. If
+        the audio is longer than the video, the part of the audio longer than the video will be cut.
 
     path_video: str, optional
         The path of a video file to add as a background to the skeleton.

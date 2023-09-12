@@ -4,7 +4,7 @@ import numpy as np
 from scipy.signal import butter, hilbert, lfilter
 
 from classes.exceptions import ModuleNotFoundException
-from tool_functions import resample_data, pad_with_zeros, add_delay
+from tool_functions import resample_data, pad, add_delay
 
 
 class AudioDerivative(object):
@@ -21,6 +21,8 @@ class AudioDerivative(object):
 		An array of equal length to ``samples``, containing the timestamps for each sample.
 	frequency: int or float
 		The frequency, in Hertz, of the timestamps.
+	kind: str or None
+		The kind of audio derivative: ``"Envelope"``, ``"Pitch"``, ``"Intensity"``, ``"Formant"``, or ``None``.
 	name: str or None, optional
 		The name of the audio derivative. By default, this field is used to store the name of the audio clip the
 		derivative comes from, with a suffix indicating the type of the audio derivative.
@@ -33,15 +35,18 @@ class AudioDerivative(object):
 		An array of equal length to :attr:`samples`, containing the timestamps for each sample.
 	frequency: int or float
 		The frequency, in Hertz, at which the values in attr:`samples` are sampled.
+	kind: str or None
+		The kind of audio derivative: ``"Envelope"``, ``"Pitch"``, ``"Intensity"``, ``"Formant"``, or ``None``.
 	name: str or None, optional
 		The name of the audio derivative. By default, this field is used to store the name of the audio clip the
 		derivative comes from, with a suffix indicating the type of the audio derivative.
 	"""
 
-	def __init__(self, samples, timestamps, frequency, name=None):
+	def __init__(self, samples, timestamps, frequency, kind, name=None):
 		self.samples = samples
 		self.timestamps = timestamps
 		self.frequency = frequency
+		self.kind = kind
 		self.name = name
 
 	def set_name(self, name):
@@ -119,6 +124,7 @@ class AudioDerivative(object):
 		return len(self.samples)
 
 	# noinspection PyTupleAssignmentBalance
+	# noinspection PyArgumentList
 	def filter_frequencies(self, filter_below=None, filter_over=None, name=None, verbosity=1):
 		"""Applies a low-pass, high-pass or band-pass filter to the data in the attribute :attr:`samples`.
 
@@ -177,7 +183,7 @@ class AudioDerivative(object):
 		if name is None:
 			name = self.name
 
-		new_audio_derivative = type(self)(new_samples, self.timestamps, self.frequency, name)
+		new_audio_derivative = type(self)(new_samples, self.timestamps, self.frequency, name, verbosity=0)
 		return new_audio_derivative
 
 	def resample(self, frequency, mode="cubic", name=None, verbosity=1):
@@ -282,6 +288,15 @@ class Envelope(AudioDerivative):
 		Defines the name of the envelope. If set on ``None``, the name will be the same as the original Audio instance,
 		with the suffix ``"(ENV)"``.
 
+	verbosity: int, optional
+		Sets how much feedback the code will provide in the console output:
+
+		• *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+		• *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+		  current steps.
+		• *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+		  may clutter the output and slow down the execution.
+
 	Attributes
 	----------
 	samples: list(float) or numpy.ndarray(float64)
@@ -297,7 +312,10 @@ class Envelope(AudioDerivative):
 		A name to describe the envelope object.
 	"""
 
-	def __init__(self, audio_or_samples, timestamps=None, frequency=None, name=None):
+	def __init__(self, audio_or_samples, timestamps=None, frequency=None, name=None, verbosity=1):
+
+		if verbosity > 0:
+			print("Creating an Envelope object...", end=" ")
 
 		# If the parameter is an array of samples
 		if type(audio_or_samples) in [list, np.ndarray]:
@@ -322,7 +340,10 @@ class Envelope(AudioDerivative):
 			raise Exception("Invalid type for the parameter audio_or_samples ( " + str(type(audio_or_samples)) + "). " +
 							"The type should be list, numpy.ndarray or Audio.")
 
-		super().__init__(samples, timestamps, frequency, name)
+		if verbosity > 0:
+			print("Done.")
+
+		super().__init__(samples, timestamps, frequency, "Envelope", name)
 
 
 class Pitch(AudioDerivative):
@@ -352,6 +373,15 @@ class Pitch(AudioDerivative):
 		If set on True, the values where the pitch is equal to 0 will be replaced by
 		`numpy.nan <https://numpy.org/doc/stable/reference/constants.html#numpy.nan>`_ objects.
 
+	verbosity: int, optional
+		Sets how much feedback the code will provide in the console output:
+
+		• *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+		• *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+		  current steps.
+		• *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+		  may clutter the output and slow down the execution.
+
 	Attributes
 	----------
 	samples: list(float) or numpy.ndarray(float64)
@@ -368,7 +398,10 @@ class Pitch(AudioDerivative):
 	"""
 
 	# noinspection PyArgumentList
-	def __init__(self, audio_or_samples, timestamps=None, frequency=None, name=None, zeros_as_nan=False):
+	def __init__(self, audio_or_samples, timestamps=None, frequency=None, name=None, zeros_as_nan=False, verbosity=1):
+		if verbosity > 0:
+			print("Creating a Pitch object...")
+
 		try:
 			from parselmouth import Sound
 		except ImportError:
@@ -397,14 +430,30 @@ class Pitch(AudioDerivative):
 			raise Exception("Invalid type for the parameter audio_or_samples ( " + str(type(audio_or_samples)) + "). " +
 							"The type should be list, numpy.ndarray or Audio.")
 
+		if verbosity > 0:
+			print("\tTurning the audio into a parselmouth object...", end=" ")
+
 		parselmouth_sound = Sound(np.ndarray(np.shape(original_samples), dtype=np.float64, buffer=original_samples),
 								  audio_or_samples.frequency)
+		if verbosity > 0:
+			print("Done.")
+			print("\tGetting the pitch...", end=" ")
+
 		pitch = parselmouth_sound.to_pitch(time_step=1 / frequency)
-		pitch, timestamps = pad_with_zeros(pitch.selected_array["frequency"], pitch.xs(), timestamps)
+
+		if verbosity > 0:
+			print("Done.")
+			print("\tPadding the data...", end=" ")
+
+		pitch, timestamps = pad(pitch.selected_array["frequency"], pitch.xs(), timestamps)
+
 		if zeros_as_nan:
 			pitch[pitch == 0] = np.nan
 
-		super().__init__(pitch, timestamps, frequency, name)
+		if verbosity > 0:
+			print("Done.")
+
+		super().__init__(pitch, timestamps, frequency, "Pitch", name)
 
 
 class Intensity(AudioDerivative):
@@ -430,6 +479,15 @@ class Intensity(AudioDerivative):
 		Defines the name of the envelope. If set on ``None``, the name will be the same as the original Audio instance,
 		with the suffix ``"(INT)"``.
 
+	verbosity: int, optional
+		Sets how much feedback the code will provide in the console output:
+
+		• *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+		• *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+		  current steps.
+		• *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+		  may clutter the output and slow down the execution.
+
 	Attributes
 	----------
 	samples: list(float) or numpy.ndarray(float64)
@@ -446,7 +504,10 @@ class Intensity(AudioDerivative):
 	"""
 
 	# noinspection PyArgumentList
-	def __init__(self, audio_or_samples, timestamps=None, frequency=None, name=None):
+	def __init__(self, audio_or_samples, timestamps=None, frequency=None, name=None, verbosity=1):
+		if verbosity > 0:
+			print("Creating an Intensity object...")
+
 		try:
 			from parselmouth import Sound
 		except ImportError:
@@ -475,13 +536,29 @@ class Intensity(AudioDerivative):
 			raise Exception("Invalid type for the parameter audio_or_samples ( " + str(type(audio_or_samples)) + "). " +
 							"The type should be list, numpy.ndarray or Audio.")
 
+		if verbosity > 0:
+			print("\tTurning the audio into a parselmouth object...", end=" ")
+
 		parselmouth_sound = Sound(np.ndarray(np.shape(original_samples), dtype=np.float64, buffer=original_samples),
 								  audio_or_samples.frequency)
+
+		if verbosity > 0:
+			print("Done.")
+			print("\tGetting the intensity...", end=" ")
+
 		intensity = parselmouth_sound.to_intensity(time_step=1 / frequency)
 		intensity_timestamps = add_delay(intensity.xs(), -1 / (2 * frequency))
-		intensity, timestamps = pad_with_zeros(intensity.values.T, intensity_timestamps, timestamps)
 
-		super().__init__(intensity, timestamps, frequency, name)
+		if verbosity > 0:
+			print("Done.")
+			print("\tPadding the data...", end=" ")
+
+		intensity, timestamps = pad(intensity.values.T, intensity_timestamps, timestamps, 100)
+
+		if verbosity > 0:
+			print("Done.")
+
+		super().__init__(intensity, timestamps, frequency, "Intensity", name)
 
 
 class Formant(AudioDerivative):
@@ -529,7 +606,10 @@ class Formant(AudioDerivative):
 	"""
 
 	# noinspection PyArgumentList
-	def __init__(self, audio_or_samples, timestamps=None, frequency=None, name=None, formant_number=1):
+	def __init__(self, audio_or_samples, timestamps=None, frequency=None, name=None, formant_number=1, verbosity=1):
+		if verbosity > 0:
+			print("Creating a Formant object...")
+
 		try:
 			from parselmouth import Sound
 		except ImportError:
@@ -558,17 +638,32 @@ class Formant(AudioDerivative):
 			raise Exception("Invalid type for the parameter audio_or_samples ( " + str(type(audio_or_samples)) + "). " +
 							"The type should be list, numpy.ndarray or Audio.")
 
+		if verbosity > 0:
+			print("\tTurning the audio into a parselmouth object...", end=" ")
+
 		parselmouth_sound = Sound(np.ndarray(np.shape(original_samples), dtype=np.float64, buffer=original_samples),
 								  audio_or_samples.frequency)
+
+		if verbosity > 0:
+			print("Done.")
+			print("\tGetting the formant...", end=" ")
+
 		formants = parselmouth_sound.to_formant_burg(time_step=1 / frequency)
 		formants_timestamps = add_delay(formants.xs(), -1 / (2 * frequency))
+
+		if verbosity > 0:
+			print("Done.")
+			print("\tPadding the data...", end=" ")
 
 		number_of_points = formants.get_number_of_frames()
 		f = []
 		for i in range(1, number_of_points + 1):
 			t = formants.get_time_from_frame_number(i)
 			f.append(formants.get_value_at_time(formant_number=formant_number, time=t))
-		f, timestamps = pad_with_zeros(f, formants_timestamps, timestamps)
+		f, timestamps = pad(f, formants_timestamps, timestamps)
 
-		super().__init__(f, timestamps, frequency, name)
+		if verbosity > 0:
+			print("Done.")
+
+		super().__init__(f, timestamps, frequency, "Formant", name)
 		self.formant_number = formant_number

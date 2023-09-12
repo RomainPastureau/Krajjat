@@ -5,7 +5,6 @@
 /test_video_generation.py
 /.venv/
 /doc/
-/docs/source/
 /docs/.venv/
 /classes/__pycache__/
 /.venv/bin/__pycache__/

@@ -5,8 +5,10 @@ import chardet
 import math
 import os
 import json
+import warnings
+import numpy as np
 
-from classes.exceptions import ModuleNotFoundException
+from classes.exceptions import ModuleNotFoundException, InvalidParameterValueException
 from classes.graph_element import *
 from classes.joint import Joint
 
@@ -155,19 +157,23 @@ def get_difference_paths(paths):
 
     new_paths = [[] for _ in range(len(paths))]
 
-    for i in range(min_len):
-        keep = False
-        for p in range(len(paths)):
-            if paths[p][i] != paths[0][i]:
-                keep = True
-        if keep:
-            for p in range(len(paths)):
-                new_paths[p].append(paths[p][i])
+    if min_len > 1:
+        for i in range(min_len):
+            keep = False
+            for p in range(len(paths_splitted)):
+                if paths_splitted[p][i] != paths_splitted[0][i]:
+                    keep = True
+            if keep:
+                for p in range(len(paths_splitted)):
+                    new_paths[p].append(paths_splitted[p][i])
 
-    for p in range(len(paths)):
-        if len(paths[p]) > min_len:
-            for i in range(min_len, len(paths[p])):
-                new_paths[p].append(paths[p][i])
+        for p in range(len(paths_splitted)):
+            if len(paths_splitted[p]) > min_len:
+                for i in range(min_len, len(paths_splitted[p])):
+                    new_paths[p].append(paths_splitted[p][i])
+
+    else:
+        new_paths = paths_splitted
 
     return new_paths
 
@@ -249,7 +255,7 @@ def get_objects_names(list_of_objects):
     """
     names = []
     for element in list_of_objects:
-        names.append(element.path)
+        names.append(element.get_name())
     return names
 
 
@@ -352,8 +358,8 @@ def align_two_sequences(sequence1, sequence2):
     else:
         longest_sequence = 2
 
-    joint_labels_1 = sequence1.get_joints()
-    joint_labels_2 = sequence2.get_joints()
+    joint_labels_1 = sequence1.get_joint_labels()
+    joint_labels_2 = sequence2.get_joint_labels()
 
     # If the joints are not the same between the two sequences, we return False.
     if joint_labels_1 != joint_labels_2:
@@ -835,10 +841,10 @@ def interpolate_data(data, time_points_data, time_points_interpolation, mode="li
     return resampled_data, np_time_points_complete
 
 
-def pad_with_zeros(data, time_points_data, time_points_padding, verbosity=1):
+def pad(data, time_points_data, time_points_padding, padding_value=0, verbosity=1):
     """Given an array of values (``data``) and its corresponding ``time_points_data``, and a larger array
-    ``time_points_padding``, pads the data array with zeros for the time points present in ``time_points_padding`` that
-    are absent from ``time_points_data``.
+    ``time_points_padding``, pads the data array with the value specified in ``padding_value`` for the time points
+    present in ``time_points_padding`` that are absent from ``time_points_data``.
 
     .. versionadded:: 2.0
 
@@ -851,6 +857,8 @@ def pad_with_zeros(data, time_points_data, time_points_padding, verbosity=1):
     time_points_padding: list(float) or numpy.ndarray(float)
         A list or an array of time points containing the values from ``time_points_data`` (or values equal up to the
         fifth decimal), with additional values at the beginning and/or at the end.
+    padding_value: int, numpy.nan or float
+        The value with which to pad the data (default: 0).
     verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
 
@@ -887,7 +895,7 @@ def pad_with_zeros(data, time_points_data, time_points_padding, verbosity=1):
 
     i = 0
     while round(time_points_padding[i], 5) < round(time_points_data[0], 5):
-        padded_data[i] = 0
+        padded_data[i] = padding_value
         if verbosity > 1:
             print("Padding · Iteration: " + str(i) + "/" + str(len(time_points_padding)) + " · Timestamp padding: " +
                   str(time_points_padding[i]) + ".")
@@ -906,7 +914,7 @@ def pad_with_zeros(data, time_points_data, time_points_padding, verbosity=1):
                   " · Original timestamp: " + str(time_points_data[j]) + ".")
         i += 1
     while i < len(time_points_padding):
-        padded_data[i] = 0
+        padded_data[i] = padding_value
         if verbosity > 1:
             print("Padding · Iteration: " + str(i) + "/" + str(len(time_points_padding)) + " · Timestamp padding: " +
                   str(time_points_padding[i]) + ".")
@@ -940,9 +948,10 @@ def add_delay(timestamps, delay):
     return new_timestamps
 
 
-def calculate_distance(joint1, joint2):
+def calculate_distance(joint1, joint2, axis=None):
     """Uses the Euclidian formula to calculate the distance between two joints. This can be used to calculate
     the distance travelled by one joint between two poses, or the distance between two joints on the same pose.
+    If an axis is specified, the distance is calculated on this axis only.
 
     .. versionadded:: 2.0
 
@@ -952,18 +961,28 @@ def calculate_distance(joint1, joint2):
         The first Joint object.
     joint2: Joint
         The second Joint object.
+    axis: str or None, optional
+        If specified, the returned distances travelled will be calculated on a single axis. If ``None`` (default),
+        the distance travelled will be calculated based on the 3D coordinates.
 
     Returns
     -------
     float
         The absolute distance, in meters, between the two joints.
-
     """
-    x = (joint2.x - joint1.x) ** 2
-    y = (joint2.y - joint1.y) ** 2
-    z = (joint2.z - joint1.z) ** 2
-
-    return math.sqrt(x + y + z)
+    if axis == "x":
+        return abs(joint2.x - joint1.x)
+    elif axis == "y":
+        return abs(joint2.y - joint1.y)
+    elif axis == "z":
+        return abs(joint2.z - joint1.z)
+    elif axis is None:
+        x = (joint2.x - joint1.x) ** 2
+        y = (joint2.y - joint1.y) ** 2
+        z = (joint2.z - joint1.z) ** 2
+        return math.sqrt(x + y + z)
+    else:
+        raise InvalidParameterValueException("axis", axis, ["x", "y", "z"])
 
 
 def calculate_velocity(pose1, pose2, joint_label):
@@ -1199,143 +1218,6 @@ def load_color_schemes():
     return color_schemes
 
 
-def convert_color_rgba(color, include_alpha=None):
-    """Returns an RGB or RGBA value from a color in RGB, RGBA, hexadecimal or color name format.
-
-    .. versionadded:: 2.0
-
-    Parameters
-    ----------
-    color: tuple(int, int, int) or tuple(int, int, int, int) or str
-        A color under any of the following formats:
-
-            • A string containing an `HTML/CSS name <https://en.wikipedia.org/wiki/X11_color_names>`_ (e.g. ``"red"`` or
-              ``"blanched almond"``),
-            • A string containing a hexadecimal code, starting with a number sign (``#``, e.g. ``"#ffcc00"`` or
-              ``"#c0ffee"``).
-            • A RGB or RGBA tuple (e.g. ``(153, 204, 0)`` or ``(77, 77, 77, 255)``).
-
-    include_alpha: bool or None (optional)
-        Defines if the returned value will contain an alpha channel (``True``) or not (``False``). If set on ``None``,
-        the returned value will contain an alpha channel only if the input contains one.
-    """
-
-    # Color: tuple
-    if type(color) is tuple:
-        for i in range(len(color)):
-            if color[i] < 0 or color[i] > 255:
-                raise Exception("Invalid subpixel value in position " + str(i) + ": " + str(color[i]) + ". The value " +
-                                "must be between 0 and 255.")
-        if len(color) == 3:
-            if include_alpha:
-                return tuple([color[0], color[1], color[2], 255])
-            else:
-                return color
-        elif len(color) == 4:
-            if not include_alpha:
-                return [color][0:3]
-            else:
-                return color
-        else:
-            raise Exception("Invalid tuple length for a color: " + str(len(color)) + ". A color tuple must have 3 or " +
-                            "4 elements.")
-
-    # Color: string
-    elif type(color) is str:
-        if color[0] == "#":
-            return hex_color_to_rgb(color, include_alpha)
-        else:
-            color = color.lower().replace(" ", "")
-            colors_dict = load_color_names()
-            if (len(color) == 3 and include_alpha) or (len(color) == 4 and not include_alpha):
-                return colors_dict[color][0:3]
-            else:
-                return colors_dict[color]
-
-    else:
-        raise Exception("Invalid parameter color: should be tuple or str, not " + str(type(color)) + ".")
-
-
-def convert_colors_rgba(color_scheme_or_colors):
-    """Returns a list of RGBA values of colors matching a color scheme or specific color names.
-
-    Parameters
-    ----------
-    color_scheme_or_colors: str or list(str)
-        This parameter can take a number of forms:
-
-        • **The name of a color scheme:** a string matching one of the color gradients available in
-          :doc:`color_schemes`.
-        • **A list of colors:** a list containing colors, either using:
-
-            • Their `HTML/CSS names <https://en.wikipedia.org/wiki/X11_color_names>`_ (e.g. ``"red"`` or
-              ``"blanched almond"``),
-            • Their hexadecimal code, starting with a number sign (``#``, e.g. ``"#ffcc00"`` or ``"#c0ffee"``).
-            • Their RGB or RGBA tuples (e.g. ``(153, 204, 0)`` or ``(77, 77, 77, 255)``).
-
-          These different codes can be used concurrently, e.g. ``["red", (14, 18, 32), "#a1b2c3"]``.
-
-    Returns
-    -------
-    list(tuple(int, int, int, int))
-        A list of RGBA colors.
-
-    """
-    colors_dict = load_color_names()
-
-    colors = []
-
-    if type(color_scheme_or_colors) is str:
-
-        color_schemes = load_color_schemes()
-
-        if color_scheme_or_colors in color_schemes.keys():
-            colors = color_schemes[color_scheme_or_colors]
-
-        else:
-            print("Invalid color scheme name, returning default scheme")
-            colors = color_schemes["default"]
-
-    elif type(color_scheme_or_colors) is list:
-
-        colors = [(0, 0, 0, 0) for _ in range(len(color_scheme_or_colors))]
-
-        for i in range(len(color_scheme_or_colors)):
-
-            # Color: tuple
-            if type(color_scheme_or_colors[i]) is tuple:
-                if len(color_scheme_or_colors[i]) == 3:
-                    color_scheme_or_colors[i] = tuple([color_scheme_or_colors[i][0],
-                                                       color_scheme_or_colors[i][1],
-                                                       color_scheme_or_colors[i][2], 255])
-                colors[i] = color_scheme_or_colors[i]
-
-                for j in range(len(color_scheme_or_colors[i])):
-                    if color_scheme_or_colors[i][j] < 0 or color_scheme_or_colors[i][j] > 255:
-                        print("Invalid color index, returning black instead")
-                        colors[i] = colors_dict["black"]
-                        break
-
-            # Color: string
-            elif type(color_scheme_or_colors[i]) is str:
-                if color_scheme_or_colors[i][0] == "#":
-                    if len(color_scheme_or_colors[i]) == 7:
-                        color = list(int(color_scheme_or_colors[i][i:i + 2], 16) for i in (1, 3, 5))
-                        color.append(255)
-                    else:
-                        color = tuple(int(color_scheme_or_colors[i], 16) for i in (1, 3, 5, 7))
-                    colors[i] = tuple(color)
-
-                elif color_scheme_or_colors[i] not in colors_dict.keys():
-                    print("Invalid color name (" + str(color_scheme_or_colors[i]) + "), returning black instead")
-                    colors[i] = colors_dict["black"]
-
-                else:
-                    colors[i] = colors_dict[color_scheme_or_colors[i]]
-
-    return colors
-
-
 def hex_color_to_rgb(color, include_alpha=None):
     """Converts a color from its hexadecimal value to its RGB or RGBA value.
 
@@ -1410,6 +1292,141 @@ def rgb_color_to_hex(color, include_alpha=False):
         raise Exception("Invalid number of arguments in the color.")
 
 
+def convert_colors(color_scheme_or_colors, color_format="RGB", include_alpha=True):
+    """Converts a list of colors to the desired format.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    color_scheme_or_colors: str or list(str)
+        This parameter can take a number of forms:
+
+        • **The name of a color scheme:** a string matching one of the color gradients available in
+          :doc:`color_schemes`.
+        • **A list of colors:** a list containing colors, either using:
+
+            • Their `HTML/CSS names <https://en.wikipedia.org/wiki/X11_color_names>`_ (e.g. ``"red"`` or
+              ``"blanched almond"``),
+            • Their hexadecimal code, starting with a number sign (``#``, e.g. ``"#ffcc00"`` or ``"#c0ffee"``).
+            • Their RGB or RGBA tuples (e.g. ``(153, 204, 0)`` or ``(77, 77, 77, 255)``).
+
+          These different codes can be used concurrently, e.g. ``["red", (14, 18, 32), "#a1b2c3"]``.
+
+    color_format: str, optional
+        The format in which you want to convert the colors. This parameter can be ``"RGB"`` (default), ``"RGBA"`` or
+        ``"HEX"``.
+
+    include_alpha: bool, optional
+        If ``True``, returns the colors with an alpha value. If an alpha value is not present in the
+        original value, the alpha channel will be set to 255 (or ff).
+
+    Returns
+    -------
+    tuple(int, int, int) or tuple(int, int, int, int) or string
+        A RGB or RGBA value, or a hexadecimal string with a leading number sign.
+    """
+
+    if type(color_scheme_or_colors) is str:
+
+        color_schemes = load_color_schemes()
+
+        if color_scheme_or_colors in color_schemes.keys():
+            color_scheme_or_colors = color_schemes[color_scheme_or_colors]
+
+        else:
+            colors_dict = load_color_names()
+
+            if color_scheme_or_colors not in colors_dict.keys():
+                raise Exception("Invalid color scheme: " + str(color_scheme_or_colors) + ".")
+            else:
+                warnings.warn("The string entered is not a valid color scheme, but is a valid color name. The value of "
+                              "the color will be returned, but convert_color should be used instead of convert_colors.")
+
+            return colors_dict[color_scheme_or_colors]
+
+    converted_colors = []
+    for color in color_scheme_or_colors:
+        converted_colors.append(convert_color(color, color_format, include_alpha))
+
+    return converted_colors
+
+
+def convert_color(color, color_format="rgb", include_alpha=True):
+    """Converts a color to the desired format.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    color: str or tuple(int, int, int) or tuple(int, int, int, int)
+        This parameter can take a number of forms:
+
+            • The `HTML/CSS name of a color <https://en.wikipedia.org/wiki/X11_color_names>`_ (e.g. ``"red"`` or
+              ``"blanched almond"``),
+            • The hexadecimal code of a color, starting with a number sign (``#``, e.g. ``"#ffcc00"`` or ``"#c0ffee"``).
+            • The RGB or RGBA tuple of a color (e.g. ``(153, 204, 0)`` or ``(77, 77, 77, 255)``).
+
+    color_format: str, optional
+        The format in which you want to convert the color. This parameter can be ``"rgb"`` (default), ``"rgba"`` or
+        ``"hex"``.
+
+    include_alpha: bool, optional
+        If ``True``, returns the color with an alpha value. If an alpha value is not present in the original value,
+        the alpha channel will be set to 255 (or ff).
+
+    Returns
+    -------
+    list(tuple(int, int, int)) or list(tuple(int, int, int, int)) or list(string)
+        A list of RGB or RGBA values, or hexadecimal strings with a leading number sign.
+    """
+
+    # Color: tuple
+    if type(color) is tuple:
+        if len(color) == 3:
+            converted_color = color
+            if include_alpha:
+                converted_color.append(255)
+            converted_color = tuple(converted_color)
+        elif len(color) == 4:
+            converted_color = list(color[:3])
+            if include_alpha:
+                converted_color.append(color[3])
+            converted_color = tuple(converted_color)
+        else:
+            raise Exception("Invalid color tuple: " + str(color) + ". Its length should be 3 or 4 elements.")
+        for i in range(len(converted_color)):
+            if converted_color[i] < 0 or converted_color[i] > 255:
+                raise Exception("Invalid color value: " + str(color) + ". The values should be comprised between 0 " +
+                                "and 255.")
+
+    # Color: string
+    elif type(color) is str:
+        if color[0] == "#":
+            converted_color = hex_color_to_rgb(color, include_alpha)
+
+        else:
+            colors_dict = load_color_names()
+
+            if color not in colors_dict.keys():
+                raise Exception("Invalid color name: " + str(color) + ".")
+
+            else:
+                converted_color = colors_dict[color]
+                if not include_alpha:
+                    converted_color = converted_color[:3]
+
+    else:
+        raise Exception("Invalid color type: " + str(type(color)) + ". Should be tuple or string.")
+
+    if color_format.lower() in ["rgb", "rgba"]:
+        return converted_color
+    elif color_format.lower() == "hex":
+        return rgb_color_to_hex(converted_color, include_alpha)
+    else:
+        raise Exception('Invalid parameter color_format: ' + str(color_format) + '. Should be "rgb", "rgba" or "hex".')
+
+
 def calculate_color_points_on_gradient(color_scheme, no_points):
     """Given a color scheme and a number of points, creates a list of equidistant colors to create a gradient.
 
@@ -1426,7 +1443,7 @@ def calculate_color_points_on_gradient(color_scheme, no_points):
     list(tuple(int, int, int, int))
         A list of colors in a progressive gradient following the colors of the color scheme.
     """
-    color_scheme = convert_colors_rgba(color_scheme)
+    color_scheme = convert_colors(color_scheme, "rgb", True)
 
     colors = []
     for i in range(no_points + 1):
@@ -1498,9 +1515,9 @@ def calculate_color_ratio(colors, ratio, type_return="rgb", include_alpha=True):
     else:
         color = (int(r), int(g), int(b))
 
-    if type_return in ["rgb", "rgba"]:
+    if type_return.lower() in ["rgb", "rgba"]:
         return color
-    elif type_return == "hex":
+    elif type_return.lower() == "hex":
         return rgb_color_to_hex(color, include_alpha)
 
 
@@ -1540,7 +1557,7 @@ def calculate_colors_by_values(dict_values, color_scheme="default", type_return=
     min_value = min(values)  # Determines min global velocity (green)
     max_value = max(values)  # Determines max global velocity (red)
 
-    colors = convert_colors_rgba(color_scheme)
+    colors = convert_colors(color_scheme, "rgb", True)
 
     # Apply the colors to all joints
     for j in dict_values.keys():
@@ -1568,7 +1585,7 @@ def generate_random_color():
 
 
 # === Audio functions ===
-def scale_audio(audio_array, max_value, verbosity=1):
+def scale_audio(audio_array, max_value, use_abs_values=False, set_lowest_at_zero=False, verbosity=1):
     """Scale an array of audio samples according to a maximum value.
 
     .. versionadded::2.0
@@ -1579,6 +1596,12 @@ def scale_audio(audio_array, max_value, verbosity=1):
         An array of audio samples.
     max_value: int or float
         The value that will become the maximum value of the scaled array.
+    use_abs_values: bool, optional
+        If set on ``True``, the values of the samples will be converted to absolute values. If set on ``False``
+        (default), the sign of the samples will be preserved.
+    set_lowest_at_zero: bool, optional
+        If set on ``True``, if the minimum sample value of the audio is over zero, the minimal value will be subtracted
+        from all the samples. This parameter is set on ``False`` by default.
     verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
 
@@ -1601,10 +1624,17 @@ def scale_audio(audio_array, max_value, verbosity=1):
     perc = 10
 
     max_audio_array = max(audio_array)
+    min_audio_array = min(audio_array)
+    min_value_scaled = min_audio_array / max_audio_array * max_value
 
     for i in range(len(audio_array)):
         perc = show_progression(verbosity, i, len(audio_array), perc)
-        new_audio_array.append(audio_array[i] / max_audio_array * max_value)
+        value = audio_array[i] / max_audio_array * max_value
+        if use_abs_values:
+            value = abs(value)
+        if set_lowest_at_zero and min_audio_array > 0:
+            value = value - min_value_scaled
+        new_audio_array.append(value)
 
     if verbosity > 0:
         print("100% - Done.")
@@ -1633,19 +1663,14 @@ def stereo_to_mono(audio_arrays, verbosity=1):
 
     Returns
     -------
-    list(float)
-        A list containing the samples averaged across all channels.
+    np.ndarray(np.intp)
+        An array containing the samples averaged across all channels.
     """
 
     if verbosity > 0:
         print("\n\tConverting audio samples from stereo to mono...", end=" ")
 
-    new_audio_array = []
-    perc = 10
-
-    for element in range(len(audio_arrays)):
-        perc = show_progression(verbosity, element, len(audio_arrays), perc)
-        new_audio_array.append(sum(audio_arrays[element]) // len(audio_arrays[element]))
+    new_audio_array = np.mean(audio_arrays, 1, np.intp)
 
     if verbosity > 0:
         print("100% - Done.")
@@ -1814,18 +1839,69 @@ def load_joints_subplot_layout(joint_layout):
     """
 
     if joint_layout.lower() == "kinect":
-        file = open("res/kinect_joints_subplot_layout.txt")
-    elif joint_layout.lower() == "qualisys":
-        file = open("res/kualisys_joints_subplot_layout.txt")
+        with open("res/kinect_joints_subplot_layout.txt") as f:
+            content = f.read().split("\n")
+    elif joint_layout.lower() in ["qualisys", "kualisys"]:
+        with open("res/kualisys_joints_subplot_layout.txt") as f:
+            content = f.read().split("\n")
     else:
         raise Exception("Wrong layout argument: should be 'kinect' or 'qualisys'.")
 
-    content = file.read().split("\n")
     joints_positions = {}
 
     for line in content:
         elements = line.split("\t")
         joints_positions[elements[0]] = int(elements[1])
+
+    return joints_positions, joint_layout
+
+
+def load_joints_silhouette_layout(joint_layout):
+    """Returns a dictionary of the positions and radii of the joints, and a list of the order in which to plot the
+    joints for the function :func:`plot_functions.plot_silhouette` Loads the data from
+    ``"res/kinect_joints_silhouette_layout.txt"``, ``"res/kualisys_joints_silhouette_layout.txt"``, or a custom file.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    joint_layout: str
+        The layout to load, either ``"kinect"`` or ``"qualisys"``/``"kualisys"``. This parameter can also be the path
+        to a custom layout (in .txt). In that case, each line must contain a joint label, the horizontal position,
+        the vertical position and the radius of the circle to plot, all separated by a tabulation. The positions and
+        radius are expected to be specified in pixels. The output list of the function, which defines the order in
+        which to plot the joints, is defined by the order of the joints in the file.
+
+    Returns
+    -------
+    dict(str: tuple)
+        A dictionary containing joint labels as keys, and tuples containing three elements as values: the horizontal
+        position, the vertical position, and the radius of the circle.
+
+    list(str)
+        The list of the joints, in the order they should be plotted.
+    """
+
+    if joint_layout.lower() == "kinect":
+        with open("res/kinect_joints_silhouette_layout.txt") as f:
+            content = f.read().split("\n")
+    elif joint_layout.lower() in ["qualisys", "kualisys"]:
+        with open("res/kualisys_joints_silhouette_layout.txt") as f:
+            content = f.read().split("\n")
+    else:
+        try:
+            with open(joint_layout) as f:
+                content = f.read().split("\n")
+        except FileNotFoundError:
+            raise Exception("The file " + str(joint_layout) + " is not a valid file.")
+
+    joints_positions = {}
+    joint_layout = []
+
+    for line in content:
+        elements = line.split("\t")
+        joints_positions[elements[0]] = (int(elements[1]), int(elements[2]), int(elements[3]))
+        joint_layout.append(elements[0])
 
     return joints_positions, joint_layout
 
@@ -1929,7 +2005,7 @@ def resample_images_to_frequency(images_paths, timestamps, frequency):
     return new_images, new_timestamps
 
 
-def get_min_max_values_from_plot_dictionary(plot_dictionary):
+def get_min_max_values_from_plot_dictionary(plot_dictionary, keys_to_exclude=None):
     """Returns the minimum and maximum values of all the graphs contained in a plot dictionary.
 
     .. versionadded:: 2.0
@@ -1938,6 +2014,8 @@ def get_min_max_values_from_plot_dictionary(plot_dictionary):
     ----------
     plot_dictionary: dict
         A dictionary with labels as keys and Graph elements as values.
+    keys_to_exclude: list(string)
+        A list of keys of the dictionary to exclude from the search of the minimum and maximum values.
 
     Returns
     -------
@@ -1949,28 +2027,32 @@ def get_min_max_values_from_plot_dictionary(plot_dictionary):
     min_value = 0
     max_value = 0
 
+    if keys_to_exclude is None:
+        keys_to_exclude = []
+
     for key in plot_dictionary.keys():
-        if plot_dictionary[key] is list:
-            for series in plot_dictionary[key]:
-                local_min = min(series.y)
-                local_max = max(series.y)
-                if local_min < min_value:
-                    min_value = local_min
-                if local_max > max_value:
-                    max_value = local_max
-        elif type(plot_dictionary[key]) is Graph:
-            for plot in plot_dictionary[key].plots:
-                local_min = min(plot.y)
-                local_max = max(plot.y)
-                if local_min < min_value:
-                    min_value = local_min
-                if local_max > max_value:
-                    max_value = local_max
-        else:
-            if plot_dictionary[key] < min_value:
-                min_value = plot_dictionary[key]
-            if plot_dictionary[key] > max_value:
-                max_value = plot_dictionary[key]
+        if key not in keys_to_exclude:
+            if plot_dictionary[key] is list:
+                for series in plot_dictionary[key]:
+                    local_min = min(series.y)
+                    local_max = max(series.y)
+                    if local_min < min_value:
+                        min_value = local_min
+                    if local_max > max_value:
+                        max_value = local_max
+            elif type(plot_dictionary[key]) is Graph:
+                for plot in plot_dictionary[key].plots:
+                    local_min = min(plot.y)
+                    local_max = max(plot.y)
+                    if local_min < min_value:
+                        min_value = local_min
+                    if local_max > max_value:
+                        max_value = local_max
+            else:
+                if plot_dictionary[key] < min_value:
+                    min_value = plot_dictionary[key]
+                if plot_dictionary[key] > max_value:
+                    max_value = plot_dictionary[key]
 
     return min_value, max_value
 

@@ -145,3 +145,37 @@ class InvalidPoseIndexException(Exception):
         self.number_of_poses = number_of_poses
         self.message = "The pose index must be between 0 and " + str(self.number_of_poses - 1) + ". "
 
+
+class InvalidParameterValueException(Exception):
+    """Exception raised when the value of a parameter is not one of the expected ones.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    name: str
+        The name of the parameter set at an invalid value.
+    given_value
+        The invalid value given to the parameter.
+    expected_values: list, optional
+        The expected value or values the parameter should have.
+    """
+
+    def __init__(self, name, given_value, expected_values=None):
+        self.name = name
+        self.given_value = given_value
+        self.expected_values = expected_values
+        self.message = "Invalid value for the parameter " + str(self.name) + ": " + str(self.given_value) + "."
+
+        if self.expected_values is not None:
+            self.message += "\nThe accepted values are: "
+            for i in range(len(expected_values)-1):
+                if type(expected_values[i]) is str:
+                    self.message += '"' + str(expected_values[i]) + '" '
+                else:
+                    self.message += str(expected_values[i]) + " "
+
+            if type(expected_values[-1]) is str:
+                self.message += 'or "' + str(expected_values[-1]) + '".'
+            else:
+                self.message += "or " + str(expected_values[-1]) + "."

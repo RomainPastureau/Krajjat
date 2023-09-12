@@ -50,6 +50,7 @@
 <li class="toctree-l2"><a class="reference internal" href="vocabulary.html">Vocabulary of the Krajjat toolbox</a></li>
 <li class="toctree-l2"><a class="reference internal" href="example.html">Example of processing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="input.html">Compatible files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="release_notes.html">Release notes</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="classes.html">Classes</a></li>
@@ -88,11 +89,18 @@
 <dt>Here are the modules Krajjat uses to run properly:</dt><dd><ul class="simple">
 <li><p><a class="reference external" href="https://docs.scipy.org/doc/scipy/">SciPy</a> for handling <cite>.wav</cite> files and getting the audio envelope, and for
 saving files in <cite>.mat</cite> format (Matlab)</p></li>
+<li><p><a class="reference external" href="https://numpy.org/">NumPy</a> for saving <cite>.wav</cite> files, and handling arrays for other dependencies.</p></li>
+<li><p>Matplotlib</p></li>
 <li><p><a class="reference external" href="https://openpyxl.readthedocs.io/en/stable/tutorial.html">openpyxl</a> for opening and saving files in <cite>.xlsx</cite>
 (Excel format)</p></li>
+<li><p>Parselmouth</p></li>
+<li><p>Pygame</p></li>
+<li><p>cv2</p></li>
 </ul>
 </dd>
 </dl>
+<p>Moreover, it is necessary to have <a class="reference external" href="https://ffmpeg.org/">FFmpeg</a> installed on your computer in order to generate
+videos with <code class="xref py py-meth docutils literal notranslate"><span class="pre">display_functions.create_sequence_video()</span></code>.</p>
 </section>
 
 

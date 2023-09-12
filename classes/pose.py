@@ -85,7 +85,7 @@ class Pose(object):
         list(str)
             The list of joint labels.
         """
-        return self.joints.keys()
+        return list(self.joints.keys())
 
     def generate_average_joint(self, list_joints_to_average, new_joint_label, add_joint=True):
         """Generates and returns a joint that is located at the average position of the other joints.

@@ -45,6 +45,7 @@ Getter functions
 .. automethod:: classes.sequence.Sequence.get_min_framerate
 .. automethod:: classes.sequence.Sequence.get_max_framerate
 .. automethod:: classes.sequence.Sequence.get_joint_coordinate_as_list
+.. automethod:: classes.sequence.Sequence.get_joint_distance_as_list
 .. automethod:: classes.sequence.Sequence.get_joint_velocity_as_list
 .. automethod:: classes.sequence.Sequence.get_velocities
 .. automethod:: classes.sequence.Sequence.get_max_velocity_whole_sequence

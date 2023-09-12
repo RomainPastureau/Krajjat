@@ -56,10 +56,10 @@ Color functions
 ^^^^^^^^^^^^^^^
 .. autofunction:: tool_functions.load_color_names
 .. autofunction:: tool_functions.load_color_schemes
-.. autofunction:: tool_functions.convert_color_rgba
-.. autofunction:: tool_functions.convert_colors_rgba
 .. autofunction:: tool_functions.hex_color_to_rgb
 .. autofunction:: tool_functions.rgb_color_to_hex
+.. autofunction:: tool_functions.convert_color
+.. autofunction:: tool_functions.convert_colors
 .. autofunction:: tool_functions.calculate_color_points_on_gradient
 .. autofunction:: tool_functions.calculate_color_ratio
 .. autofunction:: tool_functions.calculate_colors_by_values

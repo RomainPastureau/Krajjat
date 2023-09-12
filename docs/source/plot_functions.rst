@@ -1,0 +1,16 @@
+Plot functions
+==============
+
+Description
+-----------
+These various functions allow to plot the data from the Sequence and Audio instances on graphs, or to plot
+statistics calculated using the :doc:`stats_functions`.
+
+Functions
+---------
+.. autofunction:: plot_functions.single_joint_movement_plotter
+.. autofunction:: plot_functions.joints_movement_plotter
+.. autofunction:: plot_functions.framerate_plotter
+.. autofunction:: plot_functions.audio_plotter
+.. autofunction:: plot_functions.plot_body_graphs
+.. autofunction:: plot_functions.plot_silhouette

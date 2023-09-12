@@ -313,7 +313,7 @@ def get_colors_correlations(correlations_dict, max_value, color_scheme="default"
     """Returns a color for every value according to a gradient and a max value."""
 
     if type(color_scheme) == "string":
-        color_scheme = convert_colors_rgba(color_scheme)
+        color_scheme = convert_colors(color_scheme, "RGB", True)
 
     colors = {}
 

@@ -6,7 +6,7 @@ import pygame
 from pygame.locals import *
 from pygame import gfxdraw
 import cv2
-from tool_functions import convert_color_rgba, load_joint_labels, load_joints_connections, show_progression
+from tool_functions import convert_color, load_joint_labels, load_joints_connections, show_progression
 
 
 class WindowArea(object):
@@ -575,10 +575,10 @@ class GraphicSequence(object):
 
         self.joint_surfaces = {}
         self.shape_joint = kwargs.get("shape_joint", "circle")
-        self.color_joint_default = convert_color_rgba(kwargs.get("color_joint", "white"))
-        self.color_joint_default = convert_color_rgba(kwargs.get("color_joint_default", "white"))
-        self.color_joint_corrected = convert_color_rgba(kwargs.get("color_joint_corrected", "sheen green"))
-        self.color_line = convert_color_rgba(kwargs.get("color_line", "grey"))
+        self.color_joint_default = convert_color(kwargs.get("color_joint", "white"), "RGB", True)
+        self.color_joint_default = convert_color(kwargs.get("color_joint_default", "white"), "RGB", True)
+        self.color_joint_corrected = convert_color(kwargs.get("color_joint_corrected", "sheen green"), "RGB", True)
+        self.color_line = convert_color(kwargs.get("color_line", "grey"), "RGB", True)
         self.width_line = kwargs.get("width_line", 1)
         self.size_joint_head = kwargs.get("size_joint_head", 50)
         self.size_joint_hand = kwargs.get("size_joint_hand", 20)
@@ -792,7 +792,7 @@ class GraphicSequence(object):
             • A string containing one of the
               `140 HTML/CSS color names <https://en.wikipedia.org/wiki/X11_color_names>`_).
         """
-        self.color_background = convert_color_rgba(color)
+        self.color_background = convert_color(color, "RGB", True)
 
     def set_shape_joint(self, shape_joint):
         """Sets the attribute :attr:`shape_joint`, and re-generates the Surface objects in :attr:`self.joint_surfaces`.
@@ -827,7 +827,7 @@ class GraphicSequence(object):
             • A string containing one of the
               `140 HTML/CSS color names <https://en.wikipedia.org/wiki/X11_color_names>`_).
         """
-        self.color_joint_default = convert_color_rgba(color)
+        self.color_joint_default = convert_color(color, "RGB", True)
 
         self._add_entry_joint_surfaces("joint_default_default", self.size_joint_default, self.color_joint_default)
         self._add_entry_joint_surfaces("joint_hand_default", self.size_joint_hand, self.color_joint_default)
@@ -851,7 +851,7 @@ class GraphicSequence(object):
             • A string containing one of the
               `140 HTML/CSS color names <https://en.wikipedia.org/wiki/X11_color_names>`_).
         """
-        self.color_joint_corrected = convert_color_rgba(color)
+        self.color_joint_corrected = convert_color(color, "RGB", True)
 
         self._add_entry_joint_surfaces("joint_default_corrected", self.size_joint_default, self.color_joint_corrected)
         self._add_entry_joint_surfaces("joint_hand_corrected", self.size_joint_hand, self.color_joint_corrected)
@@ -873,7 +873,7 @@ class GraphicSequence(object):
             • A string containing one of the
               `140 HTML/CSS color names <https://en.wikipedia.org/wiki/X11_color_names>`_).
         """
-        self.color_joint_corrected = convert_color_rgba(color)
+        self.color_joint_corrected = convert_color(color, "RGB", True)
 
     def set_width_line(self, width):
         """Sets the attribute :attr:`width_line`.

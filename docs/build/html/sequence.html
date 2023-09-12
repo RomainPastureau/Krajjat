@@ -396,7 +396,7 @@ may clutter the output and slow down the execution.</p></li>
 <dt class="sig sig-object py" id="classes.sequence.Sequence.set_name">
 <span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">set_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.set_name" title="Permalink to this definition"></a></dt>
 <dd><p>Sets the <a class="reference internal" href="#classes.sequence.Sequence.name" title="classes.sequence.Sequence.name"><code class="xref py py-attr docutils literal notranslate"><span class="pre">name</span></code></a> attribute of the Sequence instance. This name can be used as display functions or as
-a means to identify the sequence (typically, <code class="xref py py-func docutils literal notranslate"><span class="pre">plot_functions.joint_temporal_plotter()</span></code>).</p>
+a means to identify the sequence (typically, <a class="reference internal" href="plot_functions.html#plot_functions.joint_temporal_plotter" title="plot_functions.joint_temporal_plotter"><code class="xref py py-func docutils literal notranslate"><span class="pre">plot_functions.joint_temporal_plotter()</span></code></a>).</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
@@ -780,6 +780,31 @@ between two poses in the sequence.</p>
 <p class="admonition-title">Note</p>
 <p>The values returned by the function can be paired with the timestamps obtained with
 <a class="reference internal" href="#classes.sequence.Sequence.get_timestamps" title="classes.sequence.Sequence.get_timestamps"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.get_timestamps()</span></code></a>.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_joint_distance_as_list">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_joint_distance_as_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_joint_distance_as_list" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of all the distances travelled for a specific joint.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>joint_label</strong> (<em>str</em>) – The label of the joint (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Head&quot;</span></code>).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A chronological list of the distances travelled (in meters) for the specified joint.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(float)</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Because the velocities are calculated by consecutive pairs of poses, the list returned by the function
+have a length of <span class="math notranslate nohighlight">\(n-1\)</span>, with <span class="math notranslate nohighlight">\(n\)</span> being the number of poses of the sequence.</p>
 </div>
 </dd></dl>
 

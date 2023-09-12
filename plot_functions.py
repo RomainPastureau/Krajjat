@@ -1,3 +1,6 @@
+"""These various functions allow to plot the data from the Sequence and Audio instances on graphs, or to plot
+statistics calculated using the stats_functions."""
+
 import pygame
 from pygame.locals import *
 
@@ -9,202 +12,402 @@ import sys
 from classes.sequence import *
 
 
-def joint_temporal_plotter(sequence_or_sequences, joint_label="HandRight", align=True):
-    """Plots the x, y, z positions across time of the joint of one or more sequences, along with the distance
-    and velocity."""
+def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight", align=True, timestamp_start=None,
+                                  timestamp_end=None, line_color="blue", line_width=1.0, verbosity=1):
+    """Plots the x, y, z positions across time of the joint of one or more sequences, along with the distance travelled,
+    velocity and absolute variations of acceleration.
+
+    Note
+    ----
+    The values for distance travelled and velocity are, by definition, calculated between two timestamps. The
+    acceleration is calculated between three timestamps. For simplification purposes, in these graphs, the values are
+    plotted at the ending timestamp. In other words, the plotting of the distance and velocity values starts at the
+    second timestamp, while the plotting for the acceleration starts at the third timestamp.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    sequence_or_sequences: Sequence or list(Sequence)
+        One or multiple sequence instances.
+
+    joint_label: str, optional
+        The label of the joint from which to use the values to plot (default: ``"HandRight"``).
+
+    align: bool, optional
+        If this parameter is set on ``"True"`` (default), and if the parameter ``sequence_or_sequences`` is a list
+        containing more than one sequence instance, the function will try to check if one or more of the sequences
+        provided is or are sub-sequences of others. If it is the case, the function will align the timestamps of the
+        sequences for the plot. If only one sequence is provided, this parameter is ignored.
+
+    timestamp_start: float or None, optional
+        If defined, indicates at what timestamp the plot starts.
+
+    timestamp_end: float or None, optional
+        If defined, indicates at what timestamp the plot ends.
+
+    line_color: tuple or string or list
+        The color of the line(s) in the graph. Each color can be:
+
+        • A `HTML/CSS name <https://en.wikipedia.org/wiki/X11_color_names>`_ (e.g. ``"red"`` or
+          ``"blanched almond"``),
+        • An hexadecimal code, starting with a number sign (``#``, e.g. ``"#ffcc00"`` or ``"#c0ffee"``).
+        • A RGB or RGBA tuple (e.g. ``(153, 204, 0)`` or ``(77, 77, 77, 255)``).
+
+        If more than one sequence is provided, this parameter should be a list with the color for each line.
+
+    line_width: float, optional
+        The width of the plotted lines, in pixels (default: 1.0).
+
+    verbosity: int, optional
+        Sets how much feedback the code will provide in the console output:
+
+        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+          current steps.
+        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+          may clutter the output and slow down the execution.
+    """
 
     # Get the time array
-    times = []
+    timestamps = []
     if type(sequence_or_sequences) is list:
-        for seq in range(len(sequence_or_sequences)):
-            sequence = sequence_or_sequences[seq]
+        for sequence_index in range(len(sequence_or_sequences)):
+            sequence = sequence_or_sequences[sequence_index]
 
             # If we already had sequences, and align is True, we try to align the sequences
-            if seq != 0 and align:
-
+            if sequence_index != 0 and align:
                 aligned = False
+
                 # We compare the sequence to every other sequence already in the list
-                for seq2 in range(seq):
-                    prior_sequence = sequence_or_sequences[seq2]
-                    alignment = align_two_sequences(sequence, prior_sequence)
-                    if alignment:
-                        if alignment[0] == 0:
-                            print("Aligning sequence " + str(seq + 1) + " to sequence " + str(seq2 + 1) + ".")
-                            times.append(times[seq2][alignment[1]:alignment[1] + len(sequence)])
-                            aligned = True
-                            break
+                for prior_sequence_index in range(sequence_index):
+                    prior_sequence = sequence_or_sequences[prior_sequence_index]
+                    alignment_indices = align_two_sequences(sequence, prior_sequence)
+
+                    if alignment_indices:
+                        if alignment_indices[0] == 0:
+                            if verbosity > 0:
+                                print("Aligning sequence " + str(sequence_index + 1) + " to sequence " +
+                                      str(prior_sequence_index + 1) + ".")
+                            timestamps.append(timestamps[prior_sequence_index][alignment_indices[1]:
+                                                                               alignment_indices[1] +
+                                                                               len(sequence)])
+
                         else:
-                            print("Aligning sequence " + str(seq2 + 1) + " to sequence " + str(seq + 1) + ".")
-                            times.append(sequence.get_timestamps())
-                            times[seq2] = times[seq][alignment[0]:alignment[0] + len(prior_sequence)]
-                            aligned = True
-                            break
+                            if verbosity > 0:
+                                print("Aligning sequence " + str(prior_sequence_index + 1) + " to sequence " +
+                                      str(sequence_index + 1) + ".")
+                            timestamps.append(sequence.get_timestamps())
+                            timestamps[prior_sequence_index] = timestamps[sequence_index][alignment_indices[0]:
+                                                                                          alignment_indices[0] +
+                                                                                          len(prior_sequence)]
+
+                        aligned = True
+                        break
 
                 if not aligned:
-                    times.append(sequence.get_timestamps())
+                    timestamps.append(sequence.get_timestamps())
 
             else:
-                times.append(sequence.get_timestamps())
+                timestamps.append(sequence.get_timestamps())
 
     else:
-        times.append(sequence_or_sequences.get_timestamps())
+        timestamps.append(sequence_or_sequences.get_timestamps())
         sequence_or_sequences = [sequence_or_sequences]
 
     # Create empty lists for the arrays
     x = []
     y = []
     z = []
-    dist = []
+    distances = []
     velocities = []
+    accelerations = []
 
-    # Define a "max_velocity" to get the upper limit of the y-axis
-    max_velocity = 0
+    timestamp_min = None
+    timestamp_max = None
 
     # For all poses
     for i in range(len(sequence_or_sequences)):
-
         sequence = sequence_or_sequences[i]
 
-        x.append([])
-        y.append([])
-        z.append([])
-        dist.append([])
-        velocities.append([])
+        pose_index_start = 0
+        pose_index_end = sequence.get_number_of_poses()
 
-        for p in range(0, len(sequence.poses)):
+        if timestamp_start is not None:
+            if 0 <= timestamp_start <= sequence.get_duration():
+                pose_index_start = sequence.get_pose_index_from_timestamp(timestamp_start, "above")
+            else:
+                raise Exception("The value of timestamp_start should be between 0 and " +
+                                str(sequence.get_duration()))
 
-            # Get the joint x, y and z info
-            joint = sequence.poses[p].joints[joint_label]
-            x[i].append(joint.x)
-            y[i].append(joint.y)
-            z[i].append(joint.z)
+        if timestamp_end is not None:
+            if 0 <= timestamp_end <= sequence.get_duration():
+                pose_index_end = sequence.get_pose_index_from_timestamp(timestamp_end, "below")
+            else:
+                raise Exception("The value of timestamp_end should be between 0 and " +
+                                str(sequence.get_duration()))
 
-            # For all poses after the first one
-            if p > 0:
+        print(pose_index_start, pose_index_end)
 
-                # Get distance travelled
-                joint_before = sequence.poses[p - 1].joints[joint_label]
-                d = calculate_distance(joint_before, joint)
-                dist[i].append(d)
+        x.append(sequence.get_joint_coordinate_as_list(joint_label, "x")[pose_index_start:pose_index_end])
+        y.append(sequence.get_joint_coordinate_as_list(joint_label, "y")[pose_index_start:pose_index_end])
+        z.append(sequence.get_joint_coordinate_as_list(joint_label, "z")[pose_index_start:pose_index_end])
+        distances.append(sequence.get_joint_distance_as_list(joint_label)[pose_index_start:pose_index_end-1])
+        velocities.append(sequence.get_joint_velocity_as_list(joint_label)[pose_index_start:pose_index_end-1])
+        accelerations.append(sequence.get_joint_acceleration_as_list(joint_label, True)[pose_index_start:
+                                                                                        pose_index_end-2])
+        timestamps[i] = timestamps[i][pose_index_start:pose_index_end]
 
-                # Get velocity
-                vel = calculate_velocity(sequence.poses[p - 1], sequence.poses[p], joint_label)
-                if vel > max_velocity:
-                    max_velocity = vel
-                velocities[i].append(vel)
+        if timestamp_min is None or timestamp_min > timestamps[i][0]:
+            timestamp_min = timestamps[i][0]
+        if timestamp_max is None or timestamp_max < timestamps[i][-1]:
+            timestamp_max = timestamps[i][-1]
 
     plt.rcParams["figure.figsize"] = (12, 9)
-    line_width = 1.0
     plt.subplots(5, 1, figsize=(12, 9))
     plt.subplots_adjust(left=0.15, bottom=0.1, right=0.97, top=0.9, wspace=0.3, hspace=0.5)
-
-    # Define colors to show
-    colors = ["#0066ff", "#ff6600", "#009900", "#ff0000", "#009999", "#cc0099"]
 
     # Plot x, y, z, distance travelled and velocities
     parameters = {"rotation": "horizontal", "horizontalalignment": "right", "verticalalignment": "center",
                   "font": {'size': 16, "weight": "bold"}}
 
-    plt.subplot(5, 1, 1)
+    # Get colors
+    colors = []
+    if type(line_color) is list:
+        for color in line_color:
+            colors.append(convert_color(color, "hex", False))
+    else:
+        colors.append(convert_color(line_color, "hex", False))
+
+    plt.subplot(6, 1, 1)
     for i in range(len(sequence_or_sequences)):
-        lab = sequence_or_sequences[i].name
-        print(lab)
-        plt.plot(times[i], x[i], linewidth=line_width, color=colors[i % 5], label=lab)
+        plt.xlim([timestamp_min, timestamp_max])
+        label = sequence_or_sequences[i].name
+        print(label)
+        plt.plot(timestamps[i], x[i], linewidth=line_width, color=colors[i % len(colors)], label=label)
     plt.ylabel("x", **parameters)
     plt.legend(bbox_to_anchor=(0, 1, 1, 0), loc="lower left", mode="expand", ncol=len(sequence_or_sequences))
 
-    plt.subplot(5, 1, 2)
+    plt.subplot(6, 1, 2)
     for i in range(len(sequence_or_sequences)):
-        plt.plot(times[i], y[i], linewidth=line_width, color=colors[i % 5])
+        plt.xlim([timestamp_min, timestamp_max])
+        plt.plot(timestamps[i], y[i], linewidth=line_width, color=colors[i % len(colors)])
     plt.ylabel("y", **parameters)
 
-    plt.subplot(5, 1, 3)
+    plt.subplot(6, 1, 3)
     for i in range(len(sequence_or_sequences)):
-        plt.plot(times[i], z[i], linewidth=line_width, color=colors[i % 5])
+        plt.xlim([timestamp_min, timestamp_max])
+        plt.plot(timestamps[i], z[i], linewidth=line_width, color=colors[i % len(colors)])
     plt.ylabel("z", **parameters)
 
-    plt.subplot(5, 1, 4)
+    plt.subplot(6, 1, 4)
     for i in range(len(sequence_or_sequences)):
-        plt.plot(times[i][1:], dist[i], linewidth=line_width, color=colors[i % 5])
+        plt.xlim([timestamp_min, timestamp_max])
+        plt.plot(timestamps[i][1:], distances[i], linewidth=line_width, color=colors[i % len(colors)])
     plt.ylabel("Distance", **parameters)
 
-    plt.subplot(5, 1, 5)
+    plt.subplot(6, 1, 5)
     for i in range(len(sequence_or_sequences)):
-        plt.plot(times[i][1:], velocities[i], linewidth=line_width, color=colors[i % 5])
+        plt.xlim([timestamp_min, timestamp_max])
+        plt.plot(timestamps[i][1:], velocities[i], linewidth=line_width, color=colors[i % len(colors)])
     plt.ylabel("Velocity", **parameters)
+
+    plt.subplot(6, 1, 6)
+    for i in range(len(sequence_or_sequences)):
+        plt.xlim([timestamp_min, timestamp_max])
+        plt.plot(timestamps[i][2:], accelerations[i], linewidth=line_width, color=colors[i % len(colors)])
+    plt.ylabel("Acceleration", **parameters)
 
     plt.show()
 
 
-def velocity_plotter(folder_or_sequence, audio=None, overlay=False, line_width=1.0, color_scheme="default"):
-    """Plots the velocity across time of the joints"""
+def joints_movement_plotter(sequence, time_series="velocity", audio_or_derivative=None, overlay_audio=False,
+                            line_width=1.0, color_scheme="default", show_scale=False, verbosity=1):
+    """Plots the distance or velocity across time of the joints, in separate sub-graphs whose localisation roughly
+    follows the original body position of the joints.
 
-    # If folderOrSequence is a folder, we load the sequence; otherwise, we just attribute the sequence
-    if folder_or_sequence is str:
-        sequence = Sequence(folder_or_sequence)
-    else:
-        sequence = folder_or_sequence
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+
+    sequence: Sequence
+        A Sequence instance.
+
+    time_series: str, optional
+        Defines which time series to display in the graphs, either ``"x"``, ``"y"`` or ``"z"`` for the distance
+        travelled between poses on one single axis, ``"distance"`` for the euclidian 3D distance travelled between
+        poses, ``"velocity"`` (default) for the velocity between poses, or ``"acceleration"`` for the changes of
+        velocity between pairs of poses.
+
+    audio_or_derivative: Audio, AudioDerivative or None, optional
+        An Audio instance, or any of the AudioDerivative child classes (:class:`Envelope`, :class:`Pitch`,
+        :class:`Intensity` or :class:`Formant`). If provided, the samples of the object will be plotted in the top-left
+        corner.
+
+    overlay_audio: bool, optional
+        If set on ``True``, and if audio_or_derivative is not None, the samples of the ``audio_or_derivative`` object
+        will be shown on overlay of the different joint velocities.
+
+    line_width: float, optional
+        The width of the plotted lines, in pixels (default: 1.0).
+
+    color_scheme: string or list, optional
+        The name of a color scheme or a list of colors to create a gradient. The resulting color gradient will be used
+        to color the joints plots depending on their quantity of movement. If set on ``"default"``, the default
+        :ref:`color scheme <color_schemes>` will be used, with the joints having the highest quantity of movement
+        colored red. If a list of colors is set as parameter, the colors can be specified in RGB, RGBA, hexadecimal
+        or standard `HTML/CSS color names <https://en.wikipedia.org/wiki/X11_color_names>`_.
+
+    show_scale: bool, optional
+        If set on ``True``, shows a colored scale on the left side of the graph.
+
+    verbosity: int, optional
+        Sets how much feedback the code will provide in the console output:
+
+        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+          current steps.
+        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+          may clutter the output and slow down the execution.
+    """
+
+    if verbosity > 0:
+        print("Plotting the data skeleton for the sequence " + str(sequence.get_name()) + "...")
+        print("\tGetting data...", end=" ")
+
+    timestamps = sequence.get_timestamps()[1:]
 
     # Compute velocities of the joints
-    joints_velocity = sequence.get_velocities()
-    joints_qty_movement = sequence.get_total_velocity_per_joint()
-    max_velocity = sequence.get_max_velocity_whole_sequence()
-    timestamps = sequence.get_timestamps()
+    if time_series in ["x", "y", "z"]:
+        joints_time_series = sequence.get_distances(time_series)
+        total_time_series_per_joint = sequence.get_total_distance_per_joint(time_series)
+        max_value_whole_sequence = sequence.get_max_distance_whole_sequence(time_series)
+        title_scale = "Sum of the distances travelled on the " + time_series + " coordinate"
+        title = "Distance travelled on the " + time_series + " coordinate between poses for each joint of the sequence"
+
+    elif time_series == "distance":
+        joints_time_series = sequence.get_distances()
+        total_time_series_per_joint = sequence.get_total_distance_per_joint()
+        max_value_whole_sequence = sequence.get_max_distance_whole_sequence()
+        title_scale = "Sum of the distances travelled"
+        title = "Distance travelled between poses for each joint of the sequence"
+
+    elif time_series == "velocity":
+        joints_time_series = sequence.get_velocities()
+        total_time_series_per_joint = sequence.get_total_velocity_per_joint()
+        max_value_whole_sequence = sequence.get_max_velocity_whole_sequence()
+        title_scale = "Sum of the velocities"
+        title = "Velocity between poses for each joint of the sequence"
+
+    elif time_series == "acceleration":
+        joints_time_series = sequence.get_accelerations(absolute=True)
+        total_time_series_per_joint = sequence.get_total_acceleration_per_joint()
+        max_value_whole_sequence = sequence.get_max_acceleration_whole_sequence(absolute=True)
+        timestamps = sequence.get_timestamps()[2:]
+        title_scale = "Sum of the absolute accelerations"
+        title = "Variations of acceleration between pairs of poses for each joint of the sequence"
+
+    else:
+        raise InvalidParameterValueException("time_series", time_series, ["x", "y", "z", "distance", "velocity",
+                                                                          "acceleration"])
 
     # We define the plot dictionary
     plot_dictionary = {}
 
+    if verbosity > 0:
+        print("Done.")
+        print("\tCalculating colors...", end=" ")
+
     # Determine color depending on global velocity
-    joints_colors = calculate_colors_by_values(joints_qty_movement, color_scheme, "hex", False)
+    joints_colors = calculate_colors_by_values(total_time_series_per_joint, color_scheme, "hex", False)
+
+    if verbosity > 0:
+        print("Done.")
+        print("\tScaling the audio...", end=" ")
 
     # Scale the audio
-    new_audio_envelope = []
-    if audio is not None and overlay:
-        new_audio_envelope = scale_audio(audio.get_envelope(), max_velocity)
+    scaled_audio_or_derivative = []
+    if audio_or_derivative is not None and overlay_audio:
+        scaled_audio_or_derivative = scale_audio(audio_or_derivative.get_samples(), max_value_whole_sequence,
+                                                 True, True, 0)
 
-    for joint in joints_velocity.keys():
+    if verbosity > 0:
+        print("Done.")
+        print("\tCreating the sub-graphs...", end=" ")
+
+    for joint in joints_time_series.keys():
         graph = Graph()
-        if overlay:
-            graph.add_plot(timestamps, new_audio_envelope, line_width, "#aa0000")
-        graph.add_plot(timestamps[1:], joints_velocity[joint], line_width, joints_colors[joint])
+        if overlay_audio:
+            graph.add_plot(audio_or_derivative.get_timestamps(), scaled_audio_or_derivative, line_width, "#d5cdd8")
+        graph.add_plot(timestamps, joints_time_series[joint], line_width, joints_colors[joint])
         plot_dictionary[joint] = graph
 
-    if overlay:
+    title_audio = None
+    if audio_or_derivative is not None:
         graph = Graph()
-        graph.add_plot(timestamps, audio.envelope, line_width, "#d5cdd8")
+        graph.add_plot(audio_or_derivative.get_timestamps(), audio_or_derivative.get_samples(), line_width, "#a102db")
         plot_dictionary["Audio"] = graph
+        title_audio = audio_or_derivative.kind
 
-    plot_body_graphs(plot_dictionary, max_velocity)
+    if verbosity > 0:
+        print("Done.")
+
+    plot_body_graphs(plot_dictionary, min_scale=0, max_scale=max_value_whole_sequence, show_scale=show_scale,
+                     title_scale=title_scale, color_scheme=color_scheme, title=title, title_audio=title_audio)
 
 
-def framerate_plotter(sequence_or_sequences, line_width=1.0, color="#000000"):
-    """Plots the framerates across time of one or many sequences."""
+def framerate_plotter(sequence_or_sequences, line_width=1.0, line_color="#000000"):
+    """Plots the framerates across time for one or multiple sequences. The framerate is calculated by getting the
+    inverse of the time between consecutive poses.
 
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    sequence_or_sequences: Sequence or list(Sequence)
+        One or multiple sequence instances.
+
+    line_width: float, optional
+        The width of the plotted lines, in pixels (default: 1.0).
+
+    line_color: tuple(int, int, int) or tuple(int, int, int, int) or string
+        The color of the line in the graph. This parameter can be:
+
+        • A `HTML/CSS name <https://en.wikipedia.org/wiki/X11_color_names>`_ (e.g. ``"red"`` or
+          ``"blanched almond"``),
+        • An hexadecimal code, starting with a number sign (``#``, e.g. ``"#ffcc00"`` or ``"#c0ffee"``).
+        • A RGB or RGBA tuple (e.g. ``(153, 204, 0)`` or ``(77, 77, 77, 255)``).
+    """
+
+    # If only one sequence has been provided, we turn it into a list
     if type(sequence_or_sequences) is not list:
         sequence_or_sequences = [sequence_or_sequences]
 
-    i = 1
-    while i ** 2 < len(sequence_or_sequences):
-        i += 1
-    if len(sequence_or_sequences) <= i * (i - 1):
-        j = i - 1
-    else:
-        j = i
+    # Figure parameters
     plt.rcParams["figure.figsize"] = (12, 6)
     plt.subplots_adjust(left=0.03, bottom=0.03, right=0.97, top=0.9, wspace=0.3, hspace=0.7)
-    labels = get_objects_names(sequence_or_sequences)
-    max_framerate = 0
+    labels = get_difference_paths(get_objects_names(sequence_or_sequences))
+    print(labels)
+    for i in range(len(labels)):
+        if len(labels[i]) == 1:
+            labels[i] = labels[i][0]
+        else:
+            labels[i] = " · ".join(labels[i])
 
+    # Values and lists for calculating the framerates
+    max_framerate = 0
     framerates_list = []
     timestamps_list = []
     averages_list = []
 
+    # Getting the framerate vectors
     for seq in range(len(sequence_or_sequences)):
 
         sequence = sequence_or_sequences[seq]
         framerates, timestamps = sequence.get_framerates()
-        avg = sum(framerates) / len(framerates)
-        averages = [avg for _ in range(len(framerates))]
+        average = sequence.get_average_framerate()
+        averages = [average for _ in range(len(framerates))]
 
         framerates_list.append(framerates)
         timestamps_list.append(timestamps)
@@ -213,43 +416,200 @@ def framerate_plotter(sequence_or_sequences, line_width=1.0, color="#000000"):
         if max(framerates) > max_framerate:
             max_framerate = max(framerates)
 
+    # Size of the plot area
+    i = math.ceil(math.sqrt(len(sequence_or_sequences)))
+    j = i - 1 * (len(sequence_or_sequences) <= i * (i - 1))
+
+    # Plot the framerates
     for seq in range(len(sequence_or_sequences)):
         plt.subplot(i, j, seq + 1)
         plt.ylim([0, max_framerate + 1])
-        plt.plot(timestamps_list[seq], framerates_list[seq], linewidth=line_width, color=color, label="Framerate")
+        plt.plot(timestamps_list[seq], framerates_list[seq], linewidth=line_width, color=line_color, label="Framerate")
         plt.plot(timestamps_list[seq], averages_list[seq], linewidth=line_width, color="#ff0000", label="Average")
         if seq == 0:
-            plt.legend(bbox_to_anchor=(0, 1.3 + 0.1 * i, 1, 0), loc="upper left", ncol=2)
+            plt.legend(bbox_to_anchor=(0, 1 + i * 0.15), loc="upper left", ncol=2)
         plt.title(labels[seq] + " [Avg: " + format(averages_list[seq][0], '.2f') + "]")
 
     plt.show()
 
 
-def plot_body_graphs(plot_dictionary, min_scale=None, max_scale=None, show_scale=False, name=None,
-                     color_scheme="default", joint_layout="auto"):
-    # Places the positions of the different joints in the graph to look like a body
+# noinspection PyArgumentList
+def audio_plotter(audio, threshold_low_pass_envelope=10, number_of_formants=3):
+    """Given an audio instance, plots the samples, filtered envelope, pitch, intensity, formants and spectrogram.
 
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    audio: Audio
+        An Audio instance.
+    threshold_low_pass_envelope: int or None, optional
+        Defines the threshold frequency over which the envelope will be filtered (default: 10). If set on ``None``, the
+        envelope will not be filtered.
+    number_of_formants: int, optional
+        The number of formants to plot (default: 3).
+
+    Warning
+    -------
+    With non-resampled audio files, this function can take several minutes to compute before being able to plot the
+    graphs. It is recommended to perform a downsampling of the audio object before running this function.
+    """
+
+    try:
+        from parselmouth import Sound
+    except ImportError:
+        raise ModuleNotFoundException("parselmouth", "get the pitch, intensity and formants of an audio clip.")
+
+    try:
+        import numpy as np
+    except ImportError:
+        raise ModuleNotFoundException("numpy", "get the pitch, intensity and formants of an audio clip.")
+
+    # Creating a Parselmouth object
+    audio_samples = np.array(audio.get_samples(), dtype=np.float64)
+    parselmouth_sound = Sound(np.ndarray(np.shape(audio_samples), np.float64, audio_samples), audio.frequency)
+
+    # Envelope
+    envelope = audio.get_envelope(filter_over=10, verbosity=0)
+
+    # Intensity
+    intensity = parselmouth_sound.to_intensity(time_step=1 / audio.frequency)
+    temp_timestamps = add_delay(intensity.xs(), -1 / (2 * audio.frequency))
+    intensity_samples, intensity_timestamps = pad(intensity.values.T, temp_timestamps, audio.timestamps, 100)
+
+    # Pitch
+    pitch = parselmouth_sound.to_pitch(time_step=1 / audio.frequency)
+    pitch_samples, pitch_timestamps = pad(pitch.selected_array["frequency"], pitch.xs(), audio.timestamps)
+
+    # Formants
+    formants = parselmouth_sound.to_formant_burg(time_step=1 / audio.frequency)
+    temp_timestamps = add_delay(formants.xs(), -1 / (2 * audio.frequency))
+    number_of_points = formants.get_number_of_frames()
+    formants_samples = [[] for _ in range(number_of_formants)]
+    formants_timestamps = [[] for _ in range(number_of_formants)]
+    for i in range(1, number_of_points + 1):
+        t = formants.get_time_from_frame_number(i)
+        for j in range(number_of_formants):
+            formants_samples[j].append(formants.get_value_at_time(formant_number=j + 1, time=t))
+    for j in range(number_of_formants):
+        formants_samples[j], formants_timestamps[j] = pad(formants_samples[j], temp_timestamps, audio.timestamps)
+
+    # import matplotlib.pyplot as plt
+    import seaborn as sns
+    sns.set()
+
+    plt.subplot(3, 2, 1)
+    plt.plot(audio.timestamps, audio.samples)
+    plt.title("Original audio")
+
+    plt.subplot(3, 2, 2)
+    plt.plot(envelope.timestamps, envelope.samples)
+    title = "Envelope"
+    if threshold_low_pass_envelope is not None:
+        title += " (low-pass: " + str(threshold_low_pass_envelope) + " Hz)"
+    plt.title("Envelope")
+
+    plt.subplot(3, 2, 3)
+    plt.plot(intensity_timestamps, intensity_samples)
+    plt.title("Intensity")
+
+    plt.subplot(3, 2, 4)
+    plt.plot(pitch_timestamps, pitch_samples)
+    plt.title("Pitch")
+
+    plt.subplot(3, 2, 5)
+    for i in range(len(formants_samples)):
+        plt.plot(formants_timestamps[i], formants_samples[i], label="f" + str(i + 1))
+    plt.legend()
+    plt.title("Formants")
+
+    plt.subplot(3, 2, 6)
+    spectrogram = parselmouth_sound.to_spectrogram()
+    x, y = spectrogram.x_grid(), spectrogram.y_grid()
+    sg_db = 10 * np.log10(spectrogram.values)
+    plt.pcolormesh(x, y, sg_db, vmin=sg_db.max() - 70, cmap='afmhot')
+    plt.ylim([spectrogram.ymin, spectrogram.ymax])
+    plt.xlabel("time [s]")
+    plt.ylabel("frequency [Hz]")
+
+    plt.show()
+
+
+def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale=None, max_scale=None, show_scale=False,
+                     title_scale=None, color_scheme="default", title_audio="Audio"):
+    """Creates multiple sub-plots placed so that each joint is roughly placed where it is located on the body. The
+    values of each subplot are taken from the parameter ``plot_dictionary``, and the positions from the layout
+    differ between Kinect and Kualisys systems.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    plot_dictionary: dict(str: Graph)
+        A dictionary containing the title of the sub-graphs as keys, and Graph objects as elements.
+
+    joint_layout: str, optional
+        Defines the layout to use for the sub-plots of the joints: ``"kinect"`` or ``"qualisys"``/``"kualisys"``. If
+        set on ``"auto"`` (default), the function will automatically assign the layout depending on if the joint label
+        ``"Chest"`` is among the keys of the ``plot_dictionary``.
+
+        The joint layouts are a grid of 7 × 5 sub-plots for Kinect, and 13 × 7 subplots for Qualisys. The corresponding
+        spot for each joint are loaded from ``"res/kinect_joints_subplot_layout.txt"`` and
+        ``"res/kualisys_joints_subplot_layout.txt"``.
+
+    title: str or None, optional
+        The title to display on top of the plot.
+
+    min_scale: float or None, optional
+        The minimum value to set on the y axis, for all the elements in the ``plot_dictionary`` that match joint keys
+        (i.e., except from the sub-plot under the ``"Audio"`` key). If set on None (default), the minimum value will be
+        the overall minimum value from the ``plot_dictionary``, with the sub-graph ``"Audio"`` excluded.
+
+    max_scale: float or None, optional
+        The maximum value to set on the y axis, for all the elements in the ``plot_dictionary`` that match joint keys
+        (i.e., except from the sub-plot under the ``"Audio"`` key). If set on None (default), the maximum value will be
+        the overall minimum value from the ``plot_dictionary``, with the sub-graph ``"Audio"`` excluded.
+
+    show_scale: bool, optional
+        If set on ``True``, shows a colored scale on the right side of the graph.
+
+    title_scale: str or None, optional
+        Defines a title to give to the scale, if ``show_scale`` is set on ``True``.
+
+    color_scheme: str or list, optional
+        The color scheme to use for the color scale. This color scheme should be coherent with the colors defined in
+        the ``plot_dictionary``.
+
+    title_audio: str or None, optional
+        The title to give to the sub-plot that matches the key ``"Audio"`` from the ``plot_dictionary``. This sub-plot
+        is located in the top-left corner of the plot, and is not scaled the same way as the other plots. By default,
+        the title of this sub-plot is ``"Audio"``, but this parameter allows to change the title to put the name of an
+        AudioDerivative type, such as ``"Envelope"`` or ``"Pitch"``, for example.
+    """
+
+    # Getting the joint layout
     if joint_layout == "auto":
         if "Chest" in plot_dictionary.keys():
             joint_layout = "qualisys"
         else:
             joint_layout = "kinect"
-
     joints_positions, joint_layout = load_joints_subplot_layout(joint_layout)
 
     # Figure parameters
     plt.rcParams["figure.figsize"] = (12, 9)
     if joint_layout == "kinect":
-        rows = 7
-        cols = 5
+        rows, cols = 7, 5
     else:
-        rows = 13
-        cols = 7
+        rows, cols = 13, 7
     fig, axes = plt.subplots(nrows=rows, ncols=cols)
-    plt.subplots_adjust(left=0.03, bottom=0.03, right=0.97, top=0.97, wspace=0.3, hspace=0.6)
+    if title is not None:
+        plt.subplots_adjust(left=0.03, bottom=0.03, right=0.97, top=0.93, wspace=0.3, hspace=0.6)
+        fig.suptitle(title, fontsize="x-large", fontweight="bold")
+    else:
+        plt.subplots_adjust(left=0.03, bottom=0.03, right=0.97, top=0.97, wspace=0.3, hspace=0.6)
 
     # Get min and max values
-    min_value, max_value = get_min_max_values_from_plot_dictionary(plot_dictionary)
+    min_value, max_value = get_min_max_values_from_plot_dictionary(plot_dictionary, keys_to_exclude=["Audio"])
     if max_scale == "auto":
         max_scale = max_value
 
@@ -258,7 +618,9 @@ def plot_body_graphs(plot_dictionary, min_scale=None, max_scale=None, show_scale
         plt.subplot(rows, cols, joints_positions[key])
         if key != "Audio":  # We want to scale everything apart from the audio
             plt.ylim([min_value, max_value])
-        plt.title(key)
+            plt.title(key)
+        else:
+            plt.title(title_audio)
         for subplot in plot_dictionary[key].plots:
             plt.plot(subplot.x, subplot.y, linewidth=subplot.line_width, color=subplot.color)
 
@@ -279,28 +641,129 @@ def plot_body_graphs(plot_dictionary, min_scale=None, max_scale=None, show_scale
 
     # Get colors
     color_list = calculate_color_points_on_gradient(color_scheme, 100)
+    print(convert_colors(color_list, "hex", include_alpha=False))
+    color_list = convert_colors(color_list, "hex", include_alpha=False)
 
     # Show the scale if max_scale is not None
     if show_scale:
         plt.subplots_adjust(left=0.03, bottom=0.03, right=0.9, top=0.97, wspace=0.3, hspace=0.6)
         cmap = colors.ListedColormap(color_list)
         norm = colors.Normalize(vmin=min_scale, vmax=max_scale)
-        cbax: object = fig.add_axes([0.91, 0.15, 0.02, 0.7])
-        plt.colorbar(cm.ScalarMappable(norm=norm, cmap=cmap), cax=cbax, orientation='vertical', label=name)
+        cbax = fig.add_axes([0.91, 0.15, 0.02, 0.7])
+        plt.colorbar(cm.ScalarMappable(norm=norm, cmap=cmap), cax=cbax, orientation='vertical', label=title_scale)
     plt.show()
 
 
-def plot_silhouette(plot_dictionary, min_scale="auto", max_scale="auto", show_scale=True, name=None,
-                    color_scheme="default", resolution=(1600, 900), full_screen=False):
-    print(plot_dictionary)
+def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, min_scale="auto", max_scale="auto",
+                    show_scale=True, title_scale=None, color_scheme="default", color_background="white",
+                    color_silhouette="black", resolution=0.5, full_screen=False, path_save=None, verbosity=1):
+    """Plots a silhouette with circles representing the different joints, colored according to their values in the
+    ``plot_dictionary``. Passing the mouse on the different joints shows, in the bottom right corner, the value
+    associated to the joint the mouse is on.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    plot_dictionary: dict(str: float)
+        A dictionary containing the title of the sub-graphs as keys, and values as elements.
+
+    joint_layout: str, optional
+        Defines the layout to use for the sub-plots of the joints: ``"kinect"`` or ``"qualisys"``/``"kualisys"``. If
+        set on ``"auto"`` (default), the function will automatically assign the layout depending on if the joint label
+        ``"Chest"`` is among the keys of the ``plot_dictionary``. In order to create a personalized layout, it is
+        possible to click on the figure to print in the console a specific position. Pressing the CTRL key at the same
+        time allows to display a test circle where the mouse is located, to give an idea of the render.
+
+        The joint layouts are a grid of 7 × 5 sub-plots for Kinect, and 13 × 7 subplots for Qualisys. The corresponding
+        spot for each joint are loaded from ``"res/kinect_joints_subplot_layout.txt"`` and
+        ``"res/kualisys_joints_subplot_layout.txt"``.
+
+    title: str or None, optional
+        The title to display on top of the plot.
+
+    min_scale: str or float, optional
+        If set on ``"auto"`` (default), the lowest value of the scale will be set on the lowest value in the
+        ``plot_dictionary``. If set on a number, all the values below that number will be colored will the color
+        matching this parameter on the scale.
+
+    max_scale: str or float, optional
+        If set on ``"auto"`` (default), the highest value of the scale will be set on the highest value in the
+        ``plot_dictionary``. If set on a number, all the values above that number will be colored will the color
+        matching this parameter on the scale.
+
+    show_scale: bool, optional
+        If set on ``True``, shows a colored scale on the left side of the graph.
+
+    title_scale: str or None, optional
+        Defines a title to give to the scale, if ``show_scale`` is set on ``True``.
+
+    color_scheme: str or list, optional
+        The color scheme of the scale.
+        This parameter can take a number of forms:
+
+        • **The name of a color scheme:** a string matching one of the color gradients available in
+          :doc:`color_schemes` (default: ``"default"``).
+        • **A list of colors:** a list containing colors, either using:
+
+            • Their `HTML/CSS names <https://en.wikipedia.org/wiki/X11_color_names>`_ (e.g. ``"red"`` or
+              ``"blanched almond"``),
+            • Their hexadecimal code, starting with a number sign (``#``, e.g. ``"#ffcc00"`` or ``"#c0ffee"``).
+            • Their RGB or RGBA tuples (e.g. ``(153, 204, 0)`` or ``(77, 77, 77, 255)``).
+
+          These different codes can be used concurrently, e.g. ``["red", (14, 18, 32), "#a1b2c3"]``.
+
+    color_background: str, tuple(int, int, int) or tuple(int, int, int, int), optional
+        The color of the background (default: ``"white"``). This parameter can be a tuple with RGB or RGBA values,
+        a string with a hexadecimal value (starting with a leading ``#``) or one of the standard
+        `HTML/CSS color names <https://en.wikipedia.org/wiki/X11_color_names>`_.
+
+    color_silhouette: str, tuple(int, int, int) or tuple(int, int, int, int), optional
+        The color of the silhouette (default: ``"black"``). This parameter can be a tuple with RGB or RGBA values,
+        a string with a hexadecimal value (starting with a leading ``#``) or one of the standard
+        `HTML/CSS color names <https://en.wikipedia.org/wiki/X11_color_names>`_.
+
+    resolution: tuple(int, int) or float or None, optional
+        The resolution of the Pygame window that will display the silhouette. This parameter can be:
+
+        • A tuple with two integers, representing the width and height of the window in pixels.
+        • A float, representing the ratio of the total screen width and height; for example, setting
+          this parameter on 0.5 on a screen that is 1920 × 1080 pixels will create a window of 960 × 540 pixels.
+          Note: if a video is provided and set on the side of the sequence, or if two sequences are provided,
+          side by side, the horizontal resolution will be set to be twice the size. A parameter of 0.5 on a screen
+          that is 1920 × 1080 pixels will, in that case, create a window of 1920 × 540 pixels.
+        • None: in that case, the window will be the size of the screen.
+
+    full_screen: bool, optional
+        Defines if the window will be set full screen (``True``) or not (``False``, default).
+
+    path_save: str or None optional
+        If provided, the function will save the silhouette as a picture. The path should contain the folder, the name
+        file, and one of the following extensions: ``".png"``, ``".jpeg"`` or ``".bmp"``.
+
+    verbosity: int, optional
+        Sets how much feedback the code will provide in the console output:
+
+        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+          current steps.
+        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+          may clutter the output and slow down the execution.
+    """
+
     pygame.init()
 
-    # If the resolution is None, we just create a window the size of the screen
+    # Setting up the resolution
+    info = pygame.display.Info()
     if resolution is None:
-        info = pygame.display.Info()
         resolution = (info.current_w, info.current_h)
+    elif isinstance(resolution, float):
+        resolution = (int(info.current_w * resolution), int(info.current_h * resolution))
 
-    # We set to full screen
+    if verbosity > 0:
+        print("Window resolution: " + str(resolution))
+
+    # Setting up the full screen mode
     if full_screen:
         window = pygame.display.set_mode(resolution, pygame.FULLSCREEN)
     else:
@@ -310,15 +773,28 @@ def plot_silhouette(plot_dictionary, min_scale="auto", max_scale="auto", show_sc
     ratio_w = resolution[0] / 1920
     ratio_h = resolution[1] / 1080
 
-    # Load silhouette picture and resize it
+    # Load silhouette picture, color it and resize it
     silhouette = pygame.image.load("res/silhouette.png")
-    silhouette = pygame.transform.scale(silhouette, (resolution[0], resolution[1]))
+    silhouette.get_size()
+    color_background = convert_color(color_background, "rgb", False)
+    if color_background != (255, 255, 255):
+        for x in range(silhouette.get_width()):
+            for y in range(silhouette.get_height()):
+                alpha = silhouette.get_at((x, y))[3]
+                silhouette.set_at((x, y), pygame.Color(color_background[0], color_background[1],
+                                                       color_background[2], alpha))
+    silhouette = pygame.transform.scale(silhouette, (resolution[1] * (16 / 9), resolution[1]))
+    silhouette_x = resolution[0] // 2 - silhouette.get_width() // 2
 
-    pygame.mouse.set_visible(True)  # Allows the mouse to be visible
-    mouse_sensitivity = 50  # Radius around the center in which the mouse position will be detected as inside
-    program = True  # Loop variable
-    colors = convert_colors_rgba(color_scheme)  # Color scheme
-    font = pygame.font.SysFont("Corbel", int(30 * ratio_h), True)  # Define font
+    # Font and colors
+    colors = convert_colors(color_scheme, "rgb", True)  # Color scheme
+    color_silhouette = convert_color(color_silhouette, "rgb", False)
+    luminance = color_background[0] * 0.2126 + color_background[1] * 0.7152 + color_background[2] * 0.0722
+    font = pygame.font.Font("res/junction_bold.otf", int(resolution[1] * 0.04))
+    if luminance > 0.5:
+        font_color = convert_color("black", "rgb", False)
+    else:
+        font_color = convert_color("white", "rgb", False)
 
     # If the scale is on auto, we scale it the max value
     min_value, max_value = get_min_max_values_from_plot_dictionary(plot_dictionary)
@@ -327,41 +803,25 @@ def plot_silhouette(plot_dictionary, min_scale="auto", max_scale="auto", show_sc
     if max_scale == "auto":
         max_scale = max_value
 
-    # Position of the center of the circles of color for the joints (for a 1920x1080 screen)
-    joints_positions = {"Head": (960, 60), "Neck": (960, 160), "SpineShoulder": (960, 205), "SpineMid": (960, 355),
-                        "ShoulderRight": (860, 230), "ElbowRight": (825, 375), "WristRight": (795, 510),
-                        "HandRight": (770, 570), "ShoulderLeft": (1060, 230), "ElbowLeft": (1095, 375),
-                        "WristLeft": (1125, 510), "HandLeft": (1150, 570), "SpineBase": (960, 500),
-                        "HipLeft": (900, 550), "KneeLeft": (900, 730), "AnkleLeft": (900, 980), "FootLeft": (900, 1040),
-                        "HipRight": (1020, 550), "KneeRight": (1020, 730), "AnkleRight": (1020, 980),
-                        "FootRight": (1020, 1040)}
+    # Getting the joint layout
+    if joint_layout == "auto":
+        if "Chest" in plot_dictionary.keys():
+            joint_layout = "qualisys"
+        else:
+            joint_layout = "kinect"
 
-    # Order in which the joints should be plotted, in order to avoid covering
-    order_for_joints_plotting = ["SpineShoulder", "SpineMid", "SpineBase", "ShoulderRight", "ShoulderLeft",
-                                 "ElbowRight", "ElbowLeft", "WristRight", "WristLeft", "HandRight", "HandLeft",
-                                 "HipRight", "HipLeft", "KneeRight", "KneeLeft", "AnkleRight", "AnkleLeft",
-                                 "FootRight", "FootLeft", "Head", "Neck"]
-
-    # Radii of the circles, smaller for the joints close to each other
-    radius_default = 150
-    circles_radii = {"Head": 120, "Neck": 100, "SpineShoulder": radius_default, "SpineMid": radius_default,
-                     "ShoulderRight": radius_default, "ElbowRight": radius_default, "WristRight": 120,
-                     "HandRight": 100, "ShoulderLeft": radius_default, "ElbowLeft": radius_default,
-                     "WristLeft": 120, "HandLeft": 100, "SpineBase": radius_default,
-                     "HipLeft": radius_default, "KneeLeft": radius_default, "AnkleLeft": radius_default,
-                     "FootLeft": radius_default, "HipRight": radius_default, "KneeRight": radius_default,
-                     "AnkleRight": radius_default, "FootRight": radius_default}
+    joints_positions, order_joints = load_joints_silhouette_layout(joint_layout)
 
     # Calculating the color of the circles and applying a gradient
     circles = {}
     values_to_plot = {}
-    #for joint in joints_positions.keys():
+
     for joint in plot_dictionary.keys():
         ratio = (plot_dictionary[joint] - min_scale) / (max_scale - min_scale)  # Get the ratio of the max value
         color_in = calculate_color_ratio(colors, ratio)  # Turn that into a color
         color_edge = (color_in[0], color_in[1], color_in[2], 0)  # Transparent color of the circle edge for the gradient
-        circles[joint] = gradients.radial(int(circles_radii[joint] * ratio_w), color_in, color_edge)
-        values_to_plot[joint] = font.render(str(joint) + ": " + str(round(plot_dictionary[joint], 2)), True, (0, 0, 0))
+        circles[joint] = gradients.radial(int(joints_positions[joint][2] * ratio_h), color_in, color_edge)
+        values_to_plot[joint] = font.render(str(joint) + ": " + str(round(plot_dictionary[joint], 2)), True, font_color)
 
     # Color scale on the side of the graph
     scale_height = 500
@@ -370,41 +830,87 @@ def plot_silhouette(plot_dictionary, min_scale="auto", max_scale="auto", show_sc
     start_scale_y = 540 - scale_height // 2
     sep = scale_height // (len(colors) - 1)
 
+    # Side backgrounds
+    side_background = None
+    if resolution[0] / resolution[1] > 16 / 9:
+        side_background = pygame.Surface((silhouette_x, resolution[1] + 5))
+        side_background.fill(color_background)
+
     grad = []
     for i in range(len(colors) - 1):
-        grad.append(
-            gradients.vertical((int(scale_width * ratio_w),
-                                int(((scale_height // (len(colors) - 1)) + 1) * ratio_h)),
-                               colors[len(colors) - i - 1], colors[len(colors) - i - 2]))
+        grad.append(gradients.vertical((int(scale_width * ratio_w),
+                                        int(((scale_height // (len(colors) - 1)) + 1) * ratio_h)),
+                                       colors[len(colors) - i - 1], colors[len(colors) - i - 2]))
 
-    scale_top = font.render(str(round(max_scale, 2)), True, (0, 0, 0))
-    scale_bottom = font.render(str(round(min_scale, 2)), True, (0, 0, 0))
-    scale_title = font.render(str(name), True, (0, 0, 0))
+    scale_top = font.render(str(round(max_scale, 2)), True, font_color)
+    scale_bottom = font.render(str(round(min_scale, 2)), True, font_color)
+    if title_scale is None:
+        title_scale = ""
+    scale_title = font.render(str(title_scale), True, font_color)
     scale_title = pygame.transform.rotate(scale_title, 90)
 
-    # Program loop
-    while program:
+    # Title
+    title_plot = None
+    if title is not None:
+        title_plot = font.render(str(title), True, font_color)
 
-        window.fill((0, 0, 0))  # Set background to black
+    # Mouse
+    pygame.mouse.set_visible(True)  # Allows the mouse to be visible
+    mouse_sensitivity = 50  # Radius around the center in which the mouse position will be detected as inside
+
+    place_circle = False
+    circle_position = None
+    color_in = calculate_color_ratio(colors, 1)  # Turn that into a color
+    color_edge = (color_in[0], color_in[1], color_in[2], 0)  # Transparent color of the circle edge for the gradient
+    circle = gradients.radial(int(150 * ratio_w), color_in, color_edge)
+    run = True  # Loop variable
+
+    # Program loop
+    while run:
+
+        window.fill(color_silhouette)  # Set background to black
+
+        if resolution[0] / resolution[1] > 16 / 9:
+            window.blit(side_background, (0, 0))
+            window.blit(side_background, (window.get_width() - side_background.get_width(), 0))
 
         mouse_coord = pygame.mouse.get_pos()
 
-        for ev in pygame.event.get():
+        for event in pygame.event.get():
 
             # Leave the program
-            if ev.type == QUIT or (ev.type == KEYDOWN and ev.key == K_ESCAPE):
-                program = False
+            if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+                run = False
                 break
 
-        for joint in order_for_joints_plotting:
-            if joint in plot_dictionary.keys():
-                window.blit(circles[joint], ((joints_positions[joint][0] - circles_radii[joint]) * ratio_w,
-                                             (joints_positions[joint][1] - circles_radii[joint]) * ratio_h))
+            elif event.type == KEYDOWN and event.key in [K_LCTRL, K_RCTRL]:
+                place_circle = True
+            elif event.type == KEYUP and event.key in [K_LCTRL, K_RCTRL]:
+                place_circle = False
 
-        window.blit(silhouette, (0, 0))
+            # Click in the figure
+            elif event.type == MOUSEBUTTONDOWN and event.button == 1:
+                print((mouse_coord[0] / ratio_w, mouse_coord[1] / ratio_h))
+                print(mouse_coord)
+                if place_circle:
+                    circle_position = (mouse_coord[0] * ratio_w, mouse_coord[1] * ratio_h)
+
+        for joint in order_joints:
+            if joint in plot_dictionary.keys():
+                window.blit(circles[joint], (((joints_positions[joint][0] - joints_positions[joint][2]) * ratio_h +
+                                              silhouette_x),
+                                             (joints_positions[joint][1] - joints_positions[joint][2]) * ratio_h))
+
+        if circle_position is not None:
+            window.blit(circle, circle_position)
+
+        if title is not None:
+            window.blit(title_plot, ((window.get_width() - title_plot.get_width()) // 2, 5 * ratio_h))
+
+        window.blit(silhouette, (silhouette_x, 0))
 
         to_blit = []
-        for joint in order_for_joints_plotting:
+        for joint in order_joints:
             if joint in plot_dictionary.keys():
                 if (joints_positions[joint][0] - mouse_sensitivity) * ratio_w < mouse_coord[0] < (
                         joints_positions[joint][0] + mouse_sensitivity) * ratio_w and (
@@ -429,6 +935,10 @@ def plot_silhouette(plot_dictionary, min_scale="auto", max_scale="auto", show_sc
                                       int(resolution[1] // 2 - scale_title.get_height() // 2)))
 
         pygame.display.flip()
+
+        if path_save is not None:
+            pygame.image.save(window, path_save)
+            path_save = None
 
     pygame.quit()
     sys.exit()

@@ -37,6 +37,9 @@ class Sequence(object):
         Defines a name for the Sequence instance. If a string is provided, the attribute :attr:`name` will take
         its value. If not, see :meth:`Sequence._define_name_init()`.
 
+    condition: str or None, optional
+        Optional field to represent in which experimental condition the sequence was recorded.
+
     time_unit: str or None, optional
         The unit of time of the timestamps in the original file. Depending on the value put as parameter, the timestamps
         will be converted to seconds.
@@ -93,13 +96,14 @@ class Sequence(object):
         The time unit of the timestamps.
     """
 
-    def __init__(self, path=None, path_audio=None, name=None, time_unit="auto", start_timestamps_at_zero=False,
-                 verbosity=1):
+    def __init__(self, path=None, path_audio=None, name=None, condition=None, time_unit="auto",
+                 start_timestamps_at_zero=False, verbosity=1):
 
         self.path_audio = path_audio  # Path to the audio file matched with this series of gestures
 
         self.name = None  # Placeholder for the name of the sequence
         self._define_name_init(name, path, verbosity)  # Defines the name of the sequence
+        self.condition = condition  # Experimental condition of the recording
 
         self.files = None  # List of the files in the target folder
         self.poses = []  # List of the poses in the sequence, ordered
@@ -136,6 +140,26 @@ class Sequence(object):
         """
 
         self.name = name
+
+    def set_condition(self, condition):
+        """Sets the :py:attr:`condition` attribute of the Sequence instance. This attribute can be used to save the
+        experimental condition in which the sequence instance was recorded.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        condition: str
+            The experimental condition in which the sequence was recorded.
+
+        Example
+        -------
+        >>> seq1 = Sequence("C:/Users/Harold/Sequences/English/seq.xlsx")
+        >>> seq1.set_condition("English")
+        >>> seq2 = Sequence("C:/Users/Harold/Sequences/Spanish/seq.xlsx")
+        >>> seq2.set_condition("Spanish")
+        """
+        self.condition = condition
 
     def set_path_audio(self, path_audio):
         """Sets the :py:attr:`path_audio` attribute of the Sequence instance. This path may be used automatically by
@@ -697,6 +721,18 @@ class Sequence(object):
         """
         return self.name
 
+    def get_condition(self):
+        """Returns the attribute :attr:`condition` of the sequence.
+
+        .. versionadded:: 2.0
+
+        Returns
+        -------
+        str
+            The experimental condition in which the recording of the sequence was performed.
+        """
+        return self.condition
+
     def get_poses(self):
         """Returns the attribute :attr:`poses` of the sequence.
 
@@ -1045,20 +1081,48 @@ class Sequence(object):
         The values returned by the function can be paired with the timestamps obtained with
         :meth:`Sequence.get_timestamps`.
         """
-        if joint_label not in self.poses[0].keys():
+        if joint_label not in self.poses[0].joints.keys():
             raise InvalidJointLabelException(joint_label)
         elif axis not in ["x", "y", "z"]:
-            raise Exception("Invalid axis: " + str(axis) + ". The axis must be x, y or z.")
+            raise InvalidParameterValueException("axis", axis, ["x", "y", "z"])
 
         values = []
         for p in range(len(self.poses)):
-            if axis == "x":
-                values.append(self.poses[p].joints[joint_label].x)
-            elif axis == "y":
-                values.append(self.poses[p].joints[joint_label].y)
-            elif axis == "z":
-                values.append(self.poses[p].joints[joint_label].z)
+            values.append(self.poses[p].joints[joint_label].get_coordinate(axis))
 
+        return values
+
+    def get_joint_distance_as_list(self, joint_label, axis=None):
+        """Returns a list of all the distances travelled for a specific joint. If an axis is specified, the distances
+        are calculated on this axis only.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        joint_label: str
+            The label of the joint (e.g. ``"Head"``).
+        axis: str or None, optional
+            If specified, the returned distances travelled will be calculated on a single axis. If ``None`` (default),
+            the distance travelled will be calculated based on the 3D coordinates.
+
+        Returns
+        -------
+        list(float)
+            A chronological list of the distances travelled (in meters) for the specified joint.
+
+        Note
+        ----
+        Because the velocities are calculated by consecutive poses, the list returned by the function
+        have a length of :math:`n-1`, with :math:`n` being the number of poses of the sequence.
+        """
+        if joint_label not in self.poses[0].joints.keys():
+            raise InvalidJointLabelException(joint_label)
+
+        values = []
+        for p in range(1, len(self.poses)):
+            values.append(calculate_distance(self.poses[p - 1].joints[joint_label], self.poses[p].joints[joint_label],
+                                             axis))
         return values
 
     def get_joint_velocity_as_list(self, joint_label):
@@ -1078,7 +1142,7 @@ class Sequence(object):
 
         Note
         ----
-        Because the velocities are calculated by consecutive pairs of poses, the list returned by the function
+        Because the velocities are calculated by consecutive poses, the list returned by the function
         have a length of :math:`n-1`, with :math:`n` being the number of poses of the sequence.
         """
         if joint_label not in self.poses[0].joints.keys():
@@ -1089,7 +1153,227 @@ class Sequence(object):
             values.append(calculate_velocity(self.poses[p - 1], self.poses[p], joint_label))
         return values
 
-    def get_velocities(self):
+    def get_joint_acceleration_as_list(self, joint_label, absolute=False):
+        """Returns a list of all the accelerations (differences of velocity over time) for a specified joint.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        joint_label: str
+            The label of the joint (e.g. ``"Head"``).
+        absolute: boolean, optional
+            If set on ``True`` (default), returns the maximum absolute acceleration value. If set on ``False``, returns
+            the maximum acceleration value, even if a negative value has a higher absolute value.
+
+        Returns
+        -------
+        list(float)
+            A chronological list of the accelerations (in meters per second squared) for the specified joint.
+
+        Note
+        ----
+        Because the accelerations are calculated by consecutive pairs of poses, the list returned by the function
+        have a length of :math:`n-2`, with :math:`n` being the number of poses of the sequence.
+        """
+        if joint_label not in self.poses[0].joints.keys():
+            raise InvalidJointLabelException(joint_label)
+
+        values = []
+        for p in range(2, len(self.poses)):
+            value = calculate_acceleration(self.poses[p - 2], self.poses[p - 1], self.poses[p], joint_label)
+            if absolute:
+                values.append(abs(value))
+            else:
+                values.append(value)
+        return values
+
+    def get_joint_time_series_as_list(self, joint_label, time_series="velocity"):
+        """For a specified joint, returns a list containing one of its time series (x coordinate, y coordinate,
+           z coordinate, distance travelled, velocity, or acceleration).
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        joint_label: str
+            The label of the joint (e.g. ``"Head"``).
+        time_series: str, optional
+            Defines the time_series to return to the list. This parameter can be:
+            · ``"x"``, ``"y"`` or ``"z"``, to return the values of the coordinate on a specified axis, for each
+              timestamp.
+            · The ``"distance"`` travelled over time (in meters), between consecutive poses.
+            · The ``"velocity"``, defined by the distance travelled over time (in meters per second), between
+              consecutive poses.
+            · The ``"acceleration"``, defined by the velocity over time (in meters per second squared), between
+              consecutive pairs of poses.
+
+        Returns
+        -------
+        list(float)
+            A chronological list of the velocities (in meters per second) for the specified joint.
+
+        Note
+        ----
+        Because the distances and velocities are calculated by consecutive poses, the list returned by the
+        function have a length of :math:`n-1`, with :math:`n` being the number of poses of the sequence.
+        Following the same idea, accelerations are calculate by consecutive pairs of poses. The list returned by the
+        function would then have a length of :math:`n-2`.
+        """
+        if joint_label not in self.poses[0].joints.keys():
+            raise InvalidJointLabelException(joint_label)
+
+        values = []
+        for p in range(0, len(self.poses)):
+            if time_series in ["x", "y", "z"]:
+                values.append(self.poses[p].joints[joint_label].get_coordinate(time_series))
+            elif time_series == "distance" and p > 0:
+                values.append(calculate_distance(self.poses[p - 1].joints[joint_label],
+                                                 self.poses[p].joints[joint_label]))
+            elif time_series == "velocity" and p > 0:
+                values.append(calculate_velocity(self.poses[p - 1], self.poses[p], joint_label))
+            elif time_series == "acceleration" and p > 1:
+                values.append(calculate_acceleration(self.poses[p - 2], self.poses[p - 1], self.poses[p], joint_label))
+            else:
+                raise InvalidParameterValueException("time_series", time_series, ["x", "y", "z", "distance", "velocity",
+                                                                                  "acceleration"])
+        return values
+
+    def get_single_coordinates(self, axis, verbosity=1):
+        """Returns a dictionary containing the values of the coordinates on a single axis for all the joints. The
+        dictionary will contain the joints labels as keys, and a list of coordinates as values. The coordinates are
+        returned in meters.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        axis: str
+            The axis from which to extract the coordinate: ``"x"``, ``"y"`` or ``"z"``.
+
+        verbosity: int, optional
+            Sets how much feedback the code will provide in the console output:
+
+            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+              current steps.
+            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+              may clutter the output and slow down the execution.
+
+        Returns
+        --------
+        OrderedDict(str: list(float))
+            Dictionary with joint labels as keys, and coordinates values on a specified axis as values (in meters),
+            ordered chronologically.
+        """
+
+        dict_coordinates = OrderedDict()
+
+        for joint_label in self.get_joint_labels():
+            if verbosity > 1:
+                print(str(joint_label), end=" ")
+            dict_coordinates[joint_label] = self.get_joint_coordinate_as_list(joint_label, axis)
+
+        return dict_coordinates
+
+    def get_distances(self, axis=None, verbosity=1):
+        """Returns a dictionary containing the joint labels as keys, and a list of distances (distance travelled between
+        two poses) as values. Distances are calculated using the :func:`tool_functions.calculate_distance()` function,
+        and are defined by the distance travelled between two poses (in meters). The distances are returned in meters.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        axis: str or None, optional
+            If specified, the returned distances travelled will be calculated on a single axis. If ``None`` (default),
+            the distance travelled will be calculated based on the 3D coordinates.
+        verbosity: int, optional
+            Sets how much feedback the code will provide in the console output:
+
+            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+              current steps.
+            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+              may clutter the output and slow down the execution.
+
+        Returns
+        --------
+        OrderedDict(str: list(float))
+            Dictionary with joint labels as keys, and lists of distances travelled as values (in meters), ordered
+            chronologically.
+
+        Note
+        ----
+        Because the distances are calculated between consecutive poses, the lists returned by the function
+        have a length of :math:`n-1`, with :math:`n` being the number of poses of the sequence.
+        """
+
+        dict_distances = OrderedDict()
+
+        for joint_label in self.get_joint_labels():
+            if verbosity > 1:
+                print(str(joint_label), end=" ")
+            dict_distances[joint_label] = self.get_joint_distance_as_list(joint_label, axis)
+
+        return dict_distances
+
+    def get_distance_between_hands(self):
+        """Returns a vector containing the distance (in meters) between the two hands across time. If the
+        joint label system is Kinect, the distance will be calculated between ``"HandRight"`` and ``"HandLeft"``.
+        If the joint label system is Qualisys, the distance will be calculated between ``"HandOutRight"`` and
+        ``"HandOutLeft"``.
+
+        .. versionadded:: 2.0
+
+        Note
+        ----
+        This function is a wrapper for the function :meth:`Sequence.get_distance_between_joints`.
+
+        Returns
+        -------
+        list(float)
+            A list of distances between the two hands, in meters.
+        """
+        labels = self.get_joint_labels()
+        if "HandRight" in labels:
+            return self.get_distance_between_joints("HandRight", "HandLeft")
+        elif "HandOutRight" in labels:
+            return self.get_distance_between_joints("HandOutRight", "HandOutLeft")
+        else:
+            raise Exception("The Sequence does not contain valid hand joint labels.")
+
+    def get_distance_between_joints(self, joint_label1, joint_label2):
+        """Returns a vector containing the distance (in meters) between the two joints provided across time.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        joint_label1: str
+            The label of the first joint (e.g., ``"Head"``).
+        joint_label2: str
+            The label of the second joint (e.g., ``"FootRight"``).
+
+        Returns
+        -------
+        list(float)
+            A list of distances between the two specified joints, in meters.
+        """
+        labels = self.get_joint_labels()
+
+        if joint_label1 not in labels:
+            raise InvalidJointLabelException(joint_label1)
+        if joint_label2 not in labels:
+            raise InvalidJointLabelException(joint_label2)
+
+        distances = []
+        for p in self.poses:
+            distances.append(calculate_distance(p.get_joint(joint_label1), p.get_joint(joint_label2)))
+
+        return distances
+
+    def get_velocities(self, verbosity=1):
         """Returns a dictionary containing the joint labels as keys, and a list of velocities (distance travelled over
         time between two poses) as values. Velocities are calculated using the
         :func:`tool_functions.calculate_velocity()` function, and are defined by the distance travelled between two
@@ -1098,25 +1382,109 @@ class Sequence(object):
 
         .. versionadded:: 2.0
 
-        Returns
+        Parameters
         ----------
+        verbosity: int, optional
+            Sets how much feedback the code will provide in the console output:
+
+            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+              current steps.
+            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+              may clutter the output and slow down the execution.
+
+        Returns
+        --------
         OrderedDict(str: list(float))
             Dictionary with joint labels as keys, and lists of velocity as values (in meters per second), ordered
             chronologically.
 
         Note
         ----
-        Because the velocities are calculated by consecutive pairs of poses, the lists returned by the function
+        Because the velocities are calculated between consecutive poses, the lists returned by the function
         have a length of :math:`n-1`, with :math:`n` being the number of poses of the sequence.
         """
 
         dict_velocities = OrderedDict()
 
-        for p in range(1, len(self.poses)):
-            for joint_label in self.poses[p].joints:
-                dict_velocities[joint_label] = self.get_joint_velocity_as_list(joint_label)
+        for joint_label in self.get_joint_labels():
+            if verbosity > 1:
+                print(str(joint_label), end=" ")
+            dict_velocities[joint_label] = self.get_joint_velocity_as_list(joint_label)
 
         return dict_velocities
+
+    def get_accelerations(self, absolute=False, verbosity=1):
+        """Returns a dictionary containing the joint labels as keys, and a list of accelerations (differences of
+        velocity over time between two poses) as values. Accelerations are calculated using the
+        :func:`tool_functions.calculate_acceleration()` function, and are defined by the difference of velocity between
+        two consecutive pairs of poses (in meters per second), divided by the time elapsed between these last pose of
+        each pair (in seconds). The accelerations are returned in meters per second squared.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        absolute: boolean, optional
+            If set on ``True``, returns the absolute acceleration values. If set on ``False`` (default), returns
+            the original, signed acceleration values.
+        verbosity: int, optional
+            Sets how much feedback the code will provide in the console output:
+
+            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+              current steps.
+            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+              may clutter the output and slow down the execution.
+
+        Returns
+        --------
+        OrderedDict(str: list(float))
+            Dictionary with joint labels as keys, and lists of accelerations as values (in meters per second squared),
+            ordered chronologically.
+
+        Note
+        ----
+        Because the accelerations are calculated between consecutive pairs of poses, the lists returned by the function
+        have a length of :math:`n-2`, with :math:`n` being the number of poses of the sequence.
+        """
+
+        dict_accelerations = OrderedDict()
+
+        for joint_label in self.get_joint_labels():
+            if verbosity > 1:
+                print(str(joint_label), end=" ")
+            dict_accelerations[joint_label] = self.get_joint_acceleration_as_list(joint_label, absolute)
+
+        return dict_accelerations
+
+    def get_max_distance_whole_sequence(self, axis=None):
+        """Returns the single maximum value of the distance travelled between two poses across every joint of the
+        sequence. The distances are first calculated using the :meth:`Sequence.get_distances()` function. The distance
+        travelled by a joint is returned in meters.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        axis: str or None, optional
+            If specified, the returned distances travelled will be calculated on a single axis. If ``None`` (default),
+            the distance travelled will be calculated based on the 3D coordinates.
+
+        Returns
+        --------
+        float
+            Maximum value of the distance travelled between two poses across every joint of the sequence, in meters.
+        """
+        dict_distances = self.get_distances(axis)
+        max_distance_whole_sequence = 0
+
+        for joint_label in dict_distances.keys():
+            local_maximum = max(dict_distances[joint_label])
+            if local_maximum > max_distance_whole_sequence:
+                max_distance_whole_sequence = local_maximum
+
+        return max_distance_whole_sequence
 
     def get_max_velocity_whole_sequence(self):
         """Returns the single maximum value of the velocity across every joint of the sequence. The velocities are
@@ -1127,7 +1495,7 @@ class Sequence(object):
         .. versionadded:: 2.0
 
         Returns
-        ----------
+        --------
         float
             Maximum value of the velocity across every joint of the sequence, in meters per second.
         """
@@ -1135,10 +1503,68 @@ class Sequence(object):
         max_velocity_whole_sequence = 0
 
         for joint_label in dict_velocities.keys():
-            if max(dict_velocities[joint_label]) > max_velocity_whole_sequence:
-                max_velocity_whole_sequence = max(dict_velocities[joint_label])
+            local_maximum = max(dict_velocities[joint_label])
+            if local_maximum > max_velocity_whole_sequence:
+                max_velocity_whole_sequence = local_maximum
 
         return max_velocity_whole_sequence
+
+    def get_max_acceleration_whole_sequence(self, absolute=True):
+        """Returns the single maximum value of the acceleration across every joint of the sequence. The acceleration
+        values are first calculated using the :meth:`Sequence.get_accelerations()` function. The acceleration is defined
+        by the difference of velocity between two consecutive pairs of poses (in meters per second), divided by the time
+        elapsed between these last pose of each pair (in seconds). The accelerations are returned in meters per second
+        squared.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        absolute: boolean, optional
+            If set on ``True`` (default), returns the maximum absolute acceleration value. If set on ``False``, returns
+            the maximum acceleration value, even if a negative value has a higher absolute value.
+
+        Returns
+        -------
+        float
+            Maximum value of the velocity across every joint of the sequence, in meters per second.
+        """
+        dict_accelerations = self.get_accelerations(absolute)
+        max_acceleration_whole_sequence = 0
+
+        for joint_label in dict_accelerations.keys():
+            local_maximum = max(dict_accelerations[joint_label])
+            if local_maximum > max_acceleration_whole_sequence:
+                max_acceleration_whole_sequence = local_maximum
+
+        return max_acceleration_whole_sequence
+
+    def get_max_distance_single_joint(self, joint_label, axis=None):
+        """Returns the maximum value of the distance travelled between two poses for a given joint, across the whole
+        sequence. The distances are first calculated using the :meth:`Sequence.get_distances()` function. The distance
+        travelled by a joint between two poses is defined in meters.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        joint_label: str
+            The label of the joint (e.g. ``"Head"``).
+        axis: str or None, optional
+            If specified, the returned distances travelled will be calculated on a single axis. If ``None`` (default),
+            the distance travelled will be calculated based on the 3D coordinates.
+
+        Returns
+        --------
+        float
+            Maximum value of the distance travelled for a given joint between two poses, in meters.
+        """
+        dict_distances = self.get_distances(axis)
+
+        if joint_label not in dict_distances.keys():
+            raise InvalidJointLabelException(joint_label)
+
+        return max(dict_distances[joint_label])
 
     def get_max_velocity_single_joint(self, joint_label):
         """Returns the maximum value of the velocity for a given joint, across the whole sequence. The velocities are
@@ -1154,7 +1580,7 @@ class Sequence(object):
             The label of the joint (e.g. ``"Head"``).
 
         Returns
-        ----------
+        --------
         float
             Maximum value of the velocity for a given joint, in meters per second.
         """
@@ -1165,6 +1591,61 @@ class Sequence(object):
 
         return max(dict_velocities[joint_label])
 
+    def get_max_acceleration_single_joint(self, joint_label, absolute=True):
+        """Returns the maximum value of the acceleration for a given joint, across the whole sequence. The acceleration
+        values are first calculated using the :meth:`Sequence.get_accelerations()` function. The acceleration is defined
+        by the difference of velocity between two consecutive pairs of poses (in meters per second), divided by the time
+        elapsed between these last pose of each pair (in seconds). The accelerations are returned in meters per second
+        squared.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        joint_label: str
+            The label of the joint (e.g. ``"Head"``).
+        absolute: boolean, optional
+            If set on ``True`` (default), returns the maximum absolute acceleration value. If set on ``False``, returns
+            the maximum acceleration value, even if a negative value has a higher absolute value.
+
+        Returns
+        -------
+        float
+            Maximum value of the acceleration for a given joint, in meters per second squared.
+        """
+        dict_accelerations = self.get_accelerations(absolute)
+
+        if joint_label not in dict_accelerations.keys():
+            raise InvalidJointLabelException(joint_label)
+
+        return max(dict_accelerations[joint_label])
+
+    def get_max_distance_per_joint(self, axis=None):
+        """Returns the maximum value of the distance travelled between two poses for each joint of the sequence. The
+        distances are first calculated using the :meth:`Sequence.get_distances()` function. The distance
+        travelled by a joint between two poses is defined in meters.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        axis: str or None, optional
+            If specified, the returned distances travelled will be calculated on a single axis. If ``None`` (default),
+            the distance travelled will be calculated based on the 3D coordinates.
+
+        Returns
+        -------
+        OrderedDict(str: float)
+            Dictionary with joint labels as keys, and maximum velocities as values (in meters per second).
+        """
+        dict_distances = self.get_distances(axis)
+        max_distance_per_joint = OrderedDict()
+
+        for joint_label in dict_distances.keys():
+            max_distance_per_joint[joint_label] = max(dict_distances[joint_label])
+
+        return max_distance_per_joint
+
     def get_max_velocity_per_joint(self):
         """Returns the maximum value of the velocity for each joint of the sequence. The velocities are
         first calculated using the :meth:`Sequence.get_velocities()` function. The velocity of a joint is defined by
@@ -1174,21 +1655,75 @@ class Sequence(object):
         .. versionadded:: 2.0
 
         Returns
-        ----------
+        -------
         OrderedDict(str: float)
             Dictionary with joint labels as keys, and maximum velocities as values (in meters per second).
         """
         dict_velocities = self.get_velocities()
         max_velocity_per_joint = OrderedDict()
 
-        for joint_label in dict_velocities.keys():
+        for joint_label in self.get_joint_labels():
             max_velocity_per_joint[joint_label] = max(dict_velocities[joint_label])
 
         return max_velocity_per_joint
 
+    def get_max_acceleration_per_joint(self, absolute=True):
+        """Returns the maximum value of the acceleration for each joint of the sequence. The acceleration
+        values are first calculated using the :meth:`Sequence.get_accelerations()` function. The acceleration is defined
+        by the difference of velocity between two consecutive pairs of poses (in meters per second), divided by the time
+        elapsed between these last pose of each pair (in seconds). The accelerations are returned in meters per second
+        squared.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        absolute: boolean, optional
+            If set on ``True`` (default), returns the maximum absolute acceleration values. If set on ``False``, returns
+            the maximum acceleration value, even if a negative value has a higher absolute value.
+
+        Returns
+        -------
+        OrderedDict(str: float)
+            Dictionary with joint labels as keys, and maximum accelerations as values (in meters per second squared).
+        """
+        max_acceleration_per_joint = OrderedDict()
+
+        for joint_label in self.get_joint_labels():
+            max_acceleration_per_joint[joint_label] = self.get_max_acceleration_single_joint(joint_label, absolute)
+
+        return max_acceleration_per_joint
+
+    def get_total_distance_whole_sequence(self, axis=None):
+        """Returns the sum of the distances travelled by every joint across all the poses of the sequence. This allows
+        to provide a value representative of the global “quantity of movement” produced during the sequence. The
+        distances are first calculated using the Sequence.get_distances() function. The distance travelled by a joint
+        between two poses is defined in meters.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        axis: str or None, optional
+            If specified, the returned distances travelled will be calculated on a single axis. If ``None`` (default),
+            the distance travelled will be calculated based on the 3D coordinates.
+
+        Returns
+        -------
+        float
+            Sum of the distances travelled across every joint and poses of the sequence, in meters.
+        """
+        total_distance_whole_sequence = 0
+        dict_distances = self.get_distances(axis)
+
+        for joint_label in dict_distances.keys():
+            total_distance_whole_sequence += sum(dict_distances[joint_label])
+
+        return total_distance_whole_sequence
+
     def get_total_velocity_whole_sequence(self):
         """Returns the sum of the velocities of every joint across all the poses of the sequence. This allows to
-        provide a value representative of the global “quantity of movement” produced during the sequence. The
+        provide a value representative of the global "quantity of movement" produced during the sequence. The
         velocities are first calculated using the Sequence.get_velocities() function. The velocity of a joint is
         defined by the distance travelled between two poses (in meters), divided by the time elapsed between these
         two poses (in seconds). The velocities are returned in meters per second.
@@ -1208,11 +1743,59 @@ class Sequence(object):
 
         return total_velocity_whole_sequence
 
+    def get_total_acceleration_whole_sequence(self):
+        """Returns the sum of the absolute accelerations of every joint across all the poses of the sequence. This
+        allows to provide a value representative of the global "quantity of movement" produced during the sequence. The
+        acceleration values are first calculated using the :meth:`Sequence.get_accelerations()` function. The
+        acceleration is defined by the difference of velocity between two consecutive pairs of poses (in meters per
+        second), divided by the time elapsed between these last pose of each pair (in seconds). The accelerations are
+        returned in meters per second squared.
+
+        .. versionadded:: 2.0
+
+        Returns
+        -------
+        float
+            Sum of the accelerations across every joint and poses of the sequence, in meters per second squared.
+        """
+        total_acceleration_whole_sequence = 0
+        dict_accelerations = self.get_accelerations(absolute=True)
+
+        for joint_label in dict_accelerations.keys():
+            total_acceleration_whole_sequence += sum(dict_accelerations[joint_label])
+
+        return total_acceleration_whole_sequence
+
+    def get_total_distance_single_joint(self, joint_label, axis=None):
+        """Returns the total distance travelled for a given joint, across the whole sequence. The distances are first
+        calculated using the Sequence.get_joint_distance_as_list() function. The distance travelled by a joint between
+        two poses is defined in meters.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        joint_label: str
+            The label of the joint (e.g. ``"Head"``).
+        axis: str or None, optional
+            If specified, the returned distances travelled will be calculated on a single axis. If ``None`` (default),
+            the distance travelled will be calculated based on the 3D coordinates.
+
+        Returns
+        --------
+        float
+            Sum of the distances travelled across all poses for a single joint, in meters.
+        """
+        if joint_label not in self.poses[0].joints.keys():
+            raise InvalidJointLabelException(joint_label)
+
+        return sum(self.get_joint_distance_as_list(joint_label, axis))
+
     def get_total_velocity_single_joint(self, joint_label):
         """Returns the sum of the velocities for a given joint, across the whole sequence. The velocities are first
-        calculated using the Sequence.get_velocities() function. The velocity of a joint is defined by the distance
-        travelled between two poses (in meters), divided by the time elapsed between these two poses (in seconds).
-        The velocity is returned in meters per second.
+        calculated using the Sequence.get_joint_velocity_as_list() function. The velocity of a joint is defined by the
+        distance travelled between two poses (in meters), divided by the time elapsed between these two poses
+        (in seconds). The velocity is returned in meters per second.
 
         .. versionadded:: 2.0
 
@@ -1222,27 +1805,69 @@ class Sequence(object):
             The label of the joint (e.g. ``"Head"``).
 
         Returns
-        ----------
+        --------
         float
             Sum of the velocities across all poses for a single joint, in meters per second.
         """
-        total_velocity_single_joint = 0
-
         if joint_label not in self.poses[0].joints.keys():
             raise InvalidJointLabelException(joint_label)
 
-        for p in range(1, len(self.poses)):
-            if joint_label not in self.poses[p].joints.keys():
-                raise InvalidJointLabelException(joint_label)
-            total_velocity_single_joint += calculate_velocity(self.poses[p - 1], self.poses[p], joint_label)
+        return sum(self.get_joint_velocity_as_list(joint_label))
 
-        return total_velocity_single_joint
+    def get_total_acceleration_single_joint(self, joint_label):
+        """Returns the sum of the absolute accelerations for a given joint, across the whole sequence. The acceleration
+        values are first calculated using the :meth:`Sequence.get_joint_acceleration_as_list()` function. The
+        acceleration is defined by the difference of velocity between two consecutive pairs of poses (in meters per
+        second), divided by the time elapsed between these last pose of each pair (in seconds). The accelerations are
+        returned in meters per second squared.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        joint_label: str
+            The label of the joint (e.g. ``"Head"``).
+
+        Returns
+        --------
+        float
+            Sum of the accelerations across all poses for a single joint, in meters per second squared.
+        """
+        if joint_label not in self.poses[0].joints.keys():
+            raise InvalidJointLabelException(joint_label)
+
+        return sum(self.get_joint_acceleration_as_list(joint_label, absolute=True))
+
+    def get_total_distance_per_joint(self, axis=None):
+        """Returns the sum of the distances travelled for each individual joint of the sequence. The distances are first
+        calculated using the Sequence.get_total_distance_single_joint() function. The distance travelled between two
+        poses of a joint is returned in meters.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        axis: str or None, optional
+            If specified, the returned distances travelled will be calculated on a single axis. If ``None`` (default),
+            the distance travelled will be calculated based on the 3D coordinates.
+
+        Returns
+        -------
+        OrderedDict(str: float)
+            Dictionary with joint labels as keys, and sum of distances travelled across all poses as values (in meters).
+        """
+        total_distance_per_joint = OrderedDict()
+
+        for joint_label in self.poses[0].joints.keys():
+            total_distance_per_joint[joint_label] = self.get_total_distance_single_joint(joint_label, axis)
+
+        return total_distance_per_joint
 
     def get_total_velocity_per_joint(self):
         """Returns the sum of the velocities for each individual joint of the sequence. The velocities are first
-        calculated using the Sequence.get_velocities() function. The velocity of a joint is defined by the distance
-        travelled between two poses (in meters), divided by the time elapsed between these two poses (in seconds).
-        The velocities are returned in meters per second.
+        calculated using the Sequence.get_total_velocity_single_joint() function. The velocity of a joint is defined by
+        the distance travelled between two poses (in meters), divided by the time elapsed between these two poses (in
+        seconds). The velocities are returned in meters per second.
 
         .. versionadded:: 2.0
 
@@ -1251,6 +1876,28 @@ class Sequence(object):
         OrderedDict(str: float)
             Dictionary with joint labels as keys, and sum of velocities across all poses as values (in meters per
             second).
+        """
+        total_velocity_per_joint = OrderedDict()
+
+        for joint_label in self.poses[0].joints.keys():
+            total_velocity_per_joint[joint_label] = self.get_total_velocity_single_joint(joint_label)
+
+        return total_velocity_per_joint
+
+    def get_total_acceleration_per_joint(self):
+        """Returns the sum of the absolute acceleration values for each individual joint of the sequence. The
+        acceleration values are first calculated using the :meth:`Sequence.get_joint_acceleration_as_list()` function.
+        The acceleration is defined by the difference of velocity between two consecutive pairs of poses (in meters per
+        second), divided by the time elapsed between these last pose of each pair (in seconds). The accelerations are
+        returned in meters per second squared.
+
+        .. versionadded:: 2.0
+
+        Returns
+        ----------
+        OrderedDict(str: float)
+            Dictionary with joint labels as keys, and sum of absolute acceleration values across all poses as values
+            (in meters per second squared).
         """
         total_velocity_per_joint = OrderedDict()
 

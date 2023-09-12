@@ -20,7 +20,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Appendix" href="appendix.html" />
+    <link rel="next" title="Plot functions" href="plot_functions.html" />
     <link rel="prev" title="Display functions" href="display_functions.html" /> 
 </head>
 
@@ -66,6 +66,8 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="plot_functions.html">Plot functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stats_functions.html">Stats functions</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="appendix.html">Appendix</a></li>
@@ -234,7 +236,7 @@ may clutter the output and slow down the execution.</p></li>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>list_of_objects</strong> (<em>list</em><em>(</em><a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a><em>) or </em><em>list</em><em>(</em><a class="reference internal" href="audio.html#classes.audio.Audio" title="classes.audio.Audio"><em>Audio</em></a><em>)</em>) – A list of Sequence or Audio instances.</p>
+<dd class="field-odd"><p><strong>list_of_objects</strong> (<em>list</em><em>(</em><em>Sequence</em><em>) or </em><em>list</em><em>(</em><a class="reference internal" href="audio.html#classes.audio.Audio" title="classes.audio.Audio"><em>Audio</em></a><em>)</em>) – A list of Sequence or Audio instances.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A list of paths.</p>
@@ -257,7 +259,7 @@ may clutter the output and slow down the execution.</p></li>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>list_of_objects</strong> (<em>list</em><em>(</em><a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a><em>) or </em><em>list</em><em>(</em><a class="reference internal" href="audio.html#classes.audio.Audio" title="classes.audio.Audio"><em>Audio</em></a><em>)</em>) – A list of Sequence or Audio instances.</p>
+<dd class="field-odd"><p><strong>list_of_objects</strong> (<em>list</em><em>(</em><em>Sequence</em><em>) or </em><em>list</em><em>(</em><a class="reference internal" href="audio.html#classes.audio.Audio" title="classes.audio.Audio"><em>Audio</em></a><em>)</em>) – A list of Sequence or Audio instances.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A list of names.</p>
@@ -286,8 +288,8 @@ This function can be used to check how many joints have been modified by a proce
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>sequence1</strong> (<a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a>) – A Sequence instance.</p></li>
-<li><p><strong>sequence2</strong> (<a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a>) – A Sequence instance.</p></li>
+<li><p><strong>sequence1</strong> (<em>Sequence</em>) – A Sequence instance.</p></li>
+<li><p><strong>sequence2</strong> (<em>Sequence</em>) – A Sequence instance.</p></li>
 <li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
 <ul>
 <li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
@@ -320,8 +322,8 @@ sequences start synchronizing. Otherwise, it returns <code class="docutils liter
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>sequence1</strong> (<a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a>) – A Sequence instance.</p></li>
-<li><p><strong>sequence2</strong> (<a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a>) – A Sequence instance.</p></li>
+<li><p><strong>sequence1</strong> (<em>Sequence</em>) – A Sequence instance.</p></li>
+<li><p><strong>sequence2</strong> (<em>Sequence</em>) – A Sequence instance.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -900,11 +902,12 @@ the returned value will contain an alpha channel only if the input contains one.
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tool_functions.convert_colors_rgba">
-<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">convert_colors_rgba</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color_scheme_or_colors</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.convert_colors_rgba" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">convert_colors_rgba</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color_scheme_or_colors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.convert_colors_rgba" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a list of RGBA values of colors matching a color scheme or specific color names.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>color_scheme_or_colors</strong> (<em>str</em><em> or </em><em>list</em><em>(</em><em>str</em><em>)</em>) – <p>This parameter can take a number of forms:</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>color_scheme_or_colors</strong> (<em>str</em><em> or </em><em>list</em><em>(</em><em>str</em><em>)</em>) – <p>This parameter can take a number of forms:</p>
 <ul>
 <li><p><strong>The name of a color scheme:</strong> a string matching one of the color gradients available in
 <a class="reference internal" href="color_schemes.html"><span class="doc">Color schemes</span></a>.</p></li>
@@ -920,13 +923,16 @@ the returned value will contain an alpha channel only if the input contains one.
 <p>These different codes can be used concurrently, e.g. <code class="docutils literal notranslate"><span class="pre">[&quot;red&quot;,</span> <span class="pre">(14,</span> <span class="pre">18,</span> <span class="pre">32),</span> <span class="pre">&quot;#a1b2c3&quot;]</span></code>.</p>
 </li>
 </ul>
-</p>
+</p></li>
+<li><p><strong>include_alpha</strong> (<em>bool</em><em> or </em><em>None</em><em> (</em><em>optional</em><em>)</em>) – Defines if the returned value will contain an alpha channel (<code class="docutils literal notranslate"><span class="pre">True</span></code>) or not (<code class="docutils literal notranslate"><span class="pre">False</span></code>). If set on <code class="docutils literal notranslate"><span class="pre">None</span></code>,
+the returned value will contain an alpha channel only if the input contains one.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A list of RGBA colors.</p>
+<dd class="field-even"><p>A list of RGBA or RGB colors.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list(tuple(int, int, int, int))</p>
+<dd class="field-odd"><p>list(tuple(int, int, int, int)) or list(tuple(int, int, int))</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1423,7 +1429,7 @@ suffix is removed.</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="display_functions.html" class="btn btn-neutral float-left" title="Display functions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="appendix.html" class="btn btn-neutral float-right" title="Appendix" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="plot_functions.html" class="btn btn-neutral float-right" title="Plot functions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

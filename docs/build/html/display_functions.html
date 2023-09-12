@@ -533,13 +533,20 @@ created, using the mpeg4 encoding.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>sequence1</strong> (<a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a>) – A Sequence instance.</p></li>
-<li><p><strong>path_output</strong> (<em>str</em>) – The full path to the video file where to save the video, including the extension of the file (e.g.
-<code class="docutils literal notranslate"><span class="pre">&quot;C:/Recordings/Leorio/Session7/video_003.mp4&quot;</span></code>.</p></li>
+<li><p><strong>path_output</strong> (<em>str</em>) – <p>The full path to the video file where to save the video, including the extension of the file (e.g.
+<code class="docutils literal notranslate"><span class="pre">&quot;C:/Recordings/Leorio/Session7/video_003.mp4&quot;</span></code>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Using ffmpeg, theoretically all output formats are supported; however, the output file generation was
+only tested with <code class="docutils literal notranslate"><span class="pre">.mp4</span></code> files. Compatibility with other formats is not guaranteed.</p>
+</div>
+</p></li>
 <li><p><strong>fps</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of frames per second in the output video. For each frame, the pose with the closest timestamp
 will be displayed.</p></li>
 <li><p><strong>sequence2</strong> (<a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a><em>, </em><em>optional</em>) – A second, optional Sequence instance that can be displayed superimposed or next to the previous one, for
 comparison purposes.</p></li>
-<li><p><strong>path_audio</strong> (<em>str</em><em>, </em><em>optional</em>) – The path of an audio file (ending in .wav) to add to the video. If not provided, the video will be silent.</p></li>
+<li><p><strong>path_audio</strong> (<em>str</em><em>, </em><em>optional</em>) – The path of an audio file (ending in .wav) to add to the video. If not provided, the video will be silent. If
+the audio is longer than the video, the part of the audio longer than the video will be cut.</p></li>
 <li><p><strong>path_video</strong> (<em>str</em><em>, </em><em>optional</em>) – The path of a video file to add as a background to the skeleton.</p></li>
 <li><p><strong>position_sequences</strong> (<em>str</em><em>, </em><em>optional</em>) – Defines if the sequences should be displayed next to each other (<code class="docutils literal notranslate"><span class="pre">&quot;side&quot;</span></code>, default), or on top of each other
 (<code class="docutils literal notranslate"><span class="pre">&quot;superimposed&quot;</span></code>). This parameter is ignored if only one sequence is provided.</p></li>

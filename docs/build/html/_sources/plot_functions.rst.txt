@@ -1,0 +1,11 @@
+Plot functions
+==============
+
+Description
+-----------
+These various functions allow to plot the data from the Sequence and Audio instances on graphs, or to plot
+statistics calculated using the :doc:`stats_functions`.
+
+Functions
+---------
+.. autofunction:: plot_functions.joint_temporal_plotter

@@ -7,3 +7,4 @@ Introduction
     vocabulary
     example
     input
+    release_notes
