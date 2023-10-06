@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dependencies &mdash; krajjat 1.99.3 documentation</title>
+  <title>Dependencies &mdash; krajjat 1.99.5 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
@@ -46,10 +46,21 @@
               <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="general.html">Introduction</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="install.html">Installing Krajjat</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Dependencies</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Dependencies</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#scipy">Scipy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#numpy">Numpy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#matplotlib-and-seaborn">Matplotlib and Seaborn</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#openpyxl">Openpyxl</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parselmouth">Parselmouth</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pygame">Pygame</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cv2">cv2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ffmpeg">FFmpeg</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="vocabulary.html">Vocabulary of the Krajjat toolbox</a></li>
 <li class="toctree-l2"><a class="reference internal" href="example.html">Example of processing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="input.html">Compatible files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dejittering.html">Jitter correction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="release_notes.html">Release notes</a></li>
 </ul>
 </li>
@@ -85,22 +96,74 @@
              
   <section id="dependencies">
 <h1>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this heading"></a></h1>
+<p>Here are the modules Krajjat uses to run properly.</p>
+<section id="scipy">
+<h2>Scipy<a class="headerlink" href="#scipy" title="Permalink to this heading"></a></h2>
 <dl class="simple">
-<dt>Here are the modules Krajjat uses to run properly:</dt><dd><ul class="simple">
-<li><p><a class="reference external" href="https://docs.scipy.org/doc/scipy/">SciPy</a> for handling <cite>.wav</cite> files and getting the audio envelope, and for
-saving files in <cite>.mat</cite> format (Matlab)</p></li>
-<li><p><a class="reference external" href="https://numpy.org/">NumPy</a> for saving <cite>.wav</cite> files, and handling arrays for other dependencies.</p></li>
-<li><p>Matplotlib</p></li>
-<li><p><a class="reference external" href="https://openpyxl.readthedocs.io/en/stable/tutorial.html">openpyxl</a> for opening and saving files in <cite>.xlsx</cite>
-(Excel format)</p></li>
-<li><p>Parselmouth</p></li>
-<li><p>Pygame</p></li>
-<li><p>cv2</p></li>
+<dt><a class="reference external" href="https://docs.scipy.org/doc/scipy/">SciPy</a> is used for:</dt><dd><ul class="simple">
+<li><p>Reading and writing <cite>.wav</cite> files, using <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.io.wavfile.read.html">scipy.io.wavfile.read</a>
+and <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.io.wavfile.write.html">scipy.io.wavfile.write</a></p></li>
+<li><p>Getting the audio envelope using a hilbert transform, using <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.hilbert.html">scipy.signal.hilbert</a></p></li>
+<li><p>Applying band-pass filters, using <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.butter.html">scipy.signal.butter</a>
+and <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.lfilter.html">scipy.signal.lfilter</a></p></li>
+<li><p>Saving files in <cite>.mat</cite> format (Matlab), using <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.io.savemat.html">scipy.io.savemat</a></p></li>
+<li><p>Interpolating data using the <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html">scipy.interpolate.interp1d</a>
+function</p></li>
 </ul>
 </dd>
 </dl>
-<p>Moreover, it is necessary to have <a class="reference external" href="https://ffmpeg.org/">FFmpeg</a> installed on your computer in order to generate
-videos with <code class="xref py py-meth docutils literal notranslate"><span class="pre">display_functions.create_sequence_video()</span></code>.</p>
+</section>
+<section id="numpy">
+<h2>Numpy<a class="headerlink" href="#numpy" title="Permalink to this heading"></a></h2>
+<dl class="simple">
+<dt><a class="reference external" href="https://numpy.org/">NumPy</a> is used to handle large arrays for faster computation:</dt><dd><ul class="simple">
+<li><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.array.html">array</a> and
+<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html">ndarray</a> types are used to perform faster
+computation on large arrays.</p></li>
+<li><p><a class="reference external" href="https://numpy.org/doc/stable/reference/constants.html#numpy.NaN">NaN</a> (acronym of Not A Number) is used to
+in order to replace missing data. This allows to not plot the missing data as zero values.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The Audio object uses ndarrays by default for all of its values. In a future version of the toolbox, it is planned
+to turn the lists in Sequence and Pose to ndarrays for faster computation.</p>
+</div>
+</section>
+<section id="matplotlib-and-seaborn">
+<h2>Matplotlib and Seaborn<a class="headerlink" href="#matplotlib-and-seaborn" title="Permalink to this heading"></a></h2>
+<p><a class="reference external" href="https://matplotlib.org/">Matplotlib</a> is used for plotting the data in graphs, while
+<a class="reference external" href="https://seaborn.pydata.org/">Seaborn</a> is used to make the graphs looking more attractive.</p>
+</section>
+<section id="openpyxl">
+<h2>Openpyxl<a class="headerlink" href="#openpyxl" title="Permalink to this heading"></a></h2>
+<p><a class="reference external" href="https://openpyxl.readthedocs.io/en/stable/tutorial.html">openpyxl</a> is used for opening and saving files in
+<cite>.xlsx</cite> (Excel format).</p>
+</section>
+<section id="parselmouth">
+<h2>Parselmouth<a class="headerlink" href="#parselmouth" title="Permalink to this heading"></a></h2>
+<p><em>To complete.</em></p>
+</section>
+<section id="pygame">
+<h2>Pygame<a class="headerlink" href="#pygame" title="Permalink to this heading"></a></h2>
+<p><em>To complete.</em></p>
+</section>
+<section id="cv2">
+<h2>cv2<a class="headerlink" href="#cv2" title="Permalink to this heading"></a></h2>
+<p><em>To complete.</em></p>
+</section>
+<section id="ffmpeg">
+<h2>FFmpeg<a class="headerlink" href="#ffmpeg" title="Permalink to this heading"></a></h2>
+<p><a class="reference external" href="https://ffmpeg.org/">FFmpeg</a> is necessary in order to generate videos with
+<a class="reference internal" href="display_functions.html#display_functions.save_video_sequence" title="display_functions.save_video_sequence"><code class="xref py py-meth docutils literal notranslate"><span class="pre">display_functions.save_video_sequence()</span></code></a>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>FFmpeg is not used as a Python module, but rather needs to be installed on your computer. While an installation of
+Krajjat using pip will install the other dependencies, you still need to manually install FFmpeg if you plan on
+using the toolbox to generate videos.</p>
+</div>
+</section>
 </section>
 
 

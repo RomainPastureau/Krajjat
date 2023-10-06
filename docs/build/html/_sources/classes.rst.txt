@@ -2,6 +2,7 @@ Classes
 =======
 
 .. toctree::
+    subject
     sequence
     pose
     joint

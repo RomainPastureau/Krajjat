@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Functions &mdash; krajjat 1.99.3 documentation</title>
+  <title>Functions &mdash; krajjat 1.99.5 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
@@ -149,7 +149,7 @@
 <li class="toctree-l3"><a class="reference internal" href="tool_functions.html#calculation-functions">Calculation functions</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.resample_data"><code class="docutils literal notranslate"><span class="pre">resample_data()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.interpolate_data"><code class="docutils literal notranslate"><span class="pre">interpolate_data()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.pad_with_zeros"><code class="docutils literal notranslate"><span class="pre">pad_with_zeros()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.pad"><code class="docutils literal notranslate"><span class="pre">pad()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.add_delay"><code class="docutils literal notranslate"><span class="pre">add_delay()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.calculate_distance"><code class="docutils literal notranslate"><span class="pre">calculate_distance()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.calculate_velocity"><code class="docutils literal notranslate"><span class="pre">calculate_velocity()</span></code></a></li>
@@ -162,10 +162,10 @@
 <li class="toctree-l3"><a class="reference internal" href="tool_functions.html#color-functions">Color functions</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.load_color_names"><code class="docutils literal notranslate"><span class="pre">load_color_names()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.load_color_schemes"><code class="docutils literal notranslate"><span class="pre">load_color_schemes()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.convert_color_rgba"><code class="docutils literal notranslate"><span class="pre">convert_color_rgba()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.convert_colors_rgba"><code class="docutils literal notranslate"><span class="pre">convert_colors_rgba()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.hex_color_to_rgb"><code class="docutils literal notranslate"><span class="pre">hex_color_to_rgb()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.rgb_color_to_hex"><code class="docutils literal notranslate"><span class="pre">rgb_color_to_hex()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.convert_color"><code class="docutils literal notranslate"><span class="pre">convert_color()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.convert_colors"><code class="docutils literal notranslate"><span class="pre">convert_colors()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.calculate_color_points_on_gradient"><code class="docutils literal notranslate"><span class="pre">calculate_color_points_on_gradient()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.calculate_color_ratio"><code class="docutils literal notranslate"><span class="pre">calculate_color_ratio()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="tool_functions.html#tool_functions.calculate_colors_by_values"><code class="docutils literal notranslate"><span class="pre">calculate_colors_by_values()</span></code></a></li>
@@ -203,7 +203,12 @@
 <li class="toctree-l1"><a class="reference internal" href="plot_functions.html">Plot functions</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="plot_functions.html#description">Description</a></li>
 <li class="toctree-l2"><a class="reference internal" href="plot_functions.html#functions">Functions</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="plot_functions.html#plot_functions.joint_temporal_plotter"><code class="docutils literal notranslate"><span class="pre">joint_temporal_plotter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_functions.html#plot_functions.single_joint_movement_plotter"><code class="docutils literal notranslate"><span class="pre">single_joint_movement_plotter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_functions.html#plot_functions.joints_movement_plotter"><code class="docutils literal notranslate"><span class="pre">joints_movement_plotter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_functions.html#plot_functions.framerate_plotter"><code class="docutils literal notranslate"><span class="pre">framerate_plotter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_functions.html#plot_functions.audio_plotter"><code class="docutils literal notranslate"><span class="pre">audio_plotter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_functions.html#plot_functions.plot_body_graphs"><code class="docutils literal notranslate"><span class="pre">plot_body_graphs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="plot_functions.html#plot_functions.plot_silhouette"><code class="docutils literal notranslate"><span class="pre">plot_silhouette()</span></code></a></li>
 </ul>
 </li>
 </ul>

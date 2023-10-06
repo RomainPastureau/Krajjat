@@ -8,6 +8,7 @@ from lib import gradients
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib.cm as cm
+import seaborn as sns
 import sys
 from classes.sequence import *
 
@@ -163,6 +164,7 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
         if timestamp_max is None or timestamp_max < timestamps[i][-1]:
             timestamp_max = timestamps[i][-1]
 
+    sns.set()
     plt.rcParams["figure.figsize"] = (12, 9)
     plt.subplots(5, 1, figsize=(12, 9))
     plt.subplots_adjust(left=0.15, bottom=0.1, right=0.97, top=0.9, wspace=0.3, hspace=0.5)
@@ -255,7 +257,7 @@ def joints_movement_plotter(sequence, time_series="velocity", audio_or_derivativ
     color_scheme: string or list, optional
         The name of a color scheme or a list of colors to create a gradient. The resulting color gradient will be used
         to color the joints plots depending on their quantity of movement. If set on ``"default"``, the default
-        :ref:`color scheme <color_schemes>` will be used, with the joints having the highest quantity of movement
+        :doc:`color scheme <color_schemes>` will be used, with the joints having the highest quantity of movement
         colored red. If a list of colors is set as parameter, the colors can be specified in RGB, RGBA, hexadecimal
         or standard `HTML/CSS color names <https://en.wikipedia.org/wiki/X11_color_names>`_.
 
@@ -385,6 +387,7 @@ def framerate_plotter(sequence_or_sequences, line_width=1.0, line_color="#000000
         sequence_or_sequences = [sequence_or_sequences]
 
     # Figure parameters
+    sns.set()
     plt.rcParams["figure.figsize"] = (12, 6)
     plt.subplots_adjust(left=0.03, bottom=0.03, right=0.97, top=0.9, wspace=0.3, hspace=0.7)
     labels = get_difference_paths(get_objects_names(sequence_or_sequences))
@@ -494,7 +497,6 @@ def audio_plotter(audio, threshold_low_pass_envelope=10, number_of_formants=3):
     for j in range(number_of_formants):
         formants_samples[j], formants_timestamps[j] = pad(formants_samples[j], temp_timestamps, audio.timestamps)
 
-    # import matplotlib.pyplot as plt
     import seaborn as sns
     sns.set()
 
@@ -596,6 +598,7 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
     joints_positions, joint_layout = load_joints_subplot_layout(joint_layout)
 
     # Figure parameters
+    sns.set()
     plt.rcParams["figure.figsize"] = (12, 9)
     if joint_layout == "kinect":
         rows, cols = 7, 5

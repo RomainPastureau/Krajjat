@@ -227,6 +227,11 @@ For example, you can call:
       - float
       - The speed at which to display the sequences.
       - ``1``
+    * - `font`
+      - str
+      - The name of a font present in the system files (e.g. ``"Arial"``). If no font is provided, the embedded font
+        ``res/junction_bold.otf`` will be used.
+      - N/A
     * - `font_color`
       - tuple(int, int, int, int) |br| tuple(int, int, int) |br| str
       - The color of the font indicating the current pose and time marker.

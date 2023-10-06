@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Audio &mdash; krajjat 1.99.3 documentation</title>
+  <title>Audio &mdash; krajjat 1.99.5 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
@@ -159,7 +159,7 @@ may clutter the output and slow down the execution.</p></li>
 <dd><p>A list containing the audio samples, in chronological order.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list(int)</p>
+<dd class="field-odd"><p>np.ndarray(int)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -218,6 +218,17 @@ may clutter the output and slow down the execution.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list(str)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.audio.Audio.kind">
+<span class="sig-name descname"><span class="pre">kind</span></span><a class="headerlink" href="#classes.audio.Audio.kind" title="Permalink to this definition"></a></dt>
+<dd><p>A parameter that is set on <code class="docutils literal notranslate"><span class="pre">&quot;Audio&quot;</span></code>, to differentiate it from the different types of AudioDerivative.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
 </dd>
 </dl>
 </dd></dl>
@@ -427,7 +438,7 @@ a means to identify the audio.</p>
 <h3>Transformation functions<a class="headerlink" href="#transformation-functions" title="Permalink to this heading"></a></h3>
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.audio.Audio.get_envelope">
-<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">get_envelope</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter_below</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_over</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.get_envelope" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">get_envelope</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter_below</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_over</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.get_envelope" title="Permalink to this definition"></a></dt>
 <dd><p>Calculates the envelope of the audio clip, applies a band-pass filter if values are provided,
 and returns an Envelope object.</p>
 <div class="versionadded">
@@ -438,6 +449,15 @@ and returns an Envelope object.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>filter_below</strong> (<em>int</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If not None nor 0, this value will be provided as the lowest frequency of the band-pass filter.</p></li>
 <li><p><strong>filter_over</strong> (<em>int</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If not None nor 0, this value will be provided as the highest frequency of the high-pass filter.</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -451,15 +471,26 @@ and returns an Envelope object.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.audio.Audio.get_pitch">
-<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">get_pitch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zeros_as_nan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.get_pitch" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">get_pitch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zeros_as_nan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.get_pitch" title="Permalink to this definition"></a></dt>
 <dd><p>Calculates the pitch of the voice in the audio clip, and returns a Pitch object.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>zeros_as_nan</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set on True, the values where the pitch is equal to 0 will be replaced by
-<a class="reference external" href="https://numpy.org/doc/stable/reference/constants.html#numpy.nan">numpy.nan</a> objects.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>zeros_as_nan</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set on True, the values where the pitch is equal to 0 will be replaced by
+<a class="reference external" href="https://numpy.org/doc/stable/reference/constants.html#numpy.nan">numpy.nan</a> objects.</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The pitch of the voice in the audio clip.</p>
@@ -472,31 +503,53 @@ and returns an Envelope object.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.audio.Audio.get_intensity">
-<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">get_intensity</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.get_intensity" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">get_intensity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.get_intensity" title="Permalink to this definition"></a></dt>
 <dd><p>Calculates the intensity of the voice in the audio clip, and returns an Intensity object.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>The intensity of the voice in the audio clip.</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul class="simple">
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="audio_derivatives.html#classes.audio_derivatives.Intensity" title="classes.audio_derivatives.Intensity">Intensity</a></p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The intensity of the voice in the audio clip.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="audio_derivatives.html#classes.audio_derivatives.Intensity" title="classes.audio_derivatives.Intensity">Intensity</a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.audio.Audio.get_formant">
-<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">get_formant</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">formant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.get_formant" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">get_formant</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">formant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.get_formant" title="Permalink to this definition"></a></dt>
 <dd><p>Calculates the formants of the voice in the audio clip, and returns a Formant object.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>formant</strong> (<em>int</em><em>, </em><em>optional.</em>) – One of the formants of the voice in the audio clip (1 (default), 2, 3, 4 or 5).</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>formant</strong> (<em>int</em><em>, </em><em>optional.</em>) – One of the formants of the voice in the audio clip (1 (default), 2, 3, 4 or 5).</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The value of a formant of the voice in the audio clip.</p>

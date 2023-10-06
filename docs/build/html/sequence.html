@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sequence &mdash; krajjat 1.99.3 documentation</title>
+  <title>Sequence &mdash; krajjat 1.99.5 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
@@ -130,7 +130,7 @@ one motion sequence. The class contains several methods to perform <strong>pre-p
 <h2>Initialisation<a class="headerlink" href="#initialisation" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="classes.sequence.Sequence">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">classes.sequence.</span></span><span class="sig-name descname"><span class="pre">Sequence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_audio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_timestamps_at_zero</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">classes.sequence.</span></span><span class="sig-name descname"><span class="pre">Sequence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_audio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">condition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_timestamps_at_zero</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence" title="Permalink to this definition"></a></dt>
 <dd><p>Creates an instance from the class Sequence and returns a Sequence object, allowing to be manipulated for
 processing or displaying. Upon creation, the function tries to assign a name to it based on the provided
 name parameter or path parameter. It then proceeds to load the sequence if a path has been provided.</p>
@@ -149,6 +149,7 @@ functions using an audio file (typically, <code class="xref py py-meth docutils 
 This parameter is however far from vital in the definition of a Sequence instance, and can be skipped safely.</p></li>
 <li><p><strong>name</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Defines a name for the Sequence instance. If a string is provided, the attribute <a class="reference internal" href="#classes.sequence.Sequence.name" title="classes.sequence.Sequence.name"><code class="xref py py-attr docutils literal notranslate"><span class="pre">name</span></code></a> will take
 its value. If not, see <a class="reference internal" href="#classes.sequence.Sequence._define_name_init" title="classes.sequence.Sequence._define_name_init"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence._define_name_init()</span></code></a>.</p></li>
+<li><p><strong>condition</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Optional field to represent in which experimental condition the sequence was recorded.</p></li>
 <li><p><strong>time_unit</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – <p>The unit of time of the timestamps in the original file. Depending on the value put as parameter, the timestamps
 will be converted to seconds.</p>
 <blockquote>
@@ -396,7 +397,7 @@ may clutter the output and slow down the execution.</p></li>
 <dt class="sig sig-object py" id="classes.sequence.Sequence.set_name">
 <span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">set_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.set_name" title="Permalink to this definition"></a></dt>
 <dd><p>Sets the <a class="reference internal" href="#classes.sequence.Sequence.name" title="classes.sequence.Sequence.name"><code class="xref py py-attr docutils literal notranslate"><span class="pre">name</span></code></a> attribute of the Sequence instance. This name can be used as display functions or as
-a means to identify the sequence (typically, <a class="reference internal" href="plot_functions.html#plot_functions.joint_temporal_plotter" title="plot_functions.joint_temporal_plotter"><code class="xref py py-func docutils literal notranslate"><span class="pre">plot_functions.joint_temporal_plotter()</span></code></a>).</p>
+a means to identify the sequence (typically, <code class="xref py py-func docutils literal notranslate"><span class="pre">plot_functions.joint_temporal_plotter()</span></code>).</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
@@ -408,6 +409,28 @@ a means to identify the sequence (typically, <a class="reference internal" href=
 <p class="rubric">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">seq</span> <span class="o">=</span> <span class="n">Sequence</span><span class="p">(</span><span class="s2">&quot;C:/Users/Mario/Sequences/seq1/&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">seq</span><span class="o">.</span><span class="n">set_name</span><span class="p">(</span><span class="s2">&quot;Sequence story telling 7&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.set_condition">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">set_condition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">condition</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.set_condition" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the <code class="xref py py-attr docutils literal notranslate"><span class="pre">condition</span></code> attribute of the Sequence instance. This attribute can be used to save the
+experimental condition in which the sequence instance was recorded.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>condition</strong> (<em>str</em>) – The experimental condition in which the sequence was recorded.</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">seq1</span> <span class="o">=</span> <span class="n">Sequence</span><span class="p">(</span><span class="s2">&quot;C:/Users/Harold/Sequences/English/seq.xlsx&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seq1</span><span class="o">.</span><span class="n">set_condition</span><span class="p">(</span><span class="s2">&quot;English&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seq2</span> <span class="o">=</span> <span class="n">Sequence</span><span class="p">(</span><span class="s2">&quot;C:/Users/Harold/Sequences/Spanish/seq.xlsx&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seq2</span><span class="o">.</span><span class="n">set_condition</span><span class="p">(</span><span class="s2">&quot;Spanish&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -450,6 +473,8 @@ accordingly.</p>
 </section>
 <section id="getter-functions">
 <h3>Getter functions<a class="headerlink" href="#getter-functions" title="Permalink to this heading"></a></h3>
+<section id="general">
+<h4>General<a class="headerlink" href="#general" title="Permalink to this heading"></a></h4>
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.sequence.Sequence.get_path">
 <span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_path</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_path" title="Permalink to this definition"></a></dt>
@@ -485,55 +510,18 @@ accordingly.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="classes.sequence.Sequence.get_poses">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_poses</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_poses" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the attribute <a class="reference internal" href="#classes.sequence.Sequence.poses" title="classes.sequence.Sequence.poses"><code class="xref py py-attr docutils literal notranslate"><span class="pre">poses</span></code></a> of the sequence.</p>
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_condition">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_condition</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_condition" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">condition</span></code> of the sequence.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>A list containing all the Pose objects in the sequence, in chronological order.</p>
+<dd class="field-odd"><p>The experimental condition in which the recording of the sequence was performed.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>list(<a class="reference internal" href="pose.html#classes.pose.Pose" title="classes.pose.Pose">Pose</a>)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="classes.sequence.Sequence.get_pose">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_pose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pose_index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_pose" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the pose instance corresponding to the index passed as parameter.</p>
-<div class="versionadded">
-<p><span class="versionmodified added">New in version 2.0.</span></p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pose_index</strong> (<em>int</em>) – The index of the pose.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A pose from the sequence.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="pose.html#classes.pose.Pose" title="classes.pose.Pose">Pose</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="classes.sequence.Sequence.get_number_of_poses">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_number_of_poses</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_number_of_poses" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the number of poses in the sequence.</p>
-<div class="versionadded">
-<p><span class="versionmodified added">New in version 2.0.</span></p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>The number of poses in the sequence.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>int</p>
+<dd class="field-even"><p>str</p>
 </dd>
 </dl>
 </dd></dl>
@@ -589,401 +577,6 @@ value returned is <code class="docutils literal notranslate"><span class="pre">&
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>string</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="classes.sequence.Sequence.get_timestamps">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_timestamps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">relative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_timestamps" title="Permalink to this definition"></a></dt>
-<dd><p>Returns a list of the timestamps for every pose, in seconds.</p>
-<div class="versionadded">
-<p><span class="versionmodified added">New in version 2.0.</span></p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>relative</strong> (<em>boolean</em>) – Defines if the returned timestamps are relative to the first pose (in that case, the timestamp of the first
-pose will be 0), or the original timestamps.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>List of the timestamps of all the poses of the sequence, in seconds.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list(float)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="classes.sequence.Sequence.get_time_between_two_poses">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_time_between_two_poses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pose_index1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pose_index2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_time_between_two_poses" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the difference between the timestamps of two poses, in seconds.</p>
-<div class="versionadded">
-<p><span class="versionmodified added">New in version 2.0.</span></p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>pose_index1</strong> (<em>int</em>) – The index of the first pose.</p></li>
-<li><p><strong>pose_index2</strong> (<em>int</em>) – The index of the second pose.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The time difference (in seconds) between the two poses.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>If the index of the second pose is inferior to the index of the first pose, the difference will be negative.</p>
-</div>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="classes.sequence.Sequence.get_duration">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_duration</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_duration" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the duration of the sequence, in seconds.</p>
-<div class="versionadded">
-<p><span class="versionmodified added">New in version 2.0.</span></p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>The duration of the sequence, in seconds.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="classes.sequence.Sequence.get_framerates">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_framerates</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_framerates" title="Permalink to this definition"></a></dt>
-<dd><p>Returns a list of the frequencies of poses per second and a list of the matching timestamps. This function
-calculates, for each pose, the inverse of the time elapsed since the previous pose (in seconds), in order to
-obtain a list of framerates across time. It returns the list of framerates, and the corresponding timestamps
-(starting on the second pose).</p>
-<div class="versionadded">
-<p><span class="versionmodified added">New in version 2.0.</span></p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><ul class="simple">
-<li><p><em>list(float)</em> – Framerates for all the poses of the sequence, starting on the second pose.</p></li>
-<li><p><em>list(float)</em> – Timestamps of the sequence, starting on the second pose.</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Because the framerates are calculated by consecutive pairs of poses, the two lists returned by the function
-have a length of <span class="math notranslate nohighlight">\(n-1\)</span>, with <span class="math notranslate nohighlight">\(n\)</span> being the number of poses of the sequence.</p>
-</div>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="classes.sequence.Sequence.get_framerate">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_framerate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_framerate" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the number of poses per second of the sequence, only if this one is stable. If the frequency is
-variable, the function returns an error message.</p>
-<div class="versionadded">
-<p><span class="versionmodified added">New in version 2.0.</span></p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>The number of poses per second for the sequence if this number is stable.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="classes.sequence.Sequence.get_average_framerate">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_average_framerate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_average_framerate" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the average number of poses per second of the sequence.</p>
-<div class="versionadded">
-<p><span class="versionmodified added">New in version 2.0.</span></p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Average number of poses per second for the sequence.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="classes.sequence.Sequence.get_min_framerate">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_min_framerate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_min_framerate" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the minimum frequency of poses per second of the sequence, which is equal to 1 over the maximum time
-between two poses in the sequence.</p>
-<div class="versionadded">
-<p><span class="versionmodified added">New in version 2.0.</span></p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Minimum number of poses per second for the sequence.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="classes.sequence.Sequence.get_max_framerate">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_max_framerate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_max_framerate" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the maximum frequency of poses per second of the sequence, which is equal to 1 over the minimum time
-between two poses in the sequence.</p>
-<div class="versionadded">
-<p><span class="versionmodified added">New in version 2.0.</span></p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Maximum number of poses per second for the sequence.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="classes.sequence.Sequence.get_joint_coordinate_as_list">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_joint_coordinate_as_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_joint_coordinate_as_list" title="Permalink to this definition"></a></dt>
-<dd><p>Returns a list of all the values for one specified axis of a specified joint label.</p>
-<div class="versionadded">
-<p><span class="versionmodified added">New in version 2.0.</span></p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>joint_label</strong> (<em>str</em>) – The label of the joint (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Head&quot;</span></code>).</p></li>
-<li><p><strong>axis</strong> (<em>str</em>) – The required axis (<code class="docutils literal notranslate"><span class="pre">&quot;x&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;y&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;z&quot;</span></code>).</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A chronological list of the values (in meters) on one axis for the specified joint.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list(float)</p>
-</dd>
-</dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The values returned by the function can be paired with the timestamps obtained with
-<a class="reference internal" href="#classes.sequence.Sequence.get_timestamps" title="classes.sequence.Sequence.get_timestamps"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.get_timestamps()</span></code></a>.</p>
-</div>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="classes.sequence.Sequence.get_joint_distance_as_list">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_joint_distance_as_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_joint_distance_as_list" title="Permalink to this definition"></a></dt>
-<dd><p>Returns a list of all the distances travelled for a specific joint.</p>
-<div class="versionadded">
-<p><span class="versionmodified added">New in version 2.0.</span></p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>joint_label</strong> (<em>str</em>) – The label of the joint (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Head&quot;</span></code>).</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A chronological list of the distances travelled (in meters) for the specified joint.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list(float)</p>
-</dd>
-</dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Because the velocities are calculated by consecutive pairs of poses, the list returned by the function
-have a length of <span class="math notranslate nohighlight">\(n-1\)</span>, with <span class="math notranslate nohighlight">\(n\)</span> being the number of poses of the sequence.</p>
-</div>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="classes.sequence.Sequence.get_joint_velocity_as_list">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_joint_velocity_as_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_joint_velocity_as_list" title="Permalink to this definition"></a></dt>
-<dd><p>Returns a list of all the velocities (distance travelled over time) for a specified joint.</p>
-<div class="versionadded">
-<p><span class="versionmodified added">New in version 2.0.</span></p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>joint_label</strong> (<em>str</em>) – The label of the joint (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Head&quot;</span></code>).</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A chronological list of the velocities (in meters per second) for the specified joint.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list(float)</p>
-</dd>
-</dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Because the velocities are calculated by consecutive pairs of poses, the list returned by the function
-have a length of <span class="math notranslate nohighlight">\(n-1\)</span>, with <span class="math notranslate nohighlight">\(n\)</span> being the number of poses of the sequence.</p>
-</div>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="classes.sequence.Sequence.get_velocities">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_velocities</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_velocities" title="Permalink to this definition"></a></dt>
-<dd><p>Returns a dictionary containing the joint labels as keys, and a list of velocities (distance travelled over
-time between two poses) as values. Velocities are calculated using the
-<a class="reference internal" href="tool_functions.html#tool_functions.calculate_velocity" title="tool_functions.calculate_velocity"><code class="xref py py-func docutils literal notranslate"><span class="pre">tool_functions.calculate_velocity()</span></code></a> function, and are defined by the distance travelled between two
-poses (in meters), divided by the time elapsed between these two poses (in seconds). The velocities are
-returned in meters per second.</p>
-<div class="versionadded">
-<p><span class="versionmodified added">New in version 2.0.</span></p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>OrderedDict(str</strong> – Dictionary with joint labels as keys, and lists of velocity as values (in meters per second), ordered
-chronologically.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>list(float))</p>
-</dd>
-</dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Because the velocities are calculated by consecutive pairs of poses, the lists returned by the function
-have a length of <span class="math notranslate nohighlight">\(n-1\)</span>, with <span class="math notranslate nohighlight">\(n\)</span> being the number of poses of the sequence.</p>
-</div>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="classes.sequence.Sequence.get_max_velocity_whole_sequence">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_max_velocity_whole_sequence</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_max_velocity_whole_sequence" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the single maximum value of the velocity across every joint of the sequence. The velocities are
-first calculated using the <a class="reference internal" href="#classes.sequence.Sequence.get_velocities" title="classes.sequence.Sequence.get_velocities"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.get_velocities()</span></code></a> function. The velocity of a joint is defined by
-the distance travelled between two poses (in meters), divided by the time elapsed between these two poses
-(in seconds). The velocity is returned in meters per second.</p>
-<div class="versionadded">
-<p><span class="versionmodified added">New in version 2.0.</span></p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Maximum value of the velocity across every joint of the sequence, in meters per second.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="classes.sequence.Sequence.get_max_velocity_single_joint">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_max_velocity_single_joint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_max_velocity_single_joint" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the maximum value of the velocity for a given joint, across the whole sequence. The velocities are
-first calculated using the <a class="reference internal" href="#classes.sequence.Sequence.get_velocities" title="classes.sequence.Sequence.get_velocities"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.get_velocities()</span></code></a> function. The velocity of a joint is defined by
-the distance travelled between two poses (in meters), divided by the time elapsed between these two poses
-(in seconds). The velocity is returned in meters per second.</p>
-<div class="versionadded">
-<p><span class="versionmodified added">New in version 2.0.</span></p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>joint_label</strong> (<em>str</em>) – The label of the joint (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Head&quot;</span></code>).</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Maximum value of the velocity for a given joint, in meters per second.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="classes.sequence.Sequence.get_max_velocity_per_joint">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_max_velocity_per_joint</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_max_velocity_per_joint" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the maximum value of the velocity for each joint of the sequence. The velocities are
-first calculated using the <a class="reference internal" href="#classes.sequence.Sequence.get_velocities" title="classes.sequence.Sequence.get_velocities"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.get_velocities()</span></code></a> function. The velocity of a joint is defined by
-the distance travelled between two poses (in meters), divided by the time elapsed between these two poses
-(in seconds). The velocities are returned in meters per second.</p>
-<div class="versionadded">
-<p><span class="versionmodified added">New in version 2.0.</span></p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>OrderedDict(str</strong> – Dictionary with joint labels as keys, and maximum velocities as values (in meters per second).</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>float)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="classes.sequence.Sequence.get_total_velocity_whole_sequence">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_total_velocity_whole_sequence</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_total_velocity_whole_sequence" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the sum of the velocities of every joint across all the poses of the sequence. This allows to
-provide a value representative of the global “quantity of movement” produced during the sequence. The
-velocities are first calculated using the Sequence.get_velocities() function. The velocity of a joint is
-defined by the distance travelled between two poses (in meters), divided by the time elapsed between these
-two poses (in seconds). The velocities are returned in meters per second.</p>
-<div class="versionadded">
-<p><span class="versionmodified added">New in version 2.0.</span></p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Sum of the velocities across every joint and poses of the sequence, in meters per second.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="classes.sequence.Sequence.get_total_velocity_single_joint">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_total_velocity_single_joint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_total_velocity_single_joint" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the sum of the velocities for a given joint, across the whole sequence. The velocities are first
-calculated using the Sequence.get_velocities() function. The velocity of a joint is defined by the distance
-travelled between two poses (in meters), divided by the time elapsed between these two poses (in seconds).
-The velocity is returned in meters per second.</p>
-<div class="versionadded">
-<p><span class="versionmodified added">New in version 2.0.</span></p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>joint_label</strong> (<em>str</em>) – The label of the joint (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Head&quot;</span></code>).</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Sum of the velocities across all poses for a single joint, in meters per second.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="classes.sequence.Sequence.get_total_velocity_per_joint">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_total_velocity_per_joint</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_total_velocity_per_joint" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the sum of the velocities for each individual joint of the sequence. The velocities are first
-calculated using the Sequence.get_velocities() function. The velocity of a joint is defined by the distance
-travelled between two poses (in meters), divided by the time elapsed between these two poses (in seconds).
-The velocities are returned in meters per second.</p>
-<div class="versionadded">
-<p><span class="versionmodified added">New in version 2.0.</span></p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>OrderedDict(str</strong> – Dictionary with joint labels as keys, and sum of velocities across all poses as values (in meters per
-second).</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>float)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1110,6 +703,1067 @@ total number of poses. This key has one entry per joint label.</p></li>
 </dl>
 </dd></dl>
 
+</section>
+<section id="poses">
+<h4>Poses<a class="headerlink" href="#poses" title="Permalink to this heading"></a></h4>
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_poses">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_poses</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_poses" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the attribute <a class="reference internal" href="#classes.sequence.Sequence.poses" title="classes.sequence.Sequence.poses"><code class="xref py py-attr docutils literal notranslate"><span class="pre">poses</span></code></a> of the sequence.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list containing all the Pose objects in the sequence, in chronological order.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list(<a class="reference internal" href="pose.html#classes.pose.Pose" title="classes.pose.Pose">Pose</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_pose">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_pose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pose_index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_pose" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the pose instance corresponding to the index passed as parameter.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pose_index</strong> (<em>int</em>) – The index of the pose.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A pose from the sequence.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="pose.html#classes.pose.Pose" title="classes.pose.Pose">Pose</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_pose_index_from_timestamp">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_pose_index_from_timestamp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'closest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_pose_index_from_timestamp" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the closest pose index from the provided timestamp.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>timestamp</strong> (<em>float</em>) – A relative timestamp, in seconds.</p></li>
+<li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>This parameter can take multiple values:</p>
+<ul>
+<li><p>If set on <code class="docutils literal notranslate"><span class="pre">&quot;closest&quot;</span></code> (default), returns the closest pose index from the timestamp.</p></li>
+<li><p>If set on <code class="docutils literal notranslate"><span class="pre">&quot;below&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;lower&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;under&quot;</span></code>, returns the closest pose index below the timestamp.</p></li>
+<li><p>If set on <code class="docutils literal notranslate"><span class="pre">&quot;above&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;higher&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;over&quot;</span></code>, returns the closest pose index above the timestamp.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_pose_from_timestamp">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_pose_from_timestamp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'closest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_pose_from_timestamp" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the closest pose from the provided timestamp.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This function is a wrapper for the function <a class="reference internal" href="#classes.sequence.Sequence.get_pose_index_from_timestamp" title="classes.sequence.Sequence.get_pose_index_from_timestamp"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_pose_index_from_timestamp()</span></code></a>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>timestamp</strong> (<em>float</em>) – A relative timestamp.</p></li>
+<li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>This parameter can take multiple values:</p>
+<ul>
+<li><p>If set on <code class="docutils literal notranslate"><span class="pre">&quot;closest&quot;</span></code> (default), returns the closest pose index from the timestamp.</p></li>
+<li><p>If set on <code class="docutils literal notranslate"><span class="pre">&quot;below&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;lower&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;under&quot;</span></code>, returns the closest pose index below the timestamp.</p></li>
+<li><p>If set on <code class="docutils literal notranslate"><span class="pre">&quot;above&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;higher&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;over&quot;</span></code>, returns the closest pose index above the timestamp.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_number_of_poses">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_number_of_poses</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_number_of_poses" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the number of poses in the sequence.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The number of poses in the sequence.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="time">
+<h4>Time<a class="headerlink" href="#time" title="Permalink to this heading"></a></h4>
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_timestamps">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_timestamps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">relative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_timestamps" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of the timestamps for every pose, in seconds.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>relative</strong> (<em>boolean</em>) – Defines if the returned timestamps are relative to the first pose (in that case, the timestamp of the first
+pose will be 0), or the original timestamps.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of the timestamps of all the poses of the sequence, in seconds.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_time_between_two_poses">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_time_between_two_poses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pose_index1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pose_index2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_time_between_two_poses" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the difference between the timestamps of two poses, in seconds.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pose_index1</strong> (<em>int</em>) – The index of the first pose.</p></li>
+<li><p><strong>pose_index2</strong> (<em>int</em>) – The index of the second pose.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The time difference (in seconds) between the two poses.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If the index of the second pose is inferior to the index of the first pose, the difference will be negative.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_duration">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_duration</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_duration" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the duration of the sequence, in seconds.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The duration of the sequence, in seconds.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="framerate">
+<h4>Framerate<a class="headerlink" href="#framerate" title="Permalink to this heading"></a></h4>
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_framerates">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_framerates</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_framerates" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of the frequencies of poses per second and a list of the matching timestamps. This function
+calculates, for each pose, the inverse of the time elapsed since the previous pose (in seconds), in order to
+obtain a list of framerates across time. It returns the list of framerates, and the corresponding timestamps
+(starting on the second pose).</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><em>list(float)</em> – Framerates for all the poses of the sequence, starting on the second pose.</p></li>
+<li><p><em>list(float)</em> – Timestamps of the sequence, starting on the second pose.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Because the framerates are calculated by consecutive pairs of poses, the two lists returned by the function
+have a length of <span class="math notranslate nohighlight">\(n-1\)</span>, with <span class="math notranslate nohighlight">\(n\)</span> being the number of poses of the sequence.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_framerate">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_framerate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_framerate" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the number of poses per second of the sequence, only if this one is stable. If the frequency is
+variable, the function returns an error message.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The number of poses per second for the sequence if this number is stable.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_average_framerate">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_average_framerate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_average_framerate" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the average number of poses per second of the sequence.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Average number of poses per second for the sequence.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_min_framerate">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_min_framerate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_min_framerate" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the minimum frequency of poses per second of the sequence, which is equal to 1 over the maximum time
+between two poses in the sequence.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Minimum number of poses per second for the sequence.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_max_framerate">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_max_framerate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_max_framerate" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the maximum frequency of poses per second of the sequence, which is equal to 1 over the minimum time
+between two poses in the sequence.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Maximum number of poses per second for the sequence.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="metrics-single-joint">
+<h4>Metrics: single joint<a class="headerlink" href="#metrics-single-joint" title="Permalink to this heading"></a></h4>
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_joint_coordinate_as_list">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_joint_coordinate_as_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_joint_coordinate_as_list" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of all the values for one specified axis of a specified joint label.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>joint_label</strong> (<em>str</em>) – The label of the joint (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Head&quot;</span></code>).</p></li>
+<li><p><strong>axis</strong> (<em>str</em>) – The required axis (<code class="docutils literal notranslate"><span class="pre">&quot;x&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;y&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;z&quot;</span></code>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A chronological list of the values (in meters) on one axis for the specified joint.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(float)</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The values returned by the function can be paired with the timestamps obtained with
+<a class="reference internal" href="#classes.sequence.Sequence.get_timestamps" title="classes.sequence.Sequence.get_timestamps"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.get_timestamps()</span></code></a>.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_joint_distance_as_list">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_joint_distance_as_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_joint_distance_as_list" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of all the distances travelled for a specific joint. If an axis is specified, the distances
+are calculated on this axis only.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>joint_label</strong> (<em>str</em>) – The label of the joint (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Head&quot;</span></code>).</p></li>
+<li><p><strong>axis</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If specified, the returned distances travelled will be calculated on a single axis. If <code class="docutils literal notranslate"><span class="pre">None</span></code> (default),
+the distance travelled will be calculated based on the 3D coordinates.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A chronological list of the distances travelled (in meters) for the specified joint.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(float)</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Because the velocities are calculated by consecutive poses, the list returned by the function
+have a length of <span class="math notranslate nohighlight">\(n-1\)</span>, with <span class="math notranslate nohighlight">\(n\)</span> being the number of poses of the sequence.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_joint_velocity_as_list">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_joint_velocity_as_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_joint_velocity_as_list" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of all the velocities (distance travelled over time) for a specified joint.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>joint_label</strong> (<em>str</em>) – The label of the joint (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Head&quot;</span></code>).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A chronological list of the velocities (in meters per second) for the specified joint.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(float)</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Because the velocities are calculated by consecutive poses, the list returned by the function
+have a length of <span class="math notranslate nohighlight">\(n-1\)</span>, with <span class="math notranslate nohighlight">\(n\)</span> being the number of poses of the sequence.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_joint_acceleration_as_list">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_joint_acceleration_as_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">absolute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_joint_acceleration_as_list" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of all the accelerations (differences of velocity over time) for a specified joint.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>joint_label</strong> (<em>str</em>) – The label of the joint (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Head&quot;</span></code>).</p></li>
+<li><p><strong>absolute</strong> (<em>boolean</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">True</span></code> (default), returns the maximum absolute acceleration value. If set on <code class="docutils literal notranslate"><span class="pre">False</span></code>, returns
+the maximum acceleration value, even if a negative value has a higher absolute value.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A chronological list of the accelerations (in meters per second squared) for the specified joint.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(float)</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Because the accelerations are calculated by consecutive pairs of poses, the list returned by the function
+have a length of <span class="math notranslate nohighlight">\(n-2\)</span>, with <span class="math notranslate nohighlight">\(n\)</span> being the number of poses of the sequence.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_joint_time_series_as_list">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_joint_time_series_as_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_series</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'velocity'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_joint_time_series_as_list" title="Permalink to this definition"></a></dt>
+<dd><p>For a specified joint, returns a list containing one of its time series (x coordinate, y coordinate,
+z coordinate, distance travelled, velocity, or acceleration).</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>joint_label</strong> (<em>str</em>) – The label of the joint (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Head&quot;</span></code>).</p></li>
+<li><p><strong>time_series</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>Defines the time_series to return to the list. This parameter can be:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;x&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;y&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;z&quot;</span></code>, to return the values of the coordinate on a specified axis, for each
+timestamp.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">&quot;distance&quot;</span></code> travelled over time (in meters), between consecutive poses.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">&quot;velocity&quot;</span></code>, defined by the distance travelled over time (in meters per second), between
+consecutive poses.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">&quot;acceleration&quot;</span></code>, defined by the velocity over time (in meters per second squared), between
+consecutive pairs of poses.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A chronological list of the velocities (in meters per second) for the specified joint.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(float)</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Because the distances and velocities are calculated by consecutive poses, the list returned by the
+function have a length of <span class="math notranslate nohighlight">\(n-1\)</span>, with <span class="math notranslate nohighlight">\(n\)</span> being the number of poses of the sequence.
+Following the same idea, accelerations are calculate by consecutive pairs of poses. The list returned by the
+function would then have a length of <span class="math notranslate nohighlight">\(n-2\)</span>.</p>
+</div>
+</dd></dl>
+
+</section>
+<section id="metrics-all-joints">
+<h4>Metrics: all joints<a class="headerlink" href="#metrics-all-joints" title="Permalink to this heading"></a></h4>
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_single_coordinates">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_single_coordinates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_single_coordinates" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a dictionary containing the values of the coordinates on a single axis for all the joints. The
+dictionary will contain the joints labels as keys, and a list of coordinates as values. The coordinates are
+returned in meters.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axis</strong> (<em>str</em>) – The axis from which to extract the coordinate: <code class="docutils literal notranslate"><span class="pre">&quot;x&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;y&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;z&quot;</span></code>.</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>OrderedDict(str</strong> – Dictionary with joint labels as keys, and coordinates values on a specified axis as values (in meters),
+ordered chronologically.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(float))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_distances">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_distances</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_distances" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a dictionary containing the joint labels as keys, and a list of distances (distance travelled between
+two poses) as values. Distances are calculated using the <a class="reference internal" href="tool_functions.html#tool_functions.calculate_distance" title="tool_functions.calculate_distance"><code class="xref py py-func docutils literal notranslate"><span class="pre">tool_functions.calculate_distance()</span></code></a> function,
+and are defined by the distance travelled between two poses (in meters). The distances are returned in meters.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>axis</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If specified, the returned distances travelled will be calculated on a single axis. If <code class="docutils literal notranslate"><span class="pre">None</span></code> (default),
+the distance travelled will be calculated based on the 3D coordinates.</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>OrderedDict(str</strong> – Dictionary with joint labels as keys, and lists of distances travelled as values (in meters), ordered
+chronologically.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(float))</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Because the distances are calculated between consecutive poses, the lists returned by the function
+have a length of <span class="math notranslate nohighlight">\(n-1\)</span>, with <span class="math notranslate nohighlight">\(n\)</span> being the number of poses of the sequence.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_distance_between_hands">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_distance_between_hands</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_distance_between_hands" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a vector containing the distance (in meters) between the two hands across time. If the
+joint label system is Kinect, the distance will be calculated between <code class="docutils literal notranslate"><span class="pre">&quot;HandRight&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;HandLeft&quot;</span></code>.
+If the joint label system is Qualisys, the distance will be calculated between <code class="docutils literal notranslate"><span class="pre">&quot;HandOutRight&quot;</span></code> and
+<code class="docutils literal notranslate"><span class="pre">&quot;HandOutLeft&quot;</span></code>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This function is a wrapper for the function <a class="reference internal" href="#classes.sequence.Sequence.get_distance_between_joints" title="classes.sequence.Sequence.get_distance_between_joints"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.get_distance_between_joints()</span></code></a>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of distances between the two hands, in meters.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list(float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_distance_between_joints">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_distance_between_joints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_label2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_distance_between_joints" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a vector containing the distance (in meters) between the two joints provided across time.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>joint_label1</strong> (<em>str</em>) – The label of the first joint (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;Head&quot;</span></code>).</p></li>
+<li><p><strong>joint_label2</strong> (<em>str</em>) – The label of the second joint (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;FootRight&quot;</span></code>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of distances between the two specified joints, in meters.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_velocities">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_velocities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_velocities" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a dictionary containing the joint labels as keys, and a list of velocities (distance travelled over
+time between two poses) as values. Velocities are calculated using the
+<a class="reference internal" href="tool_functions.html#tool_functions.calculate_velocity" title="tool_functions.calculate_velocity"><code class="xref py py-func docutils literal notranslate"><span class="pre">tool_functions.calculate_velocity()</span></code></a> function, and are defined by the distance travelled between two
+poses (in meters), divided by the time elapsed between these two poses (in seconds). The velocities are
+returned in meters per second.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul class="simple">
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>OrderedDict(str</strong> – Dictionary with joint labels as keys, and lists of velocity as values (in meters per second), ordered
+chronologically.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(float))</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Because the velocities are calculated between consecutive poses, the lists returned by the function
+have a length of <span class="math notranslate nohighlight">\(n-1\)</span>, with <span class="math notranslate nohighlight">\(n\)</span> being the number of poses of the sequence.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_accelerations">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_accelerations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">absolute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_accelerations" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a dictionary containing the joint labels as keys, and a list of accelerations (differences of
+velocity over time between two poses) as values. Accelerations are calculated using the
+<a class="reference internal" href="tool_functions.html#tool_functions.calculate_acceleration" title="tool_functions.calculate_acceleration"><code class="xref py py-func docutils literal notranslate"><span class="pre">tool_functions.calculate_acceleration()</span></code></a> function, and are defined by the difference of velocity between
+two consecutive pairs of poses (in meters per second), divided by the time elapsed between these last pose of
+each pair (in seconds). The accelerations are returned in meters per second squared.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>absolute</strong> (<em>boolean</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">True</span></code>, returns the absolute acceleration values. If set on <code class="docutils literal notranslate"><span class="pre">False</span></code> (default), returns
+the original, signed acceleration values.</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>OrderedDict(str</strong> – Dictionary with joint labels as keys, and lists of accelerations as values (in meters per second squared),
+ordered chronologically.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(float))</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Because the accelerations are calculated between consecutive pairs of poses, the lists returned by the function
+have a length of <span class="math notranslate nohighlight">\(n-2\)</span>, with <span class="math notranslate nohighlight">\(n\)</span> being the number of poses of the sequence.</p>
+</div>
+</dd></dl>
+
+</section>
+<section id="metrics-max-values">
+<h4>Metrics: max values<a class="headerlink" href="#metrics-max-values" title="Permalink to this heading"></a></h4>
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_max_distance_whole_sequence">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_max_distance_whole_sequence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_max_distance_whole_sequence" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the single maximum value of the distance travelled between two poses across every joint of the
+sequence. The distances are first calculated using the <a class="reference internal" href="#classes.sequence.Sequence.get_distances" title="classes.sequence.Sequence.get_distances"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.get_distances()</span></code></a> function. The distance
+travelled by a joint is returned in meters.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>axis</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If specified, the returned distances travelled will be calculated on a single axis. If <code class="docutils literal notranslate"><span class="pre">None</span></code> (default),
+the distance travelled will be calculated based on the 3D coordinates.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Maximum value of the distance travelled between two poses across every joint of the sequence, in meters.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_max_velocity_whole_sequence">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_max_velocity_whole_sequence</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_max_velocity_whole_sequence" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the single maximum value of the velocity across every joint of the sequence. The velocities are
+first calculated using the <a class="reference internal" href="#classes.sequence.Sequence.get_velocities" title="classes.sequence.Sequence.get_velocities"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.get_velocities()</span></code></a> function. The velocity of a joint is defined by
+the distance travelled between two poses (in meters), divided by the time elapsed between these two poses
+(in seconds). The velocity is returned in meters per second.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Maximum value of the velocity across every joint of the sequence, in meters per second.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_max_acceleration_whole_sequence">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_max_acceleration_whole_sequence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">absolute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_max_acceleration_whole_sequence" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the single maximum value of the acceleration across every joint of the sequence. The acceleration
+values are first calculated using the <a class="reference internal" href="#classes.sequence.Sequence.get_accelerations" title="classes.sequence.Sequence.get_accelerations"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.get_accelerations()</span></code></a> function. The acceleration is defined
+by the difference of velocity between two consecutive pairs of poses (in meters per second), divided by the time
+elapsed between these last pose of each pair (in seconds). The accelerations are returned in meters per second
+squared.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>absolute</strong> (<em>boolean</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">True</span></code> (default), returns the maximum absolute acceleration value. If set on <code class="docutils literal notranslate"><span class="pre">False</span></code>, returns
+the maximum acceleration value, even if a negative value has a higher absolute value.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Maximum value of the velocity across every joint of the sequence, in meters per second.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_max_distance_single_joint">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_max_distance_single_joint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_max_distance_single_joint" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the maximum value of the distance travelled between two poses for a given joint, across the whole
+sequence. The distances are first calculated using the <a class="reference internal" href="#classes.sequence.Sequence.get_distances" title="classes.sequence.Sequence.get_distances"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.get_distances()</span></code></a> function. The distance
+travelled by a joint between two poses is defined in meters.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>joint_label</strong> (<em>str</em>) – The label of the joint (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Head&quot;</span></code>).</p></li>
+<li><p><strong>axis</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If specified, the returned distances travelled will be calculated on a single axis. If <code class="docutils literal notranslate"><span class="pre">None</span></code> (default),
+the distance travelled will be calculated based on the 3D coordinates.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Maximum value of the distance travelled for a given joint between two poses, in meters.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_max_velocity_single_joint">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_max_velocity_single_joint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_max_velocity_single_joint" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the maximum value of the velocity for a given joint, across the whole sequence. The velocities are
+first calculated using the <a class="reference internal" href="#classes.sequence.Sequence.get_velocities" title="classes.sequence.Sequence.get_velocities"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.get_velocities()</span></code></a> function. The velocity of a joint is defined by
+the distance travelled between two poses (in meters), divided by the time elapsed between these two poses
+(in seconds). The velocity is returned in meters per second.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>joint_label</strong> (<em>str</em>) – The label of the joint (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Head&quot;</span></code>).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Maximum value of the velocity for a given joint, in meters per second.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_max_acceleration_single_joint">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_max_acceleration_single_joint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">absolute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_max_acceleration_single_joint" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the maximum value of the acceleration for a given joint, across the whole sequence. The acceleration
+values are first calculated using the <a class="reference internal" href="#classes.sequence.Sequence.get_accelerations" title="classes.sequence.Sequence.get_accelerations"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.get_accelerations()</span></code></a> function. The acceleration is defined
+by the difference of velocity between two consecutive pairs of poses (in meters per second), divided by the time
+elapsed between these last pose of each pair (in seconds). The accelerations are returned in meters per second
+squared.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>joint_label</strong> (<em>str</em>) – The label of the joint (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Head&quot;</span></code>).</p></li>
+<li><p><strong>absolute</strong> (<em>boolean</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">True</span></code> (default), returns the maximum absolute acceleration value. If set on <code class="docutils literal notranslate"><span class="pre">False</span></code>, returns
+the maximum acceleration value, even if a negative value has a higher absolute value.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Maximum value of the acceleration for a given joint, in meters per second squared.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_max_distance_per_joint">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_max_distance_per_joint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_max_distance_per_joint" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the maximum value of the distance travelled between two poses for each joint of the sequence. The
+distances are first calculated using the <a class="reference internal" href="#classes.sequence.Sequence.get_distances" title="classes.sequence.Sequence.get_distances"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.get_distances()</span></code></a> function. The distance
+travelled by a joint between two poses is defined in meters.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>axis</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If specified, the returned distances travelled will be calculated on a single axis. If <code class="docutils literal notranslate"><span class="pre">None</span></code> (default),
+the distance travelled will be calculated based on the 3D coordinates.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>OrderedDict(str</strong> – Dictionary with joint labels as keys, and maximum velocities as values (in meters per second).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_max_velocity_per_joint">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_max_velocity_per_joint</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_max_velocity_per_joint" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the maximum value of the velocity for each joint of the sequence. The velocities are
+first calculated using the <a class="reference internal" href="#classes.sequence.Sequence.get_velocities" title="classes.sequence.Sequence.get_velocities"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.get_velocities()</span></code></a> function. The velocity of a joint is defined by
+the distance travelled between two poses (in meters), divided by the time elapsed between these two poses
+(in seconds). The velocities are returned in meters per second.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>OrderedDict(str</strong> – Dictionary with joint labels as keys, and maximum velocities as values (in meters per second).</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_max_acceleration_per_joint">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_max_acceleration_per_joint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">absolute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_max_acceleration_per_joint" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the maximum value of the acceleration for each joint of the sequence. The acceleration
+values are first calculated using the <a class="reference internal" href="#classes.sequence.Sequence.get_accelerations" title="classes.sequence.Sequence.get_accelerations"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.get_accelerations()</span></code></a> function. The acceleration is defined
+by the difference of velocity between two consecutive pairs of poses (in meters per second), divided by the time
+elapsed between these last pose of each pair (in seconds). The accelerations are returned in meters per second
+squared.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>absolute</strong> (<em>boolean</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">True</span></code> (default), returns the maximum absolute acceleration values. If set on <code class="docutils literal notranslate"><span class="pre">False</span></code>, returns
+the maximum acceleration value, even if a negative value has a higher absolute value.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>OrderedDict(str</strong> – Dictionary with joint labels as keys, and maximum accelerations as values (in meters per second squared).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="metrics-total-values">
+<h4>Metrics: total values<a class="headerlink" href="#metrics-total-values" title="Permalink to this heading"></a></h4>
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_total_distance_whole_sequence">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_total_distance_whole_sequence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_total_distance_whole_sequence" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the sum of the distances travelled by every joint across all the poses of the sequence. This allows
+to provide a value representative of the global “quantity of movement” produced during the sequence. The
+distances are first calculated using the Sequence.get_distances() function. The distance travelled by a joint
+between two poses is defined in meters.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>axis</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If specified, the returned distances travelled will be calculated on a single axis. If <code class="docutils literal notranslate"><span class="pre">None</span></code> (default),
+the distance travelled will be calculated based on the 3D coordinates.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Sum of the distances travelled across every joint and poses of the sequence, in meters.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_total_velocity_whole_sequence">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_total_velocity_whole_sequence</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_total_velocity_whole_sequence" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the sum of the velocities of every joint across all the poses of the sequence. This allows to
+provide a value representative of the global “quantity of movement” produced during the sequence. The
+velocities are first calculated using the Sequence.get_velocities() function. The velocity of a joint is
+defined by the distance travelled between two poses (in meters), divided by the time elapsed between these
+two poses (in seconds). The velocities are returned in meters per second.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Sum of the velocities across every joint and poses of the sequence, in meters per second.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_total_acceleration_whole_sequence">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_total_acceleration_whole_sequence</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_total_acceleration_whole_sequence" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the sum of the absolute accelerations of every joint across all the poses of the sequence. This
+allows to provide a value representative of the global “quantity of movement” produced during the sequence. The
+acceleration values are first calculated using the <a class="reference internal" href="#classes.sequence.Sequence.get_accelerations" title="classes.sequence.Sequence.get_accelerations"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.get_accelerations()</span></code></a> function. The
+acceleration is defined by the difference of velocity between two consecutive pairs of poses (in meters per
+second), divided by the time elapsed between these last pose of each pair (in seconds). The accelerations are
+returned in meters per second squared.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Sum of the accelerations across every joint and poses of the sequence, in meters per second squared.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_total_distance_single_joint">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_total_distance_single_joint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_total_distance_single_joint" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the total distance travelled for a given joint, across the whole sequence. The distances are first
+calculated using the Sequence.get_joint_distance_as_list() function. The distance travelled by a joint between
+two poses is defined in meters.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>joint_label</strong> (<em>str</em>) – The label of the joint (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Head&quot;</span></code>).</p></li>
+<li><p><strong>axis</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If specified, the returned distances travelled will be calculated on a single axis. If <code class="docutils literal notranslate"><span class="pre">None</span></code> (default),
+the distance travelled will be calculated based on the 3D coordinates.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Sum of the distances travelled across all poses for a single joint, in meters.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_total_velocity_single_joint">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_total_velocity_single_joint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_total_velocity_single_joint" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the sum of the velocities for a given joint, across the whole sequence. The velocities are first
+calculated using the Sequence.get_joint_velocity_as_list() function. The velocity of a joint is defined by the
+distance travelled between two poses (in meters), divided by the time elapsed between these two poses
+(in seconds). The velocity is returned in meters per second.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>joint_label</strong> (<em>str</em>) – The label of the joint (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Head&quot;</span></code>).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Sum of the velocities across all poses for a single joint, in meters per second.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_total_acceleration_single_joint">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_total_acceleration_single_joint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_total_acceleration_single_joint" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the sum of the absolute accelerations for a given joint, across the whole sequence. The acceleration
+values are first calculated using the <a class="reference internal" href="#classes.sequence.Sequence.get_joint_acceleration_as_list" title="classes.sequence.Sequence.get_joint_acceleration_as_list"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.get_joint_acceleration_as_list()</span></code></a> function. The
+acceleration is defined by the difference of velocity between two consecutive pairs of poses (in meters per
+second), divided by the time elapsed between these last pose of each pair (in seconds). The accelerations are
+returned in meters per second squared.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>joint_label</strong> (<em>str</em>) – The label of the joint (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Head&quot;</span></code>).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Sum of the accelerations across all poses for a single joint, in meters per second squared.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_total_distance_per_joint">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_total_distance_per_joint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_total_distance_per_joint" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the sum of the distances travelled for each individual joint of the sequence. The distances are first
+calculated using the Sequence.get_total_distance_single_joint() function. The distance travelled between two
+poses of a joint is returned in meters.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>axis</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If specified, the returned distances travelled will be calculated on a single axis. If <code class="docutils literal notranslate"><span class="pre">None</span></code> (default),
+the distance travelled will be calculated based on the 3D coordinates.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>OrderedDict(str</strong> – Dictionary with joint labels as keys, and sum of distances travelled across all poses as values (in meters).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_total_velocity_per_joint">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_total_velocity_per_joint</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_total_velocity_per_joint" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the sum of the velocities for each individual joint of the sequence. The velocities are first
+calculated using the Sequence.get_total_velocity_single_joint() function. The velocity of a joint is defined by
+the distance travelled between two poses (in meters), divided by the time elapsed between these two poses (in
+seconds). The velocities are returned in meters per second.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>OrderedDict(str</strong> – Dictionary with joint labels as keys, and sum of velocities across all poses as values (in meters per
+second).</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_total_acceleration_per_joint">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_total_acceleration_per_joint</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_total_acceleration_per_joint" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the sum of the absolute acceleration values for each individual joint of the sequence. The
+acceleration values are first calculated using the <a class="reference internal" href="#classes.sequence.Sequence.get_joint_acceleration_as_list" title="classes.sequence.Sequence.get_joint_acceleration_as_list"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.get_joint_acceleration_as_list()</span></code></a> function.
+The acceleration is defined by the difference of velocity between two consecutive pairs of poses (in meters per
+second), divided by the time elapsed between these last pose of each pair (in seconds). The accelerations are
+returned in meters per second squared.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>OrderedDict(str</strong> – Dictionary with joint labels as keys, and sum of absolute acceleration values across all poses as values
+(in meters per second squared).</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 </section>
 <section id="correction-functions">
 <h3>Correction functions<a class="headerlink" href="#correction-functions" title="Permalink to this heading"></a></h3>

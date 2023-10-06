@@ -2,6 +2,8 @@ Classes
 =======
 
 .. toctree::
+    experiment
+    subject
     sequence
     pose
     joint

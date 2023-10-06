@@ -1,7 +1,17 @@
-import copy
+"""These functions allow to find significant connections between movements, or between movements and audio properties.
+"""
 
+import copy
 from plot_functions import *
 import statsmodels.api as sm
+
+def correlation_sequence_with_audio(experiment, group=None, condition=None, subject=None, metric_sequence="distance",
+                                    metric_audio="envelope"):
+    pass
+
+def correlation_sequence_with_joint(experiment, group=None, condition=None, subject=None, metric_sequence="distance",
+                                    joint_label="Head"):
+    pass
 
 
 def global_correlating(trials, signals, time_vector, concat_series=False, cross_correlation=False, lag=None, window=1,
@@ -77,6 +87,8 @@ def global_correlating(trials, signals, time_vector, concat_series=False, cross_
 
 def correlation_with_audio(sequence_or_sequences, audio_or_audios, concat_series=False, color_scheme="default",
                            min_scale="auto", max_scale="auto", verbose=1):
+    """Calculates the correlation """
+
     # If there is one sequence only, we turn it into a list
     if type(sequence_or_sequences) is Sequence:
         sequence_or_sequences = [sequence_or_sequences]

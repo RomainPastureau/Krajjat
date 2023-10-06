@@ -1151,6 +1151,9 @@ def divide_in_windows(array, window_size, overlap=0, add_incomplete_window=True)
     return windows
 
 
+def order_sequences_by_date(sequences):
+    pass
+
 # === Color functions ===
 def load_color_names():
     """Returns a dictionary containing the 140 lower-case, whitespaces-stripped X11 and HTML/CSS colors as keys (plus 7

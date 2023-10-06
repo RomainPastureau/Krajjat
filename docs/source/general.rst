@@ -7,4 +7,5 @@ Introduction
     vocabulary
     example
     input
+    dejittering
     release_notes

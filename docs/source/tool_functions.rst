@@ -43,7 +43,7 @@ Calculation functions
 ^^^^^^^^^^^^^^^^^^^^^
 .. autofunction:: tool_functions.resample_data
 .. autofunction:: tool_functions.interpolate_data
-.. autofunction:: tool_functions.pad_with_zeros
+.. autofunction:: tool_functions.pad
 .. autofunction:: tool_functions.add_delay
 .. autofunction:: tool_functions.calculate_distance
 .. autofunction:: tool_functions.calculate_velocity

@@ -32,6 +32,9 @@ class Audio(object):
         Defines a name for the Audio instance. If a string is provided, the attribute :attr:`name` will take
         its value. If not, see :meth:`Audio._define_name_init()`.
 
+    condition: str or None, optional
+        Optional field to represent in which experimental condition the audio was recorded.
+
     verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
 
@@ -53,6 +56,8 @@ class Audio(object):
     name: str
         Custom name given to the audio. If no name has been provided upon initialisation, it will be defined by
         :meth:`Audio._define_name_init()`.
+    condition: str
+        Defines in which experimental condition the audio clip was recorded.
     path: str
         Path to the audio file passed as a parameter upon creation; if samples were provided, this attribute will be
         `None`.
@@ -62,11 +67,12 @@ class Audio(object):
         A parameter that is set on ``"Audio"``, to differentiate it from the different types of AudioDerivative.
     """
 
-    def __init__(self, path_or_samples, frequency=None, name=None, verbosity=1):
+    def __init__(self, path_or_samples, frequency=None, name=None, condition=None, verbosity=1):
         self.samples = []
         self.timestamps = []
         self.frequency = None
         self.name = None  # Placeholder for the name of the sequence
+        self.condition = condition
         self.path = None
         self.files = None
         self.kind = "Audio"
@@ -107,6 +113,26 @@ class Audio(object):
         """
 
         self.name = name
+
+    def set_condition(self, condition):
+        """Sets the :py:attr:`condition` attribute of the Audio instance. This attribute can be used to save the
+        experimental condition in which the Audio instance was recorded.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        condition: str
+            The experimental condition in which the audio clip was recorded.
+
+        Example
+        -------
+        >>> aud1 = Audio("C:/Users/Dwight/Sequences/English/seq.wav")
+        >>> aud1.set_condition("English")
+        >>> aud2 = Audio("C:/Users/Dwight/Sequences/Spanish/seq.wav")
+        >>> aud2.set_condition("Spanish")
+        """
+        self.condition = condition
 
     # === Loading functions ===
     def _define_name_init(self, name, verbosity=1):
@@ -189,7 +215,7 @@ class Audio(object):
         # If it's a folder, we fetch all the files
         if os.path.isdir(self.path):
             self._fetch_files_from_folder(verbosity)  # Fetches all the files
-        self._load_samples()  # Loads the files into poses
+        self._load_samples(verbosity)  # Loads the files into poses
 
         if len(self.samples) == 0:
             raise EmptyAudioException()
@@ -483,7 +509,7 @@ class Audio(object):
 
         # Turn stereo to mono if the file is stereo
         if len(np.shape(audio_data[1])) != 1:
-            self.samples = stereo_to_mono(audio_data[1])
+            self.samples = stereo_to_mono(audio_data[1], verbosity)
         else:
             self.samples = audio_data[1]
 
@@ -613,6 +639,18 @@ class Audio(object):
         """
         return self.name
 
+    def get_condition(self):
+        """Returns the attribute :attr:`condition` of the Audio instance.
+
+        .. versionadded:: 2.0
+
+        Returns
+        -------
+        str
+            The experimental condition in which the recording of the audio clip was performed.
+        """
+        return self.condition
+
     def get_samples(self):
         """Returns the attribute :attr:`samples` of the Audio instance.
 
@@ -722,7 +760,7 @@ class Audio(object):
         Envelope
             The filtered envelope of the audio clip.
         """
-        envelope = Envelope(self, verbosity)
+        envelope = Envelope(self, condition=self.condition, verbosity=verbosity)
         envelope = envelope.filter_frequencies(filter_below, filter_over, verbosity)
         return envelope
 
@@ -750,15 +788,23 @@ class Audio(object):
         Pitch
             The pitch of the voice in the audio clip.
         """
-        return Pitch(self, zeros_as_nan=zeros_as_nan, verbosity=verbosity)
+        return Pitch(self, zeros_as_nan=zeros_as_nan, condition=self.condition, verbosity=verbosity)
 
-    def get_intensity(self, verbosity=1):
+    # noinspection PyArgumentList
+    def get_intensity(self, resampling_frequency=None, name=None, verbosity=1):
         """Calculates the intensity of the voice in the audio clip, and returns an Intensity object.
 
         .. versionadded:: 2.0
 
         Parameters
         ----------
+        resampling_frequency: int or float or None, optional
+            The frequency of the output intensity. Smaller values allow faster computation.
+
+        name: str or None, optional
+            Defines the name of the envelope. If set on ``None``, the name will be the same as the original Audio
+            instance, with the suffix ``"(INT)"``.
+
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
 
@@ -773,7 +819,45 @@ class Audio(object):
         Intensity
             The intensity of the voice in the audio clip.
         """
-        return Intensity(self, verbosity=verbosity)
+        if verbosity > 0:
+            print("Creating an Intensity object...")
+
+        try:
+            from parselmouth import Sound
+        except ImportError:
+            raise ModuleNotFoundException("parselmouth", "get the intensity of an audio clip")
+
+        if verbosity > 0:
+            print("\tTurning the audio into a parselmouth object...", end=" ")
+
+        samples = np.array(self.samples, dtype=np.float64)
+        parselmouth_sound = Sound(np.ndarray(np.shape(samples), dtype=np.float64, buffer=samples), self.frequency)
+
+        if verbosity > 0:
+            print("Done.")
+            print("\tGetting the intensity...", end=" ")
+
+        if resampling_frequency is None:
+            resampling_frequency = self.frequency
+
+        if name is None:
+            name = self.name + " (INT)"
+
+        intensity = parselmouth_sound.to_intensity(time_step=1 / resampling_frequency)
+        intensity_timestamps = add_delay(intensity.xs(), -intensity.xs()[0] % (1 / resampling_frequency))
+
+        if verbosity > 0:
+            print("Done.")
+            print("\tPadding the data...", end=" ")
+
+        samples, timestamps = pad(intensity.values.T, intensity_timestamps,
+                                  [i / resampling_frequency for i in range(0, round(self.get_duration() *
+                                                                                  resampling_frequency + 1))], 100)
+
+        if verbosity > 0:
+            print("Done.")
+
+        return Intensity(samples, timestamps, resampling_frequency, name, self.condition)
 
     def get_formant(self, formant=1, verbosity=1):
         """Calculates the formants of the voice in the audio clip, and returns a Formant object.
@@ -798,7 +882,7 @@ class Audio(object):
         Formant
             The value of a formant of the voice in the audio clip.
         """
-        return Formant(self, formant_number=formant, verbosity=verbosity)
+        return Formant(self, condition=self.condition, formant_number=formant, verbosity=verbosity)
 
     def resample(self, frequency, mode="cubic", name=None, verbosity=1):
         """Resamples an audio clip to the `frequency` parameter. It first creates a new set of timestamps at the
@@ -903,6 +987,38 @@ class Audio(object):
 
         data = {"Sample": self.samples, "Frequency": self.frequency}
         return data
+
+    # === Print functions ===
+    def print_details(self, include_name=True, include_condition=True, include_number_of_samples=True,
+                      include_duration=True):
+        """Prints a series of details about the audio clip.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        include_name: bool, optional
+            If set on ``True`` (default), adds the attribute :attr:`name` to the printed string.
+        include_condition: bool, optional
+            If set on ``True`` (default), adds the attribute :attr:`condition` to the printed string.
+        include_number_of_samples: bool, optional
+            If set on ``True`` (default), adds the length of the attribute :attr:`samples` to the printed string.
+        include_duration: bool, optional
+            If set on ``True`` (default), adds the duration of the Sequence to the printed string.
+        """
+        string = "Audio clip · "
+        if include_name:
+            string += "Name: " + str(self.name) + " · "
+        if include_condition:
+            string += "Condition: " + str(self.condition) + " · "
+        if include_number_of_samples:
+            string += "Number of samples: " + str(self.get_number_of_samples()) + " · "
+        if include_duration:
+            string += "Duration: " + str(round(self.get_duration(), 2)) + " s" + " · "
+        if len(string) > 3:
+            string = string[:-3]
+
+        print(string)
 
     # === Saving functions ===
 

@@ -14,18 +14,16 @@ find relationships between the tracked movements and an audio file.
 
    The documentation is currently being built.
 
-Indices and tables
+Index of functions
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
 
 Contents
 ========
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
 
    general
    classes

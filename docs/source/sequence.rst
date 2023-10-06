@@ -23,40 +23,88 @@ Public methods
 Setter functions
 ^^^^^^^^^^^^^^^^
 .. automethod:: classes.sequence.Sequence.set_name
+.. automethod:: classes.sequence.Sequence.set_condition
 .. automethod:: classes.sequence.Sequence.set_path_audio
 .. automethod:: classes.sequence.Sequence.set_first_timestamp
 
 Getter functions
 ^^^^^^^^^^^^^^^^
+
+General
+"""""""
 .. automethod:: classes.sequence.Sequence.get_path
 .. automethod:: classes.sequence.Sequence.get_name
-.. automethod:: classes.sequence.Sequence.get_poses
-.. automethod:: classes.sequence.Sequence.get_pose
-.. automethod:: classes.sequence.Sequence.get_number_of_poses
+.. automethod:: classes.sequence.Sequence.get_condition
 .. automethod:: classes.sequence.Sequence.get_joint_labels
 .. automethod:: classes.sequence.Sequence.get_date_recording
 .. automethod:: classes.sequence.Sequence.get_printable_date_recording
+.. automethod:: classes.sequence.Sequence.get_subject_height
+.. automethod:: classes.sequence.Sequence.get_subject_arm_length
+.. automethod:: classes.sequence.Sequence.get_stats
+
+Poses
+"""""
+.. automethod:: classes.sequence.Sequence.get_poses
+.. automethod:: classes.sequence.Sequence.get_pose
+.. automethod:: classes.sequence.Sequence.get_pose_index_from_timestamp
+.. automethod:: classes.sequence.Sequence.get_pose_from_timestamp
+.. automethod:: classes.sequence.Sequence.get_number_of_poses
+
+Time
+""""
 .. automethod:: classes.sequence.Sequence.get_timestamps
 .. automethod:: classes.sequence.Sequence.get_time_between_two_poses
 .. automethod:: classes.sequence.Sequence.get_duration
+
+Framerate
+"""""""""
 .. automethod:: classes.sequence.Sequence.get_framerates
 .. automethod:: classes.sequence.Sequence.get_framerate
 .. automethod:: classes.sequence.Sequence.get_average_framerate
 .. automethod:: classes.sequence.Sequence.get_min_framerate
 .. automethod:: classes.sequence.Sequence.get_max_framerate
+
+Metrics: single joint
+"""""""""""""""""""""
 .. automethod:: classes.sequence.Sequence.get_joint_coordinate_as_list
 .. automethod:: classes.sequence.Sequence.get_joint_distance_as_list
 .. automethod:: classes.sequence.Sequence.get_joint_velocity_as_list
+.. automethod:: classes.sequence.Sequence.get_joint_acceleration_as_list
+.. automethod:: classes.sequence.Sequence.get_joint_time_series_as_list
+
+Metrics: all joints
+"""""""""""""""""""
+.. automethod:: classes.sequence.Sequence.get_single_coordinates
+.. automethod:: classes.sequence.Sequence.get_distances
+.. automethod:: classes.sequence.Sequence.get_distance_between_hands
+.. automethod:: classes.sequence.Sequence.get_distance_between_joints
 .. automethod:: classes.sequence.Sequence.get_velocities
+.. automethod:: classes.sequence.Sequence.get_accelerations
+.. automethod:: classes.sequence.Sequence.get_time_series_as_list
+
+Metrics: max values
+"""""""""""""""""""
+.. automethod:: classes.sequence.Sequence.get_max_distance_whole_sequence
 .. automethod:: classes.sequence.Sequence.get_max_velocity_whole_sequence
+.. automethod:: classes.sequence.Sequence.get_max_acceleration_whole_sequence
+.. automethod:: classes.sequence.Sequence.get_max_distance_single_joint
 .. automethod:: classes.sequence.Sequence.get_max_velocity_single_joint
+.. automethod:: classes.sequence.Sequence.get_max_acceleration_single_joint
+.. automethod:: classes.sequence.Sequence.get_max_distance_per_joint
 .. automethod:: classes.sequence.Sequence.get_max_velocity_per_joint
+.. automethod:: classes.sequence.Sequence.get_max_acceleration_per_joint
+
+Metrics: total values
+"""""""""""""""""""""
+.. automethod:: classes.sequence.Sequence.get_total_distance_whole_sequence
 .. automethod:: classes.sequence.Sequence.get_total_velocity_whole_sequence
+.. automethod:: classes.sequence.Sequence.get_total_acceleration_whole_sequence
+.. automethod:: classes.sequence.Sequence.get_total_distance_single_joint
 .. automethod:: classes.sequence.Sequence.get_total_velocity_single_joint
+.. automethod:: classes.sequence.Sequence.get_total_acceleration_single_joint
+.. automethod:: classes.sequence.Sequence.get_total_distance_per_joint
 .. automethod:: classes.sequence.Sequence.get_total_velocity_per_joint
-.. automethod:: classes.sequence.Sequence.get_subject_height
-.. automethod:: classes.sequence.Sequence.get_subject_arm_length
-.. automethod:: classes.sequence.Sequence.get_stats
+.. automethod:: classes.sequence.Sequence.get_total_acceleration_per_joint
 
 Correction functions
 ^^^^^^^^^^^^^^^^^^^^
@@ -77,6 +125,7 @@ Print functions
 ^^^^^^^^^^^^^^^
 .. automethod:: classes.sequence.Sequence.print_pose
 .. automethod:: classes.sequence.Sequence.print_stats
+.. automethod:: classes.sequence.Sequence.print_details
 
 Conversion functions
 ^^^^^^^^^^^^^^^^^^^^

@@ -83,6 +83,8 @@ class Sequence(object):
     name: str
         Custom name given to the sequence. If no name has been provided upon initialisation, it will be defined by
         :meth:`Sequence._define_name_init()`.
+    condition: str
+        Defines in which experimental condition the sequence was recorded.
     files: list(str)
         List of files contained in the path. The list will be of size 1 if the path points to a single file.
     poses: list(Pose)
@@ -116,7 +118,7 @@ class Sequence(object):
         self.path = path  # Placeholder for the path
 
         if path is not None:
-            self._load_from_path()
+            self._load_from_path(verbosity)
 
         if start_timestamps_at_zero:
             self.set_first_timestamp(0)
@@ -733,6 +735,285 @@ class Sequence(object):
         """
         return self.condition
 
+    def get_joint_labels(self):
+        """Returns the joint labels present in the first pose of the sequence.
+
+        .. versionadded:: 2.0
+
+        Returns
+        -------
+        list
+            The list of the joint labels in the first pose of the sequence.
+        """
+        if len(self.poses) == 0:
+            raise EmptySequenceException()
+
+        return self.poses[0].get_joint_labels()
+
+    def get_date_recording(self):
+        """Returns the date and time of the recording as a datetime object, if it exists. If the date of the recording
+        was not specified in the original file, the value will be None.
+
+        .. versionadded:: 2.0
+
+        Returns
+        -------
+        datetime
+            The date and time of the first frame of the recording.
+        """
+        return self.date_recording
+
+    def get_printable_date_recording(self):
+        """Returns the date and time of the recording as a string, if it exists. The string returned will contain the
+        weekday, day, month (in letters), year, hour, minutes and seconds (e.g. ``"Wednesday 21 October 2015,
+        07:28:00"``) at which the recording was started. If the attribute date_recording of the sequence is None, the
+        value returned is ``"No date found"``.
+
+        .. versionadded:: 2.0
+
+        Returns
+        -------
+        string
+            A formatted string of the date of the recording.
+        """
+        days = {0: "Monday", 1: "Tuesday", 2: "Wednesday", 3: "Thursday", 4: "Friday", 5: "Saturday", 6: "Sunday"}
+        months = {1: "January", 2: "February", 3: "March", 4: "April", 5: "May", 6: "June",
+                  7: "July", 8: "August", 9: "September", 10: "October", 11: "November", 12: "December"}
+
+        if self.date_recording is not None:
+            day = days[self.date_recording.weekday()] + " "
+            month = months[self.date_recording.month] + " "
+            date = day + str(self.date_recording.day) + " " + month + str(self.date_recording.year) + ", " + \
+                   str(self.date_recording.hour).zfill(2) + ":" + str(self.date_recording.minute).zfill(2) + ":" + \
+                   str(self.date_recording.second).zfill(2)
+        else:
+            date = "No date found"
+        return date
+
+    def get_subject_height(self, verbosity=1):
+        """Returns an estimation of the height of the subject, in meters, based on the successive distances between a
+        series of joints. The successive distances are calculated for each pose, and averaged across all poses. Some
+        joints are imaginary, based on the average of the position of two or four joints.
+
+        .. versionadded:: 2.0
+
+        • For the Kinect system, the joints used are ``"Head"``, ``"Neck"``, ``"SpineShoulder"``, ``"SpineMid"``,
+          ``"SpineBase"``, the average between ``"KneeRight"`` and ``"KneeLeft"``, the average between
+          ``"AnkleRight"`` and ``"AnkleLeft"``, and the average between ``"FootRight"`` and ``"FootLeft"``.
+        • For the Qualisys system, the joints used are ``"Head Top"``, the average between ``"ShoulderTopRight"``
+          and ``"ShoulderTopLeft"``, ``"Chest"``, the average between ``"WaistBackRight"``, ``"WaistBackLeft"``,
+          ``"WaistFrontRight"`` and ``"WaistFrontLeft"``, the average between ``"KneeRight"`` and ``"KneeLeft"``,
+          the average between ``"AnkleRight"`` and ``"AnkleLeft"``, and the average between ``"ForefootOutRight"``
+          and ``"ForefootOutLeft"``.
+
+        Parameters
+        ----------
+        verbosity: int, optional
+            Sets how much feedback the code will provide in the console output:
+
+            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+              current steps.
+            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+              may clutter the output and slow down the execution.
+
+        Returns
+        -------
+        float
+            The estimated height of the subject, in meters.
+        """
+
+        kinect_joints = ["Head", "Neck", "SpineShoulder", "SpineMid", "SpineBase", ["KneeRight", "KneeLeft"],
+                         ["AnkleRight", "AnkleLeft"], ["FootRight", "FootLeft"]]
+        qualisys_joints = ["HeadTop", ["ShoulderTopRight", "ShoulderTopLeft"], "Chest", ["WaistBackRight",
+                                                                                         "WaistBackLeft",
+                                                                                         "WaistFrontRight",
+                                                                                         "WaistFrontLeft"],
+                           ["KneeRight", "KneeLeft"],
+                           ["AnkleRight", "AnkleLeft"], ["ForefootOutRight", "ForefootOutLeft"]]
+
+        if "Head" in self.poses[0].joints.keys():
+            list_joints = kinect_joints
+        else:
+            list_joints = qualisys_joints
+
+        height_sum = 0  # Summing the heights through all poses to average
+
+        if verbosity > 1:
+            print("Calculating the height of the subject based on the poses...")
+
+        for p in range(len(self.poses)):
+
+            pose = self.poses[p]  # Current pose
+            dist = 0  # Height for the current pose
+            joints = []  # Joints and average joints
+
+            # Getting the average joints
+            for i in range(len(list_joints)):
+
+                if type(list_joints[i]) is list:
+                    joint = pose.generate_average_joint(list_joints[i], "Average", False)
+                else:
+                    joint = pose.joints[list_joints[i]]
+
+                joints.append(joint)
+
+            # Calculating the distance
+            for i in range(len(joints) - 1):
+                dist += calculate_distance(joints[i], joints[i + 1])
+
+            if verbosity > 1:
+                print(
+                    "\tHeight on frame " + str(p + 1) + "/" + str(len(self.poses)) + ": " + str(round(dist, 3)) + " m.")
+            height_sum += dist
+
+        height = height_sum / len(self.poses)
+
+        if verbosity == 1:
+            print("Average height estimated at " + str(round(height, 3)) + " m.")
+
+        return height
+
+    def get_subject_arm_length(self, side="left", verbosity=1):
+        """Returns an estimation of the length of the left or right arm of the subject, in meters. The length of the arm
+        is calculated for each pose, and averaged across all poses.
+
+        .. versionadded:: 2.0
+
+        • For the Kinect system, the joints used to get the length of the left arm are ``"ShoulderLeft"``,
+          ``"ElbowLeft"``, ``"WristLeft"`` and ``"HandLeft"``. For the right arm, the joints are their equivalent on the
+          right side.
+        • For the Qualisys system, the joints used to get the length of the left arm are ``"ShoulderTopLeft"``,
+          ``"ArmLeft"``, ``"ElbowLeft"``, ``"WristOutLeft"`` and ``"HandOutLeft"``. For the right arm, the joints are
+          their equivalent on the right side.
+
+        Parameters
+        ----------
+        side: str
+            The side of the arm you want to measure, either ``"left"`` or ``"right"``.
+
+        verbosity: int, optional
+            Sets how much feedback the code will provide in the console output:
+
+            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+              current steps.
+            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+              may clutter the output and slow down the execution.
+
+        Returns
+        -------
+        float
+            The estimated arm length of the subject, in meters.
+
+        """
+        kinect_joints = ["Shoulder", "Elbow", "Wrist", "Hand"]
+        qualisys_joints = ["ShoulderTop", "Arm", "Elbow", "WristOut", "HandOut"]
+
+        if "Head" in self.poses[0].joints.keys():
+            list_joints = kinect_joints
+        else:
+            list_joints = qualisys_joints
+
+        if side.lower() == "left":
+            side = "Left"
+        elif side.lower() == "right":
+            side = "Right"
+        else:
+            raise Exception('Wrong side parameter: should be "left" or "right"')
+
+        arm_length_sum = 0  # Summing the arm_lengths through all poses to average
+
+        if verbosity > 1:
+            print("Calculating the " + side.lower() + " arm length of the subject based on the poses...")
+
+        for p in range(len(self.poses)):
+
+            pose = self.poses[p]  # Current pose
+            dist = 0  # Arm length for the current pose
+
+            # Calculating the distance
+            for i in range(len(list_joints) - 1):
+                dist += calculate_distance(pose.joints[list_joints[i] + side], pose.joints[list_joints[i + 1] + side])
+
+            if verbosity > 1:
+                print("\t" + side + " arm length on frame " + str(p + 1) + "/" + str(len(self.poses)) + ": " + str(
+                    round(dist, 3)) + " m.")
+            arm_length_sum += dist
+
+        arm_length = arm_length_sum / len(self.poses)
+
+        if verbosity == 1:
+            print("Average " + side.lower() + " arm length estimated at " + str(round(arm_length, 3)) + " m.")
+
+        return arm_length
+
+    def get_stats(self, tabled=False):
+        """Returns a series of statistics regarding the sequence.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        tabled: bool, optional
+            If set on False (default), the stats are returned as an OrderedDict. If set on True, the stats are returned
+            as two-dimensional list.
+
+        Returns
+        -------
+        OrderedDict or List(List)
+            If the returned object is an OrderedDict, the keys are the title of a statistic, and the values are their
+            matching value. If the returned object is a two-dimensional list, each sublist contains the title as the
+            first element, and the value as the second element.
+            The statistics included are:
+
+                • ``"Path"``: The :attr:`path` attribute of the sequence.
+                • ``"Date of recording"``: Output of :meth:`Sequence.get_printable_date_recording`.
+                • ``"Duration"``: Output of :meth:`Sequence.get_duration` (seconds).
+                • ``"Number of poses"``: Output of :meth:`Sequence.get_number_of_poses`.
+                • ``"Subject height"``: Output of :meth:`Sequence.get_subject_height` (meters).
+                • ``"Left arm length"``: Output of :meth:`Sequence.get_subject_arm_length` for the left arm (meters).
+                • ``"Right arm length"``: Output of :meth:`Sequence.get_subject_arm_length` for the right arm (meters).
+                • ``"Average framerate"``: Output of :meth:`Sequence.get_average_framerate`.
+                • ``"SD framerate"``: Standard deviation of the framerate of the sequence.
+                • ``"Min framerate"``: Output of :meth:`Sequence.get_min_framerate`.
+                • ``"Max framerate"``: Output of :meth:`Sequence.get_max_framerate`.
+                • ``"Average velocity X"``: Output of :meth:`Sequence.get_total_velocity_single_joint()` divided by the
+                  total number of poses. This key has one entry per joint label.
+
+        """
+        stats = OrderedDict()
+        stats["Path"] = self.path
+        stats["Date of recording"] = self.get_printable_date_recording()
+        stats["Duration"] = self.get_duration()
+        stats["Number of poses"] = self.get_number_of_poses()
+
+        # Height and distances stats
+        stats["Subject height"] = self.get_subject_height(0)
+        stats["Left arm length"] = self.get_subject_arm_length("left", 0)
+        stats["Right arm length"] = self.get_subject_arm_length("right", 0)
+
+        # Framerate stats
+        frequencies, time_points = self.get_framerates()
+        stats["Average framerate"] = self.get_average_framerate()
+        stats["SD framerate"] = stdev(frequencies)
+        stats["Min framerate"] = self.get_min_framerate()
+        stats["Max framerate"] = self.get_max_framerate()
+
+        # Movement stats
+        for joint_label in self.poses[0].joints.keys():
+            stats["Average velocity " + joint_label] = \
+                self.get_total_velocity_single_joint(joint_label) / len(self.poses)
+
+        if tabled:
+            table = [[], []]
+            for key in stats.keys():
+                table[0].append(key)
+                table[1].append(stats[key])
+            return table
+
+        return stats
+
     def get_poses(self):
         """Returns the attribute :attr:`poses` of the sequence.
 
@@ -852,68 +1133,13 @@ class Sequence(object):
         """
         return len(self.poses)
 
-    def get_joint_labels(self):
-        """Returns the joint labels present in the first pose of the sequence.
-
-        .. versionadded:: 2.0
-
-        Returns
-        -------
-        list
-            The list of the joint labels in the first pose of the sequence.
-        """
-        if len(self.poses) == 0:
-            raise EmptySequenceException()
-
-        return self.poses[0].get_joint_labels()
-
-    def get_date_recording(self):
-        """Returns the date and time of the recording as a datetime object, if it exists. If the date of the recording
-        was not specified in the original file, the value will be None.
-
-        .. versionadded:: 2.0
-
-        Returns
-        -------
-        datetime
-            The date and time of the first frame of the recording.
-        """
-        return self.date_recording
-
-    def get_printable_date_recording(self):
-        """Returns the date and time of the recording as a string, if it exists. The string returned will contain the
-        weekday, day, month (in letters), year, hour, minutes and seconds (e.g. ``"Wednesday 21 October 2015,
-        07:28:00"``) at which the recording was started. If the attribute date_recording of the sequence is None, the
-        value returned is ``"No date found"``.
-
-        .. versionadded:: 2.0
-
-        Returns
-        -------
-        string
-            A formatted string of the date of the recording.
-        """
-        days = {0: "Monday", 1: "Tuesday", 2: "Wednesday", 3: "Thursday", 4: "Friday", 5: "Saturday", 6: "Sunday"}
-        months = {1: "January", 2: "February", 3: "March", 4: "April", 5: "May", 6: "June",
-                  7: "July", 8: "August", 9: "September", 10: "October", 11: "November", 12: "December"}
-
-        if self.date_recording is not None:
-            day = days[self.date_recording.weekday()] + " "
-            month = months[self.date_recording.month] + " "
-            date = day + str(self.date_recording.day) + " " + month + str(self.date_recording.year) + ", " + \
-                   str(self.date_recording.hour).zfill(2) + ":" + str(self.date_recording.minute).zfill(2) + ":" + \
-                   str(self.date_recording.second).zfill(2)
-        else:
-            date = "No date found"
-        return date
-
     def get_timestamps(self, relative=False):
         """Returns a list of the timestamps for every pose, in seconds.
 
         .. versionadded:: 2.0
 
         Parameters
-        __________
+        ----------
         relative: boolean
             Defines if the returned timestamps are relative to the first pose (in that case, the timestamp of the first
             pose will be 0), or the original timestamps.
@@ -932,6 +1158,61 @@ class Sequence(object):
                 timestamps.append(pose.get_timestamp())
 
         return timestamps
+
+    def get_timestamps_for_metric(self, metric, relative=False):
+        """Returns a list of the timestamps for every value of the metric provided, in seconds.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        metric: str
+            The metric of interest. Depending on this value, the returned timestamps will not be the same length.
+            The value of ``metric`` can be either:
+
+            • ``"x"``, for the values on the x axis (in meters); returns all the timestamps
+            • ``"y"``, for the values on the y axis (in meters); returns all the timestamps
+            • ``"z"``, for the values on the z axis (in meters); returns all the timestamps
+            • ``"distance_hands"``, for the distance between the hands (in meters); returns all the timestamps
+            • ``"distance"``, for the distance travelled (in meters); returns the timestamps except from the first
+            • ``"distance_x"`` for the distance travelled on the x axis (in meters); returns the timestamps except
+              from the first
+            • ``"distance_y"`` for the distance travelled on the y axis (in meters); returns the timestamps except
+              from the first
+            • ``"distance_z"`` for the distance travelled on the z axis (in meters); returns the timestamps except
+              from the first
+            • ``"velocity"`` for the velocity (in meters per second); returns the timestamps except
+              from the first
+            • ``"acceleration"`` for the acceleration (in meters per second squared); returns the timestamps except
+              from the two first ones
+            • ``"acceleration_abs"`` for the absolute acceleration (in meters per second squared); returns the
+            timestamps except from the two first ones
+
+        relative: boolean
+            Defines if the returned timestamps are relative to the first pose (in that case, the timestamp of the first
+            pose will be 0), or the original timestamps.
+
+        Returns
+        -------
+        list(float)
+            List of the timestamps of the values described by the metric, in seconds.
+        """
+
+        timestamps = []
+        for pose in self.poses:
+            if relative:
+                timestamps.append(pose.get_relative_timestamp())
+            else:
+                timestamps.append(pose.get_timestamp())
+
+        if metric in ["x", "y", "z", "distance_hands"]:
+            return timestamps
+        elif metric in ["distance", "distance_x", "distance_y", "distance_z"]:
+            return timestamps[1:]
+        elif metric in ["acceleration", "acceleration_abs"]:
+            return timestamps[2:]
+        else:
+            raise InvalidParameterValueException("metric", metric)
 
     def get_time_between_two_poses(self, pose_index1, pose_index2):
         """Returns the difference between the timestamps of two poses, in seconds.
@@ -1190,7 +1471,7 @@ class Sequence(object):
 
     def get_joint_time_series_as_list(self, joint_label, time_series="velocity"):
         """For a specified joint, returns a list containing one of its time series (x coordinate, y coordinate,
-           z coordinate, distance travelled, velocity, or acceleration).
+        z coordinate, distance travelled, velocity, or acceleration).
 
         .. versionadded:: 2.0
 
@@ -1198,14 +1479,16 @@ class Sequence(object):
         ----------
         joint_label: str
             The label of the joint (e.g. ``"Head"``).
+
         time_series: str, optional
             Defines the time_series to return to the list. This parameter can be:
-            · ``"x"``, ``"y"`` or ``"z"``, to return the values of the coordinate on a specified axis, for each
+
+            • ``"x"``, ``"y"`` or ``"z"``, to return the values of the coordinate on a specified axis, for each
               timestamp.
-            · The ``"distance"`` travelled over time (in meters), between consecutive poses.
-            · The ``"velocity"``, defined by the distance travelled over time (in meters per second), between
+            • The ``"distance"`` travelled over time (in meters), between consecutive poses.
+            • The ``"velocity"``, defined by the distance travelled over time (in meters per second), between
               consecutive poses.
-            · The ``"acceleration"``, defined by the velocity over time (in meters per second squared), between
+            • The ``"acceleration"``, defined by the velocity over time (in meters per second squared), between
               consecutive pairs of poses.
 
         Returns
@@ -1457,6 +1740,66 @@ class Sequence(object):
             dict_accelerations[joint_label] = self.get_joint_acceleration_as_list(joint_label, absolute)
 
         return dict_accelerations
+
+    def get_time_series_as_list(self, metric, verbosity=1):
+        """Returns a dictionary containing one of the metrics for all joints: coordinate, distance travelled, velocity
+        or acceleration.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        metric: str
+            The metric to be returned, can be either:
+
+            • ``"x"``, for the values on the x axis (in meters)
+            • ``"y"``, for the values on the y axis (in meters)
+            • ``"z"``, for the values on the z axis (in meters)
+            • ``"distance_hands"``, for the distance between the hands (in meters)
+            • ``"distance"``, for the distance travelled (in meters)
+            • ``"distance_x"`` for the distance travelled on the x axis (in meters)
+            • ``"distance_y"`` for the distance travelled on the y axis (in meters)
+            • ``"distance_z"`` for the distance travelled on the z axis (in meters)
+            • ``"velocity"`` for the velocity (in meters per second)
+            • ``"acceleration"`` for the acceleration (in meters per second squared)
+            • ``"acceleration_abs"`` for the absolute acceleration (in meters per second squared)
+
+        verbosity: int, optional
+            Sets how much feedback the code will provide in the console output:
+
+            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+              current steps.
+            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+              may clutter the output and slow down the execution.
+
+        Returns
+        -------
+        OrderedDict(str: list(float))
+            Dictionary with joint labels as keys, and the specified metric as a value.
+
+        Note
+        ----
+        Because the distances and velocities are calculated between consecutive poses (apart from distance_hands), the
+        lists returned by the function have a length of :math:`n-1`, with :math:`n` being the number of poses of the
+        sequence. For accelerations, the lists returned have a length of :math:`n-2`.
+        """
+        if metric in ["x", "y", "z"]:
+            return self.get_single_coordinates(metric, verbosity)
+        elif metric == "distance":
+            return self.get_distances(None, verbosity)
+        elif metric == "distance_hands":
+            return self.get_distance_between_hands()
+        elif metric.startswith("distance"):
+            return self.get_distances(metric[-2:], verbosity)
+        elif metric == "velocity":
+            return self.get_velocities(verbosity)
+        elif metric == "acceleration":
+            return self.get_accelerations(False, verbosity)
+        elif metric == "acceleration_abs":
+            return self.get_accelerations(True, verbosity)
+        else:
+            raise InvalidParameterValueException("metric", metric)
 
     def get_max_distance_whole_sequence(self, axis=None):
         """Returns the single maximum value of the distance travelled between two poses across every joint of the
@@ -1905,231 +2248,6 @@ class Sequence(object):
             total_velocity_per_joint[joint_label] = self.get_total_velocity_single_joint(joint_label)
 
         return total_velocity_per_joint
-
-    def get_subject_height(self, verbosity=1):
-        """Returns an estimation of the height of the subject, in meters, based on the successive distances between a
-        series of joints. The successive distances are calculated for each pose, and averaged across all poses. Some
-        joints are imaginary, based on the average of the position of two or four joints.
-
-        .. versionadded:: 2.0
-
-        • For the Kinect system, the joints used are ``"Head"``, ``"Neck"``, ``"SpineShoulder"``, ``"SpineMid"``,
-          ``"SpineBase"``, the average between ``"KneeRight"`` and ``"KneeLeft"``, the average between
-          ``"AnkleRight"`` and ``"AnkleLeft"``, and the average between ``"FootRight"`` and ``"FootLeft"``.
-        • For the Qualisys system, the joints used are ``"Head Top"``, the average between ``"ShoulderTopRight"``
-          and ``"ShoulderTopLeft"``, ``"Chest"``, the average between ``"WaistBackRight"``, ``"WaistBackLeft"``,
-          ``"WaistFrontRight"`` and ``"WaistFrontLeft"``, the average between ``"KneeRight"`` and ``"KneeLeft"``,
-          the average between ``"AnkleRight"`` and ``"AnkleLeft"``, and the average between ``"ForefootOutRight"``
-          and ``"ForefootOutLeft"``.
-
-        Parameters
-        ----------
-        verbosity: int, optional
-            Sets how much feedback the code will provide in the console output:
-
-            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
-            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
-              current steps.
-            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
-              may clutter the output and slow down the execution.
-
-
-        Returns
-        -------
-        float
-            The estimated height of the subject, in meters.
-        """
-
-        kinect_joints = ["Head", "Neck", "SpineShoulder", "SpineMid", "SpineBase", ["KneeRight", "KneeLeft"],
-                         ["AnkleRight", "AnkleLeft"], ["FootRight", "FootLeft"]]
-        qualisys_joints = ["HeadTop", ["ShoulderTopRight", "ShoulderTopLeft"], "Chest", ["WaistBackRight",
-                                                                                         "WaistBackLeft",
-                                                                                         "WaistFrontRight",
-                                                                                         "WaistFrontLeft"],
-                           ["KneeRight", "KneeLeft"],
-                           ["AnkleRight", "AnkleLeft"], ["ForefootOutRight", "ForefootOutLeft"]]
-
-        if "Head" in self.poses[0].joints.keys():
-            list_joints = kinect_joints
-        else:
-            list_joints = qualisys_joints
-
-        height_sum = 0  # Summing the heights through all poses to average
-
-        if verbosity > 1:
-            print("Calculating the height of the subject based on the poses...")
-
-        for p in range(len(self.poses)):
-
-            pose = self.poses[p]  # Current pose
-            dist = 0  # Height for the current pose
-            joints = []  # Joints and average joints
-
-            # Getting the average joints
-            for i in range(len(list_joints)):
-
-                if type(list_joints[i]) is list:
-                    joint = pose.generate_average_joint(list_joints[i], "Average", False)
-                else:
-                    joint = pose.joints[list_joints[i]]
-
-                joints.append(joint)
-
-            # Calculating the distance
-            for i in range(len(joints) - 1):
-                dist += calculate_distance(joints[i], joints[i + 1])
-
-            if verbosity > 1:
-                print(
-                    "\tHeight on frame " + str(p + 1) + "/" + str(len(self.poses)) + ": " + str(round(dist, 3)) + " m.")
-            height_sum += dist
-
-        height = height_sum / len(self.poses)
-
-        if verbosity == 1:
-            print("Average height estimated at " + str(round(height, 3)) + " m.")
-
-        return height
-
-    def get_subject_arm_length(self, side="left", verbosity=1):
-        """Returns an estimation of the length of the left or right arm of the subject, in meters. The length of the arm
-        is calculated for each pose, and averaged across all poses.
-
-        .. versionadded:: 2.0
-
-        • For the Kinect system, the joints used to get the length of the left arm are ``"ShoulderLeft"``,
-          ``"ElbowLeft"``, ``"WristLeft"`` and ``"HandLeft"``. For the right arm, the joints are their equivalent on the
-          right side.
-        • For the Qualisys system, the joints used to get the length of the left arm are ``"ShoulderTopLeft"``,
-          ``"ArmLeft"``, ``"ElbowLeft"``, ``"WristOutLeft"`` and ``"HandOutLeft"``. For the right arm, the joints are
-          their equivalent on the right side.
-
-        Parameters
-        ----------
-        side: str
-            The side of the arm you want to measure, either ``"Left"`` or ``"Right"``.
-
-        verbosity: int, optional
-            Sets how much feedback the code will provide in the console output:
-
-            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
-            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
-              current steps.
-            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
-              may clutter the output and slow down the execution.
-
-        Returns
-        -------
-        float
-            The estimated arm length of the subject, in meters.
-
-        """
-        kinect_joints = ["Shoulder", "Elbow", "Wrist", "Hand"]
-        qualisys_joints = ["ShoulderTop", "Arm", "Elbow", "WristOut", "HandOut"]
-
-        if "Head" in self.poses[0].joints.keys():
-            list_joints = kinect_joints
-        else:
-            list_joints = qualisys_joints
-
-        if side.lower() == "left":
-            side = "Left"
-        elif side.lower() == "right":
-            side = "Right"
-        else:
-            raise Exception('Wrong side parameter: should be "left" or "right"')
-
-        arm_length_sum = 0  # Summing the arm_lengths through all poses to average
-
-        if verbosity > 1:
-            print("Calculating the " + side.lower() + " arm length of the subject based on the poses...")
-
-        for p in range(len(self.poses)):
-
-            pose = self.poses[p]  # Current pose
-            dist = 0  # Arm length for the current pose
-
-            # Calculating the distance
-            for i in range(len(list_joints) - 1):
-                dist += calculate_distance(pose.joints[list_joints[i] + side], pose.joints[list_joints[i + 1] + side])
-
-            if verbosity > 1:
-                print("\t" + side + " arm length on frame " + str(p + 1) + "/" + str(len(self.poses)) + ": " + str(
-                    round(dist, 3)) + " m.")
-            arm_length_sum += dist
-
-        arm_length = arm_length_sum / len(self.poses)
-
-        if verbosity == 1:
-            print("Average " + side.lower() + " arm length estimated at " + str(round(arm_length, 3)) + " m.")
-
-        return arm_length
-
-    def get_stats(self, tabled=False):
-        """Returns a series of statistics regarding the sequence.
-
-        .. versionadded:: 2.0
-
-        Parameters
-        ----------
-        tabled: bool, optional
-            If set on False (default), the stats are returned as an OrderedDict. If set on True, the stats are returned
-            as two-dimensional list.
-
-        Returns
-        -------
-        OrderedDict or List(List)
-            If the returned object is an OrderedDict, the keys are the title of a statistic, and the values are their
-            matching value. If the returned object is a two-dimensional list, each sublist contains the title as the
-            first element, and the value as the second element.
-            The statistics included are:
-
-                • ``"Path"``: The :attr:`path` attribute of the sequence.
-                • ``"Date of recording"``: Output of :meth:`Sequence.get_printable_date_recording`.
-                • ``"Duration"``: Output of :meth:`Sequence.get_duration` (seconds).
-                • ``"Number of poses"``: Output of :meth:`Sequence.get_number_of_poses`.
-                • ``"Subject height"``: Output of :meth:`Sequence.get_subject_height` (meters).
-                • ``"Left arm length"``: Output of :meth:`Sequence.get_subject_arm_length` for the left arm (meters).
-                • ``"Right arm length"``: Output of :meth:`Sequence.get_subject_arm_length` for the right arm (meters).
-                • ``"Average framerate"``: Output of :meth:`Sequence.get_average_framerate`.
-                • ``"SD framerate"``: Standard deviation of the framerate of the sequence.
-                • ``"Min framerate"``: Output of :meth:`Sequence.get_min_framerate`.
-                • ``"Max framerate"``: Output of :meth:`Sequence.get_max_framerate`.
-                • ``"Average velocity X"``: Output of :meth:`Sequence.get_total_velocity_single_joint()` divided by the
-                  total number of poses. This key has one entry per joint label.
-
-        """
-        stats = OrderedDict()
-        stats["Path"] = self.path
-        stats["Date of recording"] = self.get_printable_date_recording()
-        stats["Duration"] = self.get_duration()
-        stats["Number of poses"] = self.get_number_of_poses()
-
-        # Height and distances stats
-        stats["Subject height"] = self.get_subject_height(0)
-        stats["Left arm length"] = self.get_subject_arm_length("left", 0)
-        stats["Right arm length"] = self.get_subject_arm_length("right", 0)
-
-        # Framerate stats
-        frequencies, time_points = self.get_framerates()
-        stats["Average framerate"] = self.get_average_framerate()
-        stats["SD framerate"] = stdev(frequencies)
-        stats["Min framerate"] = self.get_min_framerate()
-        stats["Max framerate"] = self.get_max_framerate()
-
-        # Movement stats
-        for joint_label in self.poses[0].joints.keys():
-            stats["Average velocity " + joint_label] = \
-                self.get_total_velocity_single_joint(joint_label) / len(self.poses)
-
-        if tabled:
-            table = [[], []]
-            for key in stats.keys():
-                table[0].append(key)
-                table[1].append(stats[key])
-            return table
-
-        return stats
 
     # === Correction functions ===
 
@@ -3550,6 +3668,41 @@ class Sequence(object):
                 print(str(key) + ": " + str(round(stats[key] * 1000, 1)) + " mm/s")
             else:
                 print(str(key) + ": " + str(stats[key]))
+
+    def print_details(self, include_name=True, include_condition=True, include_date_recording=True,
+                            include_number_of_poses=True, include_duration=True):
+        """Prints a series of details about the sequence.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        include_name: bool, optional
+            If set on ``True`` (default), adds the attribute :attr:`name` to the printed string.
+        include_condition: bool, optional
+            If set on ``True`` (default), adds the attribute :attr:`condition` to the printed string.
+        include_date_recording: bool, optional
+            If set on ``True`` (default), adds the attribute :attr:`date_of_recording` to the printed string.
+        include_number_of_poses: bool, optional
+            If set on ``True`` (default), adds the length of the attribute :attr:`poses` to the printed string.
+        include_duration: bool, optional
+            If set on ``True`` (default), adds the duration of the Sequence to the printed string.
+        """
+        string = ""
+        if include_name:
+            string += "Name: " + str(self.name) + " · "
+        if include_condition:
+            string += "Condition: " + str(self.condition) + " · "
+        if include_date_recording:
+            string += "Date recording: " + str(self.get_printable_date_recording()) + " · "
+        if include_number_of_poses:
+            string += "Number of poses: " + str(self.get_number_of_poses()) + " · "
+        if include_duration:
+            string += "Duration: " + str(round(self.get_duration(), 2)) + " s" + " · "
+        if len(string) > 3:
+            string = string[:-3]
+
+        print(string)
 
     # === Conversion functions ===
     def convert_to_table(self, use_relative_timestamps=False):

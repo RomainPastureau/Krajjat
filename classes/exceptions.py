@@ -122,7 +122,7 @@ class ModuleNotFoundException(Exception):
     def __init__(self, module_name, attempted_task):
         self.module_name = module_name
         self.attempted_task = attempted_task
-        self.message = "Module" + str(self.module_name) + "not found. Please install it in order to" + \
+        self.message = "Module " + str(self.module_name) + " not found. Please install it in order to" + \
                        str(attempted_task) + "."
         super().__init__(self.message)
 

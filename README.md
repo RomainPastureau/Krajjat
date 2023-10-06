@@ -5,9 +5,6 @@
 
 Author: Romain Pastureau
 
-Find all
-
-
 ## What is Krajjat?
 Krajjat is a **Python module** allowing to handle **motion capture recordings** and to explore the relationship
 between **body movements** and **speech**. More precisely, it contains a variety of functions allowing to 

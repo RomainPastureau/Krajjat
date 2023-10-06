@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Subject &mdash; krajjat 1.99.5 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Sequence" href="sequence.html" />
+    <link rel="prev" title="Classes" href="classes.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #99CC00" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            krajjat
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="general.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="classes.html">Classes</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Subject</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#initialisation">Initialisation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#classes.subject.Subject"><code class="docutils literal notranslate"><span class="pre">Subject</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#setter-functions">Setter functions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#classes.subject.Subject.set_name"><code class="docutils literal notranslate"><span class="pre">Subject.set_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#classes.subject.Subject.set_group"><code class="docutils literal notranslate"><span class="pre">Subject.set_group()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#classes.subject.Subject.set_gender"><code class="docutils literal notranslate"><span class="pre">Subject.set_gender()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#classes.subject.Subject.set_age"><code class="docutils literal notranslate"><span class="pre">Subject.set_age()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#classes.subject.Subject.set_age_from_dob"><code class="docutils literal notranslate"><span class="pre">Subject.set_age_from_dob()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="sequence.html">Sequence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pose.html">Pose</a></li>
+<li class="toctree-l2"><a class="reference internal" href="joint.html">Joint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="audio.html">Audio</a></li>
+<li class="toctree-l2"><a class="reference internal" href="audio_derivatives.html">Audio derivatives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="graphic_classes.html">Graphic Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="graph_element.html">Graph Elements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html">Exceptions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="functions.html">Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appendix.html">Appendix</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #99CC00" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">krajjat</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="classes.html">Classes</a></li>
+      <li class="breadcrumb-item active">Subject</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/subject.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="subject">
+<h1>Subject<a class="headerlink" href="#subject" title="Permalink to this heading"></a></h1>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading"></a></h2>
+<p>Default class defining a subject, that can contain multiple sequences. This class can be used in the stats
+functions to calculate variances across participants.</p>
+</section>
+<section id="initialisation">
+<h2>Initialisation<a class="headerlink" href="#initialisation" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="classes.subject.Subject">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">classes.subject.</span></span><span class="sig-name descname"><span class="pre">Subject</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gender</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">age</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.subject.Subject" title="Permalink to this definition"></a></dt>
+<dd><p>Creates an instance from the class Subject, and returns a Subject object, which matches one individual that
+performed one or multiple recordings. Upon creation, a Subject instance contains no Sequence instances. They can
+be added with the methods <code class="xref py py-meth docutils literal notranslate"><span class="pre">Subject.add_sequence()</span></code>, <code class="xref py py-meth docutils literal notranslate"><span class="pre">Subject.load_sequence()</span></code> or
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">Subject.load_sequences()</span></code>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – The name or identifier of the subject.</p></li>
+<li><p><strong>group</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – The experimental group the subject belongs to.</p></li>
+<li><p><strong>gender</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – The gender of the subject (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;F&quot;```or</span> <span class="pre">``&quot;Female&quot;</span></code>).</p></li>
+<li><p><strong>age</strong> (<em>int</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – The age of the subject, in years.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.subject.Subject.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#classes.subject.Subject.name" title="Permalink to this definition"></a></dt>
+<dd><p>The name or identifier of the subject.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.subject.Subject.group">
+<span class="sig-name descname"><span class="pre">group</span></span><a class="headerlink" href="#classes.subject.Subject.group" title="Permalink to this definition"></a></dt>
+<dd><p>The experimental group the subject belongs to.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.subject.Subject.gender">
+<span class="sig-name descname"><span class="pre">gender</span></span><a class="headerlink" href="#classes.subject.Subject.gender" title="Permalink to this definition"></a></dt>
+<dd><p>The gender of the subject (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;F&quot;```or</span> <span class="pre">``&quot;Female&quot;</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.subject.Subject.age">
+<span class="sig-name descname"><span class="pre">age</span></span><a class="headerlink" href="#classes.subject.Subject.age" title="Permalink to this definition"></a></dt>
+<dd><p>The age of the subject, in years.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.subject.Subject.sequences">
+<span class="sig-name descname"><span class="pre">sequences</span></span><a class="headerlink" href="#classes.subject.Subject.sequences" title="Permalink to this definition"></a></dt>
+<dd><p>A list of the sequences</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(<a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence">Sequence</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>It is possible to define personalized attributes for subjects if more than one set of conditions is involved. To do
+so, see <code class="xref py py-meth docutils literal notranslate"><span class="pre">Subject.add_attribute()</span></code>.</p>
+</div>
+</dd></dl>
+
+</section>
+<section id="setter-functions">
+<h2>Setter functions<a class="headerlink" href="#setter-functions" title="Permalink to this heading"></a></h2>
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.subject.Subject.set_name">
+<span class="sig-prename descclassname"><span class="pre">Subject.</span></span><span class="sig-name descname"><span class="pre">set_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.subject.Subject.set_name" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the attribute <a class="reference internal" href="#classes.subject.Subject.name" title="classes.subject.Subject.name"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Subject.name</span></code></a> of the Subject instance.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – The name or identifier of the subject.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.subject.Subject.set_group">
+<span class="sig-prename descclassname"><span class="pre">Subject.</span></span><span class="sig-name descname"><span class="pre">set_group</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">group</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.subject.Subject.set_group" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the attribute <a class="reference internal" href="#classes.subject.Subject.group" title="classes.subject.Subject.group"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Subject.group</span></code></a> of the Subject instance.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>group</strong> (<em>str</em>) – The experimental group the subject belongs to.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.subject.Subject.set_gender">
+<span class="sig-prename descclassname"><span class="pre">Subject.</span></span><span class="sig-name descname"><span class="pre">set_gender</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gender</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.subject.Subject.set_gender" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the attribute <a class="reference internal" href="#classes.subject.Subject.gender" title="classes.subject.Subject.gender"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Subject.gender</span></code></a> of the Subject instance.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>gender</strong> (<em>str</em>) – The gender of the subject (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;F&quot;```or</span> <span class="pre">``&quot;Female&quot;</span></code>).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.subject.Subject.set_age">
+<span class="sig-prename descclassname"><span class="pre">Subject.</span></span><span class="sig-name descname"><span class="pre">set_age</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">age</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.subject.Subject.set_age" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the attribute <a class="reference internal" href="#classes.subject.Subject.age" title="classes.subject.Subject.age"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Subject.age</span></code></a> of the Subject instance.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>age</strong> (<em>int</em><em> or </em><em>None</em>) – The age of the subject, in years.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.subject.Subject.set_age_from_dob">
+<span class="sig-prename descclassname"><span class="pre">Subject.</span></span><span class="sig-name descname"><span class="pre">set_age_from_dob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">day_birth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">month_birth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year_birth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">day_session</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">month_session</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year_session</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.subject.Subject.set_age_from_dob" title="Permalink to this definition"></a></dt>
+<dd><p>Sets the attribute <a class="reference internal" href="#classes.subject.Subject.age" title="classes.subject.Subject.age"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Subject.age</span></code></a> of the Subject instance, based on a date of birth and the date of the
+session. If no session date is provided, the current date is used to calculate the age of the subject. Dates
+must be provided in the gregorian calendar.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>day_birth</strong> (<em>int</em>) – The day of birth of the subject, between 1 and 31.</p></li>
+<li><p><strong>month_birth</strong> (<em>int</em>) – The month of birth of the subject, between 1 and 12.</p></li>
+<li><p><strong>year_birth</strong> (<em>int</em>) – The year of birth of the subject.</p></li>
+<li><p><strong>day_session</strong> (<em>int</em><em> or </em><em>None</em>) – <p>The day of the session. If not provided, the current day will be used, e.g.:</p>
+<script type="text/javascript">
+    var dd = String(today.getDate()).padStart(2, '0');
+    document.write(dd)
+    function docWrite(variable) {
+        document.write(variable);
+    }
+</script>
+<?php echo $dd ?></p></li>
+<li><p><strong>month_session</strong> (<em>int</em><em> or </em><em>None</em>) – <p>The month of the session. If not provided, the current month will be used, e.g.:</p>
+<script type="text/javascript">
+    mm = String(today.getMonth() + 1).padStart(2, '0');
+    document.write(mm);
+</script>
+d</p></li>
+<li><p><strong>year_session</strong> (<em>int</em><em> or </em><em>None</em>) – <p>The year of the session. If not provided, the current month will be used, e.g.:</p>
+<script type="text/javascript">
+    var yyyy = today.getFullYear();
+    document.write(yyyy);
+</script></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="classes.html" class="btn btn-neutral float-left" title="Classes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="sequence.html" class="btn btn-neutral float-right" title="Sequence" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Romain Pastureau.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

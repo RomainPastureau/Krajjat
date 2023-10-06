@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Display functions &mdash; krajjat 1.99.3 documentation</title>
+  <title>Display functions &mdash; krajjat 1.99.5 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
@@ -64,6 +64,8 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="tool_functions.html">Tool functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_functions.html">Plot functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stats_functions.html">Stats functions</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="appendix.html">Appendix</a></li>
@@ -314,7 +316,7 @@ that is 1920 × 1080 pixels will, in that case, create a window of 1920 × 540 p
 </div></blockquote>
 </p></li>
 <li><p><strong>height_window_in_meters</strong> (<em>float</em><em>, </em><em>optional</em>) – Defines the distance, in meters, represented by the vertical number of pixels of the window (by default: 3.0).</p></li>
-<li><p><strong>full_screen</strong> (<em>bool</em><em>, </em><em>optional</em>) – Defines if the window will be set full screen (<code class="docutils literal notranslate"><span class="pre">True</span></code>, default) or not.</p></li>
+<li><p><strong>full_screen</strong> (<em>bool</em><em>, </em><em>optional</em>) – Defines if the window will be set full screen (<code class="docutils literal notranslate"><span class="pre">True</span></code>) or not (<code class="docutils literal notranslate"><span class="pre">False</span></code>, default).</p></li>
 <li><p><strong>manual</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">False</span></code> (default), the poses of the Sequence will be displayed in real time. If set on <code class="docutils literal notranslate"><span class="pre">True</span></code>,
 the poses will be static, allowing the user to move to the next or previous pose using the right or left arrow
 keys, respectively.</p></li>
@@ -364,7 +366,7 @@ that is 1920 × 1080 pixels will, in that case, create a window of 1920 × 540 p
 </div></blockquote>
 </p></li>
 <li><p><strong>height_window_in_meters</strong> (<em>float</em><em>, </em><em>optional</em>) – Defines the distance, in meters, represented by the vertical number of pixels of the window (by default: 3.0).</p></li>
-<li><p><strong>full_screen</strong> (<em>bool</em><em>, </em><em>optional</em>) – Defines if the window will be set full screen (<code class="docutils literal notranslate"><span class="pre">True</span></code>, default) or not.</p></li>
+<li><p><strong>full_screen</strong> (<em>bool</em><em>, </em><em>optional</em>) – Defines if the window will be set full screen (<code class="docutils literal notranslate"><span class="pre">True</span></code>) or not (<code class="docutils literal notranslate"><span class="pre">False</span></code>, default).</p></li>
 <li><p><strong>start_pose</strong> (<em>int</em><em>, </em><em>optional</em>) – The index of the pose at which to start the sequence.</p></li>
 <li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
 <ul>
@@ -415,7 +417,7 @@ that is 1920 × 1080 pixels will, in that case, create a window of 1920 × 540 p
 </div></blockquote>
 </p></li>
 <li><p><strong>height_window_in_meters</strong> (<em>float</em><em>, </em><em>optional</em>) – Defines the distance, in meters, represented by the vertical number of pixels of the window (by default: 3.0).</p></li>
-<li><p><strong>full_screen</strong> (<em>bool</em><em>, </em><em>optional</em>) – Defines if the window will be set full screen (<code class="docutils literal notranslate"><span class="pre">True</span></code>, default) or not.</p></li>
+<li><p><strong>full_screen</strong> (<em>bool</em><em>, </em><em>optional</em>) – Defines if the window will be set full screen (<code class="docutils literal notranslate"><span class="pre">True</span></code>) or not (<code class="docutils literal notranslate"><span class="pre">False</span></code>, default).</p></li>
 <li><p><strong>manual</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">False</span></code> (default), the poses of the Sequence will be displayed in real time. If set on <code class="docutils literal notranslate"><span class="pre">True</span></code>,
 the poses will be static, allowing the user to move to the next or previous pose using the right or left arrow
 keys, respectively.</p></li>
@@ -461,7 +463,7 @@ that is 1920 × 1080 pixels will, in that case, create a window of 1920 × 540 p
 </div></blockquote>
 </p></li>
 <li><p><strong>height_window_in_meters</strong> (<em>float</em><em>, </em><em>optional</em>) – Defines the distance, in meters, represented by the vertical number of pixels of the window (by default: 3.0).</p></li>
-<li><p><strong>full_screen</strong> (<em>bool</em><em>, </em><em>optional</em>) – Defines if the window will be set full screen (<code class="docutils literal notranslate"><span class="pre">True</span></code>, default) or not.</p></li>
+<li><p><strong>full_screen</strong> (<em>bool</em><em>, </em><em>optional</em>) – Defines if the window will be set full screen (<code class="docutils literal notranslate"><span class="pre">True</span></code>) or not (<code class="docutils literal notranslate"><span class="pre">False</span></code>, default).</p></li>
 <li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
 <ul>
 <li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
@@ -722,12 +724,18 @@ close.</p></td>
 <td><p>The speed at which to display the sequences.</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">1</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><cite>font_color</cite></p></td>
+<tr class="row-even"><td><p><cite>font</cite></p></td>
+<td><p>str</p></td>
+<td><p>The name of a font present in the system files (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Arial&quot;</span></code>). If no font is provided, the embedded font
+<code class="docutils literal notranslate"><span class="pre">res/junction_bold.otf</span></code> will be used.</p></td>
+<td><p>N/A</p></td>
+</tr>
+<tr class="row-odd"><td><p><cite>font_color</cite></p></td>
 <td><p>tuple(int, int, int, int) <br /> tuple(int, int, int) <br /> str</p></td>
 <td><p>The color of the font indicating the current pose and time marker.</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">&quot;white&quot;</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><cite>show_progress</cite></p></td>
+<tr class="row-even"><td><p><cite>show_progress</cite></p></td>
 <td><p>bool</p></td>
 <td><p>If set on <code class="docutils literal notranslate"><span class="pre">True</span></code>, shows the current pose and timestamp in the bottom right corner.</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>

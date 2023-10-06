@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Classes &mdash; krajjat 1.99.3 documentation</title>
+  <title>Classes &mdash; krajjat 1.99.5 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
@@ -20,7 +20,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Sequence" href="sequence.html" />
+    <link rel="next" title="Subject" href="subject.html" />
     <link rel="prev" title="Release notes" href="release_notes.html" /> 
 </head>
 
@@ -46,6 +46,7 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="general.html">Introduction</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Classes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="subject.html">Subject</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sequence.html">Sequence</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pose.html">Pose</a></li>
 <li class="toctree-l2"><a class="reference internal" href="joint.html">Joint</a></li>
@@ -88,6 +89,29 @@
 <h1>Classes<a class="headerlink" href="#classes" title="Permalink to this heading"></a></h1>
 <div class="toctree-wrapper compound">
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="subject.html">Subject</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="subject.html#description">Description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="subject.html#initialisation">Initialisation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="subject.html#classes.subject.Subject"><code class="docutils literal notranslate"><span class="pre">Subject</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="subject.html#classes.subject.Subject.name"><code class="docutils literal notranslate"><span class="pre">Subject.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="subject.html#classes.subject.Subject.group"><code class="docutils literal notranslate"><span class="pre">Subject.group</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="subject.html#classes.subject.Subject.gender"><code class="docutils literal notranslate"><span class="pre">Subject.gender</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="subject.html#classes.subject.Subject.age"><code class="docutils literal notranslate"><span class="pre">Subject.age</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="subject.html#classes.subject.Subject.sequences"><code class="docutils literal notranslate"><span class="pre">Subject.sequences</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="subject.html#setter-functions">Setter functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="subject.html#classes.subject.Subject.set_name"><code class="docutils literal notranslate"><span class="pre">Subject.set_name()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="subject.html#classes.subject.Subject.set_group"><code class="docutils literal notranslate"><span class="pre">Subject.set_group()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="subject.html#classes.subject.Subject.set_gender"><code class="docutils literal notranslate"><span class="pre">Subject.set_gender()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="subject.html#classes.subject.Subject.set_age"><code class="docutils literal notranslate"><span class="pre">Subject.set_age()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="subject.html#classes.subject.Subject.set_age_from_dob"><code class="docutils literal notranslate"><span class="pre">Subject.set_age_from_dob()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="sequence.html">Sequence</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="sequence.html#description">Description</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sequence.html#initialisation">Initialisation</a><ul>
@@ -114,40 +138,87 @@
 <li class="toctree-l2"><a class="reference internal" href="sequence.html#public-methods">Public methods</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="sequence.html#setter-functions">Setter functions</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.set_name"><code class="docutils literal notranslate"><span class="pre">Sequence.set_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.set_condition"><code class="docutils literal notranslate"><span class="pre">Sequence.set_condition()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.set_path_audio"><code class="docutils literal notranslate"><span class="pre">Sequence.set_path_audio()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.set_first_timestamp"><code class="docutils literal notranslate"><span class="pre">Sequence.set_first_timestamp()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="sequence.html#getter-functions">Getter functions</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_path"><code class="docutils literal notranslate"><span class="pre">Sequence.get_path()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_name"><code class="docutils literal notranslate"><span class="pre">Sequence.get_name()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_poses"><code class="docutils literal notranslate"><span class="pre">Sequence.get_poses()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_pose"><code class="docutils literal notranslate"><span class="pre">Sequence.get_pose()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_number_of_poses"><code class="docutils literal notranslate"><span class="pre">Sequence.get_number_of_poses()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_joint_labels"><code class="docutils literal notranslate"><span class="pre">Sequence.get_joint_labels()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_date_recording"><code class="docutils literal notranslate"><span class="pre">Sequence.get_date_recording()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_printable_date_recording"><code class="docutils literal notranslate"><span class="pre">Sequence.get_printable_date_recording()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_timestamps"><code class="docutils literal notranslate"><span class="pre">Sequence.get_timestamps()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_time_between_two_poses"><code class="docutils literal notranslate"><span class="pre">Sequence.get_time_between_two_poses()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_duration"><code class="docutils literal notranslate"><span class="pre">Sequence.get_duration()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_framerates"><code class="docutils literal notranslate"><span class="pre">Sequence.get_framerates()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_framerate"><code class="docutils literal notranslate"><span class="pre">Sequence.get_framerate()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_average_framerate"><code class="docutils literal notranslate"><span class="pre">Sequence.get_average_framerate()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_min_framerate"><code class="docutils literal notranslate"><span class="pre">Sequence.get_min_framerate()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_max_framerate"><code class="docutils literal notranslate"><span class="pre">Sequence.get_max_framerate()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_joint_coordinate_as_list"><code class="docutils literal notranslate"><span class="pre">Sequence.get_joint_coordinate_as_list()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_joint_distance_as_list"><code class="docutils literal notranslate"><span class="pre">Sequence.get_joint_distance_as_list()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_joint_velocity_as_list"><code class="docutils literal notranslate"><span class="pre">Sequence.get_joint_velocity_as_list()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_velocities"><code class="docutils literal notranslate"><span class="pre">Sequence.get_velocities()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_max_velocity_whole_sequence"><code class="docutils literal notranslate"><span class="pre">Sequence.get_max_velocity_whole_sequence()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_max_velocity_single_joint"><code class="docutils literal notranslate"><span class="pre">Sequence.get_max_velocity_single_joint()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_max_velocity_per_joint"><code class="docutils literal notranslate"><span class="pre">Sequence.get_max_velocity_per_joint()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_total_velocity_whole_sequence"><code class="docutils literal notranslate"><span class="pre">Sequence.get_total_velocity_whole_sequence()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_total_velocity_single_joint"><code class="docutils literal notranslate"><span class="pre">Sequence.get_total_velocity_single_joint()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_total_velocity_per_joint"><code class="docutils literal notranslate"><span class="pre">Sequence.get_total_velocity_per_joint()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_subject_height"><code class="docutils literal notranslate"><span class="pre">Sequence.get_subject_height()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_subject_arm_length"><code class="docutils literal notranslate"><span class="pre">Sequence.get_subject_arm_length()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_stats"><code class="docutils literal notranslate"><span class="pre">Sequence.get_stats()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#general">General</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_path"><code class="docutils literal notranslate"><span class="pre">Sequence.get_path()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_name"><code class="docutils literal notranslate"><span class="pre">Sequence.get_name()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_condition"><code class="docutils literal notranslate"><span class="pre">Sequence.get_condition()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_joint_labels"><code class="docutils literal notranslate"><span class="pre">Sequence.get_joint_labels()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_date_recording"><code class="docutils literal notranslate"><span class="pre">Sequence.get_date_recording()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_printable_date_recording"><code class="docutils literal notranslate"><span class="pre">Sequence.get_printable_date_recording()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_subject_height"><code class="docutils literal notranslate"><span class="pre">Sequence.get_subject_height()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_subject_arm_length"><code class="docutils literal notranslate"><span class="pre">Sequence.get_subject_arm_length()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_stats"><code class="docutils literal notranslate"><span class="pre">Sequence.get_stats()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#poses">Poses</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_poses"><code class="docutils literal notranslate"><span class="pre">Sequence.get_poses()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_pose"><code class="docutils literal notranslate"><span class="pre">Sequence.get_pose()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_pose_index_from_timestamp"><code class="docutils literal notranslate"><span class="pre">Sequence.get_pose_index_from_timestamp()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_pose_from_timestamp"><code class="docutils literal notranslate"><span class="pre">Sequence.get_pose_from_timestamp()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_number_of_poses"><code class="docutils literal notranslate"><span class="pre">Sequence.get_number_of_poses()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#time">Time</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_timestamps"><code class="docutils literal notranslate"><span class="pre">Sequence.get_timestamps()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_time_between_two_poses"><code class="docutils literal notranslate"><span class="pre">Sequence.get_time_between_two_poses()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_duration"><code class="docutils literal notranslate"><span class="pre">Sequence.get_duration()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#framerate">Framerate</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_framerates"><code class="docutils literal notranslate"><span class="pre">Sequence.get_framerates()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_framerate"><code class="docutils literal notranslate"><span class="pre">Sequence.get_framerate()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_average_framerate"><code class="docutils literal notranslate"><span class="pre">Sequence.get_average_framerate()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_min_framerate"><code class="docutils literal notranslate"><span class="pre">Sequence.get_min_framerate()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_max_framerate"><code class="docutils literal notranslate"><span class="pre">Sequence.get_max_framerate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#metrics-single-joint">Metrics: single joint</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_joint_coordinate_as_list"><code class="docutils literal notranslate"><span class="pre">Sequence.get_joint_coordinate_as_list()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_joint_distance_as_list"><code class="docutils literal notranslate"><span class="pre">Sequence.get_joint_distance_as_list()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_joint_velocity_as_list"><code class="docutils literal notranslate"><span class="pre">Sequence.get_joint_velocity_as_list()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_joint_acceleration_as_list"><code class="docutils literal notranslate"><span class="pre">Sequence.get_joint_acceleration_as_list()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_joint_time_series_as_list"><code class="docutils literal notranslate"><span class="pre">Sequence.get_joint_time_series_as_list()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#metrics-all-joints">Metrics: all joints</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_single_coordinates"><code class="docutils literal notranslate"><span class="pre">Sequence.get_single_coordinates()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_distances"><code class="docutils literal notranslate"><span class="pre">Sequence.get_distances()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_distance_between_hands"><code class="docutils literal notranslate"><span class="pre">Sequence.get_distance_between_hands()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_distance_between_joints"><code class="docutils literal notranslate"><span class="pre">Sequence.get_distance_between_joints()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_velocities"><code class="docutils literal notranslate"><span class="pre">Sequence.get_velocities()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_accelerations"><code class="docutils literal notranslate"><span class="pre">Sequence.get_accelerations()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#metrics-max-values">Metrics: max values</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_max_distance_whole_sequence"><code class="docutils literal notranslate"><span class="pre">Sequence.get_max_distance_whole_sequence()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_max_velocity_whole_sequence"><code class="docutils literal notranslate"><span class="pre">Sequence.get_max_velocity_whole_sequence()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_max_acceleration_whole_sequence"><code class="docutils literal notranslate"><span class="pre">Sequence.get_max_acceleration_whole_sequence()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_max_distance_single_joint"><code class="docutils literal notranslate"><span class="pre">Sequence.get_max_distance_single_joint()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_max_velocity_single_joint"><code class="docutils literal notranslate"><span class="pre">Sequence.get_max_velocity_single_joint()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_max_acceleration_single_joint"><code class="docutils literal notranslate"><span class="pre">Sequence.get_max_acceleration_single_joint()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_max_distance_per_joint"><code class="docutils literal notranslate"><span class="pre">Sequence.get_max_distance_per_joint()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_max_velocity_per_joint"><code class="docutils literal notranslate"><span class="pre">Sequence.get_max_velocity_per_joint()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_max_acceleration_per_joint"><code class="docutils literal notranslate"><span class="pre">Sequence.get_max_acceleration_per_joint()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="sequence.html#metrics-total-values">Metrics: total values</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_total_distance_whole_sequence"><code class="docutils literal notranslate"><span class="pre">Sequence.get_total_distance_whole_sequence()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_total_velocity_whole_sequence"><code class="docutils literal notranslate"><span class="pre">Sequence.get_total_velocity_whole_sequence()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_total_acceleration_whole_sequence"><code class="docutils literal notranslate"><span class="pre">Sequence.get_total_acceleration_whole_sequence()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_total_distance_single_joint"><code class="docutils literal notranslate"><span class="pre">Sequence.get_total_distance_single_joint()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_total_velocity_single_joint"><code class="docutils literal notranslate"><span class="pre">Sequence.get_total_velocity_single_joint()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_total_acceleration_single_joint"><code class="docutils literal notranslate"><span class="pre">Sequence.get_total_acceleration_single_joint()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_total_distance_per_joint"><code class="docutils literal notranslate"><span class="pre">Sequence.get_total_distance_per_joint()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_total_velocity_per_joint"><code class="docutils literal notranslate"><span class="pre">Sequence.get_total_velocity_per_joint()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="sequence.html#classes.sequence.Sequence.get_total_acceleration_per_joint"><code class="docutils literal notranslate"><span class="pre">Sequence.get_total_acceleration_per_joint()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="sequence.html#correction-functions">Correction functions</a><ul>
@@ -340,6 +411,7 @@
 <li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio.name"><code class="docutils literal notranslate"><span class="pre">Audio.name</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio.path"><code class="docutils literal notranslate"><span class="pre">Audio.path</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio.files"><code class="docutils literal notranslate"><span class="pre">Audio.files</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="audio.html#classes.audio.Audio.kind"><code class="docutils literal notranslate"><span class="pre">Audio.kind</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -420,6 +492,7 @@
 <li class="toctree-l5"><a class="reference internal" href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.samples"><code class="docutils literal notranslate"><span class="pre">AudioDerivative.samples</span></code></a></li>
 <li class="toctree-l5"><a class="reference internal" href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.timestamps"><code class="docutils literal notranslate"><span class="pre">AudioDerivative.timestamps</span></code></a></li>
 <li class="toctree-l5"><a class="reference internal" href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.frequency"><code class="docutils literal notranslate"><span class="pre">AudioDerivative.frequency</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.kind"><code class="docutils literal notranslate"><span class="pre">AudioDerivative.kind</span></code></a></li>
 <li class="toctree-l5"><a class="reference internal" href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.name"><code class="docutils literal notranslate"><span class="pre">AudioDerivative.name</span></code></a></li>
 </ul>
 </li>
@@ -739,7 +812,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="release_notes.html" class="btn btn-neutral float-left" title="Release notes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="sequence.html" class="btn btn-neutral float-right" title="Sequence" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="subject.html" class="btn btn-neutral float-right" title="Subject" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

@@ -1,0 +1,19 @@
+Subject
+=======
+
+Description
+-----------
+Default class defining a subject, that can contain multiple sequences. This class can be used in the stats
+functions to calculate variances across participants.
+
+Initialisation
+--------------
+.. autoclass:: classes.subject.Subject
+
+Setter functions
+----------------
+.. automethod:: classes.subject.Subject.set_name
+.. automethod:: classes.subject.Subject.set_group
+.. automethod:: classes.subject.Subject.set_gender
+.. automethod:: classes.subject.Subject.set_age
+.. automethod:: classes.subject.Subject.set_age_from_dob

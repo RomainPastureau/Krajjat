@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tool functions &mdash; krajjat 1.99.3 documentation</title>
+  <title>Tool functions &mdash; krajjat 1.99.5 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
@@ -236,7 +236,7 @@ may clutter the output and slow down the execution.</p></li>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>list_of_objects</strong> (<em>list</em><em>(</em><em>Sequence</em><em>) or </em><em>list</em><em>(</em><a class="reference internal" href="audio.html#classes.audio.Audio" title="classes.audio.Audio"><em>Audio</em></a><em>)</em>) – A list of Sequence or Audio instances.</p>
+<dd class="field-odd"><p><strong>list_of_objects</strong> (<em>list</em><em>(</em><a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a><em>) or </em><em>list</em><em>(</em><a class="reference internal" href="audio.html#classes.audio.Audio" title="classes.audio.Audio"><em>Audio</em></a><em>)</em>) – A list of Sequence or Audio instances.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A list of paths.</p>
@@ -259,7 +259,7 @@ may clutter the output and slow down the execution.</p></li>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>list_of_objects</strong> (<em>list</em><em>(</em><em>Sequence</em><em>) or </em><em>list</em><em>(</em><a class="reference internal" href="audio.html#classes.audio.Audio" title="classes.audio.Audio"><em>Audio</em></a><em>)</em>) – A list of Sequence or Audio instances.</p>
+<dd class="field-odd"><p><strong>list_of_objects</strong> (<em>list</em><em>(</em><a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a><em>) or </em><em>list</em><em>(</em><a class="reference internal" href="audio.html#classes.audio.Audio" title="classes.audio.Audio"><em>Audio</em></a><em>)</em>) – A list of Sequence or Audio instances.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A list of names.</p>
@@ -288,8 +288,8 @@ This function can be used to check how many joints have been modified by a proce
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>sequence1</strong> (<em>Sequence</em>) – A Sequence instance.</p></li>
-<li><p><strong>sequence2</strong> (<em>Sequence</em>) – A Sequence instance.</p></li>
+<li><p><strong>sequence1</strong> (<a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a>) – A Sequence instance.</p></li>
+<li><p><strong>sequence2</strong> (<a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a>) – A Sequence instance.</p></li>
 <li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
 <ul>
 <li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
@@ -322,8 +322,8 @@ sequences start synchronizing. Otherwise, it returns <code class="docutils liter
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>sequence1</strong> (<em>Sequence</em>) – A Sequence instance.</p></li>
-<li><p><strong>sequence2</strong> (<em>Sequence</em>) – A Sequence instance.</p></li>
+<li><p><strong>sequence1</strong> (<a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a>) – A Sequence instance.</p></li>
+<li><p><strong>sequence2</strong> (<a class="reference internal" href="sequence.html#classes.sequence.Sequence" title="classes.sequence.Sequence"><em>Sequence</em></a>) – A Sequence instance.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -619,11 +619,11 @@ parameter in the function <code class="xref py py-func docutils literal notransl
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="tool_functions.pad_with_zeros">
-<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">pad_with_zeros</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_points_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_points_padding</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.pad_with_zeros" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="tool_functions.pad">
+<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">pad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_points_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_points_padding</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padding_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.pad" title="Permalink to this definition"></a></dt>
 <dd><p>Given an array of values (<code class="docutils literal notranslate"><span class="pre">data</span></code>) and its corresponding <code class="docutils literal notranslate"><span class="pre">time_points_data</span></code>, and a larger array
-<code class="docutils literal notranslate"><span class="pre">time_points_padding</span></code>, pads the data array with zeros for the time points present in <code class="docutils literal notranslate"><span class="pre">time_points_padding</span></code> that
-are absent from <code class="docutils literal notranslate"><span class="pre">time_points_data</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">time_points_padding</span></code>, pads the data array with the value specified in <code class="docutils literal notranslate"><span class="pre">padding_value</span></code> for the time points
+present in <code class="docutils literal notranslate"><span class="pre">time_points_padding</span></code> that are absent from <code class="docutils literal notranslate"><span class="pre">time_points_data</span></code>.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
@@ -634,6 +634,7 @@ are absent from <code class="docutils literal notranslate"><span class="pre">tim
 <li><p><strong>time_points_data</strong> (<em>list</em><em>(</em><em>float</em><em>) or </em><em>numpy.ndarray</em><em>(</em><em>float</em><em>)</em>) – A list or an array of the time points corresponding to the values of the data.</p></li>
 <li><p><strong>time_points_padding</strong> (<em>list</em><em>(</em><em>float</em><em>) or </em><em>numpy.ndarray</em><em>(</em><em>float</em><em>)</em>) – A list or an array of time points containing the values from <code class="docutils literal notranslate"><span class="pre">time_points_data</span></code> (or values equal up to the
 fifth decimal), with additional values at the beginning and/or at the end.</p></li>
+<li><p><strong>padding_value</strong> (<em>int</em><em>, </em><em>numpy.nan</em><em> or </em><em>float</em>) – The value with which to pad the data (default: 0).</p></li>
 <li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
 <ul>
 <li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
@@ -680,9 +681,10 @@ may clutter the output and slow down the execution.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tool_functions.calculate_distance">
-<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">calculate_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.calculate_distance" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">calculate_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.calculate_distance" title="Permalink to this definition"></a></dt>
 <dd><p>Uses the Euclidian formula to calculate the distance between two joints. This can be used to calculate
-the distance travelled by one joint between two poses, or the distance between two joints on the same pose.</p>
+the distance travelled by one joint between two poses, or the distance between two joints on the same pose.
+If an axis is specified, the distance is calculated on this axis only.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
@@ -691,6 +693,8 @@ the distance travelled by one joint between two poses, or the distance between t
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>joint1</strong> (<a class="reference internal" href="joint.html#classes.joint.Joint" title="classes.joint.Joint"><em>Joint</em></a>) – The first Joint object.</p></li>
 <li><p><strong>joint2</strong> (<a class="reference internal" href="joint.html#classes.joint.Joint" title="classes.joint.Joint"><em>Joint</em></a>) – The second Joint object.</p></li>
+<li><p><strong>axis</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If specified, the returned distances travelled will be calculated on a single axis. If <code class="docutils literal notranslate"><span class="pre">None</span></code> (default),
+the distance travelled will be calculated based on the 3D coordinates.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -873,71 +877,6 @@ variations of grey/gray), and a tuple of their 256-level RGBA codes as values. T
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="tool_functions.convert_color_rgba">
-<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">convert_color_rgba</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.convert_color_rgba" title="Permalink to this definition"></a></dt>
-<dd><p>Returns an RGB or RGBA value from a color in RGB, RGBA, hexadecimal or color name format.</p>
-<div class="versionadded">
-<p><span class="versionmodified added">New in version 2.0.</span></p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>color</strong> (<em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>) or </em><em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>) or </em><em>str</em>) – <p>A color under any of the following formats:</p>
-<blockquote>
-<div><ul>
-<li><p>A string containing an <a class="reference external" href="https://en.wikipedia.org/wiki/X11_color_names">HTML/CSS name</a> (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;red&quot;</span></code> or
-<code class="docutils literal notranslate"><span class="pre">&quot;blanched</span> <span class="pre">almond&quot;</span></code>),</p></li>
-<li><p>A string containing a hexadecimal code, starting with a number sign (<code class="docutils literal notranslate"><span class="pre">#</span></code>, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;#ffcc00&quot;</span></code> or
-<code class="docutils literal notranslate"><span class="pre">&quot;#c0ffee&quot;</span></code>).</p></li>
-<li><p>A RGB or RGBA tuple (e.g. <code class="docutils literal notranslate"><span class="pre">(153,</span> <span class="pre">204,</span> <span class="pre">0)</span></code> or <code class="docutils literal notranslate"><span class="pre">(77,</span> <span class="pre">77,</span> <span class="pre">77,</span> <span class="pre">255)</span></code>).</p></li>
-</ul>
-</div></blockquote>
-</p></li>
-<li><p><strong>include_alpha</strong> (<em>bool</em><em> or </em><em>None</em><em> (</em><em>optional</em><em>)</em>) – Defines if the returned value will contain an alpha channel (<code class="docutils literal notranslate"><span class="pre">True</span></code>) or not (<code class="docutils literal notranslate"><span class="pre">False</span></code>). If set on <code class="docutils literal notranslate"><span class="pre">None</span></code>,
-the returned value will contain an alpha channel only if the input contains one.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="tool_functions.convert_colors_rgba">
-<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">convert_colors_rgba</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color_scheme_or_colors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.convert_colors_rgba" title="Permalink to this definition"></a></dt>
-<dd><p>Returns a list of RGBA values of colors matching a color scheme or specific color names.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>color_scheme_or_colors</strong> (<em>str</em><em> or </em><em>list</em><em>(</em><em>str</em><em>)</em>) – <p>This parameter can take a number of forms:</p>
-<ul>
-<li><p><strong>The name of a color scheme:</strong> a string matching one of the color gradients available in
-<a class="reference internal" href="color_schemes.html"><span class="doc">Color schemes</span></a>.</p></li>
-<li><p><strong>A list of colors:</strong> a list containing colors, either using:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>Their <a class="reference external" href="https://en.wikipedia.org/wiki/X11_color_names">HTML/CSS names</a> (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;red&quot;</span></code> or
-<code class="docutils literal notranslate"><span class="pre">&quot;blanched</span> <span class="pre">almond&quot;</span></code>),</p></li>
-<li><p>Their hexadecimal code, starting with a number sign (<code class="docutils literal notranslate"><span class="pre">#</span></code>, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;#ffcc00&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;#c0ffee&quot;</span></code>).</p></li>
-<li><p>Their RGB or RGBA tuples (e.g. <code class="docutils literal notranslate"><span class="pre">(153,</span> <span class="pre">204,</span> <span class="pre">0)</span></code> or <code class="docutils literal notranslate"><span class="pre">(77,</span> <span class="pre">77,</span> <span class="pre">77,</span> <span class="pre">255)</span></code>).</p></li>
-</ul>
-</div></blockquote>
-<p>These different codes can be used concurrently, e.g. <code class="docutils literal notranslate"><span class="pre">[&quot;red&quot;,</span> <span class="pre">(14,</span> <span class="pre">18,</span> <span class="pre">32),</span> <span class="pre">&quot;#a1b2c3&quot;]</span></code>.</p>
-</li>
-</ul>
-</p></li>
-<li><p><strong>include_alpha</strong> (<em>bool</em><em> or </em><em>None</em><em> (</em><em>optional</em><em>)</em>) – Defines if the returned value will contain an alpha channel (<code class="docutils literal notranslate"><span class="pre">True</span></code>) or not (<code class="docutils literal notranslate"><span class="pre">False</span></code>). If set on <code class="docutils literal notranslate"><span class="pre">None</span></code>,
-the returned value will contain an alpha channel only if the input contains one.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A list of RGBA or RGB colors.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list(tuple(int, int, int, int)) or list(tuple(int, int, int))</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="tool_functions.hex_color_to_rgb">
 <span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">hex_color_to_rgb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.hex_color_to_rgb" title="Permalink to this definition"></a></dt>
 <dd><p>Converts a color from its hexadecimal value to its RGB or RGBA value.</p>
@@ -976,6 +915,83 @@ RGB value, the alpha channel will be set to ff.</p></li>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tool_functions.convert_color">
+<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">convert_color</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rgb'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.convert_color" title="Permalink to this definition"></a></dt>
+<dd><p>Converts a color to the desired format.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>color</strong> (<em>str</em><em> or </em><em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>) or </em><em>tuple</em><em>(</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>)</em>) – <p>This parameter can take a number of forms:</p>
+<blockquote>
+<div><ul>
+<li><p>The <a class="reference external" href="https://en.wikipedia.org/wiki/X11_color_names">HTML/CSS name of a color</a> (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;red&quot;</span></code> or
+<code class="docutils literal notranslate"><span class="pre">&quot;blanched</span> <span class="pre">almond&quot;</span></code>),</p></li>
+<li><p>The hexadecimal code of a color, starting with a number sign (<code class="docutils literal notranslate"><span class="pre">#</span></code>, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;#ffcc00&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;#c0ffee&quot;</span></code>).</p></li>
+<li><p>The RGB or RGBA tuple of a color (e.g. <code class="docutils literal notranslate"><span class="pre">(153,</span> <span class="pre">204,</span> <span class="pre">0)</span></code> or <code class="docutils literal notranslate"><span class="pre">(77,</span> <span class="pre">77,</span> <span class="pre">77,</span> <span class="pre">255)</span></code>).</p></li>
+</ul>
+</div></blockquote>
+</p></li>
+<li><p><strong>color_format</strong> (<em>str</em><em>, </em><em>optional</em>) – The format in which you want to convert the color. This parameter can be <code class="docutils literal notranslate"><span class="pre">&quot;rgb&quot;</span></code> (default), <code class="docutils literal notranslate"><span class="pre">&quot;rgba&quot;</span></code> or
+<code class="docutils literal notranslate"><span class="pre">&quot;hex&quot;</span></code>.</p></li>
+<li><p><strong>include_alpha</strong> (<em>bool</em><em>, </em><em>optional</em>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, returns the color with an alpha value. If an alpha value is not present in the original value,
+the alpha channel will be set to 255 (or ff).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of RGB or RGBA values, or hexadecimal strings with a leading number sign.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(tuple(int, int, int)) or list(tuple(int, int, int, int)) or list(string)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="tool_functions.convert_colors">
+<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">convert_colors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color_scheme_or_colors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'RGB'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.convert_colors" title="Permalink to this definition"></a></dt>
+<dd><p>Converts a list of colors to the desired format.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>color_scheme_or_colors</strong> (<em>str</em><em> or </em><em>list</em><em>(</em><em>str</em><em>)</em>) – <p>This parameter can take a number of forms:</p>
+<ul>
+<li><p><strong>The name of a color scheme:</strong> a string matching one of the color gradients available in
+<a class="reference internal" href="color_schemes.html"><span class="doc">Color schemes</span></a>.</p></li>
+<li><p><strong>A list of colors:</strong> a list containing colors, either using:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Their <a class="reference external" href="https://en.wikipedia.org/wiki/X11_color_names">HTML/CSS names</a> (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;red&quot;</span></code> or
+<code class="docutils literal notranslate"><span class="pre">&quot;blanched</span> <span class="pre">almond&quot;</span></code>),</p></li>
+<li><p>Their hexadecimal code, starting with a number sign (<code class="docutils literal notranslate"><span class="pre">#</span></code>, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;#ffcc00&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;#c0ffee&quot;</span></code>).</p></li>
+<li><p>Their RGB or RGBA tuples (e.g. <code class="docutils literal notranslate"><span class="pre">(153,</span> <span class="pre">204,</span> <span class="pre">0)</span></code> or <code class="docutils literal notranslate"><span class="pre">(77,</span> <span class="pre">77,</span> <span class="pre">77,</span> <span class="pre">255)</span></code>).</p></li>
+</ul>
+</div></blockquote>
+<p>These different codes can be used concurrently, e.g. <code class="docutils literal notranslate"><span class="pre">[&quot;red&quot;,</span> <span class="pre">(14,</span> <span class="pre">18,</span> <span class="pre">32),</span> <span class="pre">&quot;#a1b2c3&quot;]</span></code>.</p>
+</li>
+</ul>
+</p></li>
+<li><p><strong>color_format</strong> (<em>str</em><em>, </em><em>optional</em>) – The format in which you want to convert the colors. This parameter can be <code class="docutils literal notranslate"><span class="pre">&quot;RGB&quot;</span></code> (default), <code class="docutils literal notranslate"><span class="pre">&quot;RGBA&quot;</span></code> or
+<code class="docutils literal notranslate"><span class="pre">&quot;HEX&quot;</span></code>.</p></li>
+<li><p><strong>include_alpha</strong> (<em>bool</em><em>, </em><em>optional</em>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, returns the colors with an alpha value. If an alpha value is not present in the
+original value, the alpha channel will be set to 255 (or ff).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A RGB or RGBA value, or a hexadecimal string with a leading number sign.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple(int, int, int) or tuple(int, int, int, int) or string</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1045,7 +1061,7 @@ attributed their corresponding intermediate color on the gradient.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>dict_values</strong> (<em>dict</em><em>(</em><em>str: float</em><em> or </em><em>int</em><em>)</em>) – A dictionary where keys (e.g., joint labels) are attributed to values (floats or integers).</p></li>
 <li><p><strong>color_scheme</strong> (<em>str</em><em> or </em><em>list</em>) – A color scheme or a list of colors that can be parsed by the function
-<a class="reference internal" href="#tool_functions.convert_colors_rgba" title="tool_functions.convert_colors_rgba"><code class="xref py py-func docutils literal notranslate"><span class="pre">tool_functions.convert_colors_rgba()</span></code></a>.</p></li>
+<code class="xref py py-func docutils literal notranslate"><span class="pre">tool_functions.convert_colors_rgba()</span></code>.</p></li>
 <li><p><strong>type_return</strong> (<em>str</em><em>, </em><em>optional</em>) – The way the color should be returned. If set on <code class="docutils literal notranslate"><span class="pre">&quot;rgb&quot;</span></code> (default) or <code class="docutils literal notranslate"><span class="pre">&quot;rgba&quot;</span></code>, the color will be returned
 as a tuple of integers. If set on <code class="docutils literal notranslate"><span class="pre">&quot;hex&quot;</span></code>, the color will be returned as a string containing hexadecimal
 values, with a number sign (<code class="docutils literal notranslate"><span class="pre">#</span></code>) as a leading character.</p></li>
@@ -1084,13 +1100,17 @@ RGB value, the alpha channel will be set to 255.</p></li>
 <h3>Audio functions<a class="headerlink" href="#audio-functions" title="Permalink to this heading"></a></h3>
 <dl class="py function">
 <dt class="sig sig-object py" id="tool_functions.scale_audio">
-<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">scale_audio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">audio_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.scale_audio" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">scale_audio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">audio_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_abs_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_lowest_at_zero</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.scale_audio" title="Permalink to this definition"></a></dt>
 <dd><p>Scale an array of audio samples according to a maximum value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>audio_array</strong> (<em>list</em><em>(</em><em>int</em><em> or </em><em>float</em><em>) or </em><em>numpy.array</em><em>(</em><em>int</em><em> or </em><em>float</em><em>)</em>) – An array of audio samples.</p></li>
 <li><p><strong>max_value</strong> (<em>int</em><em> or </em><em>float</em>) – The value that will become the maximum value of the scaled array.</p></li>
+<li><p><strong>use_abs_values</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">True</span></code>, the values of the samples will be converted to absolute values. If set on <code class="docutils literal notranslate"><span class="pre">False</span></code>
+(default), the sign of the samples will be preserved.</p></li>
+<li><p><strong>set_lowest_at_zero</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">True</span></code>, if the minimum sample value of the audio is over zero, the minimal value will be subtracted
+from all the samples. This parameter is set on <code class="docutils literal notranslate"><span class="pre">False</span></code> by default.</p></li>
 <li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
 <ul>
 <li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
@@ -1135,10 +1155,10 @@ may clutter the output and slow down the execution.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A list containing the samples averaged across all channels.</p>
+<dd class="field-even"><p>An array containing the samples averaged across all channels.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list(float)</p>
+<dd class="field-odd"><p>np.ndarray(np.intp)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1362,14 +1382,17 @@ video set at a defined framerate, regardless of the original frequency.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="tool_functions.get_min_max_values_from_plot_dictionary">
-<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">get_min_max_values_from_plot_dictionary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot_dictionary</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.get_min_max_values_from_plot_dictionary" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">tool_functions.</span></span><span class="sig-name descname"><span class="pre">get_min_max_values_from_plot_dictionary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot_dictionary</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys_to_exclude</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tool_functions.get_min_max_values_from_plot_dictionary" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the minimum and maximum values of all the graphs contained in a plot dictionary.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>plot_dictionary</strong> (<em>dict</em>) – A dictionary with labels as keys and Graph elements as values.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>plot_dictionary</strong> (<em>dict</em>) – A dictionary with labels as keys and Graph elements as values.</p></li>
+<li><p><strong>keys_to_exclude</strong> (<em>list</em><em>(</em><em>string</em><em>)</em>) – A list of keys of the dictionary to exclude from the search of the minimum and maximum values.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
