@@ -80,6 +80,7 @@ Metrics: all joints
 .. automethod:: classes.sequence.Sequence.get_distance_between_joints
 .. automethod:: classes.sequence.Sequence.get_velocities
 .. automethod:: classes.sequence.Sequence.get_accelerations
+.. automethod:: classes.sequence.Sequence.get_time_series_as_list
 
 Metrics: max values
 """""""""""""""""""
@@ -124,6 +125,7 @@ Print functions
 ^^^^^^^^^^^^^^^
 .. automethod:: classes.sequence.Sequence.print_pose
 .. automethod:: classes.sequence.Sequence.print_stats
+.. automethod:: classes.sequence.Sequence.print_details
 
 Conversion functions
 ^^^^^^^^^^^^^^^^^^^^

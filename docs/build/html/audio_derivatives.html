@@ -46,6 +46,8 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="general.html">Introduction</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="classes.html">Classes</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="experiment.html">Experiment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="subject.html">Subject</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sequence.html">Sequence</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pose.html">Pose</a></li>
 <li class="toctree-l2"><a class="reference internal" href="joint.html">Joint</a></li>
@@ -128,80 +130,9 @@ created by one of the instances of the class <code class="xref py py-class docut
 <h3>Initialisation<a class="headerlink" href="#initialisation" title="Permalink to this heading"></a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="classes.audio_derivatives.AudioDerivative">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">classes.audio_derivatives.</span></span><span class="sig-name descname"><span class="pre">AudioDerivative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio_derivatives.AudioDerivative" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">classes.audio_derivatives.</span></span><span class="sig-name descname"><span class="pre">AudioDerivative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">condition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio_derivatives.AudioDerivative" title="Permalink to this definition"></a></dt>
 <dd><p>Parent class for the Envelope, Intensity, Pitch and Formant methods. Contains common methods for each of the
 subclasses.</p>
-<div class="versionadded">
-<p><span class="versionmodified added">New in version 2.0.</span></p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>samples</strong> (<em>list</em><em>(</em><em>float</em><em>) or </em><em>numpy.ndarray</em><em>(</em><em>float64</em><em>)</em>) – An array containing the values for the audio derivative.</p></li>
-<li><p><strong>timestamps</strong> (<em>list</em><em>(</em><em>float</em><em>) or </em><em>numpy.ndarray</em><em>(</em><em>float64</em><em>)</em>) – An array of equal length to <code class="docutils literal notranslate"><span class="pre">samples</span></code>, containing the timestamps for each sample.</p></li>
-<li><p><strong>frequency</strong> (<em>int</em><em> or </em><em>float</em>) – The frequency, in Hertz, of the timestamps.</p></li>
-<li><p><strong>kind</strong> (<em>str</em><em> or </em><em>None</em>) – The kind of audio derivative: <code class="docutils literal notranslate"><span class="pre">&quot;Envelope&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;Pitch&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;Intensity&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;Formant&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
-<li><p><strong>name</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – The name of the audio derivative. By default, this field is used to store the name of the audio clip the
-derivative comes from, with a suffix indicating the type of the audio derivative.</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="classes.audio_derivatives.AudioDerivative.samples">
-<span class="sig-name descname"><span class="pre">samples</span></span><a class="headerlink" href="#classes.audio_derivatives.AudioDerivative.samples" title="Permalink to this definition"></a></dt>
-<dd><p>An array containing the values for the audio derivative.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list(float) or numpy.ndarray(float64)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="classes.audio_derivatives.AudioDerivative.timestamps">
-<span class="sig-name descname"><span class="pre">timestamps</span></span><a class="headerlink" href="#classes.audio_derivatives.AudioDerivative.timestamps" title="Permalink to this definition"></a></dt>
-<dd><p>An array of equal length to <a class="reference internal" href="#classes.audio_derivatives.AudioDerivative.samples" title="classes.audio_derivatives.AudioDerivative.samples"><code class="xref py py-attr docutils literal notranslate"><span class="pre">samples</span></code></a>, containing the timestamps for each sample.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>list(float) or numpy.ndarray(float64)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="classes.audio_derivatives.AudioDerivative.frequency">
-<span class="sig-name descname"><span class="pre">frequency</span></span><a class="headerlink" href="#classes.audio_derivatives.AudioDerivative.frequency" title="Permalink to this definition"></a></dt>
-<dd><p>The frequency, in Hertz, at which the values in attr:<cite>samples</cite> are sampled.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>int or float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="classes.audio_derivatives.AudioDerivative.kind">
-<span class="sig-name descname"><span class="pre">kind</span></span><a class="headerlink" href="#classes.audio_derivatives.AudioDerivative.kind" title="Permalink to this definition"></a></dt>
-<dd><p>The kind of audio derivative: <code class="docutils literal notranslate"><span class="pre">&quot;Envelope&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;Pitch&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;Intensity&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;Formant&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>str or None</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="classes.audio_derivatives.AudioDerivative.name">
-<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#classes.audio_derivatives.AudioDerivative.name" title="Permalink to this definition"></a></dt>
-<dd><p>The name of the audio derivative. By default, this field is used to store the name of the audio clip the
-derivative comes from, with a suffix indicating the type of the audio derivative.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>str or None, optional</p>
-</dd>
-</dl>
-</dd></dl>
-
 </dd></dl>
 
 </section>
@@ -210,7 +141,7 @@ derivative comes from, with a suffix indicating the type of the audio derivative
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.audio_derivatives.AudioDerivative.set_name">
 <span class="sig-prename descclassname"><span class="pre">AudioDerivative.</span></span><span class="sig-name descname"><span class="pre">set_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio_derivatives.AudioDerivative.set_name" title="Permalink to this definition"></a></dt>
-<dd><p>Sets the <a class="reference internal" href="#classes.audio_derivatives.AudioDerivative.name" title="classes.audio_derivatives.AudioDerivative.name"><code class="xref py py-attr docutils literal notranslate"><span class="pre">name</span></code></a> attribute of the AudioDerivative instance. This name can be used as a way to identify
+<dd><p>Sets the <code class="xref py py-attr docutils literal notranslate"><span class="pre">name</span></code> attribute of the AudioDerivative instance. This name can be used as a way to identify
 the original Audio instance from which the AudioDerivative has been created.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
@@ -225,7 +156,7 @@ the original Audio instance from which the AudioDerivative has been created.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.audio_derivatives.AudioDerivative.get_samples">
 <span class="sig-prename descclassname"><span class="pre">AudioDerivative.</span></span><span class="sig-name descname"><span class="pre">get_samples</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio_derivatives.AudioDerivative.get_samples" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the attribute <a class="reference internal" href="#classes.audio_derivatives.AudioDerivative.samples" title="classes.audio_derivatives.AudioDerivative.samples"><code class="xref py py-attr docutils literal notranslate"><span class="pre">samples</span></code></a> of the audio derivative.</p>
+<dd><p>Returns the attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">samples</span></code> of the audio derivative.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
@@ -242,7 +173,7 @@ the original Audio instance from which the AudioDerivative has been created.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.audio_derivatives.AudioDerivative.get_timestamps">
 <span class="sig-prename descclassname"><span class="pre">AudioDerivative.</span></span><span class="sig-name descname"><span class="pre">get_timestamps</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio_derivatives.AudioDerivative.get_timestamps" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the attribute <a class="reference internal" href="#classes.audio_derivatives.AudioDerivative.samples" title="classes.audio_derivatives.AudioDerivative.samples"><code class="xref py py-attr docutils literal notranslate"><span class="pre">samples</span></code></a> of the audio derivative.</p>
+<dd><p>Returns the attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">samples</span></code> of the audio derivative.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
@@ -259,7 +190,7 @@ the original Audio instance from which the AudioDerivative has been created.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.audio_derivatives.AudioDerivative.get_frequency">
 <span class="sig-prename descclassname"><span class="pre">AudioDerivative.</span></span><span class="sig-name descname"><span class="pre">get_frequency</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio_derivatives.AudioDerivative.get_frequency" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the attribute <a class="reference internal" href="#classes.audio_derivatives.AudioDerivative.frequency" title="classes.audio_derivatives.AudioDerivative.frequency"><code class="xref py py-attr docutils literal notranslate"><span class="pre">frequency</span></code></a> of the audio derivative.</p>
+<dd><p>Returns the attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">frequency</span></code> of the audio derivative.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
@@ -276,14 +207,14 @@ the original Audio instance from which the AudioDerivative has been created.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.audio_derivatives.AudioDerivative.get_name">
 <span class="sig-prename descclassname"><span class="pre">AudioDerivative.</span></span><span class="sig-name descname"><span class="pre">get_name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio_derivatives.AudioDerivative.get_name" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the attribute <a class="reference internal" href="#classes.audio_derivatives.AudioDerivative.name" title="classes.audio_derivatives.AudioDerivative.name"><code class="xref py py-attr docutils literal notranslate"><span class="pre">name</span></code></a> of the audio derivative. Unless modified, the value of this attribute
+<dd><p>Returns the attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">name</span></code> of the audio derivative. Unless modified, the value of this attribute
 should be the same as the value of the original <code class="xref py py-attr docutils literal notranslate"><span class="pre">Audio.name</span></code> attribute.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>The value of the attribute <a class="reference internal" href="#classes.audio_derivatives.AudioDerivative.name" title="classes.audio_derivatives.AudioDerivative.name"><code class="xref py py-attr docutils literal notranslate"><span class="pre">name</span></code></a> of the audio derivative.</p>
+<dd class="field-odd"><p>The value of the attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">name</span></code> of the audio derivative.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>str</p>
@@ -294,7 +225,7 @@ should be the same as the value of the original <code class="xref py py-attr doc
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.audio_derivatives.AudioDerivative.get_number_of_samples">
 <span class="sig-prename descclassname"><span class="pre">AudioDerivative.</span></span><span class="sig-name descname"><span class="pre">get_number_of_samples</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio_derivatives.AudioDerivative.get_number_of_samples" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the length of the attribute <a class="reference internal" href="#classes.audio_derivatives.AudioDerivative.samples" title="classes.audio_derivatives.AudioDerivative.samples"><code class="xref py py-attr docutils literal notranslate"><span class="pre">samples</span></code></a>.</p>
+<dd><p>Returns the length of the attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">samples</span></code>.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
@@ -311,7 +242,7 @@ should be the same as the value of the original <code class="xref py py-attr doc
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.audio_derivatives.AudioDerivative.filter_frequencies">
 <span class="sig-prename descclassname"><span class="pre">AudioDerivative.</span></span><span class="sig-name descname"><span class="pre">filter_frequencies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter_below</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_over</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio_derivatives.AudioDerivative.filter_frequencies" title="Permalink to this definition"></a></dt>
-<dd><p>Applies a low-pass, high-pass or band-pass filter to the data in the attribute <a class="reference internal" href="#classes.audio_derivatives.AudioDerivative.samples" title="classes.audio_derivatives.AudioDerivative.samples"><code class="xref py py-attr docutils literal notranslate"><span class="pre">samples</span></code></a>.</p>
+<dd><p>Applies a low-pass, high-pass or band-pass filter to the data in the attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">samples</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -356,7 +287,7 @@ timestamps at the desired frequency, and then interpolates the original data to 
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>frequency</strong> (<em>float</em>) – The frequency, in hertz, at which you want to resample the audio derivative. A frequency of 4 will return
 samples at 0.25 s intervals.</p></li>
-<li><p><strong>mode</strong> (<em>str</em><em>, </em><em>optional</em>) – This parameter also allows for all the values accepted for the <code class="docutils literal notranslate"><span class="pre">kind</span></code> parameter in the function
+<li><p><strong>mode</strong> (<em>str</em><em>, </em><em>optional</em>) – This parameter allows for all the values accepted for the <code class="docutils literal notranslate"><span class="pre">kind</span></code> parameter in the function
 <code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.interpolate.interp1d()</span></code>: <code class="docutils literal notranslate"><span class="pre">&quot;linear&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;nearest&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;nearest-up&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;zero&quot;</span></code>,
 <code class="docutils literal notranslate"><span class="pre">&quot;slinear&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;quadratic&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;cubic&quot;</span></code> (default), <code class="docutils literal notranslate"><span class="pre">&quot;previous&quot;</span></code>, and <code class="docutils literal notranslate"><span class="pre">&quot;next&quot;</span></code>. See the
 <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html">documentation for this Python module</a> for more.</p></li>
@@ -379,7 +310,7 @@ may clutter the output and slow down the execution.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.audio_derivatives.AudioDerivative.__len__">
 <span class="sig-prename descclassname"><span class="pre">AudioDerivative.</span></span><span class="sig-name descname"><span class="pre">__len__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio_derivatives.AudioDerivative.__len__" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the number of samples in the audio derivative (i.e., the length of the attribute <a class="reference internal" href="#classes.audio_derivatives.AudioDerivative.samples" title="classes.audio_derivatives.AudioDerivative.samples"><code class="xref py py-attr docutils literal notranslate"><span class="pre">samples</span></code></a>).</p>
+<dd><p>Returns the number of samples in the audio derivative (i.e., the length of the attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">samples</span></code>).</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
@@ -402,7 +333,7 @@ may clutter the output and slow down the execution.</p></li>
 <dd class="field-odd"><p><strong>index</strong> (<em>int</em>) – The index of the sample to return.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A sample from the attribute <a class="reference internal" href="#classes.audio_derivatives.AudioDerivative.samples" title="classes.audio_derivatives.AudioDerivative.samples"><code class="xref py py-attr docutils literal notranslate"><span class="pre">samples</span></code></a>.</p>
+<dd class="field-even"><p>A sample from the attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">samples</span></code>.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>float</p>
@@ -418,7 +349,7 @@ object from the classes below.</p>
 <h2>Envelope<a class="headerlink" href="#envelope" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="classes.audio_derivatives.Envelope">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">classes.audio_derivatives.</span></span><span class="sig-name descname"><span class="pre">Envelope</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">audio_or_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio_derivatives.Envelope" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">classes.audio_derivatives.</span></span><span class="sig-name descname"><span class="pre">Envelope</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">condition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio_derivatives.Envelope" title="Permalink to this definition"></a></dt>
 <dd><p>This class contains the samples from the envelope of an audio clip.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
@@ -426,23 +357,12 @@ object from the classes below.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>audio_or_samples</strong> (<a class="reference internal" href="audio.html#classes.audio.Audio" title="classes.audio.Audio"><em>Audio</em></a><em> or </em><em>list</em><em>(</em><em>float</em><em>) or </em><em>numpy.ndarray</em><em>(</em><em>float64</em><em>)</em>) – An Audio instance, or an array containing the samples of an audio file. In the case where this parameter is an
-array, at least one of the parameters <code class="docutils literal notranslate"><span class="pre">timestamps</span></code> and <code class="docutils literal notranslate"><span class="pre">frequency</span></code> must be provided.</p></li>
-<li><p><strong>timestamps</strong> (<em>list</em><em>(</em><em>float</em><em>) or </em><em>numpy.ndarray</em><em>(</em><em>float64</em><em>) or </em><em>None</em><em>, </em><em>optional</em>) – The timestamps of the samples. This parameter is ignored if <code class="docutils literal notranslate"><span class="pre">audio_or_samples</span></code> is an instance of
-<code class="xref py py-class docutils literal notranslate"><span class="pre">Audio</span></code>.</p></li>
-<li><p><strong>frequency</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – The frequency rate of the samples. This parameter is ignored if <code class="docutils literal notranslate"><span class="pre">audio_or_samples</span></code> is an instance of
-<code class="xref py py-class docutils literal notranslate"><span class="pre">Audio</span></code>.</p></li>
-<li><p><strong>name</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Defines the name of the envelope. If set on <code class="docutils literal notranslate"><span class="pre">None</span></code>, the name will be the same as the original Audio instance,
-with the suffix <code class="docutils literal notranslate"><span class="pre">&quot;(ENV)&quot;</span></code>.</p></li>
-<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
-<ul>
-<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
-<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
-current steps.</p></li>
-<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
-may clutter the output and slow down the execution.</p></li>
-</ul>
-</p></li>
+<li><p><strong>samples</strong> (<em>list</em><em>(</em><em>float</em><em>) or </em><em>numpy.ndarray</em><em>(</em><em>float64</em><em>)</em>) – The envelope values.</p></li>
+<li><p><strong>timestamps</strong> (<em>list</em><em>(</em><em>float</em><em>) or </em><em>numpy.ndarray</em><em>(</em><em>float64</em><em>)</em>) – The timestamps of the samples.</p></li>
+<li><p><strong>frequency</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>None</em>) – The frequency rate of the samples.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Defines the name of the Envelope instance.</p></li>
+<li><p><strong>condition</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – </p></li>
+<li><p><strong>recorded.</strong> (<em>Optional field to represent in which experimental condition the original audio was clip</em>) – </p></li>
 </ul>
 </dd>
 </dl>
@@ -490,6 +410,21 @@ may clutter the output and slow down the execution.</p></li>
 </dl>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.audio_derivatives.Envelope.condition">
+<span class="sig-name descname"><span class="pre">condition</span></span><a class="headerlink" href="#classes.audio_derivatives.Envelope.condition" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">Defines</span> <span class="pre">in</span> <span class="pre">which</span> <span class="pre">experimental</span> <span class="pre">condition</span> <span class="pre">the</span> <span class="pre">original</span> <span class="pre">audio</span> <span class="pre">was</span> <span class="pre">clip</span> <span class="pre">recorded.</span></span></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </section>
@@ -497,7 +432,7 @@ may clutter the output and slow down the execution.</p></li>
 <h2>Pitch<a class="headerlink" href="#pitch" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="classes.audio_derivatives.Pitch">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">classes.audio_derivatives.</span></span><span class="sig-name descname"><span class="pre">Pitch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">audio_or_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zeros_as_nan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio_derivatives.Pitch" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">classes.audio_derivatives.</span></span><span class="sig-name descname"><span class="pre">Pitch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">condition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio_derivatives.Pitch" title="Permalink to this definition"></a></dt>
 <dd><p>This class contains the values of the pitch of an audio clip.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
@@ -505,25 +440,13 @@ may clutter the output and slow down the execution.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>audio_or_samples</strong> (<a class="reference internal" href="audio.html#classes.audio.Audio" title="classes.audio.Audio"><em>Audio</em></a><em> or </em><em>list</em><em>(</em><em>float</em><em>) or </em><em>numpy.ndarray</em><em>(</em><em>float64</em><em>)</em>) – An Audio instance, or an array containing the samples of an audio file. In the case where this parameter is an
-array, at least one of the parameters <code class="docutils literal notranslate"><span class="pre">timestamps</span></code> and <code class="docutils literal notranslate"><span class="pre">frequency</span></code> must be provided.</p></li>
-<li><p><strong>timestamps</strong> (<em>list</em><em>(</em><em>float</em><em>) or </em><em>numpy.ndarray</em><em>(</em><em>float64</em><em>) or </em><em>None</em><em>, </em><em>optional</em>) – The timestamps of the samples. This parameter is ignored if <code class="docutils literal notranslate"><span class="pre">audio_or_samples</span></code> is an instance of
-<code class="xref py py-class docutils literal notranslate"><span class="pre">Audio</span></code>.</p></li>
-<li><p><strong>frequency</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – The frequency rate of the samples. This parameter is ignored if <code class="docutils literal notranslate"><span class="pre">audio_or_samples</span></code> is an instance of
-<code class="xref py py-class docutils literal notranslate"><span class="pre">Audio</span></code>.</p></li>
-<li><p><strong>name</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Defines the name of the envelope. If set on <code class="docutils literal notranslate"><span class="pre">None</span></code>, the name will be the same as the original Audio instance,
+<li><p><strong>samples</strong> (<em>list</em><em>(</em><em>float</em><em>) or </em><em>numpy.ndarray</em><em>(</em><em>float64</em><em>)</em>) – The pitch values.</p></li>
+<li><p><strong>timestamps</strong> (<em>list</em><em>(</em><em>float</em><em>) or </em><em>numpy.ndarray</em><em>(</em><em>float64</em><em>)</em>) – The timestamps of the samples.</p></li>
+<li><p><strong>frequency</strong> (<em>int</em><em> or </em><em>float</em>) – The frequency rate of the samples.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Defines the name of the pitch. If set on <code class="docutils literal notranslate"><span class="pre">None</span></code>, the name will be the same as the original Audio instance,
 with the suffix <code class="docutils literal notranslate"><span class="pre">&quot;(PIT)&quot;</span></code>.</p></li>
-<li><p><strong>zeros_as_nan</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set on True, the values where the pitch is equal to 0 will be replaced by
-<a class="reference external" href="https://numpy.org/doc/stable/reference/constants.html#numpy.nan">numpy.nan</a> objects.</p></li>
-<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
-<ul>
-<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
-<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
-current steps.</p></li>
-<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
-may clutter the output and slow down the execution.</p></li>
-</ul>
-</p></li>
+<li><p><strong>condition</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – </p></li>
+<li><p><strong>recorded.</strong> (<em>Optional field to represent in which experimental condition the original audio was clip</em>) – </p></li>
 </ul>
 </dd>
 </dl>
@@ -571,6 +494,21 @@ may clutter the output and slow down the execution.</p></li>
 </dl>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.audio_derivatives.Pitch.condition">
+<span class="sig-name descname"><span class="pre">condition</span></span><a class="headerlink" href="#classes.audio_derivatives.Pitch.condition" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">Defines</span> <span class="pre">in</span> <span class="pre">which</span> <span class="pre">experimental</span> <span class="pre">condition</span> <span class="pre">the</span> <span class="pre">original</span> <span class="pre">audio</span> <span class="pre">was</span> <span class="pre">clip</span> <span class="pre">recorded.</span></span></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </section>
@@ -578,7 +516,7 @@ may clutter the output and slow down the execution.</p></li>
 <h2>Intensity<a class="headerlink" href="#intensity" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="classes.audio_derivatives.Intensity">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">classes.audio_derivatives.</span></span><span class="sig-name descname"><span class="pre">Intensity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">audio_or_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio_derivatives.Intensity" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">classes.audio_derivatives.</span></span><span class="sig-name descname"><span class="pre">Intensity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">condition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio_derivatives.Intensity" title="Permalink to this definition"></a></dt>
 <dd><p>This class contains the values of the intensity of an audio clip.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
@@ -586,23 +524,12 @@ may clutter the output and slow down the execution.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>audio_or_samples</strong> (<a class="reference internal" href="audio.html#classes.audio.Audio" title="classes.audio.Audio"><em>Audio</em></a><em> or </em><em>list</em><em>(</em><em>float</em><em>) or </em><em>numpy.ndarray</em><em>(</em><em>float64</em><em>)</em>) – An Audio instance, or an array containing the samples of an audio file. In the case where this parameter is an
-array, at least one of the parameters <code class="docutils literal notranslate"><span class="pre">timestamps</span></code> and <code class="docutils literal notranslate"><span class="pre">frequency</span></code> must be provided.</p></li>
-<li><p><strong>timestamps</strong> (<em>list</em><em>(</em><em>float</em><em>) or </em><em>numpy.ndarray</em><em>(</em><em>float64</em><em>) or </em><em>None</em><em>, </em><em>optional</em>) – The timestamps of the samples. This parameter is ignored if <code class="docutils literal notranslate"><span class="pre">audio_or_samples</span></code> is an instance of
-<code class="xref py py-class docutils literal notranslate"><span class="pre">Audio</span></code>.</p></li>
-<li><p><strong>frequency</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – The frequency rate of the samples. This parameter is ignored if <code class="docutils literal notranslate"><span class="pre">audio_or_samples</span></code> is an instance of
-<code class="xref py py-class docutils literal notranslate"><span class="pre">Audio</span></code>.</p></li>
-<li><p><strong>name</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Defines the name of the envelope. If set on <code class="docutils literal notranslate"><span class="pre">None</span></code>, the name will be the same as the original Audio instance,
-with the suffix <code class="docutils literal notranslate"><span class="pre">&quot;(INT)&quot;</span></code>.</p></li>
-<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
-<ul>
-<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
-<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
-current steps.</p></li>
-<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
-may clutter the output and slow down the execution.</p></li>
-</ul>
-</p></li>
+<li><p><strong>samples</strong> (<em>list</em><em>(</em><em>float</em><em>) or </em><em>numpy.ndarray</em><em>(</em><em>float64</em><em>)</em>) – The intensity values.</p></li>
+<li><p><strong>timestamps</strong> (<em>list</em><em>(</em><em>float</em><em>) or </em><em>numpy.ndarray</em><em>(</em><em>float64</em><em>)</em>) – The timestamps of the samples.</p></li>
+<li><p><strong>frequency</strong> (<em>int</em><em> or </em><em>float</em>) – The frequency rate of the samples.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Defines the name of the Intensity instance.</p></li>
+<li><p><strong>condition</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – </p></li>
+<li><p><strong>recorded.</strong> (<em>Optional field to represent in which experimental condition the original audio was clip</em>) – </p></li>
 </ul>
 </dd>
 </dl>
@@ -650,6 +577,21 @@ may clutter the output and slow down the execution.</p></li>
 </dl>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.audio_derivatives.Intensity.condition">
+<span class="sig-name descname"><span class="pre">condition</span></span><a class="headerlink" href="#classes.audio_derivatives.Intensity.condition" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">Defines</span> <span class="pre">in</span> <span class="pre">which</span> <span class="pre">experimental</span> <span class="pre">condition</span> <span class="pre">the</span> <span class="pre">original</span> <span class="pre">audio</span> <span class="pre">was</span> <span class="pre">clip</span> <span class="pre">recorded.</span></span></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </section>
@@ -657,7 +599,7 @@ may clutter the output and slow down the execution.</p></li>
 <h2>Formant<a class="headerlink" href="#formant" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="classes.audio_derivatives.Formant">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">classes.audio_derivatives.</span></span><span class="sig-name descname"><span class="pre">Formant</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">audio_or_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formant_number</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio_derivatives.Formant" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">classes.audio_derivatives.</span></span><span class="sig-name descname"><span class="pre">Formant</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formant_number</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">condition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio_derivatives.Formant" title="Permalink to this definition"></a></dt>
 <dd><p>This class contains the values of one of the formants of an audio clip.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
@@ -665,15 +607,13 @@ may clutter the output and slow down the execution.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>audio_or_samples</strong> (<a class="reference internal" href="audio.html#classes.audio.Audio" title="classes.audio.Audio"><em>Audio</em></a><em> or </em><em>list</em><em>(</em><em>float</em><em>) or </em><em>numpy.ndarray</em><em>(</em><em>float64</em><em>)</em>) – An Audio instance, or an array containing the samples of an audio file. In the case where this parameter is an
-array, at least one of the parameters <code class="docutils literal notranslate"><span class="pre">timestamps</span></code> and <code class="docutils literal notranslate"><span class="pre">frequency</span></code> must be provided.</p></li>
-<li><p><strong>timestamps</strong> (<em>list</em><em>(</em><em>float</em><em>) or </em><em>numpy.ndarray</em><em>(</em><em>float64</em><em>) or </em><em>None</em><em>, </em><em>optional</em>) – The timestamps of the samples. This parameter is ignored if <code class="docutils literal notranslate"><span class="pre">audio_or_samples</span></code> is an instance of
-<code class="xref py py-class docutils literal notranslate"><span class="pre">Audio</span></code>.</p></li>
-<li><p><strong>frequency</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – The frequency rate of the samples. This parameter is ignored if <code class="docutils literal notranslate"><span class="pre">audio_or_samples</span></code> is an instance of
-<code class="xref py py-class docutils literal notranslate"><span class="pre">Audio</span></code>.</p></li>
-<li><p><strong>name</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Defines the name of the envelope. If set on <code class="docutils literal notranslate"><span class="pre">None</span></code>, the name will be the same as the original Audio instance,
-with the suffix <code class="docutils literal notranslate"><span class="pre">&quot;(INT)&quot;</span></code>.</p></li>
-<li><p><strong>formant_number</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of the formant to extract from the audio clip (default: 1 for f1).</p></li>
+<li><p><strong>samples</strong> (<em>list</em><em>(</em><em>float</em><em>) or </em><em>numpy.ndarray</em><em>(</em><em>float64</em><em>)</em>) – The formant values.</p></li>
+<li><p><strong>timestamps</strong> (<em>list</em><em>(</em><em>float</em><em>) or </em><em>numpy.ndarray</em><em>(</em><em>float64</em><em>)</em>) – The timestamps of the samples.</p></li>
+<li><p><strong>frequency</strong> (<em>int</em><em> or </em><em>float</em>) – The frequency rate of the samples.</p></li>
+<li><p><strong>formant_number</strong> (<em>int</em>) – The number of the formant to extract from the audio clip (default: 1 for f1).</p></li>
+<li><p><strong>name</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Defines the name of the Formant instance.</p></li>
+<li><p><strong>condition</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – </p></li>
+<li><p><strong>recorded.</strong> (<em>Optional field to represent in which experimental condition the original audio was clip</em>) – </p></li>
 </ul>
 </dd>
 </dl>
@@ -720,6 +660,21 @@ with the suffix <code class="docutils literal notranslate"><span class="pre">&qu
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.audio_derivatives.Formant.condition">
+<span class="sig-name descname"><span class="pre">condition</span></span><a class="headerlink" href="#classes.audio_derivatives.Formant.condition" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">Defines</span> <span class="pre">in</span> <span class="pre">which</span> <span class="pre">experimental</span> <span class="pre">condition</span> <span class="pre">the</span> <span class="pre">original</span> <span class="pre">audio</span> <span class="pre">was</span> <span class="pre">clip</span> <span class="pre">recorded.</span></span></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="classes.audio_derivatives.Formant.formant_number">

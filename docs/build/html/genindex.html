@@ -272,12 +272,16 @@
 </li>
       <li><a href="graph_element.html#classes.graph_element.Graph.add_plot">add_plot() (classes.graph_element.Graph method)</a>
 </li>
-      <li><a href="subject.html#classes.subject.Subject.age">age (classes.subject.Subject attribute)</a>
+      <li><a href="subject.html#classes.subject.Subject.add_sequence">add_sequence() (classes.subject.Subject method)</a>
 </li>
-      <li><a href="tool_functions.html#tool_functions.align_two_sequences">align_two_sequences() (in module tool_functions)</a>
+      <li><a href="experiment.html#classes.experiment.Experiment.add_subject">add_subject() (classes.experiment.Experiment method)</a>
+</li>
+      <li><a href="subject.html#classes.subject.Subject.age">age (classes.subject.Subject attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="tool_functions.html#tool_functions.align_two_sequences">align_two_sequences() (in module tool_functions)</a>
+</li>
       <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.apply_events">apply_events() (classes.graphic_classes.GraphicSequence method)</a>
 </li>
       <li><a href="audio.html#classes.audio.Audio">Audio (class in classes.audio)</a>
@@ -285,6 +289,8 @@
       <li><a href="plot_functions.html#plot_functions.audio_plotter">audio_plotter() (in module plot_functions)</a>
 </li>
       <li><a href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative">AudioDerivative (class in classes.audio_derivatives)</a>
+</li>
+      <li><a href="subject.html#classes.subject.Subject.audios">audios (classes.subject.Subject attribute)</a>
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence.average_joints">average_joints() (classes.sequence.Sequence method)</a>
 </li>
@@ -346,14 +352,28 @@
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence.concatenate">concatenate() (classes.sequence.Sequence method)</a>
 </li>
+      <li><a href="audio.html#classes.audio.Audio.condition">condition (classes.audio.Audio attribute)</a>
+
+      <ul>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.Envelope.condition">(classes.audio_derivatives.Envelope attribute)</a>
+</li>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.Formant.condition">(classes.audio_derivatives.Formant attribute)</a>
+</li>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.Intensity.condition">(classes.audio_derivatives.Intensity attribute)</a>
+</li>
+        <li><a href="audio_derivatives.html#classes.audio_derivatives.Pitch.condition">(classes.audio_derivatives.Pitch attribute)</a>
+</li>
+        <li><a href="sequence.html#classes.sequence.Sequence.condition">(classes.sequence.Sequence attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.connections_all">connections_all (classes.graphic_classes.GraphicSequence attribute)</a>
 </li>
       <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.connections_to_show">connections_to_show (classes.graphic_classes.GraphicSequence attribute)</a>
 </li>
       <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.connections_top">connections_top (classes.graphic_classes.GraphicSequence attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="graphic_classes.html#classes.graphic_classes.WindowArea.contains">contains() (classes.graphic_classes.WindowArea method)</a>
 </li>
       <li><a href="tool_functions.html#tool_functions.convert_color">convert_color() (in module tool_functions)</a>
@@ -424,13 +444,15 @@
 </li>
       <li><a href="exceptions.html#classes.exceptions.EmptyAudioException">EmptyAudioException (class in classes.exceptions)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="exceptions.html#classes.exceptions.EmptySequenceException">EmptySequenceException (class in classes.exceptions)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="graphic_classes.html#classes.graphic_classes.Timer.end_update">end_update() (classes.graphic_classes.Timer method)</a>
 </li>
       <li><a href="audio_derivatives.html#classes.audio_derivatives.Envelope">Envelope (class in classes.audio_derivatives)</a>
+</li>
+      <li><a href="experiment.html#classes.experiment.Experiment">Experiment (class in classes.experiment)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -454,10 +476,10 @@
 </li>
       <li><a href="audio_derivatives.html#classes.audio_derivatives.Formant.formant_number">formant_number (classes.audio_derivatives.Formant attribute)</a>
 </li>
-      <li><a href="tool_functions.html#tool_functions.format_time">format_time() (in module tool_functions)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="tool_functions.html#tool_functions.format_time">format_time() (in module tool_functions)</a>
+</li>
       <li><a href="graphic_classes.html#classes.graphic_classes.Video.fps">fps (classes.graphic_classes.Video attribute)</a>
 </li>
       <li><a href="plot_functions.html#plot_functions.framerate_plotter">framerate_plotter() (in module plot_functions)</a>
@@ -465,8 +487,6 @@
       <li><a href="audio.html#classes.audio.Audio.frequency">frequency (classes.audio.Audio attribute)</a>
 
       <ul>
-        <li><a href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.frequency">(classes.audio_derivatives.AudioDerivative attribute)</a>
-</li>
         <li><a href="audio_derivatives.html#classes.audio_derivatives.Envelope.frequency">(classes.audio_derivatives.Envelope attribute)</a>
 </li>
         <li><a href="audio_derivatives.html#classes.audio_derivatives.Formant.frequency">(classes.audio_derivatives.Formant attribute)</a>
@@ -492,7 +512,13 @@
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence.get_accelerations">get_accelerations() (classes.sequence.Sequence method)</a>
 </li>
+      <li><a href="subject.html#classes.subject.Subject.get_age">get_age() (classes.subject.Subject method)</a>
+</li>
       <li><a href="sequence.html#classes.sequence.Sequence.get_average_framerate">get_average_framerate() (classes.sequence.Sequence method)</a>
+</li>
+      <li><a href="subject.html#classes.subject.Subject.get_average_velocities">get_average_velocities() (classes.subject.Subject method)</a>
+</li>
+      <li><a href="subject.html#classes.subject.Subject.get_average_velocity_single_joint">get_average_velocity_single_joint() (classes.subject.Subject method)</a>
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence.get_condition">get_condition() (classes.sequence.Sequence method)</a>
 </li>
@@ -544,6 +570,10 @@
         <li><a href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.get_frequency">(classes.audio_derivatives.AudioDerivative method)</a>
 </li>
       </ul></li>
+      <li><a href="subject.html#classes.subject.Subject.get_gender">get_gender() (classes.subject.Subject method)</a>
+</li>
+      <li><a href="subject.html#classes.subject.Subject.get_group">get_group() (classes.subject.Subject method)</a>
+</li>
       <li><a href="joint.html#classes.joint.Joint.get_has_velocity_over_threshold">get_has_velocity_over_threshold() (classes.joint.Joint method)</a>
 </li>
       <li><a href="audio.html#classes.audio.Audio.get_intensity">get_intensity() (classes.audio.Audio method)</a>
@@ -600,14 +630,16 @@
 </li>
       <li><a href="tool_functions.html#tool_functions.get_min_max_values_from_plot_dictionary">get_min_max_values_from_plot_dictionary() (in module tool_functions)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="audio.html#classes.audio.Audio.get_name">get_name() (classes.audio.Audio method)</a>
 
       <ul>
         <li><a href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.get_name">(classes.audio_derivatives.AudioDerivative method)</a>
 </li>
+        <li><a href="experiment.html#classes.experiment.Experiment.get_name">(classes.experiment.Experiment method)</a>
+</li>
         <li><a href="sequence.html#classes.sequence.Sequence.get_name">(classes.sequence.Sequence method)</a>
+</li>
+        <li><a href="subject.html#classes.subject.Subject.get_name">(classes.subject.Subject method)</a>
 </li>
       </ul></li>
       <li><a href="graphic_classes.html#classes.graphic_classes.Video.get_number_of_frames">get_number_of_frames() (classes.graphic_classes.Video method)</a>
@@ -618,12 +650,18 @@
         <li><a href="sequence.html#classes.sequence.Sequence.get_number_of_poses">(classes.sequence.Sequence method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="audio.html#classes.audio.Audio.get_number_of_samples">get_number_of_samples() (classes.audio.Audio method)</a>
 
       <ul>
         <li><a href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.get_number_of_samples">(classes.audio_derivatives.AudioDerivative method)</a>
 </li>
       </ul></li>
+      <li><a href="subject.html#classes.subject.Subject.get_number_of_sequences">get_number_of_sequences() (classes.subject.Subject method)</a>
+</li>
+      <li><a href="experiment.html#classes.experiment.Experiment.get_number_of_subjects">get_number_of_subjects() (classes.experiment.Experiment method)</a>
+</li>
       <li><a href="tool_functions.html#tool_functions.get_objects_names">get_objects_names() (in module tool_functions)</a>
 </li>
       <li><a href="tool_functions.html#tool_functions.get_objects_paths">get_objects_paths() (in module tool_functions)</a>
@@ -648,6 +686,8 @@
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence.get_printable_date_recording">get_printable_date_recording() (classes.sequence.Sequence method)</a>
 </li>
+      <li><a href="subject.html#classes.subject.Subject.get_recording_session_duration">get_recording_session_duration() (classes.subject.Subject method)</a>
+</li>
       <li><a href="pose.html#classes.pose.Pose.get_relative_timestamp">get_relative_timestamp() (classes.pose.Pose method)</a>
 </li>
       <li><a href="graphic_classes.html#classes.graphic_classes.WindowArea.get_resolution">get_resolution() (classes.graphic_classes.WindowArea method)</a>
@@ -660,17 +700,49 @@
         <li><a href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.get_samples">(classes.audio_derivatives.AudioDerivative method)</a>
 </li>
       </ul></li>
+      <li><a href="subject.html#classes.subject.Subject.get_sequence_from_index">get_sequence_from_index() (classes.subject.Subject method)</a>
+</li>
+      <li><a href="subject.html#classes.subject.Subject.get_sequence_from_name">get_sequence_from_name() (classes.subject.Subject method)</a>
+</li>
+      <li><a href="subject.html#classes.subject.Subject.get_sequences">get_sequences() (classes.subject.Subject method)</a>
+</li>
+      <li><a href="subject.html#classes.subject.Subject.get_sequences_from_attribute">get_sequences_from_attribute() (classes.subject.Subject method)</a>
+</li>
+      <li><a href="subject.html#classes.subject.Subject.get_sequences_from_condition">get_sequences_from_condition() (classes.subject.Subject method)</a>
+</li>
       <li><a href="sequence.html#classes.sequence.Sequence.get_single_coordinates">get_single_coordinates() (classes.sequence.Sequence method)</a>
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence.get_stats">get_stats() (classes.sequence.Sequence method)</a>
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence.get_subject_arm_length">get_subject_arm_length() (classes.sequence.Sequence method)</a>
+
+      <ul>
+        <li><a href="subject.html#classes.subject.Subject.get_subject_arm_length">(classes.subject.Subject method)</a>
+</li>
+      </ul></li>
+      <li><a href="experiment.html#classes.experiment.Experiment.get_subject_from_index">get_subject_from_index() (classes.experiment.Experiment method)</a>
+</li>
+      <li><a href="experiment.html#classes.experiment.Experiment.get_subject_from_name">get_subject_from_name() (classes.experiment.Experiment method)</a>
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence.get_subject_height">get_subject_height() (classes.sequence.Sequence method)</a>
+
+      <ul>
+        <li><a href="subject.html#classes.subject.Subject.get_subject_height">(classes.subject.Subject method)</a>
+</li>
+      </ul></li>
+      <li><a href="experiment.html#classes.experiment.Experiment.get_subjects">get_subjects() (classes.experiment.Experiment method)</a>
+</li>
+      <li><a href="experiment.html#classes.experiment.Experiment.get_subjects_from_attribute">get_subjects_from_attribute() (classes.experiment.Experiment method)</a>
+</li>
+      <li><a href="experiment.html#classes.experiment.Experiment.get_subjects_from_group">get_subjects_from_group() (classes.experiment.Experiment method)</a>
+</li>
+      <li><a href="experiment.html#classes.experiment.Experiment.get_subjects_names">get_subjects_names() (classes.experiment.Experiment method)</a>
 </li>
       <li><a href="tool_functions.html#tool_functions.get_system_csv_separator">get_system_csv_separator() (in module tool_functions)</a>
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence.get_time_between_two_poses">get_time_between_two_poses() (classes.sequence.Sequence method)</a>
+</li>
+      <li><a href="sequence.html#classes.sequence.Sequence.get_time_series_as_list">get_time_series_as_list() (classes.sequence.Sequence method)</a>
 </li>
       <li><a href="graphic_classes.html#classes.graphic_classes.Timer.get_timer">get_timer() (classes.graphic_classes.Timer method)</a>
 </li>
@@ -801,11 +873,7 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="audio.html#classes.audio.Audio.kind">kind (classes.audio.Audio attribute)</a>
-
-      <ul>
-        <li><a href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.kind">(classes.audio_derivatives.AudioDerivative attribute)</a>
 </li>
-      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="tool_functions.html#tool_functions.kwargs_parser">kwargs_parser() (in module tool_functions)</a>
@@ -830,10 +898,10 @@
 </li>
       <li><a href="tool_functions.html#tool_functions.load_joint_labels">load_joint_labels() (in module tool_functions)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="tool_functions.html#tool_functions.load_joints_connections">load_joints_connections() (in module tool_functions)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="tool_functions.html#tool_functions.load_joints_subplot_layout">load_joints_subplot_layout() (in module tool_functions)</a>
 </li>
       <li><a href="tool_functions.html#tool_functions.load_kinect_joint_labels">load_kinect_joint_labels() (in module tool_functions)</a>
@@ -843,6 +911,8 @@
       <li><a href="tool_functions.html#tool_functions.load_qualisys_joint_labels">load_qualisys_joint_labels() (in module tool_functions)</a>
 </li>
       <li><a href="tool_functions.html#tool_functions.load_qualisys_to_kinect">load_qualisys_to_kinect() (in module tool_functions)</a>
+</li>
+      <li><a href="subject.html#classes.subject.Subject.load_sequence">load_sequence() (classes.subject.Subject method)</a>
 </li>
       <li><a href="io_functions.html#io_functions.load_sequences">load_sequences() (in module io_functions)</a>
 </li>
@@ -865,8 +935,6 @@
       <li><a href="audio.html#classes.audio.Audio.name">name (classes.audio.Audio attribute)</a>
 
       <ul>
-        <li><a href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.name">(classes.audio_derivatives.AudioDerivative attribute)</a>
-</li>
         <li><a href="audio_derivatives.html#classes.audio_derivatives.Envelope.name">(classes.audio_derivatives.Envelope attribute)</a>
 </li>
         <li><a href="audio_derivatives.html#classes.audio_derivatives.Formant.name">(classes.audio_derivatives.Formant attribute)</a>
@@ -874,6 +942,8 @@
         <li><a href="audio_derivatives.html#classes.audio_derivatives.Intensity.name">(classes.audio_derivatives.Intensity attribute)</a>
 </li>
         <li><a href="audio_derivatives.html#classes.audio_derivatives.Pitch.name">(classes.audio_derivatives.Pitch attribute)</a>
+</li>
+        <li><a href="experiment.html#classes.experiment.Experiment.name">(classes.experiment.Experiment attribute)</a>
 </li>
         <li><a href="sequence.html#classes.sequence.Sequence.name">(classes.sequence.Sequence attribute)</a>
 </li>
@@ -918,10 +988,10 @@
 </li>
       <li><a href="plot_functions.html#plot_functions.plot_body_graphs">plot_body_graphs() (in module plot_functions)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="plot_functions.html#plot_functions.plot_silhouette">plot_silhouette() (in module plot_functions)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="graph_element.html#classes.graph_element.Graph.plots">plots (classes.graph_element.Graph attribute)</a>
 </li>
       <li><a href="pose.html#classes.pose.Pose">Pose (class in classes.pose)</a>
@@ -940,7 +1010,11 @@
 </li>
       <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.previous_pose">previous_pose() (classes.graphic_classes.GraphicSequence method)</a>
 </li>
+      <li><a href="sequence.html#classes.sequence.Sequence.print_details">print_details() (classes.sequence.Sequence method)</a>
+</li>
       <li><a href="sequence.html#classes.sequence.Sequence.print_pose">print_pose() (classes.sequence.Sequence method)</a>
+</li>
+      <li><a href="subject.html#classes.subject.Subject.print_sequences_details">print_sequences_details() (classes.subject.Subject method)</a>
 </li>
       <li><a href="sequence.html#classes.sequence.Sequence.print_stats">print_stats() (classes.sequence.Sequence method)</a>
 </li>
@@ -970,6 +1044,16 @@
 </li>
       <li><a href="pose.html#classes.pose.Pose.remove_joints">remove_joints() (classes.pose.Pose method)</a>
 </li>
+      <li><a href="subject.html#classes.subject.Subject.remove_sequence_from_index">remove_sequence_from_index() (classes.subject.Subject method)</a>
+</li>
+      <li><a href="subject.html#classes.subject.Subject.remove_sequence_from_name">remove_sequence_from_name() (classes.subject.Subject method)</a>
+</li>
+      <li><a href="experiment.html#classes.experiment.Experiment.remove_subject_from_index">remove_subject_from_index() (classes.experiment.Experiment method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="experiment.html#classes.experiment.Experiment.remove_subject_from_name">remove_subject_from_name() (classes.experiment.Experiment method)</a>
+</li>
       <li><a href="audio.html#classes.audio.Audio.resample">resample() (classes.audio.Audio method)</a>
 
       <ul>
@@ -978,8 +1062,6 @@
         <li><a href="sequence.html#classes.sequence.Sequence.resample">(classes.sequence.Sequence method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="tool_functions.html#tool_functions.resample_data">resample_data() (in module tool_functions)</a>
 </li>
       <li><a href="tool_functions.html#tool_functions.resample_images_to_frequency">resample_images_to_frequency() (in module tool_functions)</a>
@@ -1011,8 +1093,6 @@
       <li><a href="audio.html#classes.audio.Audio.samples">samples (classes.audio.Audio attribute)</a>
 
       <ul>
-        <li><a href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.samples">(classes.audio_derivatives.AudioDerivative attribute)</a>
-</li>
         <li><a href="audio_derivatives.html#classes.audio_derivatives.Envelope.samples">(classes.audio_derivatives.Envelope attribute)</a>
 </li>
         <li><a href="audio_derivatives.html#classes.audio_derivatives.Formant.samples">(classes.audio_derivatives.Formant attribute)</a>
@@ -1093,15 +1173,17 @@
       <ul>
         <li><a href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.set_name">(classes.audio_derivatives.AudioDerivative method)</a>
 </li>
+        <li><a href="experiment.html#classes.experiment.Experiment.set_name">(classes.experiment.Experiment method)</a>
+</li>
         <li><a href="sequence.html#classes.sequence.Sequence.set_name">(classes.sequence.Sequence method)</a>
 </li>
         <li><a href="subject.html#classes.subject.Subject.set_name">(classes.subject.Subject method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="sequence.html#classes.sequence.Sequence.set_path_audio">set_path_audio() (classes.sequence.Sequence method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.set_pose_from_index">set_pose_from_index() (classes.graphic_classes.GraphicSequence method)</a>
 </li>
       <li><a href="graphic_classes.html#classes.graphic_classes.GraphicSequence.set_pose_from_timestamp">set_pose_from_timestamp() (classes.graphic_classes.GraphicSequence method)</a>
@@ -1186,6 +1268,8 @@
 </li>
       <li><a href="subject.html#classes.subject.Subject">Subject (class in classes.subject)</a>
 </li>
+      <li><a href="experiment.html#classes.experiment.Experiment.subjects">subjects (classes.experiment.Experiment attribute)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -1205,8 +1289,6 @@
       <li><a href="audio.html#classes.audio.Audio.timestamps">timestamps (classes.audio.Audio attribute)</a>
 
       <ul>
-        <li><a href="audio_derivatives.html#classes.audio_derivatives.AudioDerivative.timestamps">(classes.audio_derivatives.AudioDerivative attribute)</a>
-</li>
         <li><a href="audio_derivatives.html#classes.audio_derivatives.Envelope.timestamps">(classes.audio_derivatives.Envelope attribute)</a>
 </li>
         <li><a href="audio_derivatives.html#classes.audio_derivatives.Formant.timestamps">(classes.audio_derivatives.Formant attribute)</a>

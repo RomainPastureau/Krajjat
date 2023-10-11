@@ -7,40 +7,6 @@ from tool_functions import resample_data
 class AudioDerivative(object):
 	"""Parent class for the Envelope, Intensity, Pitch and Formant methods. Contains common methods for each of the
 	subclasses.
-
-	.. versionadded:: 2.0
-
-	Parameters
-	----------
-	samples: list(float) or numpy.ndarray(float64)
-		An array containing the values for the audio derivative.
-	timestamps: list(float) or numpy.ndarray(float64)
-		An array of equal length to ``samples``, containing the timestamps for each sample.
-	frequency: int or float
-		The frequency, in Hertz, of the timestamps.
-	kind: str or None
-		The kind of audio derivative: ``"Envelope"``, ``"Pitch"``, ``"Intensity"``, ``"Formant"``, or ``None``.
-	name: str or None, optional
-		The name of the audio derivative. By default, this field is used to store the name of the audio clip the
-		derivative comes from, with a suffix indicating the type of the audio derivative.
-	condition: str or None, optional
-        Optional field to represent in which experimental condition the audio derivative was originally recorded.
-
-	Attributes
-	----------
-	samples: list(float) or numpy.ndarray(float64)
-		An array containing the values for the audio derivative.
-	timestamps: list(float) or numpy.ndarray(float64)
-		An array of equal length to :attr:`samples`, containing the timestamps for each sample.
-	frequency: int or float
-		The frequency, in Hertz, at which the values in attr:`samples` are sampled.
-	kind: str or None
-		The kind of audio derivative: ``"Envelope"``, ``"Pitch"``, ``"Intensity"``, ``"Formant"``, or ``None``.
-	name: str or None, optional
-		The name of the audio derivative. By default, this field is used to store the name of the audio clip the
-		derivative comes from, with a suffix indicating the type of the audio derivative.
-    condition: str
-        Defines in which experimental condition the audio derivative was recorded.
 	"""
 
 	def __init__(self, samples, timestamps, frequency, kind, name=None, condition=None):

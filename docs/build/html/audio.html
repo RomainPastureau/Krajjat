@@ -46,6 +46,8 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="general.html">Introduction</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="classes.html">Classes</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="experiment.html">Experiment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="subject.html">Subject</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sequence.html">Sequence</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pose.html">Pose</a></li>
 <li class="toctree-l2"><a class="reference internal" href="joint.html">Joint</a></li>
@@ -122,7 +124,7 @@ formants of the speech.</p>
 <h2>Initialisation<a class="headerlink" href="#initialisation" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="classes.audio.Audio">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">classes.audio.</span></span><span class="sig-name descname"><span class="pre">Audio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_or_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">classes.audio.</span></span><span class="sig-name descname"><span class="pre">Audio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_or_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">condition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio" title="Permalink to this definition"></a></dt>
 <dd><p>Default class for audio clips matching a Sequence, typically the voice of the subject of the motion
 capture. This class allows to perform a variety of transformations of the audio stream, such as getting the
 envelope, pitch and formants of the speech.</p>
@@ -141,6 +143,7 @@ will be ignored if <code class="docutils literal notranslate"><span class="pre">
 Audio object if <code class="docutils literal notranslate"><span class="pre">path_or_samples</span></code> is a list of samples.</p></li>
 <li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – Defines a name for the Audio instance. If a string is provided, the attribute <a class="reference internal" href="#classes.audio.Audio.name" title="classes.audio.Audio.name"><code class="xref py py-attr docutils literal notranslate"><span class="pre">name</span></code></a> will take
 its value. If not, see <a class="reference internal" href="#classes.audio.Audio._define_name_init" title="classes.audio.Audio._define_name_init"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Audio._define_name_init()</span></code></a>.</p></li>
+<li><p><strong>condition</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Optional field to represent in which experimental condition the audio was recorded.</p></li>
 <li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
 <ul>
 <li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
@@ -192,6 +195,17 @@ may clutter the output and slow down the execution.</p></li>
 <span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#classes.audio.Audio.name" title="Permalink to this definition"></a></dt>
 <dd><p>Custom name given to the audio. If no name has been provided upon initialisation, it will be defined by
 <a class="reference internal" href="#classes.audio.Audio._define_name_init" title="classes.audio.Audio._define_name_init"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Audio._define_name_init()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.audio.Audio.condition">
+<span class="sig-name descname"><span class="pre">condition</span></span><a class="headerlink" href="#classes.audio.Audio.condition" title="Permalink to this definition"></a></dt>
+<dd><p>Defines in which experimental condition the audio clip was recorded.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>str</p>
@@ -438,17 +452,24 @@ a means to identify the audio.</p>
 <h3>Transformation functions<a class="headerlink" href="#transformation-functions" title="Permalink to this heading"></a></h3>
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.audio.Audio.get_envelope">
-<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">get_envelope</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter_below</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_over</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.get_envelope" title="Permalink to this definition"></a></dt>
-<dd><p>Calculates the envelope of the audio clip, applies a band-pass filter if values are provided,
-and returns an Envelope object.</p>
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">get_envelope</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter_below</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_over</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resampling_frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resampling_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cubic'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.get_envelope" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the envelope of the audio clip, and returns an Envelope object. The function can also optionally
+perform a band-pass filtering and a resampling, if the corresponding parameters are provided.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>filter_below</strong> (<em>int</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If not None nor 0, this value will be provided as the lowest frequency of the band-pass filter.</p></li>
-<li><p><strong>filter_over</strong> (<em>int</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If not None nor 0, this value will be provided as the highest frequency of the high-pass filter.</p></li>
+<li><p><strong>filter_below</strong> (<em>int</em><em>, </em><em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If not <code class="docutils literal notranslate"><span class="pre">None</span></code> nor 0, this value will be provided as the lowest frequency of the band-pass filter.</p></li>
+<li><p><strong>filter_over</strong> (<em>int</em><em>, </em><em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If not <code class="docutils literal notranslate"><span class="pre">None</span></code> nor 0, this value will be provided as the highest frequency of the high-pass filter.</p></li>
+<li><p><strong>resampling_frequency</strong> (<em>int</em><em>, </em><em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If not <code class="docutils literal notranslate"><span class="pre">None</span></code>, the envelope will be resampled at the provided frequency before being returned.</p></li>
+<li><p><strong>resampling_mode</strong> (<em>str</em><em>, </em><em>optional</em>) – This parameter allows for all the values accepted for the <code class="docutils literal notranslate"><span class="pre">kind</span></code> parameter in the function
+<code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.interpolate.interp1d()</span></code>: <code class="docutils literal notranslate"><span class="pre">&quot;linear&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;nearest&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;nearest-up&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;zero&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;slinear&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;quadratic&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;cubic&quot;</span></code> (default), <code class="docutils literal notranslate"><span class="pre">&quot;previous</span></code>”, and <code class="docutils literal notranslate"><span class="pre">&quot;next&quot;</span></code>. See the
+<a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html">documentation for this Python module</a> for more.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Defines the name of the envelope. If set on <code class="docutils literal notranslate"><span class="pre">None</span></code>, the name will be the same as the original Audio
+instance, with the suffix <code class="docutils literal notranslate"><span class="pre">&quot;(ENV)&quot;</span></code>.</p></li>
 <li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
 <ul>
 <li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
@@ -471,7 +492,7 @@ may clutter the output and slow down the execution.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.audio.Audio.get_pitch">
-<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">get_pitch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zeros_as_nan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.get_pitch" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">get_pitch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter_below</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_over</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resampling_frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zeros_as_nan</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.get_pitch" title="Permalink to this definition"></a></dt>
 <dd><p>Calculates the pitch of the voice in the audio clip, and returns a Pitch object.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
@@ -479,6 +500,11 @@ may clutter the output and slow down the execution.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>filter_below</strong> (<em>int</em><em>, </em><em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If not <code class="docutils literal notranslate"><span class="pre">None</span></code> nor 0, this value will be provided as the lowest frequency of the band-pass filter.</p></li>
+<li><p><strong>filter_over</strong> (<em>int</em><em>, </em><em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If not <code class="docutils literal notranslate"><span class="pre">None</span></code> nor 0, this value will be provided as the highest frequency of the high-pass filter.</p></li>
+<li><p><strong>resampling_frequency</strong> (<em>int</em><em>, </em><em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If not <code class="docutils literal notranslate"><span class="pre">None</span></code>, the pitch will be resampled at the provided frequency before being returned.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Defines the name of the pitch. If set on <code class="docutils literal notranslate"><span class="pre">None</span></code>, the name will be the same as the original Audio
+instance, with the suffix <code class="docutils literal notranslate"><span class="pre">&quot;(PIT)&quot;</span></code>.</p></li>
 <li><p><strong>zeros_as_nan</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set on True, the values where the pitch is equal to 0 will be replaced by
 <a class="reference external" href="https://numpy.org/doc/stable/reference/constants.html#numpy.nan">numpy.nan</a> objects.</p></li>
 <li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
@@ -503,22 +529,30 @@ may clutter the output and slow down the execution.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.audio.Audio.get_intensity">
-<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">get_intensity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.get_intensity" title="Permalink to this definition"></a></dt>
-<dd><p>Calculates the intensity of the voice in the audio clip, and returns an Intensity object.</p>
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">get_intensity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter_below</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_over</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resampling_frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.get_intensity" title="Permalink to this definition"></a></dt>
+<dd><p>Calculates the intensity of the voice in the audio clip, and returns an Intensity object. The function can
+also optionally perform a band-pass filtering and a resampling, if the corresponding parameters are provided.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
-<ul class="simple">
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filter_below</strong> (<em>int</em><em>, </em><em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If not <code class="docutils literal notranslate"><span class="pre">None</span></code> nor 0, this value will be provided as the lowest frequency of the band-pass filter.</p></li>
+<li><p><strong>filter_over</strong> (<em>int</em><em>, </em><em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If not <code class="docutils literal notranslate"><span class="pre">None</span></code> nor 0, this value will be provided as the highest frequency of the high-pass filter.</p></li>
+<li><p><strong>resampling_frequency</strong> (<em>int</em><em>, </em><em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If not <code class="docutils literal notranslate"><span class="pre">None</span></code>, the intensity will be resampled at the provided frequency before being returned.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Defines the name of the intensity. If set on <code class="docutils literal notranslate"><span class="pre">None</span></code>, the name will be the same as the original Audio
+instance, with the suffix <code class="docutils literal notranslate"><span class="pre">&quot;(INT)&quot;</span></code>.</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
 <li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
 <li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
 current steps.</p></li>
 <li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
 may clutter the output and slow down the execution.</p></li>
 </ul>
-</p>
+</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The intensity of the voice in the audio clip.</p>
@@ -531,7 +565,7 @@ may clutter the output and slow down the execution.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.audio.Audio.get_formant">
-<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">get_formant</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">formant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.get_formant" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">Audio.</span></span><span class="sig-name descname"><span class="pre">get_formant</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter_below</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_over</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resampling_frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formant_number</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.audio.Audio.get_formant" title="Permalink to this definition"></a></dt>
 <dd><p>Calculates the formants of the voice in the audio clip, and returns a Formant object.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
@@ -539,7 +573,12 @@ may clutter the output and slow down the execution.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>formant</strong> (<em>int</em><em>, </em><em>optional.</em>) – One of the formants of the voice in the audio clip (1 (default), 2, 3, 4 or 5).</p></li>
+<li><p><strong>filter_below</strong> (<em>int</em><em>, </em><em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If not <code class="docutils literal notranslate"><span class="pre">None</span></code> nor 0, this value will be provided as the lowest frequency of the band-pass filter.</p></li>
+<li><p><strong>filter_over</strong> (<em>int</em><em>, </em><em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If not <code class="docutils literal notranslate"><span class="pre">None</span></code> nor 0, this value will be provided as the highest frequency of the high-pass filter.</p></li>
+<li><p><strong>resampling_frequency</strong> (<em>int</em><em>, </em><em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If not <code class="docutils literal notranslate"><span class="pre">None</span></code>, the formant will be resampled at the provided frequency before being returned.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Defines the name of the intensity. If set on <code class="docutils literal notranslate"><span class="pre">None</span></code>, the name will be the same as the original Audio
+instance, with the suffix <code class="docutils literal notranslate"><span class="pre">&quot;(Fn)&quot;</span></code>, with n being the formant number.</p></li>
+<li><p><strong>formant_number</strong> (<em>int</em><em>, </em><em>optional.</em>) – One of the formants of the voice in the audio clip (1 (default), 2, 3, 4 or 5).</p></li>
 <li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
 <ul>
 <li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
@@ -573,10 +612,11 @@ desired frequency, and then interpolates the original data to the new timestamps
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>frequency</strong> (<em>float</em>) – The frequency, in hertz, at which you want to resample the audio clip. A frequency of 4 will return samples
 at 0.25 s intervals.</p></li>
-<li><p><strong>mode</strong> (<em>str</em><em>, </em><em>optional</em>) – This parameter also allows for all the values accepted for the <code class="docutils literal notranslate"><span class="pre">kind</span></code> parameter in the function
+<li><p><strong>mode</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>This parameter also allows for all the values accepted for the <code class="docutils literal notranslate"><span class="pre">kind</span></code> parameter in the function
 <code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.interpolate.interp1d()</span></code>: <code class="docutils literal notranslate"><span class="pre">&quot;linear&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;nearest&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;nearest-up&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;zero&quot;</span></code>,
 <code class="docutils literal notranslate"><span class="pre">&quot;slinear&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;quadratic&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;cubic&quot;</span></code>”, <code class="docutils literal notranslate"><span class="pre">&quot;previous&quot;</span></code>, and <code class="docutils literal notranslate"><span class="pre">&quot;next&quot;</span></code>. See the <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html">documentation
-for this Python module</a> for more.</p></li>
+for this Python module</a> for more.</p>
+</p></li>
 <li><p><strong>name</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Defines the name of the output audio clip. If set on <code class="docutils literal notranslate"><span class="pre">None</span></code>, the name will be the same as the input
 audio clip, with the suffix <code class="docutils literal notranslate"><span class="pre">&quot;+RS&quot;</span></code>.</p></li>
 <li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>

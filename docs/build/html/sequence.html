@@ -22,7 +22,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Pose" href="pose.html" />
-    <link rel="prev" title="Classes" href="classes.html" /> 
+    <link rel="prev" title="Subject" href="subject.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -47,6 +47,8 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="general.html">Introduction</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="classes.html">Classes</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="experiment.html">Experiment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="subject.html">Subject</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Sequence</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#initialisation">Initialisation</a><ul>
@@ -211,6 +213,17 @@ may clutter the output and slow down the execution.</p></li>
 <span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#classes.sequence.Sequence.name" title="Permalink to this definition"></a></dt>
 <dd><p>Custom name given to the sequence. If no name has been provided upon initialisation, it will be defined by
 <a class="reference internal" href="#classes.sequence.Sequence._define_name_init" title="classes.sequence.Sequence._define_name_init"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence._define_name_init()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.condition">
+<span class="sig-name descname"><span class="pre">condition</span></span><a class="headerlink" href="#classes.sequence.Sequence.condition" title="Permalink to this definition"></a></dt>
+<dd><p>Defines in which experimental condition the sequence was recorded.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>str</p>
@@ -416,7 +429,7 @@ a means to identify the sequence (typically, <code class="xref py py-func docuti
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.sequence.Sequence.set_condition">
 <span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">set_condition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">condition</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.set_condition" title="Permalink to this definition"></a></dt>
-<dd><p>Sets the <code class="xref py py-attr docutils literal notranslate"><span class="pre">condition</span></code> attribute of the Sequence instance. This attribute can be used to save the
+<dd><p>Sets the <a class="reference internal" href="#classes.sequence.Sequence.condition" title="classes.sequence.Sequence.condition"><code class="xref py py-attr docutils literal notranslate"><span class="pre">condition</span></code></a> attribute of the Sequence instance. This attribute can be used to save the
 experimental condition in which the sequence instance was recorded.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
@@ -512,7 +525,7 @@ accordingly.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.sequence.Sequence.get_condition">
 <span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_condition</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_condition" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">condition</span></code> of the sequence.</p>
+<dd><p>Returns the attribute <a class="reference internal" href="#classes.sequence.Sequence.condition" title="classes.sequence.Sequence.condition"><code class="xref py py-attr docutils literal notranslate"><span class="pre">condition</span></code></a> of the sequence.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
@@ -640,7 +653,7 @@ their equivalent on the right side.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>side</strong> (<em>str</em>) – The side of the arm you want to measure, either <code class="docutils literal notranslate"><span class="pre">&quot;Left&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;Right&quot;</span></code>.</p></li>
+<li><p><strong>side</strong> (<em>str</em>) – The side of the arm you want to measure, either <code class="docutils literal notranslate"><span class="pre">&quot;left&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;right&quot;</span></code>.</p></li>
 <li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
 <ul>
 <li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
@@ -1335,6 +1348,58 @@ ordered chronologically.</p>
 <p class="admonition-title">Note</p>
 <p>Because the accelerations are calculated between consecutive pairs of poses, the lists returned by the function
 have a length of <span class="math notranslate nohighlight">\(n-2\)</span>, with <span class="math notranslate nohighlight">\(n\)</span> being the number of poses of the sequence.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_time_series_as_list">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_time_series_as_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_time_series_as_list" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a dictionary containing one of the metrics for all joints: coordinate, distance travelled, velocity
+or acceleration.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>metric</strong> (<em>str</em>) – <p>The metric to be returned, can be either:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;x&quot;</span></code>, for the values on the x axis (in meters)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;y&quot;</span></code>, for the values on the y axis (in meters)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;z&quot;</span></code>, for the values on the z axis (in meters)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;distance_hands&quot;</span></code>, for the distance between the hands (in meters)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;distance&quot;</span></code>, for the distance travelled (in meters)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;distance_x&quot;</span></code> for the distance travelled on the x axis (in meters)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;distance_y&quot;</span></code> for the distance travelled on the y axis (in meters)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;distance_z&quot;</span></code> for the distance travelled on the z axis (in meters)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;velocity&quot;</span></code> for the velocity (in meters per second)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;acceleration&quot;</span></code> for the acceleration (in meters per second squared)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;acceleration_abs&quot;</span></code> for the absolute acceleration (in meters per second squared)</p></li>
+</ul>
+</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
+<li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
+<li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
+current steps.</p></li>
+<li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
+may clutter the output and slow down the execution.</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>OrderedDict(str</strong> – Dictionary with joint labels as keys, and the specified metric as a value.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(float))</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Because the distances and velocities are calculated between consecutive poses (apart from distance_hands), the
+lists returned by the function have a length of <span class="math notranslate nohighlight">\(n-1\)</span>, with <span class="math notranslate nohighlight">\(n\)</span> being the number of poses of the
+sequence. For accelerations, the lists returned have a length of <span class="math notranslate nohighlight">\(n-2\)</span>.</p>
 </div>
 </dd></dl>
 
@@ -2183,6 +2248,26 @@ coordinates. The attribute <a class="reference internal" href="#classes.sequence
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.print_details">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">print_details</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">include_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_condition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_date_recording</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_number_of_poses</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.print_details" title="Permalink to this definition"></a></dt>
+<dd><p>Prints a series of details about the sequence.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>include_name</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">True</span></code> (default), adds the attribute <a class="reference internal" href="#classes.sequence.Sequence.name" title="classes.sequence.Sequence.name"><code class="xref py py-attr docutils literal notranslate"><span class="pre">name</span></code></a> to the printed string.</p></li>
+<li><p><strong>include_condition</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">True</span></code> (default), adds the attribute <a class="reference internal" href="#classes.sequence.Sequence.condition" title="classes.sequence.Sequence.condition"><code class="xref py py-attr docutils literal notranslate"><span class="pre">condition</span></code></a> to the printed string.</p></li>
+<li><p><strong>include_date_recording</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">True</span></code> (default), adds the attribute <code class="xref py py-attr docutils literal notranslate"><span class="pre">date_of_recording</span></code> to the printed string.</p></li>
+<li><p><strong>include_number_of_poses</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">True</span></code> (default), adds the length of the attribute <a class="reference internal" href="#classes.sequence.Sequence.poses" title="classes.sequence.Sequence.poses"><code class="xref py py-attr docutils literal notranslate"><span class="pre">poses</span></code></a> to the printed string.</p></li>
+<li><p><strong>include_duration</strong> (<em>bool</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">True</span></code> (default), adds the duration of the Sequence to the printed string.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
@@ -3048,7 +3133,7 @@ sequence.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="classes.html" class="btn btn-neutral float-left" title="Classes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="subject.html" class="btn btn-neutral float-left" title="Subject" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="pose.html" class="btn btn-neutral float-right" title="Pose" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
