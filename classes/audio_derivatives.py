@@ -1,10 +1,7 @@
 """Classes for time series derived from audio clips: Envelope, Intensity, Pitch and Formants."""
 
-import numpy as np
-from scipy.signal import butter, hilbert, lfilter
-
-from classes.exceptions import ModuleNotFoundException
-from tool_functions import resample_data, pad, add_delay
+from scipy.signal import butter, lfilter
+from tool_functions import resample_data
 
 
 class AudioDerivative(object):
@@ -241,7 +238,7 @@ class AudioDerivative(object):
 			samples at 0.25 s intervals.
 
 		mode: str, optional
-			This parameter also allows for all the values accepted for the ``kind`` parameter in the function
+			This parameter allows for all the values accepted for the ``kind`` parameter in the function
 			:func:`scipy.interpolate.interp1d`: ``"linear"``, ``"nearest"``, ``"nearest-up"``, ``"zero"``,
 			``"slinear"``, ``"quadratic"``, ``"cubic"`` (default), ``"previous"``, and ``"next"``. See the
 			`documentation for this Python module
@@ -345,33 +342,20 @@ class Envelope(AudioDerivative):
 
 	Parameters
 	----------
-	audio_or_samples: Audio or list(float) or numpy.ndarray(float64)
-		An Audio instance, or an array containing the samples of an audio file. In the case where this parameter is an
-		array, at least one of the parameters ``timestamps`` and ``frequency`` must be provided.
+	samples: list(float) or numpy.ndarray(float64)
+		The envelope values.
 
-	timestamps: list(float) or numpy.ndarray(float64) or None, optional
-		The timestamps of the samples. This parameter is ignored if ``audio_or_samples`` is an instance of
-		:class:`Audio`.
+	timestamps: list(float) or numpy.ndarray(float64)
+		The timestamps of the samples.
 
-	frequency: int or float or None, optional
-		The frequency rate of the samples. This parameter is ignored if ``audio_or_samples`` is an instance of
-		:class:`Audio`.
+	frequency: int or float or None
+		The frequency rate of the samples.
 
 	name: str or None, optional
-		Defines the name of the envelope. If set on ``None``, the name will be the same as the original Audio instance,
-		with the suffix ``"(ENV)"``.
+		Defines the name of the Envelope instance.
 
 	condition: str or None, optional
         Optional field to represent in which experimental condition the original audio was clip recorded.
-
-	verbosity: int, optional
-		Sets how much feedback the code will provide in the console output:
-
-		• *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
-		• *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
-		  current steps.
-		• *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
-		  may clutter the output and slow down the execution.
 
 	Attributes
 	----------
@@ -390,40 +374,7 @@ class Envelope(AudioDerivative):
 	condition: str or None
         Defines in which experimental condition the original audio was clip recorded.
 	"""
-
-	def __init__(self, audio_or_samples, timestamps=None, frequency=None, name=None, condition=None, verbosity=1):
-
-		if verbosity > 0:
-			print("Creating an Envelope object...", end=" ")
-
-		self.condition = condition
-
-		# If the parameter is an array of samples
-		if type(audio_or_samples) in [list, np.ndarray]:
-			samples = np.abs(hilbert(audio_or_samples))
-			if timestamps is None and frequency is not None:
-				timestamps = [i / frequency for i in range(len(samples))]
-			elif timestamps is not None and frequency is None:
-				frequency = 1 / (timestamps[1] - timestamps[0])
-			elif timestamps is None and frequency is None:
-				raise Exception("If audio_or_samples is an array, at least one of the parameters timestamp or " +
-								"frequency must be provided.")
-
-		# If the parameter is an Audio object
-		elif str(type(audio_or_samples)) == "<class 'classes.audio.Audio'>":
-			samples = np.abs(hilbert(audio_or_samples.get_samples()))
-			timestamps = audio_or_samples.get_timestamps()
-			frequency = audio_or_samples.get_frequency()
-			if name is None:
-				name = audio_or_samples.get_name() + " (ENV)"
-
-		else:
-			raise Exception("Invalid type for the parameter audio_or_samples ( " + str(type(audio_or_samples)) + "). " +
-							"The type should be list, numpy.ndarray or Audio.")
-
-		if verbosity > 0:
-			print("Done.")
-
+	def __init__(self, samples, timestamps, frequency, name=None, condition=None):
 		super().__init__(samples, timestamps, frequency, "Envelope", name, condition)
 
 
@@ -434,37 +385,21 @@ class Pitch(AudioDerivative):
 
 	Parameters
 	----------
-	audio_or_samples: Audio or list(float) or numpy.ndarray(float64)
-		An Audio instance, or an array containing the samples of an audio file. In the case where this parameter is an
-		array, at least one of the parameters ``timestamps`` and ``frequency`` must be provided.
+	samples: list(float) or numpy.ndarray(float64)
+		The pitch values.
 
-	timestamps: list(float) or numpy.ndarray(float64) or None, optional
-		The timestamps of the samples. This parameter is ignored if ``audio_or_samples`` is an instance of
-		:class:`Audio`.
+	timestamps: list(float) or numpy.ndarray(float64)
+		The timestamps of the samples.
 
-	frequency: int or float or None, optional
-		The frequency rate of the samples. This parameter is ignored if ``audio_or_samples`` is an instance of
-		:class:`Audio`.
+	frequency: int or float
+		The frequency rate of the samples.
 
 	name: str or None, optional
-		Defines the name of the envelope. If set on ``None``, the name will be the same as the original Audio instance,
+		Defines the name of the pitch. If set on ``None``, the name will be the same as the original Audio instance,
 		with the suffix ``"(PIT)"``.
 
 	condition: str or None, optional
         Optional field to represent in which experimental condition the original audio was clip recorded.
-
-	zeros_as_nan: bool, optional
-		If set on True, the values where the pitch is equal to 0 will be replaced by
-		`numpy.nan <https://numpy.org/doc/stable/reference/constants.html#numpy.nan>`_ objects.
-
-	verbosity: int, optional
-		Sets how much feedback the code will provide in the console output:
-
-		• *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
-		• *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
-		  current steps.
-		• *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
-		  may clutter the output and slow down the execution.
 
 	Attributes
 	----------
@@ -483,67 +418,8 @@ class Pitch(AudioDerivative):
 	condition: str or None
         Defines in which experimental condition the original audio was clip recorded.
 	"""
-
-	# noinspection PyArgumentList
-	def __init__(self, audio_or_samples, timestamps=None, frequency=None, name=None, condition=None, zeros_as_nan=False,
-				 verbosity=1):
-		if verbosity > 0:
-			print("Creating a Pitch object...")
-
-		try:
-			from parselmouth import Sound
-		except ImportError:
-			raise ModuleNotFoundException("parselmouth", "get the pitch of an audio clip.")
-
-		self.condition = condition
-
-		# If the parameter is an array of samples
-		if type(audio_or_samples) in [list, np.ndarray]:
-			original_samples = np.array(audio_or_samples, dtype=np.float64)
-			if timestamps is None and frequency is not None:
-				timestamps = [i / frequency for i in range(len(original_samples))]
-			elif timestamps is not None and frequency is None:
-				frequency = 1 / (timestamps[1] - timestamps[0])
-			elif timestamps is None and frequency is None:
-				raise Exception("If audio_or_samples is an array, at least one of the parameters timestamp or " +
-								"frequency must be provided.")
-
-		# If the parameter is an Audio object
-		elif str(type(audio_or_samples)) == "<class 'classes.audio.Audio'>":
-			original_samples = np.array(audio_or_samples.get_samples(), dtype=np.float64)
-			timestamps = audio_or_samples.timestamps
-			frequency = audio_or_samples.frequency
-			if name is None:
-				name = audio_or_samples.get_name() + " (PIT)"
-
-		else:
-			raise Exception("Invalid type for the parameter audio_or_samples ( " + str(type(audio_or_samples)) + "). " +
-							"The type should be list, numpy.ndarray or Audio.")
-
-		if verbosity > 0:
-			print("\tTurning the audio into a parselmouth object...", end=" ")
-
-		parselmouth_sound = Sound(np.ndarray(np.shape(original_samples), dtype=np.float64, buffer=original_samples),
-								  audio_or_samples.frequency)
-		if verbosity > 0:
-			print("Done.")
-			print("\tGetting the pitch...", end=" ")
-
-		pitch = parselmouth_sound.to_pitch(time_step=1 / frequency)
-
-		if verbosity > 0:
-			print("Done.")
-			print("\tPadding the data...", end=" ")
-
-		pitch, timestamps = pad(pitch.selected_array["frequency"], pitch.xs(), timestamps)
-
-		if zeros_as_nan:
-			pitch[pitch == 0] = np.nan
-
-		if verbosity > 0:
-			print("Done.")
-
-		super().__init__(pitch, timestamps, frequency, "Pitch", name, condition)
+	def __init__(self, samples, timestamps=None, frequency=None, name=None, condition=None):
+		super().__init__(samples, timestamps, frequency, "Pitch", name, condition)
 
 
 class Intensity(AudioDerivative):
@@ -553,13 +429,13 @@ class Intensity(AudioDerivative):
 
 	Parameters
 	----------
-	samples: Audio or list(float) or numpy.ndarray(float64)
+	samples: list(float) or numpy.ndarray(float64)
 		The intensity values.
 
-	timestamps: list(float) or numpy.ndarray(float64) or None, optional
-		The timestamps of the intensity values.
+	timestamps: list(float) or numpy.ndarray(float64)
+		The timestamps of the samples.
 
-	frequency: int or float or None, optional
+	frequency: int or float
 		The frequency rate of the samples.
 
 	name: str or None, optional
@@ -596,27 +472,23 @@ class Formant(AudioDerivative):
 
 	Parameters
 	----------
-	audio_or_samples: Audio or list(float) or numpy.ndarray(float64)
-		An Audio instance, or an array containing the samples of an audio file. In the case where this parameter is an
-		array, at least one of the parameters ``timestamps`` and ``frequency`` must be provided.
+	samples: list(float) or numpy.ndarray(float64)
+		The formant values.
 
-	timestamps: list(float) or numpy.ndarray(float64) or None, optional
-		The timestamps of the samples. This parameter is ignored if ``audio_or_samples`` is an instance of
-		:class:`Audio`.
+	timestamps: list(float) or numpy.ndarray(float64)
+		The timestamps of the samples.
 
-	frequency: int or float or None, optional
-		The frequency rate of the samples. This parameter is ignored if ``audio_or_samples`` is an instance of
-		:class:`Audio`.
+	frequency: int or float
+		The frequency rate of the samples.
+
+	formant_number: int
+		The number of the formant to extract from the audio clip (default: 1 for f1).
 
 	name: str or None, optional
-		Defines the name of the envelope. If set on ``None``, the name will be the same as the original Audio instance,
-		with the suffix ``"(INT)"``.
+		Defines the name of the Formant instance.
 
 	condition: str or None, optional
         Optional field to represent in which experimental condition the original audio was clip recorded.
-
-	formant_number: int, optional
-		The number of the formant to extract from the audio clip (default: 1 for f1).
 
 	Attributes
 	----------
@@ -640,67 +512,6 @@ class Formant(AudioDerivative):
 	"""
 
 	# noinspection PyArgumentList
-	def __init__(self, audio_or_samples, timestamps=None, frequency=None, name=None, condition=None, formant_number=1,
-				 verbosity=1):
-		if verbosity > 0:
-			print("Creating a Formant object...")
-
-		try:
-			from parselmouth import Sound
-		except ImportError:
-			raise ModuleNotFoundException("parselmouth", "get one of the formants of an audio clip.")
-
-		self.condition = condition
-
-		# If the parameter is an array of samples
-		if type(audio_or_samples) in [list, np.ndarray]:
-			original_samples = np.array(audio_or_samples, dtype=np.float64)
-			if timestamps is None and frequency is not None:
-				timestamps = [i / frequency for i in range(len(original_samples))]
-			elif timestamps is not None and frequency is None:
-				frequency = 1 / (timestamps[1] - timestamps[0])
-			elif timestamps is None and frequency is None:
-				raise Exception("If audio_or_samples is an array, at least one of the parameters timestamp or " +
-								"frequency must be provided.")
-
-		# If the parameter is an Audio object
-		elif str(type(audio_or_samples)) == "<class 'classes.audio.Audio'>":
-			original_samples = np.array(audio_or_samples.get_samples(), dtype=np.float64)
-			timestamps = audio_or_samples.timestamps
-			frequency = audio_or_samples.frequency
-			if name is None:
-				name = audio_or_samples.get_name() + " (" + str(formant_number) + ")"
-
-		else:
-			raise Exception("Invalid type for the parameter audio_or_samples ( " + str(type(audio_or_samples)) + "). " +
-							"The type should be list, numpy.ndarray or Audio.")
-
-		if verbosity > 0:
-			print("\tTurning the audio into a parselmouth object...", end=" ")
-
-		parselmouth_sound = Sound(np.ndarray(np.shape(original_samples), dtype=np.float64, buffer=original_samples),
-								  audio_or_samples.frequency)
-
-		if verbosity > 0:
-			print("Done.")
-			print("\tGetting the formant...", end=" ")
-
-		formants = parselmouth_sound.to_formant_burg(time_step=1 / frequency)
-		formants_timestamps = add_delay(formants.xs(), -1 / (2 * frequency))
-
-		if verbosity > 0:
-			print("Done.")
-			print("\tPadding the data...", end=" ")
-
-		number_of_points = formants.get_number_of_frames()
-		f = []
-		for i in range(1, number_of_points + 1):
-			t = formants.get_time_from_frame_number(i)
-			f.append(formants.get_value_at_time(formant_number=formant_number, time=t))
-		f, timestamps = pad(f, formants_timestamps, timestamps)
-
-		if verbosity > 0:
-			print("Done.")
-
-		super().__init__(f, timestamps, frequency, "Formant", name, condition)
+	def __init__(self, samples, timestamps, frequency, formant_number=1, name=None, condition=None):
+		super().__init__(samples, timestamps, frequency, "Formant", name, condition)
 		self.formant_number = formant_number

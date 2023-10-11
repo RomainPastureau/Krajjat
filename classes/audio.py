@@ -2,6 +2,7 @@
 This class allows to perform a variety of transformations of the audio stream, such as getting the envelope, pitch and
 formants of the speech.
 """
+from scipy.signal import hilbert
 
 from classes.audio_derivatives import *
 from classes.exceptions import *
@@ -734,18 +735,35 @@ class Audio(object):
         return self.frequency
 
     # === Transformation functions ===
-    def get_envelope(self, filter_below=0, filter_over=10, verbosity=1):
-        """Calculates the envelope of the audio clip, applies a band-pass filter if values are provided,
-        and returns an Envelope object.
+    def get_envelope(self, filter_below=None, filter_over=None, resampling_frequency=None, resampling_mode="cubic",
+                     name=None, verbosity=1):
+        """Calculates the envelope of the audio clip, and returns an Envelope object. The function can also optionally
+        perform a band-pass filtering and a resampling, if the corresponding parameters are provided.
 
         .. versionadded:: 2.0
 
         Parameters
         ----------
-        filter_below: int or None, optional
-            If not None nor 0, this value will be provided as the lowest frequency of the band-pass filter.
-        filter_over: int or None, optional
-            If not None nor 0, this value will be provided as the highest frequency of the high-pass filter.
+        filter_below: int, float or None, optional
+            If not ``None`` nor 0, this value will be provided as the lowest frequency of the band-pass filter.
+
+        filter_over: int, float or None, optional
+            If not ``None`` nor 0, this value will be provided as the highest frequency of the high-pass filter.
+
+        resampling_frequency: int, float or None, optional
+            If not ``None``, the envelope will be resampled at the provided frequency before being returned.
+
+        resampling_mode: str, optional
+            This parameter allows for all the values accepted for the ``kind`` parameter in the function
+            :func:`scipy.interpolate.interp1d`: ``"linear"``, ``"nearest"``, ``"nearest-up"``, ``"zero"``,
+            ``"slinear"``, ``"quadratic"``, ``"cubic"`` (default), ``"previous``", and ``"next"``. See the
+            `documentation for this Python module
+            <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`_ for more.
+
+        name: str or None, optional
+            Defines the name of the envelope. If set on ``None``, the name will be the same as the original Audio
+            instance, with the suffix ``"(ENV)"``.
+
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
 
@@ -760,20 +778,56 @@ class Audio(object):
         Envelope
             The filtered envelope of the audio clip.
         """
-        envelope = Envelope(self, condition=self.condition, verbosity=verbosity)
-        envelope = envelope.filter_frequencies(filter_below, filter_over, verbosity)
+        if verbosity > 0:
+            print("Creating an Envelope object...", end=" ")
+
+        # If the parameter is an array of samples
+        samples = np.abs(hilbert(self.samples))
+
+        if resampling_frequency is None:
+            resampling_frequency = self.frequency
+
+        if name is None:
+            name = self.name + " (ENV)"
+
+        if verbosity > 0:
+            print("Done.")
+
+        envelope = Envelope(samples, timestamps, self.frequency, name, condition)
+
+        if filter_below is not None or filter_over is not None:
+            envelope = envelope.filter_frequencies(filter_below, filter_over, name, verbosity)
+        if resampling_frequency is not None:
+            envelope = envelope.resample(resampling_frequency, resampling_mode, name, verbosity)
+
         return envelope
 
-    def get_pitch(self, zeros_as_nan=False, verbosity=1):
+    # noinspection PyArgumentList
+    def get_pitch(self, filter_below=None, filter_over=None, resampling_frequency=None, name=None, zeros_as_nan=False,
+                  verbosity=1):
         """Calculates the pitch of the voice in the audio clip, and returns a Pitch object.
 
         .. versionadded:: 2.0
 
         Parameters
         ----------
+        filter_below: int, float or None, optional
+            If not ``None`` nor 0, this value will be provided as the lowest frequency of the band-pass filter.
+
+        filter_over: int, float or None, optional
+            If not ``None`` nor 0, this value will be provided as the highest frequency of the high-pass filter.
+
+        resampling_frequency: int, float or None, optional
+            If not ``None``, the pitch will be resampled at the provided frequency before being returned.
+
+        name: str or None, optional
+            Defines the name of the pitch. If set on ``None``, the name will be the same as the original Audio
+            instance, with the suffix ``"(PIT)"``.
+
         zeros_as_nan: bool, optional
             If set on True, the values where the pitch is equal to 0 will be replaced by
             `numpy.nan <https://numpy.org/doc/stable/reference/constants.html#numpy.nan>`_ objects.
+
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
 
@@ -788,21 +842,75 @@ class Audio(object):
         Pitch
             The pitch of the voice in the audio clip.
         """
-        return Pitch(self, zeros_as_nan=zeros_as_nan, condition=self.condition, verbosity=verbosity)
+        if verbosity > 0:
+            print("Creating a Pitch object...")
+
+        try:
+            from parselmouth import Sound
+        except ImportError:
+            raise ModuleNotFoundException("parselmouth", "get the pitch of an audio clip.")
+
+        if verbosity > 0:
+            print("\tTurning the audio into a parselmouth object...", end=" ")
+
+        samples = np.array(self.samples, dtype=np.float64)
+        parselmouth_sound = Sound(np.ndarray(np.shape(samples), dtype=np.float64, buffer=samples), self.frequency)
+
+        if verbosity > 0:
+            print("Done.")
+            print("\tGetting the pitch...", end=" ")
+
+        if resampling_frequency is None:
+            resampling_frequency = self.frequency
+
+        if name is None:
+            name = self.name + " (PIT)"
+
+        if verbosity > 0:
+            print("Done.")
+            print("\tGetting the pitch...", end=" ")
+
+        pitch = parselmouth_sound.to_pitch(time_step=1 / resampling_frequency)
+
+        if verbosity > 0:
+            print("Done.")
+            print("\tPadding the data...", end=" ")
+
+        pitch, timestamps = pad(pitch.selected_array["frequency"], pitch.xs(), self.timestamps)
+
+        if zeros_as_nan:
+            pitch[pitch == 0] = np.nan
+
+        if verbosity > 0:
+            print("Done.")
+
+        pitch = Pitch(self, zeros_as_nan=zeros_as_nan, condition=self.condition, verbosity=verbosity)
+
+        if filter_below is not None or filter_over is not None:
+            pitch = pitch.filter_frequencies(filter_below, filter_over, name, verbosity)
+
+        return pitch
 
     # noinspection PyArgumentList
-    def get_intensity(self, resampling_frequency=None, name=None, verbosity=1):
-        """Calculates the intensity of the voice in the audio clip, and returns an Intensity object.
+    def get_intensity(self, filter_below=None, filter_over=None, resampling_frequency=None, name=None, verbosity=1):
+        """Calculates the intensity of the voice in the audio clip, and returns an Intensity object. The function can
+        also optionally perform a band-pass filtering and a resampling, if the corresponding parameters are provided.
 
         .. versionadded:: 2.0
 
         Parameters
         ----------
-        resampling_frequency: int or float or None, optional
-            The frequency of the output intensity. Smaller values allow faster computation.
+        filter_below: int, float or None, optional
+            If not ``None`` nor 0, this value will be provided as the lowest frequency of the band-pass filter.
+
+        filter_over: int, float or None, optional
+            If not ``None`` nor 0, this value will be provided as the highest frequency of the high-pass filter.
+
+        resampling_frequency: int, float or None, optional
+            If not ``None``, the intensity will be resampled at the provided frequency before being returned.
 
         name: str or None, optional
-            Defines the name of the envelope. If set on ``None``, the name will be the same as the original Audio
+            Defines the name of the intensity. If set on ``None``, the name will be the same as the original Audio
             instance, with the suffix ``"(INT)"``.
 
         verbosity: int, optional
@@ -846,6 +954,9 @@ class Audio(object):
         intensity = parselmouth_sound.to_intensity(time_step=1 / resampling_frequency)
         intensity_timestamps = add_delay(intensity.xs(), -intensity.xs()[0] % (1 / resampling_frequency))
 
+        if filter_below is not None or filter_over is not None:
+            intensity = intensity.filter_frequencies(filter_below, filter_over, name, verbosity)
+
         if verbosity > 0:
             print("Done.")
             print("\tPadding the data...", end=" ")
@@ -857,17 +968,38 @@ class Audio(object):
         if verbosity > 0:
             print("Done.")
 
-        return Intensity(samples, timestamps, resampling_frequency, name, self.condition)
+        intensity = Intensity(samples, timestamps, resampling_frequency, name, self.condition)
 
-    def get_formant(self, formant=1, verbosity=1):
+        if filter_below is not None or filter_over is not None:
+            intensity = intensity.filter_frequencies(filter_below, filter_over, name, verbosity)
+
+        return intensity
+
+    # noinspection PyArgumentList
+    def get_formant(self, filter_below=None, filter_over=None, resampling_frequency=None, name=None, formant_number=1,
+                    verbosity=1):
         """Calculates the formants of the voice in the audio clip, and returns a Formant object.
 
         .. versionadded:: 2.0
 
         Parameters
         ----------
-        formant: int, optional.
+        filter_below: int, float or None, optional
+            If not ``None`` nor 0, this value will be provided as the lowest frequency of the band-pass filter.
+
+        filter_over: int, float or None, optional
+            If not ``None`` nor 0, this value will be provided as the highest frequency of the high-pass filter.
+
+        resampling_frequency: int, float or None, optional
+            If not ``None``, the formant will be resampled at the provided frequency before being returned.
+
+        name: str or None, optional
+            Defines the name of the intensity. If set on ``None``, the name will be the same as the original Audio
+            instance, with the suffix ``"(Fn)"``, with n being the formant number.
+
+        formant_number: int, optional.
             One of the formants of the voice in the audio clip (1 (default), 2, 3, 4 or 5).
+
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
 
@@ -882,7 +1014,56 @@ class Audio(object):
         Formant
             The value of a formant of the voice in the audio clip.
         """
-        return Formant(self, condition=self.condition, formant_number=formant, verbosity=verbosity)
+        if verbosity > 0:
+            print("Creating a Formant object...")
+
+        try:
+            from parselmouth import Sound
+        except ImportError:
+            raise ModuleNotFoundException("parselmouth", "get one of the formants of an audio clip.")
+
+        if verbosity > 0:
+            print("\tTurning the audio into a parselmouth object...", end=" ")
+
+        samples = np.array(self.samples, dtype=np.float64)
+        parselmouth_sound = Sound(np.ndarray(np.shape(samples), dtype=np.float64, buffer=samples), self.frequency)
+
+        if verbosity > 0:
+            print("Done.")
+            print("\tGetting the formant...", end=" ")
+
+        if resampling_frequency is None:
+            resampling_frequency = self.frequency
+
+        if name is None:
+            name = self.name + " (" + str(formant_number) + ")"
+
+        formant = parselmouth_sound.to_formant_burg(time_step=1 / resampling_frequency)
+        formant_timestamps = add_delay(formant.xs(), -1 / (2 * resampling_frequency))
+
+        if filter_below is not None or filter_over is not None:
+            formant = formant.filter_frequencies(filter_below, filter_over, name, verbosity)
+
+        if verbosity > 0:
+            print("Done.")
+            print("\tPadding the data...", end=" ")
+
+        number_of_points = formant.get_number_of_frames()
+        f = []
+        for i in range(1, number_of_points + 1):
+            t = formant.get_time_from_frame_number(i)
+            f.append(formant.get_value_at_time(formant_number=formant_number, time=t))
+        f, timestamps = pad(f, formant_timestamps, self.timestamps)
+
+        if verbosity > 0:
+            print("Done.")
+
+        formant = Formant(f, timestamps, resampling_frequency, formant_number, name, self.condition)
+
+        if filter_below is not None or filter_over is not None:
+            formant = formant.filter_frequencies(filter_below, filter_over, name, verbosity)
+
+        return formant
 
     def resample(self, frequency, mode="cubic", name=None, verbosity=1):
         """Resamples an audio clip to the `frequency` parameter. It first creates a new set of timestamps at the

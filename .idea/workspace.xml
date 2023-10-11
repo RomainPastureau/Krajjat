@@ -9,83 +9,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="17f5d419-2a1b-432f-83bc-85d48bd70ac2" name="Changes" comment="Changes">
-      <change afterPath="$PROJECT_DIR$/analysis_functions.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/classes/experiment.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/classes/subject.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/build/html/_images/vocabulary.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/build/html/_sources/dejittering.rst.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/build/html/_sources/subject.rst.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/build/html/dejittering.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/build/html/subject.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/source/dejittering.rst" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/source/experiment.rst" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/source/img/vocabulary.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/source/subject.rst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/krajjat.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/krajjat.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/classes/audio.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/audio.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/classes/audio_derivatives.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/audio_derivatives.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classes/exceptions.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/exceptions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/classes/sequence.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/sequence.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/doctrees/classes.doctree" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/doctrees/classes.doctree" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/doctrees/environment.pickle" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/doctrees/environment.pickle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/doctrees/general.doctree" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/doctrees/general.doctree" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/doctrees/index.doctree" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/doctrees/index.doctree" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/doctrees/sequence.doctree" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/doctrees/sequence.doctree" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/doctrees/vocabulary.doctree" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/doctrees/vocabulary.doctree" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/.buildinfo" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/.buildinfo" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/_sources/classes.rst.txt" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/_sources/classes.rst.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/_sources/dependencies.rst.txt" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/_sources/dependencies.rst.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/_sources/display_functions.rst.txt" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/_sources/display_functions.rst.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/_sources/general.rst.txt" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/_sources/general.rst.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/_sources/index.rst.txt" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/_sources/index.rst.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/_sources/plot_functions.rst.txt" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/_sources/plot_functions.rst.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/_sources/sequence.rst.txt" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/_sources/sequence.rst.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/_sources/tool_functions.rst.txt" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/_sources/tool_functions.rst.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/_sources/vocabulary.rst.txt" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/_sources/vocabulary.rst.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/_static/documentation_options.js" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/_static/documentation_options.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/appendix.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/appendix.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/audio.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/audio.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/audio_derivatives.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/audio_derivatives.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/classes.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/classes.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/color_schemes.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/color_schemes.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/dependencies.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/dependencies.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/display_functions.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/display_functions.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/example.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/example.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/exceptions.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/exceptions.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/functions.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/functions.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/general.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/general.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/genindex.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/genindex.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/graph_element.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/graph_element.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/graphic_classes.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/graphic_classes.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/input.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/input.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/install.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/install.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/io_functions.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/io_functions.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/joint.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/joint.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/joint_labels.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/joint_labels.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/objects.inv" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/objects.inv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/plot_functions.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/plot_functions.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/pose.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/pose.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/release_notes.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/release_notes.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/search.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/search.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/searchindex.js" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/searchindex.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/sequence.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/sequence.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/stats_functions.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/stats_functions.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/tool_functions.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/tool_functions.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/build/html/vocabulary.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/build/html/vocabulary.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/source/classes.rst" beforeDir="false" afterPath="$PROJECT_DIR$/docs/source/classes.rst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/source/dependencies.rst" beforeDir="false" afterPath="$PROJECT_DIR$/docs/source/dependencies.rst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/source/general.rst" beforeDir="false" afterPath="$PROJECT_DIR$/docs/source/general.rst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/source/index.rst" beforeDir="false" afterPath="$PROJECT_DIR$/docs/source/index.rst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/source/sequence.rst" beforeDir="false" afterPath="$PROJECT_DIR$/docs/source/sequence.rst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/source/tool_functions.rst" beforeDir="false" afterPath="$PROJECT_DIR$/docs/source/tool_functions.rst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/source/vocabulary.rst" beforeDir="false" afterPath="$PROJECT_DIR$/docs/source/vocabulary.rst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plot_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/plot_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/stats_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/stats_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tool_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/tool_functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/classes/subject.py" beforeDir="false" afterPath="$PROJECT_DIR$/classes/subject.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -119,20 +48,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "last_opened_file_path": "D:/OneDrive/Documents/GitHub/krajjat/res",
-    "run.code.analysis.last.selected.profile": "aDefault",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
-    "two.files.diff.last.used.file": "E:/TV Shows/Angelyne/Season 01 - MULTI/Angelyne - S01E01 - Dream Machine.fr.srt"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/OneDrive/Documents/GitHub/krajjat/res&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;aDefault&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
+    &quot;two.files.diff.last.used.file&quot;: &quot;E:/TV Shows/Angelyne/Season 01 - MULTI/Angelyne - S01E01 - Dream Machine.fr.srt&quot;
   },
-  "keyToStringList": {
-    "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
-      "Python"
+  &quot;keyToStringList&quot;: {
+    &quot;com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File&quot;: [
+      &quot;Python&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\OneDrive\Documents\GitHub\krajjat\res" />

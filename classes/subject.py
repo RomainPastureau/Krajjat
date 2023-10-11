@@ -39,7 +39,7 @@ class Subject(object):
         The age of the subject, in years.
     sequences: list(Sequence)
         A list of Sequence instances.
-    audios: list(Audio) or list(AudioDerivative)
+    audios: list(Audio)
         A list of Audio instances.
 
     Note
@@ -376,33 +376,27 @@ class Subject(object):
         return len(self.sequences)
 
     # == Audio ==
-    def add_audio(self, audio_or_derivative):
-        """Adds an Audio or an AudioDerivative instance to the subject.
+    def add_audio(self, audio):
+        """Adds an Audio instance to the subject.
 
         .. versionadded:: 2.0
 
         Parameters
         ----------
-        audio_or_derivative: Audio or AudioDerivative
-            An Audio or AudioDerivative instance.
+        audio: Audio
+            An Audio instance.
         """
-        if len(self.audios) != 0:
-            if type(self.audios[0]) != type(audio_or_derivative):
-                raise Exception("The class of the audio object added to the Subject (" +
-                                str(type(audio_or_derivative)) +
-                                ") is different from the audio objects already present (" +
-                                str(type(self.audios[0])) + ").")
-        self.audios.append(audio_or_derivative)
+        self.audios.append(audio)
 
     def add_audios(self, *args):
-        """Adds Audio or AudioDerivative instances to the subject.
+        """Adds Audio instances to the subject.
 
         .. versionadded:: 2.0
 
         Parameters
         ----------
-        *args: Audio or AudioDerivative or list(Audio) or list(AudioDerivative)
-            Audio or AudioDerivative instances separated by a comma, or list of Audio or AudioDerivative instances.
+        *args: Audio or list(Audio)
+            Audio instances separated by a comma, or list of Audio instances.
         """
         for element in args:
             if type(element) is list:
@@ -453,13 +447,13 @@ class Subject(object):
 
         Returns
         -------
-        list(Audio) or list(AudioDerivative)
-            A list of Audio or AudioDerivative instances.
+        list(Audio)
+            A list of Audio instances.
         """
         return self.audios
 
     def get_audio_from_index(self, audio_index):
-        """Returns the Audio or AudioDerivative instance matching the given index.
+        """Returns the Audio instance matching the given index.
 
         .. versionadded:: 2.0
 
@@ -470,53 +464,53 @@ class Subject(object):
 
         Returns
         -------
-        Audio or AudioDerivative
-            An Audio or AudioDerivative instance corresponding to the provided index.
+        Audio
+            An Audio instance corresponding to the provided index.
         """
         return self.audios[audio_index]
 
     def get_audio_from_name(self, audio_name):
-        """Returns the first Audio or AudioDerivative instance in :attr:`audios` having the attribute
-        :attr:`audio.Audio.name` matching the name provided as parameter.
+        """Returns the first Audio instance in :attr:`audios` having the attribute :attr:`audio.Audio.name` matching
+        the name provided as parameter.
 
         .. versionadded:: 2.0
 
         Parameters
         ----------
         audio_name: str
-            The name attribute of an Audio or AudioDerivative instance.
+            The name attribute of an Audio instance.
 
         Returns
         -------
-        Audio or AudioDerivative
-            An Audio or AudioDerivative instance having the provided name as its attribute :attr:`audio.Audio.name`.
+        Audio
+            An Audio instance having the provided name as its attribute :attr:`audio.Audio.name`.
         """
         for audio in self.audios:
             if audio.get_name() == audio_name:
                 return audio
 
     def remove_audio_from_index(self, audio_index):
-        """Removes an Audio or AudioDerivative from the Subject instance corresponding to the given index.
+        """Removes an Audio instance from the Subject instance corresponding to the given index.
 
         .. versionadded:: 2.0
 
         Parameters
         ----------
         audio_index: int
-            The index of the Audio or AudioDerivative instance to remove.
+            The index of the Audio instance to remove.
         """
         del self.sequences[audio_index]
 
     def remove_audio_from_name(self, audio_name):
-        """Removes the first Audio or AudioDerivative instance in :attr:`audios having the attribute
-        :attr:`audio.Audio.name` matching the name provided as parameter.
+        """Removes the first Audio instance in :attr:`audios having the attribute :attr:`audio.Audio.name` matching the
+        name provided as parameter.
 
         .. versionadded:: 2.0
 
         Parameters
         ----------
         audio_name: str
-            The name attribute of an Audio or AudioDerivative instance.
+            The name attribute of an Audio instance.
         """
         for audio in self.audios:
             if audio.get_name() == audio_name:
@@ -531,7 +525,7 @@ class Subject(object):
         self.audios = []
 
     def get_audios_from_condition(self, condition):
-        """Returns a list of all the sequences that have an attribute :attr:`sequence.Sequence.condition` equal to
+        """Returns a list of all the Audio instances that have an attribute :attr:`audio.Audio.condition` equal to
         the condition provided.
 
         .. versionadded:: 2.0
@@ -546,23 +540,23 @@ class Subject(object):
         list(Sequence)
             A list of Sequence instances.
         """
-        selected_sequences = []
-        for sequence in self.sequences:
-            if sequence.get_condition() == condition:
-                selected_sequences.append(sequence)
-        return selected_sequences
+        selected_audios = []
+        for audio in self.audios:
+            if audio.get_condition() == condition:
+                selected_audios.append(audio)
+        return selected_audios
 
     def get_audios_from_attribute(self, attribute, value):
-        """Returns a list of all the audios that have a provided attribute equal to a provided value.
+        """Returns a list of all the Audio instances that have a provided attribute equal to a provided value.
 
         .. versionadded:: 2.0
 
         Parameters
         ----------
         attribute: str
-            The name of the Audio or AudioInstance attribute to compare to the value.
+            The name of the Audio attribute to compare to the value.
         value: any
-            The value to match to each Audio's or AudioInstance's provided attribute.
+            The value to match to each Audio instance's provided attribute.
         """
         selected_audios = []
         for audio in self.audios:
@@ -581,21 +575,6 @@ class Subject(object):
             The length of the :attr:`audios` attribute.
         """
         return len(self.audios)
-
-    def get_audio_type(self):
-        """Returns the type of the Audio or AudioDerivative instances in :attr:`Subject.audios`.
-
-        .. versionadded:: 2.0
-
-        Returns
-        -------
-        type
-            The type of the elements in :attr:`Subject.audios`.
-        """
-        if len(self.audios) == 0:
-            return None
-        else:
-            return type(self.audios[0])
 
     # == Getter functions ==
 
