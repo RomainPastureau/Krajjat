@@ -141,3 +141,34 @@ Color schemes
     </svg></p>
 
     </embed>
+
+    <p>Matlab_Ordered</br>
+    <svg width="500" height="20" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+          <linearGradient id="Gradient7">
+            <stop class="stop1-007" offset="0%"/>
+            <stop class="stop2-007" offset="16%"/>
+            <stop class="stop3-007" offset="33%"/>
+            <stop class="stop4-007" offset="50%"/>
+            <stop class="stop5-007" offset="67%"/>
+            <stop class="stop6-007" offset="83%"/>
+            <stop class="stop7-007" offset="100%"/>
+          </linearGradient>
+
+          <style type="text/css"><![CDATA[
+            #rect7 { fill: url(#Gradient7); }
+            .stop1-007 { stop-color: #4dbeee; }
+            .stop2-007 { stop-color: #0072bd; }
+            .stop3-007 { stop-color: #77ac30; }
+            .stop4-007 { stop-color: #edb120; }
+            .stop5-007 { stop-color: #d95319; }
+            .stop6-007 { stop-color: #a2142f; }
+            .stop7-007 { stop-color: #7e2f8e; }
+          ]]></style>
+
+      </defs>
+
+      <rect x="0" y="0" width="500" height="20" id="rect7" />
+    </svg></p>
+
+    </embed>

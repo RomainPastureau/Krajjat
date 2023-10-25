@@ -4,3 +4,6 @@ celsius	turquoise	sheengreen	tangerineyellow	orange	red
 cividis	(0, 32, 78, 255)	(254, 234, 90, 255)
 parula	(49, 41, 138, 255)	(17, 134, 211, 255)	(51, 183, 160, 255)	(213, 186, 85, 255)	(249, 251, 9, 255)
 viridis	(66, 1, 86, 255)	(57, 87, 140, 255)	(32, 146, 140, 255)	(96, 202, 96, 255)	(252, 233, 59, 255)
+matlab_ordered	matlab:cyan	matlab:blue	matlab:green	matlab:yellow	matlab:orange	matlab:red	matlab:purple
+matlab	matlab:blue	matlab:orange	matlab:yellow	matlab:purple	matlab:green	matlab:cyan	matlab:red
+tableau_palette	tab:blue	tab:orange	tab:green	tab:red	tab:purple	tab:brown	tab:pink	tab:gray	tab:olive	tab:cyan

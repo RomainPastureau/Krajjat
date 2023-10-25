@@ -70,7 +70,7 @@ Metrics: single joint
 .. automethod:: classes.sequence.Sequence.get_joint_distance_as_list
 .. automethod:: classes.sequence.Sequence.get_joint_velocity_as_list
 .. automethod:: classes.sequence.Sequence.get_joint_acceleration_as_list
-.. automethod:: classes.sequence.Sequence.get_joint_time_series_as_list
+.. automethod:: classes.sequence.Sequence.get_joint_metric_as_list
 
 Metrics: all joints
 """""""""""""""""""

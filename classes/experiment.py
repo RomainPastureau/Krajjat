@@ -1,5 +1,6 @@
 """Default class defining an experiment. An experiment object can contain multiple subjects, which themselves can
 contain multiple sequences."""
+from classes.exceptions import InvalidParameterValueException
 
 
 class Experiment(object):
@@ -218,10 +219,13 @@ class Experiment(object):
         """
         return self.subjects[0].get_sequence_from_index(0).get_joint_labels()
 
-    def get_dataframe(self, sequence_metric="distance", joint_label="HandRight"):
+    def get_dataframe_global(self, sequence_metric="distance", joint_label="HandRight", audio_metric="envelope",
+                             audio_filter_below=None, audio_filter_over=None, audio_resampling_frequency=None):
         import pandas as pd
-        data = {"Subject": [], "Group": [], "Trial": [], "Condition": [], "Timestamp": [], "SequenceMetric": [],
-                "AudioMetric": []}
+        sequence_metric_header = sequence_metric.title()
+        audio_metric_header = audio_metric.title()
+        data = {"Subject": [], "Group": [], "Trial": [], "Condition": [], "Timestamp": [], sequence_metric_header: [],
+                audio_metric_header: []}
 
         for subject in self.subjects:
             for i in range(len(subject.get_sequences())):
@@ -238,15 +242,35 @@ class Experiment(object):
                 timestamps = sequence.get_timestamps_for_metric(sequence_metric)
 
                 audio_start_index = len(sequence) - len(sequence_values)
-                audio_values = audio.get_samples()[audio_start_index:len(sequence_values) + audio_start_index]
+                if audio_metric == "audio":
+                    audio_values = audio.filter_and_resample(audio_filter_below, audio_filter_over,
+                                                             audio_resampling_frequency)[
+                                   audio_start_index:len(sequence_values) + audio_start_index]
+                elif audio_metric == "envelope":
+                    audio_values = audio.get_envelope(audio_filter_below, audio_filter_over,
+                                                      audio_resampling_frequency)[
+                                   audio_start_index:len(sequence_values) + audio_start_index]
+                elif audio_metric == "intensity":
+                    audio_values = audio.get_intensity(audio_filter_below, audio_filter_over,
+                                                       audio_resampling_frequency)[
+                                   audio_start_index:len(sequence_values) + audio_start_index]
+                elif audio_metric == "pitch":
+                    audio_values = audio.get_pitch(audio_filter_below, audio_filter_over, audio_resampling_frequency)[
+                                   audio_start_index:len(sequence_values) + audio_start_index]
+                elif audio_metric.startswith("f") and len(audio_metric) == 2:
+                    audio_values = audio.get_formant(audio_filter_below, audio_filter_over, audio_resampling_frequency,
+                                                     formant_number=int(audio_metric[1]))[
+                                   audio_start_index:len(sequence_values) + audio_start_index]
+                else:
+                    raise InvalidParameterValueException("audio_metric", audio_metric)
 
                 data["Subject"] += [subject.get_name() for _ in range(len(sequence_values))]
                 data["Group"] += [subject.get_group() for _ in range(len(sequence_values))]
                 data["Trial"] += [sequence.get_name() for _ in range(len(sequence_values))]
                 data["Condition"] += [sequence.get_condition() for _ in range(len(sequence_values))]
                 data["Timestamp"] += timestamps
-                data["SequenceMetric"] += sequence_values
-                data["AudioMetric"] += list(audio_values)
+                data[sequence_metric_header] += sequence_values
+                data[audio_metric_header] += list(audio_values)
 
         return pd.DataFrame(data)
 

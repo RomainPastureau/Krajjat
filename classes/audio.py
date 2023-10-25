@@ -748,7 +748,7 @@ class Audio(object):
             If not ``None`` nor 0, this value will be provided as the lowest frequency of the band-pass filter.
 
         filter_over: int, float or None, optional
-            If not ``None`` nor 0, this value will be provided as the highest frequency of the high-pass filter.
+            If not ``None`` nor 0, this value will be provided as the highest frequency of the band-pass filter.
 
         resampling_frequency: int, float or None, optional
             If not ``None``, the envelope will be resampled at the provided frequency before being returned.
@@ -815,7 +815,7 @@ class Audio(object):
             If not ``None`` nor 0, this value will be provided as the lowest frequency of the band-pass filter.
 
         filter_over: int, float or None, optional
-            If not ``None`` nor 0, this value will be provided as the highest frequency of the high-pass filter.
+            If not ``None`` nor 0, this value will be provided as the highest frequency of the band-pass filter.
 
         resampling_frequency: int, float or None, optional
             If not ``None``, the pitch will be resampled at the provided frequency before being returned.
@@ -904,7 +904,7 @@ class Audio(object):
             If not ``None`` nor 0, this value will be provided as the lowest frequency of the band-pass filter.
 
         filter_over: int, float or None, optional
-            If not ``None`` nor 0, this value will be provided as the highest frequency of the high-pass filter.
+            If not ``None`` nor 0, this value will be provided as the highest frequency of the band-pass filter.
 
         resampling_frequency: int, float or None, optional
             If not ``None``, the intensity will be resampled at the provided frequency before being returned.
@@ -988,7 +988,7 @@ class Audio(object):
             If not ``None`` nor 0, this value will be provided as the lowest frequency of the band-pass filter.
 
         filter_over: int, float or None, optional
-            If not ``None`` nor 0, this value will be provided as the highest frequency of the high-pass filter.
+            If not ``None`` nor 0, this value will be provided as the highest frequency of the band-pass filter.
 
         resampling_frequency: int, float or None, optional
             If not ``None``, the formant will be resampled at the provided frequency before being returned.
@@ -1065,6 +1065,67 @@ class Audio(object):
 
         return formant
 
+    def filter_frequencies(self, filter_below=None, filter_over=None, name=None, verbosity=1):
+        """Applies a low-pass, high-pass or band-pass filter to the data in the attribute :attr:`samples`.
+
+        .. versionadded: 2.0
+
+        Parameters
+        ----------
+        filter_below: float or None, optional
+            The value below which you want to filter the data. If set on None or 0, this parameter will be ignored.
+            If this parameter is the only one provided, a high-pass filter will be applied to the samples; if
+            ``filter_over`` is also provided, a band-pass filter will be applied to the samples.
+
+        filter_over: float or None, optional
+            The value over which you want to filter the data. If set on None or 0, this parameter will be ignored.
+            If this parameter is the only one provided, a low-pass filter will be applied to the samples; if
+            ``filter_below`` is also provided, a band-pass filter will be applied to the samples.
+
+        name: str or None, optional
+            Defines the name of the output audio. If set on ``None``, the name will be the same as the
+            original audio derivative, with the suffix ``"+FF"``.
+
+        verbosity: int, optional
+            Sets how much feedback the code will provide in the console output:
+
+            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+              current steps.
+            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+              may clutter the output and slow down the execution.
+
+        Returns
+        -------
+        Audio
+            The Audio instance, with filtered values.
+        """
+
+        if filter_below not in [None, 0] and filter_over not in [None, 0]:
+            if verbosity > 0:
+                print("Applying a band-pass filter for frequencies between " + str(filter_below) + " and " +
+                      str(filter_over) + " Hz...")
+            b, a = butter(2, [filter_below, filter_over], "band", fs=self.frequency)
+            new_samples = lfilter(b, a, self.samples)
+        elif filter_below not in [None, 0]:
+            if verbosity > 0:
+                print("Applying a high-pass filter for frequencies over " + str(filter_below) + " Hz...")
+            b, a = butter(2, filter_below, "high", fs=self.frequency)
+            new_samples = lfilter(b, a, self.samples)
+        elif filter_over not in [None, 0]:
+            if verbosity > 0:
+                print("Applying a low-pass filter for frequencies below " + str(filter_over) + " Hz...")
+            b, a = butter(2, filter_over, "low", fs=self.frequency)
+            new_samples = lfilter(b, a, self.samples)
+        else:
+            new_samples = self.samples
+
+        if name is None:
+            name = self.name
+
+        new_audio = Audio(new_samples, self.timestamps, self.frequency, name, verbosity=0)
+        return new_audio
+
     def resample(self, frequency, mode="cubic", name=None, verbosity=1):
         """Resamples an audio clip to the `frequency` parameter. It first creates a new set of timestamps at the
         desired frequency, and then interpolates the original data to the new timestamps.
@@ -1129,6 +1190,44 @@ class Audio(object):
             print("\tNew audio has " + str(len(new_audio.samples)) + " samples.\n")
 
         return new_audio
+
+    def filter_and_resample(self, filter_below, filter_over, resampling_frequency, resampling_mode="cubic",
+                            verbosity=1):
+        """Returns the samples contained in :attr:`samples`, after applying a band-pass filter and a resampling if
+        parameters are provided.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        filter_below: int, float or None, optional
+            If not ``None`` nor 0, this value will be provided as the lowest frequency of the band-pass filter.
+
+        filter_over: int, float or None, optional
+            If not ``None`` nor 0, this value will be provided as the highest frequency of the band-pass filter.
+
+        resampling_frequency: int, float or None, optional
+            If not ``None``, the pitch will be resampled at the provided frequency before being returned.
+
+        mode: str, optional
+            This parameter also allows for all the values accepted for the ``kind`` parameter in the function
+            :func:`scipy.interpolate.interp1d`: ``"linear"``, ``"nearest"``, ``"nearest-up"``, ``"zero"``,
+            ``"slinear"``, ``"quadratic"``, ``"cubic"``”, ``"previous"``, and ``"next"``. See the `documentation
+            for this Python module
+            <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`_ for more.
+
+        Returns
+        -------
+        Audio
+            The filtered and resampled Audio instance.
+        """
+        audio = self
+        if filter_below is not None or filter_over is not None:
+            audio = audio.filter_frequencies(filter_below, filter_over, verbosity=verbosity)
+        if resampling_frequency is not None:
+            audio = audio.resample(resampling_frequency, resampling_mode, verbosity=verbosity)
+
+        return audio
 
     # === Conversion functions ===
 

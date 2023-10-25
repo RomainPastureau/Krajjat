@@ -777,6 +777,11 @@ total number of poses. This key has one entry per joint label.</p></li>
 </ul>
 </dd>
 </dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If the provided timestamp matches exactly the timestamp of a pose from the sequence, the pose index is returned,
+and the parameter <code class="docutils literal notranslate"><span class="pre">method</span></code> is ignored.</p>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -828,15 +833,19 @@ total number of poses. This key has one entry per joint label.</p></li>
 <h4>Time<a class="headerlink" href="#time" title="Permalink to this heading"></a></h4>
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.sequence.Sequence.get_timestamps">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_timestamps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">relative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_timestamps" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_timestamps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">relative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_timestamps" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a list of the timestamps for every pose, in seconds.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>relative</strong> (<em>boolean</em>) – Defines if the returned timestamps are relative to the first pose (in that case, the timestamp of the first
-pose will be 0), or the original timestamps.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>relative</strong> (<em>boolean</em>) – Defines if the returned timestamps are relative to the first pose (in that case, the timestamp of the first
+pose will be 0), or the original timestamps.</p></li>
+<li><p><strong>timestamp_start</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If provided, the return values having a timestamp below the one provided will be ignored from the output.</p></li>
+<li><p><strong>timestamp_end</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If provided, the return values having a timestamp above the one provided will be ignored from the output.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>List of the timestamps of all the poses of the sequence, in seconds.</p>
@@ -996,7 +1005,7 @@ between two poses in the sequence.</p>
 <h4>Metrics: single joint<a class="headerlink" href="#metrics-single-joint" title="Permalink to this heading"></a></h4>
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.sequence.Sequence.get_joint_coordinate_as_list">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_joint_coordinate_as_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_joint_coordinate_as_list" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_joint_coordinate_as_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_joint_coordinate_as_list" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a list of all the values for one specified axis of a specified joint label.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
@@ -1006,6 +1015,8 @@ between two poses in the sequence.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>joint_label</strong> (<em>str</em>) – The label of the joint (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Head&quot;</span></code>).</p></li>
 <li><p><strong>axis</strong> (<em>str</em>) – The required axis (<code class="docutils literal notranslate"><span class="pre">&quot;x&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;y&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;z&quot;</span></code>).</p></li>
+<li><p><strong>timestamp_start</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If provided, the return values having a timestamp below the one provided will be ignored from the output.</p></li>
+<li><p><strong>timestamp_end</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If provided, the return values having a timestamp above the one provided will be ignored from the output.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1024,7 +1035,7 @@ between two poses in the sequence.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.sequence.Sequence.get_joint_distance_as_list">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_joint_distance_as_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_joint_distance_as_list" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_joint_distance_as_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_joint_distance_as_list" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a list of all the distances travelled for a specific joint. If an axis is specified, the distances
 are calculated on this axis only.</p>
 <div class="versionadded">
@@ -1036,6 +1047,8 @@ are calculated on this axis only.</p>
 <li><p><strong>joint_label</strong> (<em>str</em>) – The label of the joint (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Head&quot;</span></code>).</p></li>
 <li><p><strong>axis</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If specified, the returned distances travelled will be calculated on a single axis. If <code class="docutils literal notranslate"><span class="pre">None</span></code> (default),
 the distance travelled will be calculated based on the 3D coordinates.</p></li>
+<li><p><strong>timestamp_start</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If provided, the return values having a timestamp below the one provided will be ignored from the output.</p></li>
+<li><p><strong>timestamp_end</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If provided, the return values having a timestamp above the one provided will be ignored from the output.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1054,14 +1067,18 @@ have a length of <span class="math notranslate nohighlight">\(n-1\)</span>, with
 
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.sequence.Sequence.get_joint_velocity_as_list">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_joint_velocity_as_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_joint_velocity_as_list" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_joint_velocity_as_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_joint_velocity_as_list" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a list of all the velocities (distance travelled over time) for a specified joint.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>joint_label</strong> (<em>str</em>) – The label of the joint (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Head&quot;</span></code>).</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>joint_label</strong> (<em>str</em>) – The label of the joint (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Head&quot;</span></code>).</p></li>
+<li><p><strong>timestamp_start</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If provided, the return values having a timestamp below the one provided will be ignored from the output.</p></li>
+<li><p><strong>timestamp_end</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If provided, the return values having a timestamp above the one provided will be ignored from the output.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A chronological list of the velocities (in meters per second) for the specified joint.</p>
@@ -1079,7 +1096,7 @@ have a length of <span class="math notranslate nohighlight">\(n-1\)</span>, with
 
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.sequence.Sequence.get_joint_acceleration_as_list">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_joint_acceleration_as_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">absolute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_joint_acceleration_as_list" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_joint_acceleration_as_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">absolute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_joint_acceleration_as_list" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a list of all the accelerations (differences of velocity over time) for a specified joint.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
@@ -1090,6 +1107,8 @@ have a length of <span class="math notranslate nohighlight">\(n-1\)</span>, with
 <li><p><strong>joint_label</strong> (<em>str</em>) – The label of the joint (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;Head&quot;</span></code>).</p></li>
 <li><p><strong>absolute</strong> (<em>boolean</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">True</span></code> (default), returns the maximum absolute acceleration value. If set on <code class="docutils literal notranslate"><span class="pre">False</span></code>, returns
 the maximum acceleration value, even if a negative value has a higher absolute value.</p></li>
+<li><p><strong>timestamp_start</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If provided, the return values having a timestamp below the one provided will be ignored from the output.</p></li>
+<li><p><strong>timestamp_end</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If provided, the return values having a timestamp above the one provided will be ignored from the output.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1107,8 +1126,8 @@ have a length of <span class="math notranslate nohighlight">\(n-2\)</span>, with
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="classes.sequence.Sequence.get_joint_time_series_as_list">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_joint_time_series_as_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_series</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'velocity'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_joint_time_series_as_list" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_joint_metric_as_list">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_joint_metric_as_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_series</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'velocity'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_joint_metric_as_list" title="Permalink to this definition"></a></dt>
 <dd><p>For a specified joint, returns a list containing one of its time series (x coordinate, y coordinate,
 z coordinate, distance travelled, velocity, or acceleration).</p>
 <div class="versionadded">
@@ -1123,12 +1142,16 @@ z coordinate, distance travelled, velocity, or acceleration).</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;x&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;y&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;z&quot;</span></code>, to return the values of the coordinate on a specified axis, for each
 timestamp.</p></li>
 <li><p>The <code class="docutils literal notranslate"><span class="pre">&quot;distance&quot;</span></code> travelled over time (in meters), between consecutive poses.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">&quot;distance_x&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;distance_y&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;distance_z&quot;</span></code> travelled over time on one axis (in meters),
+between consecutive poses.</p></li>
 <li><p>The <code class="docutils literal notranslate"><span class="pre">&quot;velocity&quot;</span></code>, defined by the distance travelled over time (in meters per second), between
 consecutive poses.</p></li>
 <li><p>The <code class="docutils literal notranslate"><span class="pre">&quot;acceleration&quot;</span></code>, defined by the velocity over time (in meters per second squared), between
-consecutive pairs of poses.</p></li>
+consecutive pairs of poses. <code class="docutils literal notranslate"><span class="pre">&quot;acceleration_abs&quot;</span></code> returns absolute values.</p></li>
 </ul>
 </p></li>
+<li><p><strong>timestamp_start</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If provided, the return values having a timestamp below the one provided will be ignored from the output.</p></li>
+<li><p><strong>timestamp_end</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If provided, the return values having a timestamp above the one provided will be ignored from the output.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1152,7 +1175,7 @@ function would then have a length of <span class="math notranslate nohighlight">
 <h4>Metrics: all joints<a class="headerlink" href="#metrics-all-joints" title="Permalink to this heading"></a></h4>
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.sequence.Sequence.get_single_coordinates">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_single_coordinates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_single_coordinates" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_single_coordinates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_single_coordinates" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a dictionary containing the values of the coordinates on a single axis for all the joints. The
 dictionary will contain the joints labels as keys, and a list of coordinates as values. The coordinates are
 returned in meters.</p>
@@ -1163,6 +1186,8 @@ returned in meters.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>axis</strong> (<em>str</em>) – The axis from which to extract the coordinate: <code class="docutils literal notranslate"><span class="pre">&quot;x&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;y&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;z&quot;</span></code>.</p></li>
+<li><p><strong>timestamp_start</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If provided, the return values having a timestamp below the one provided will be ignored from the output.</p></li>
+<li><p><strong>timestamp_end</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If provided, the return values having a timestamp above the one provided will be ignored from the output.</p></li>
 <li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
 <ul>
 <li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
@@ -1186,7 +1211,7 @@ ordered chronologically.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.sequence.Sequence.get_distances">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_distances</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_distances" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_distances</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_distances" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a dictionary containing the joint labels as keys, and a list of distances (distance travelled between
 two poses) as values. Distances are calculated using the <a class="reference internal" href="tool_functions.html#tool_functions.calculate_distance" title="tool_functions.calculate_distance"><code class="xref py py-func docutils literal notranslate"><span class="pre">tool_functions.calculate_distance()</span></code></a> function,
 and are defined by the distance travelled between two poses (in meters). The distances are returned in meters.</p>
@@ -1198,6 +1223,8 @@ and are defined by the distance travelled between two poses (in meters). The dis
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>axis</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If specified, the returned distances travelled will be calculated on a single axis. If <code class="docutils literal notranslate"><span class="pre">None</span></code> (default),
 the distance travelled will be calculated based on the 3D coordinates.</p></li>
+<li><p><strong>timestamp_start</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If provided, the return values having a timestamp below the one provided will be ignored from the output.</p></li>
+<li><p><strong>timestamp_end</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If provided, the return values having a timestamp above the one provided will be ignored from the output.</p></li>
 <li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
 <ul>
 <li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
@@ -1226,7 +1253,7 @@ have a length of <span class="math notranslate nohighlight">\(n-1\)</span>, with
 
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.sequence.Sequence.get_distance_between_hands">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_distance_between_hands</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_distance_between_hands" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_distance_between_hands</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_distance_between_hands" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a vector containing the distance (in meters) between the two hands across time. If the
 joint label system is Kinect, the distance will be calculated between <code class="docutils literal notranslate"><span class="pre">&quot;HandRight&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;HandLeft&quot;</span></code>.
 If the joint label system is Qualisys, the distance will be calculated between <code class="docutils literal notranslate"><span class="pre">&quot;HandOutRight&quot;</span></code> and
@@ -1239,18 +1266,24 @@ If the joint label system is Qualisys, the distance will be calculated between <
 <p>This function is a wrapper for the function <a class="reference internal" href="#classes.sequence.Sequence.get_distance_between_joints" title="classes.sequence.Sequence.get_distance_between_joints"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Sequence.get_distance_between_joints()</span></code></a>.</p>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>A list of distances between the two hands, in meters.</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>timestamp_start</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If provided, the return values having a timestamp below the one provided will be ignored from the output.</p></li>
+<li><p><strong>timestamp_end</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If provided, the return values having a timestamp above the one provided will be ignored from the output.</p></li>
+</ul>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>list(float)</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of distances between the two hands, in meters.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(float)</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.sequence.Sequence.get_distance_between_joints">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_distance_between_joints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_label2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_distance_between_joints" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_distance_between_joints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_label1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_label2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_distance_between_joints" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a vector containing the distance (in meters) between the two joints provided across time.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 2.0.</span></p>
@@ -1260,6 +1293,8 @@ If the joint label system is Qualisys, the distance will be calculated between <
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>joint_label1</strong> (<em>str</em>) – The label of the first joint (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;Head&quot;</span></code>).</p></li>
 <li><p><strong>joint_label2</strong> (<em>str</em>) – The label of the second joint (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;FootRight&quot;</span></code>).</p></li>
+<li><p><strong>timestamp_start</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If provided, the return values having a timestamp below the one provided will be ignored from the output.</p></li>
+<li><p><strong>timestamp_end</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If provided, the return values having a timestamp above the one provided will be ignored from the output.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1273,7 +1308,7 @@ If the joint label system is Qualisys, the distance will be calculated between <
 
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.sequence.Sequence.get_velocities">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_velocities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_velocities" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_velocities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_velocities" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a dictionary containing the joint labels as keys, and a list of velocities (distance travelled over
 time between two poses) as values. Velocities are calculated using the
 <a class="reference internal" href="tool_functions.html#tool_functions.calculate_velocity" title="tool_functions.calculate_velocity"><code class="xref py py-func docutils literal notranslate"><span class="pre">tool_functions.calculate_velocity()</span></code></a> function, and are defined by the distance travelled between two
@@ -1284,15 +1319,19 @@ returned in meters per second.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
-<ul class="simple">
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>timestamp_start</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If provided, the return values having a timestamp below the one provided will be ignored from the output.</p></li>
+<li><p><strong>timestamp_end</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If provided, the return values having a timestamp above the one provided will be ignored from the output.</p></li>
+<li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
+<ul>
 <li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
 <li><p><em>1: Normal mode</em> (default). The code will provide essential feedback such as progression markers and
 current steps.</p></li>
 <li><p><em>2: Chatty mode.</em> The code will provide all possible information on the events happening. Note that this
 may clutter the output and slow down the execution.</p></li>
 </ul>
-</p>
+</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>OrderedDict(str</strong> – Dictionary with joint labels as keys, and lists of velocity as values (in meters per second), ordered
@@ -1311,7 +1350,7 @@ have a length of <span class="math notranslate nohighlight">\(n-1\)</span>, with
 
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.sequence.Sequence.get_accelerations">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_accelerations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">absolute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_accelerations" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_accelerations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">absolute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_accelerations" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a dictionary containing the joint labels as keys, and a list of accelerations (differences of
 velocity over time between two poses) as values. Accelerations are calculated using the
 <a class="reference internal" href="tool_functions.html#tool_functions.calculate_acceleration" title="tool_functions.calculate_acceleration"><code class="xref py py-func docutils literal notranslate"><span class="pre">tool_functions.calculate_acceleration()</span></code></a> function, and are defined by the difference of velocity between
@@ -1325,6 +1364,8 @@ each pair (in seconds). The accelerations are returned in meters per second squa
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>absolute</strong> (<em>boolean</em><em>, </em><em>optional</em>) – If set on <code class="docutils literal notranslate"><span class="pre">True</span></code>, returns the absolute acceleration values. If set on <code class="docutils literal notranslate"><span class="pre">False</span></code> (default), returns
 the original, signed acceleration values.</p></li>
+<li><p><strong>timestamp_start</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If provided, the return values having a timestamp below the one provided will be ignored from the output.</p></li>
+<li><p><strong>timestamp_end</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If provided, the return values having a timestamp above the one provided will be ignored from the output.</p></li>
 <li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
 <ul>
 <li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>
@@ -1353,7 +1394,7 @@ have a length of <span class="math notranslate nohighlight">\(n-2\)</span>, with
 
 <dl class="py method">
 <dt class="sig sig-object py" id="classes.sequence.Sequence.get_time_series_as_list">
-<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_time_series_as_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_time_series_as_list" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_time_series_as_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_time_series_as_list" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a dictionary containing one of the metrics for all joints: coordinate, distance travelled, velocity
 or acceleration.</p>
 <div class="versionadded">
@@ -1377,6 +1418,8 @@ or acceleration.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;acceleration_abs&quot;</span></code> for the absolute acceleration (in meters per second squared)</p></li>
 </ul>
 </p></li>
+<li><p><strong>timestamp_start</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If provided, the return values having a timestamp below the one provided will be ignored from the output.</p></li>
+<li><p><strong>timestamp_end</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If provided, the return values having a timestamp above the one provided will be ignored from the output.</p></li>
 <li><p><strong>verbosity</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>Sets how much feedback the code will provide in the console output:</p>
 <ul>
 <li><p><em>0: Silent mode.</em> The code won’t provide any feedback, apart from error messages.</p></li>

@@ -4,17 +4,21 @@ statistics calculated using the stats_functions."""
 import pygame
 from pygame.locals import *
 
+import tool_functions
 from lib import gradients
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib.cm as cm
+import matplotlib.dates as mdates
 import seaborn as sns
 import sys
 from classes.sequence import *
 
 
-def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight", align=True, timestamp_start=None,
-                                  timestamp_end=None, line_color="blue", line_width=1.0, verbosity=1):
+def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight", metrics="all", align=True,
+                                  timestamp_start=None, timestamp_end=None, ylim=None, time_format=True,
+                                  figure_background_color=None, graph_background_color=None, line_color=None,
+                                  line_width=1.0, verbosity=1):
     """Plots the x, y, z positions across time of the joint of one or more sequences, along with the distance travelled,
     velocity and absolute variations of acceleration.
 
@@ -35,6 +39,11 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
     joint_label: str, optional
         The label of the joint from which to use the values to plot (default: ``"HandRight"``).
 
+    metrics: str or list(str)
+        The name of a metric, or a list containing the name of multiple metrics, among ``"x"``, ``"y"``, ``"z"``,
+        ``"distance"``, ``"velocity"`` and ``"acceleration"``. This value can also be ``"all"`` (default) and will
+        in that case display all the aforementioned metrics.
+
     align: bool, optional
         If this parameter is set on ``"True"`` (default), and if the parameter ``sequence_or_sequences`` is a list
         containing more than one sequence instance, the function will try to check if one or more of the sequences
@@ -47,14 +56,24 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
     timestamp_end: float or None, optional
         If defined, indicates at what timestamp the plot ends.
 
-    line_color: tuple or string or list
-        The color of the line(s) in the graph. Each color can be:
+    ylim: list(int or float), optional
+        If defined, sets the lower and upper limits of the y axis for all sub-graphs (e.g. `[0, 1]`)
 
-        • A `HTML/CSS name <https://en.wikipedia.org/wiki/X11_color_names>`_ (e.g. ``"red"`` or
-          ``"blanched almond"``),
-        • An hexadecimal code, starting with a number sign (``#``, e.g. ``"#ffcc00"`` or ``"#c0ffee"``).
-        • A RGB or RGBA tuple (e.g. ``(153, 204, 0)`` or ``(77, 77, 77, 255)``).
+    time_format: bool, optional
+        Defines if the time on the x axis should be shown in raw seconds (``False``) or in a formatted ``mm:ss:ms.``
+        format (``True``, default). The format turns automatically to ``hh:mm:ss`` if more than 60 minutes of recording
+        are plotted.
 
+    figure_background_color: tuple or string or list, optional
+        The color of the background of the whole figure. See :ref:`color_codes` for the color name guidelines.
+        If more than one sequence is provided, this parameter should be a list with the color for each line.
+
+    graph_background_color: tuple or string or list, optional
+        The color of the background of each graph. See :ref:`color_codes` for the color name guidelines.
+        If more than one sequence is provided, this parameter should be a list with the color for each line.
+
+    line_color: tuple or string or list, optional
+        The color of the line(s) in the graph. See :ref:`color_codes` for the color name guidelines.
         If more than one sequence is provided, this parameter should be a list with the color for each line.
 
     line_width: float, optional
@@ -70,155 +89,128 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
           may clutter the output and slow down the execution.
     """
 
-    # Get the time array
-    timestamps = []
-    if type(sequence_or_sequences) is list:
-        for sequence_index in range(len(sequence_or_sequences)):
-            sequence = sequence_or_sequences[sequence_index]
-
-            # If we already had sequences, and align is True, we try to align the sequences
-            if sequence_index != 0 and align:
-                aligned = False
-
-                # We compare the sequence to every other sequence already in the list
-                for prior_sequence_index in range(sequence_index):
-                    prior_sequence = sequence_or_sequences[prior_sequence_index]
-                    alignment_indices = align_two_sequences(sequence, prior_sequence)
-
-                    if alignment_indices:
-                        if alignment_indices[0] == 0:
-                            if verbosity > 0:
-                                print("Aligning sequence " + str(sequence_index + 1) + " to sequence " +
-                                      str(prior_sequence_index + 1) + ".")
-                            timestamps.append(timestamps[prior_sequence_index][alignment_indices[1]:
-                                                                               alignment_indices[1] +
-                                                                               len(sequence)])
-
-                        else:
-                            if verbosity > 0:
-                                print("Aligning sequence " + str(prior_sequence_index + 1) + " to sequence " +
-                                      str(sequence_index + 1) + ".")
-                            timestamps.append(sequence.get_timestamps())
-                            timestamps[prior_sequence_index] = timestamps[sequence_index][alignment_indices[0]:
-                                                                                          alignment_indices[0] +
-                                                                                          len(prior_sequence)]
-
-                        aligned = True
-                        break
-
-                if not aligned:
-                    timestamps.append(sequence.get_timestamps())
-
-            else:
-                timestamps.append(sequence.get_timestamps())
-
-    else:
-        timestamps.append(sequence_or_sequences.get_timestamps())
+    if type(sequence_or_sequences) is not list:
         sequence_or_sequences = [sequence_or_sequences]
 
-    # Create empty lists for the arrays
-    x = []
-    y = []
-    z = []
-    distances = []
-    velocities = []
-    accelerations = []
+    # Aligning sequences
+    if align:
+        if verbosity > 0:
+            print("Trying to align sequences...", end=" ")
+        timestamps = tool_functions.align_multiple_sequences(sequence_or_sequences)
+        if verbosity > 0:
+            print(" - Done.")
+    else:
+        timestamps = []
+        for sequence in sequence_or_sequences:
+            timestamps.append(sequence.get_timestamps())
 
-    timestamp_min = None
-    timestamp_max = None
+    # Handling timestamp_start and timestamp_end
+    if timestamp_start is None:
+        timestamp_start = min(min(timestamps))
+    if timestamp_start is None:
+        timestamp_end = max(max(timestamps))
+
+    # Getting the epoch timestamps for each aligned sequence
+    epoch_timestamps = []
+    for i in range(len(timestamps)):
+        sequence_epoch_timestamps = []
+        for t in timestamps[i]:
+            if timestamp_start <= t <= timestamp_end:
+                sequence_epoch_timestamps.append(t)
+        epoch_timestamps.append(sequence_epoch_timestamps)
+    timestamps = epoch_timestamps
+
+    # Create empty lists for the arrays
+    values = {"x": [], "y": [], "z": [],  "distance": [], "velocity": [], "acceleration": []}
+    plot_timestamps = {"x": [], "y": [], "z": [],  "distance": [], "velocity": [], "acceleration": []}
 
     # For all poses
     for i in range(len(sequence_or_sequences)):
         sequence = sequence_or_sequences[i]
 
-        pose_index_start = 0
-        pose_index_end = sequence.get_number_of_poses()
+        values["x"].append(sequence.get_joint_coordinate_as_list(joint_label, "x", timestamps[i][0], timestamps[i][-1]))
+        values["y"].append(sequence.get_joint_coordinate_as_list(joint_label, "y", timestamps[i][0], timestamps[i][-1]))
+        values["z"].append(sequence.get_joint_coordinate_as_list(joint_label, "z", timestamps[i][0], timestamps[i][-1]))
+        values["distance"].append(sequence.get_joint_distance_as_list(joint_label, None, timestamps[i][0],
+                                                                      timestamps[i][-1]))
+        values["velocity"].append(sequence.get_joint_velocity_as_list(joint_label, timestamps[i][0], timestamps[i][-1]))
+        values["acceleration"].append(sequence.get_joint_acceleration_as_list(joint_label, True, timestamps[i][0],
+                                                                              timestamps[i][-1]))
 
-        if timestamp_start is not None:
-            if 0 <= timestamp_start <= sequence.get_duration():
-                pose_index_start = sequence.get_pose_index_from_timestamp(timestamp_start, "above")
-            else:
-                raise Exception("The value of timestamp_start should be between 0 and " +
-                                str(sequence.get_duration()))
+        for key in plot_timestamps.keys():
+            plot_timestamps[key].append(sequence.get_timestamps_for_metric(key, False, timestamps[i][0],
+                                                                           timestamps[i][-1]))
 
-        if timestamp_end is not None:
-            if 0 <= timestamp_end <= sequence.get_duration():
-                pose_index_end = sequence.get_pose_index_from_timestamp(timestamp_end, "below")
-            else:
-                raise Exception("The value of timestamp_end should be between 0 and " +
-                                str(sequence.get_duration()))
+    if type(metrics) is str and metrics.lower() == "all":
+        metrics = ["x", "y", "z", "distance", "velocity", "acceleration"]
 
-        print(pose_index_start, pose_index_end)
-
-        x.append(sequence.get_joint_coordinate_as_list(joint_label, "x")[pose_index_start:pose_index_end])
-        y.append(sequence.get_joint_coordinate_as_list(joint_label, "y")[pose_index_start:pose_index_end])
-        z.append(sequence.get_joint_coordinate_as_list(joint_label, "z")[pose_index_start:pose_index_end])
-        distances.append(sequence.get_joint_distance_as_list(joint_label)[pose_index_start:pose_index_end-1])
-        velocities.append(sequence.get_joint_velocity_as_list(joint_label)[pose_index_start:pose_index_end-1])
-        accelerations.append(sequence.get_joint_acceleration_as_list(joint_label, True)[pose_index_start:
-                                                                                        pose_index_end-2])
-        timestamps[i] = timestamps[i][pose_index_start:pose_index_end]
-
-        if timestamp_min is None or timestamp_min > timestamps[i][0]:
-            timestamp_min = timestamps[i][0]
-        if timestamp_max is None or timestamp_max < timestamps[i][-1]:
-            timestamp_max = timestamps[i][-1]
+    if time_format:
+        for key in plot_timestamps:
+            for i in range(len(plot_timestamps[key])):
+                for j in range(len(plot_timestamps[key][i])):
+                    plot_timestamps[key][i][j] = time_unit_to_datetime(plot_timestamps[key][i][j])
+        timestamp_start = time_unit_to_datetime(timestamp_start)
+        timestamp_end = time_unit_to_datetime(timestamp_end)
 
     sns.set()
     plt.rcParams["figure.figsize"] = (12, 9)
-    plt.subplots(5, 1, figsize=(12, 9))
-    plt.subplots_adjust(left=0.15, bottom=0.1, right=0.97, top=0.9, wspace=0.3, hspace=0.5)
+
+    fig = plt.figure()
+    if figure_background_color is not None:
+        fig.patch.set_facecolor(tool_functions.convert_color(figure_background_color, "hex", False))
+    fig.subplots(6, 1)  # figsize=(12, 9))
+    fig.subplots_adjust(left=0.15, bottom=0.1, right=0.97, top=0.9, wspace=0.3, hspace=0.6)
 
     # Plot x, y, z, distance travelled and velocities
     parameters = {"rotation": "horizontal", "horizontalalignment": "right", "verticalalignment": "center",
-                  "font": {'size': 16, "weight": "bold"}}
+                  "font": {"weight": "bold"}}
+
+    labels_units = {"x": "m", "y": "m", "z": "m", "distance": "m", "velocity": "m/s", "acceleration": "m/s²"}
 
     # Get colors
     colors = []
     if type(line_color) is list:
         for color in line_color:
             colors.append(convert_color(color, "hex", False))
-    else:
+    elif type(line_color) is str:
         colors.append(convert_color(line_color, "hex", False))
+    else:
+        colors = [None]
 
-    plt.subplot(6, 1, 1)
-    for i in range(len(sequence_or_sequences)):
-        plt.xlim([timestamp_min, timestamp_max])
-        label = sequence_or_sequences[i].name
-        print(label)
-        plt.plot(timestamps[i], x[i], linewidth=line_width, color=colors[i % len(colors)], label=label)
-    plt.ylabel("x", **parameters)
-    plt.legend(bbox_to_anchor=(0, 1, 1, 0), loc="lower left", mode="expand", ncol=len(sequence_or_sequences))
+    for i in range(len(metrics)):
+        ax = plt.subplot(len(metrics), 1, i + 1)
+        if graph_background_color is not None:
+            ax.set_facecolor(convert_color(graph_background_color, "hex", False))
 
-    plt.subplot(6, 1, 2)
-    for i in range(len(sequence_or_sequences)):
-        plt.xlim([timestamp_min, timestamp_max])
-        plt.plot(timestamps[i], y[i], linewidth=line_width, color=colors[i % len(colors)])
-    plt.ylabel("y", **parameters)
+        if time_format:
+            if (timestamp_end - timestamp_start).seconds >= 3600:
+                formatter = mdates.DateFormatter('%H:%M:%S.000')
+            else:
+                formatter = mdates.DateFormatter('%M:%S.000')
+            plt.gcf().axes[i].xaxis.set_major_formatter(formatter)
 
-    plt.subplot(6, 1, 3)
-    for i in range(len(sequence_or_sequences)):
-        plt.xlim([timestamp_min, timestamp_max])
-        plt.plot(timestamps[i], z[i], linewidth=line_width, color=colors[i % len(colors)])
-    plt.ylabel("z", **parameters)
+        for j in range(len(sequence_or_sequences)):
+            plt.xlim([timestamp_start, timestamp_end])
+            if ylim is not None:
+                plt.ylim(ylim)
+            if i == 0:
+                label = sequence_or_sequences[i].name
+            else:
+                label = None
 
-    plt.subplot(6, 1, 4)
-    for i in range(len(sequence_or_sequences)):
-        plt.xlim([timestamp_min, timestamp_max])
-        plt.plot(timestamps[i][1:], distances[i], linewidth=line_width, color=colors[i % len(colors)])
-    plt.ylabel("Distance", **parameters)
+            plt.plot(plot_timestamps[metrics[i]][j], values[metrics[i]][j], linewidth=line_width,
+                     color=colors[j % len(colors)], label=label)
 
-    plt.subplot(6, 1, 5)
-    for i in range(len(sequence_or_sequences)):
-        plt.xlim([timestamp_min, timestamp_max])
-        plt.plot(timestamps[i][1:], velocities[i], linewidth=line_width, color=colors[i % len(colors)])
-    plt.ylabel("Velocity", **parameters)
+            if i == 0:
+                plt.legend(bbox_to_anchor=(0, 1, 1, 0), loc="lower left", mode="expand",
+                           ncol=len(sequence_or_sequences))
 
-    plt.subplot(6, 1, 6)
-    for i in range(len(sequence_or_sequences)):
-        plt.xlim([timestamp_min, timestamp_max])
-        plt.plot(timestamps[i][2:], accelerations[i], linewidth=line_width, color=colors[i % len(colors)])
-    plt.ylabel("Acceleration", **parameters)
+        if (timestamp_end - timestamp_start).seconds >= 3600:
+            plt.xlabel("Time (hh:mm:ss.ms)")
+        else:
+            plt.xlabel("Time (mm:ss.ms)")
+
+        plt.ylabel(metrics[i] + " (" + labels_units[metrics[i]] + ")", **parameters)
 
     plt.show()
 

@@ -4,14 +4,14 @@ from plot_functions import plot_silhouette
 
 
 def correlation_with_audio(experiment, group=None, condition=None, subjects=None, sequence_metric="distance",
-                           title=None, color_scheme="default", color_background="white", color_silhouette="black",
-                           resolution=0.5, full_screen=False, path_save=None, verbosity=1):
+                           audio_metric="envelope", title=None, color_scheme="default", color_background="white",
+                           color_silhouette="black", resolution=0.5, full_screen=False, path_save=None, verbosity=1):
 
     import pingouin as pg
     stats = {}
 
     for joint_label in experiment.get_joint_labels():
-        dataframe = experiment.get_dataframe(sequence_metric, joint_label)
+        dataframe = experiment.get_dataframe(sequence_metric, joint_label, audio_metric)
 
         if group is not None:
             dataframe = dataframe.loc[dataframe["Group"] == group]

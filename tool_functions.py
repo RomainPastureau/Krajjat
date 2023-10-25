@@ -1,4 +1,5 @@
 """Functions to perform simple tasks that can be used throughout the toolbox and beyond."""
+import datetime
 import random
 
 import chardet
@@ -407,6 +408,53 @@ def align_two_sequences(sequence1, sequence2):
                     return False
 
     return indices
+
+
+def align_multiple_sequences(sequences, verbosity=1):
+
+    # Get the time array
+    timestamps = []
+
+    for sequence_index in range(len(sequences)):
+        sequence = sequences[sequence_index]
+        aligned = False
+
+        # We compare the current sequence to every previous sequence
+        for prior_sequence_index in range(sequence_index):
+            prior_sequence = sequences[prior_sequence_index]
+
+            # Returns False if the two sequence don't align, returns two indices otherwise
+            alignment_indices = align_two_sequences(sequence, prior_sequence)
+
+            # If the sequences do align
+            if alignment_indices:
+
+                # Case where the current sequence is a subsequence of the prior
+                if alignment_indices[0] == 0:
+                    if verbosity > 0:
+                        print("Aligning sequence " + str(sequence_index + 1) + " to sequence " +
+                              str(prior_sequence_index + 1) + ".")
+                    timestamps.append(timestamps[prior_sequence_index][alignment_indices[1]:min(alignment_indices[1] +
+                                                                                                len(sequence),
+                                                                                                len(prior_sequence))])
+
+                # Case where the prior sequence is a subsequence of the current
+                else:
+                    if verbosity > 0:
+                        print("Aligning sequence " + str(prior_sequence_index + 1) + " to sequence " +
+                              str(sequence_index + 1) + ".")
+                    timestamps.append(sequence.get_timestamps())
+                    timestamps[prior_sequence_index] = timestamps[sequence_index][alignment_indices[0]:
+                                                                                  min(alignment_indices[0] +
+                                                                                  len(prior_sequence), len(sequence))]
+
+                aligned = True
+                break
+
+        if not aligned:
+            timestamps.append(sequence.get_timestamps())
+
+    return timestamps
 
 
 # === File reading functions ===
@@ -1154,6 +1202,7 @@ def divide_in_windows(array, window_size, overlap=0, add_incomplete_window=True)
 def order_sequences_by_date(sequences):
     pass
 
+
 # === Color functions ===
 def load_color_names():
     """Returns a dictionary containing the 140 lower-case, whitespaces-stripped X11 and HTML/CSS colors as keys (plus 7
@@ -1405,6 +1454,7 @@ def convert_color(color, color_format="rgb", include_alpha=True):
 
     # Color: string
     elif type(color) is str:
+        color = color.replace(" ", "")
         if color[0] == "#":
             converted_color = hex_color_to_rgb(color, include_alpha)
 
@@ -2109,14 +2159,17 @@ def format_time(time, time_unit="s", time_format="hh:mm:ss"):
     minute = int((time // 60) % 60)
     second = int((time % 60) // 1)
     millisecond = int((time % 1) * 1000)
+
     if time_format.startswith("hh:mm:ss"):
         if time_format.endswith(".ms"):
             return str(hour).zfill(2) + ":" + str(minute).zfill(2) + ":" + str(second).zfill(2) + "." + \
                    str(millisecond).zfill(3)
         else:
             return str(hour).zfill(2) + ":" + str(minute).zfill(2) + ":" + str(second).zfill(2)
+
     elif time_format == "hh:mm":
         return str(hour).zfill(2) + ":" + str(minute).zfill(2)
+
     elif time_format.startswith("mm:ss"):
         minute = int(time // 60)
         if time_format.endswith(".ms"):
@@ -2126,3 +2179,28 @@ def format_time(time, time_unit="s", time_format="hh:mm:ss"):
 
     else:
         raise Exception('Wrong value for the time_format parameter. It should be "hh:mm:ss" or "mm:ss".')
+
+
+def time_unit_to_datetime(time, time_unit="s"):
+    """Turns any time unit into a ``datetime``format.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    time: int or float
+        A value of time.
+    time_unit: str, optional
+        The unit of the ``time`` parameter. This parameter can take the following values: "ns", "1ns", "10ns", "100ns",
+        "µs", "1µs", "10µs", "100µs", "ms", "1ms", "10ms", "100ms", "s", "sec", "1s", "min", "mn", "h", "hr", "d",
+        "day".
+    """
+
+    time = time / UNITS[time_unit]
+    day = int(time // 86400)
+    hour = int(time // 3600) % 24
+    minute = int((time // 60) % 60)
+    second = int((time % 60) // 1)
+    microsecond = int((time % 1) * 1000000)
+
+    return datetime.datetime(1, 1, 1+day, hour, minute, second, microsecond)

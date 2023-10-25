@@ -1063,13 +1063,20 @@ class Sequence(object):
             • If set on ``"closest"`` (default), returns the closest pose index from the timestamp.
             • If set on ``"below"``, ``"lower"`` or ``"under"``, returns the closest pose index below the timestamp.
             • If set on ``"above"``, ``"higher"`` or ``"over"``, returns the closest pose index above the timestamp.
+
+        Note
+        ----
+        If the provided timestamp matches exactly the timestamp of a pose from the sequence, the pose index is returned,
+        and the parameter ``method`` is ignored.
         """
 
         if timestamp <= self.get_duration()/2:
             pose_index_before = 0
             pose_index_after = 0
             for pose_index in range(0, len(self.poses)):
-                if self.poses[pose_index].relative_timestamp <= timestamp:
+                if self.poses[pose_index].relative_timestamp == timestamp:
+                    return pose_index
+                elif self.poses[pose_index].relative_timestamp < timestamp:
                     pose_index_before = pose_index
                     if pose_index != len(self.poses) - 1:
                         pose_index_after = pose_index + 1
@@ -1079,7 +1086,9 @@ class Sequence(object):
             pose_index_before = len(self.poses)-1
             pose_index_after = len(self.poses)-1
             for pose_index in range(len(self.poses)-1, -1, -1):
-                if self.poses[pose_index].relative_timestamp >= timestamp:
+                if self.poses[pose_index].relative_timestamp == timestamp:
+                    return pose_index
+                elif self.poses[pose_index].relative_timestamp > timestamp:
                     pose_index_after = pose_index
                     if pose_index != 0:
                         pose_index_before = pose_index - 1
@@ -1133,7 +1142,7 @@ class Sequence(object):
         """
         return len(self.poses)
 
-    def get_timestamps(self, relative=False):
+    def get_timestamps(self, relative=False, timestamp_start=None, timestamp_end=None):
         """Returns a list of the timestamps for every pose, in seconds.
 
         .. versionadded:: 2.0
@@ -1143,6 +1152,10 @@ class Sequence(object):
         relative: boolean
             Defines if the returned timestamps are relative to the first pose (in that case, the timestamp of the first
             pose will be 0), or the original timestamps.
+        timestamp_start: float or None, optional
+            If provided, the return values having a timestamp below the one provided will be ignored from the output.
+        timestamp_end: float or None, optional
+            If provided, the return values having a timestamp above the one provided will be ignored from the output.
 
         Returns
         -------
@@ -1150,16 +1163,30 @@ class Sequence(object):
             List of the timestamps of all the poses of the sequence, in seconds.
         """
 
+        if timestamp_start is None:
+            if relative:
+                timestamp_start = self.poses[0].get_relative_timestamp()
+            else:
+                timestamp_start = self.poses[0].get_timestamp()
+
+        if timestamp_end is None:
+            if relative:
+                timestamp_end = self.poses[-1].get_relative_timestamp()
+            else:
+                timestamp_end = self.poses[-1].get_timestamp()
+
         timestamps = []
         for pose in self.poses:
             if relative:
-                timestamps.append(pose.get_relative_timestamp())
+                t = pose.get_relative_timestamp()
             else:
-                timestamps.append(pose.get_timestamp())
+                t = pose.get_timestamp()
+            if timestamp_start <= t <= timestamp_end:
+                timestamps.append(t)
 
         return timestamps
 
-    def get_timestamps_for_metric(self, metric, relative=False):
+    def get_timestamps_for_metric(self, metric, relative=False, timestamp_start=None, timestamp_end=None):
         """Returns a list of the timestamps for every value of the metric provided, in seconds.
 
         .. versionadded:: 2.0
@@ -1192,27 +1219,43 @@ class Sequence(object):
             Defines if the returned timestamps are relative to the first pose (in that case, the timestamp of the first
             pose will be 0), or the original timestamps.
 
+        timestamp_start: float or None, optional
+            If provided, the timestamps below this value will be ignored from the output.
+
+        timestamp_end: float or None, optional
+            If provided, the timestamps above this value will be ignored from the output.
+
         Returns
         -------
         list(float)
             List of the timestamps of the values described by the metric, in seconds.
         """
 
-        timestamps = []
-        for pose in self.poses:
-            if relative:
-                timestamps.append(pose.get_relative_timestamp())
-            else:
-                timestamps.append(pose.get_timestamp())
-
-        if metric in ["x", "y", "z", "distance_hands"]:
-            return timestamps
-        elif metric in ["distance", "distance_x", "distance_y", "distance_z"]:
-            return timestamps[1:]
-        elif metric in ["acceleration", "acceleration_abs"]:
-            return timestamps[2:]
-        else:
+        if metric not in ["x", "y", "z", "distance_hands", "distance", "distance_x", "distance_y", "distance_z",
+                          "velocity", "acceleration", "acceleration_abs"]:
             raise InvalidParameterValueException("metric", metric)
+
+        if timestamp_start is None:
+            timestamp_start = self.poses[0].get_timestamp()
+        if timestamp_end is None:
+            timestamp_end = self.poses[-1].get_timestamp()
+
+        timestamps = []
+        for p in range(len(self.poses)):
+            pose = self.poses[p]
+            if relative:
+                t = pose.get_relative_timestamp()
+            else:
+                t = pose.get_timestamp()
+            if timestamp_start <= t <= timestamp_end:
+                if metric in ["distance", "distance_x", "distance_y", "distance_z", "velocity"] and p == 0:
+                    pass
+                elif metric in ["acceleration", "acceleration_abs"] and p in [0, 1]:
+                    pass
+                else:
+                    timestamps.append(t)
+
+        return timestamps
 
     def get_time_between_two_poses(self, pose_index1, pose_index2):
         """Returns the difference between the timestamps of two poses, in seconds.
@@ -1340,7 +1383,7 @@ class Sequence(object):
         framerates, time_points = self.get_framerates()
         return max(framerates)
 
-    def get_joint_coordinate_as_list(self, joint_label, axis):
+    def get_joint_coordinate_as_list(self, joint_label, axis, timestamp_start=None, timestamp_end=None):
         """Returns a list of all the values for one specified axis of a specified joint label.
 
         .. versionadded:: 2.0
@@ -1351,6 +1394,10 @@ class Sequence(object):
             The label of the joint (e.g. ``"Head"``).
         axis: str
             The required axis (``"x"``, ``"y"`` or ``"z"``).
+        timestamp_start: float or None, optional
+            If provided, the return values having a timestamp below the one provided will be ignored from the output.
+        timestamp_end: float or None, optional
+            If provided, the return values having a timestamp above the one provided will be ignored from the output.
 
         Returns
         -------
@@ -1367,13 +1414,19 @@ class Sequence(object):
         elif axis not in ["x", "y", "z"]:
             raise InvalidParameterValueException("axis", axis, ["x", "y", "z"])
 
+        if timestamp_start is None:
+            timestamp_start = self.poses[0].get_timestamp()
+        if timestamp_end is None:
+            timestamp_end = self.poses[-1].get_timestamp()
+
         values = []
         for p in range(len(self.poses)):
-            values.append(self.poses[p].joints[joint_label].get_coordinate(axis))
+            if timestamp_start <= self.poses[p].get_timestamp() <= timestamp_end:
+                values.append(self.poses[p].joints[joint_label].get_coordinate(axis))
 
         return values
 
-    def get_joint_distance_as_list(self, joint_label, axis=None):
+    def get_joint_distance_as_list(self, joint_label, axis=None, timestamp_start=None, timestamp_end=None):
         """Returns a list of all the distances travelled for a specific joint. If an axis is specified, the distances
         are calculated on this axis only.
 
@@ -1386,6 +1439,10 @@ class Sequence(object):
         axis: str or None, optional
             If specified, the returned distances travelled will be calculated on a single axis. If ``None`` (default),
             the distance travelled will be calculated based on the 3D coordinates.
+        timestamp_start: float or None, optional
+            If provided, the return values having a timestamp below the one provided will be ignored from the output.
+        timestamp_end: float or None, optional
+            If provided, the return values having a timestamp above the one provided will be ignored from the output.
 
         Returns
         -------
@@ -1400,13 +1457,19 @@ class Sequence(object):
         if joint_label not in self.poses[0].joints.keys():
             raise InvalidJointLabelException(joint_label)
 
+        if timestamp_start is None:
+            timestamp_start = self.poses[0].get_timestamp()
+        if timestamp_end is None:
+            timestamp_end = self.poses[-1].get_timestamp()
+
         values = []
         for p in range(1, len(self.poses)):
-            values.append(calculate_distance(self.poses[p - 1].joints[joint_label], self.poses[p].joints[joint_label],
-                                             axis))
+            if timestamp_start <= self.poses[p].get_timestamp() <= timestamp_end:
+                values.append(calculate_distance(self.poses[p - 1].joints[joint_label],
+                                                 self.poses[p].joints[joint_label], axis))
         return values
 
-    def get_joint_velocity_as_list(self, joint_label):
+    def get_joint_velocity_as_list(self, joint_label, timestamp_start=None, timestamp_end=None):
         """Returns a list of all the velocities (distance travelled over time) for a specified joint.
 
         .. versionadded:: 2.0
@@ -1415,6 +1478,10 @@ class Sequence(object):
         ----------
         joint_label: str
             The label of the joint (e.g. ``"Head"``).
+        timestamp_start: float or None, optional
+            If provided, the return values having a timestamp below the one provided will be ignored from the output.
+        timestamp_end: float or None, optional
+            If provided, the return values having a timestamp above the one provided will be ignored from the output.
 
         Returns
         -------
@@ -1429,12 +1496,18 @@ class Sequence(object):
         if joint_label not in self.poses[0].joints.keys():
             raise InvalidJointLabelException(joint_label)
 
+        if timestamp_start is None:
+            timestamp_start = self.poses[0].get_timestamp()
+        if timestamp_end is None:
+            timestamp_end = self.poses[-1].get_timestamp()
+
         values = []
         for p in range(1, len(self.poses)):
-            values.append(calculate_velocity(self.poses[p - 1], self.poses[p], joint_label))
+            if timestamp_start <= self.poses[p].get_timestamp() <= timestamp_end:
+                values.append(calculate_velocity(self.poses[p - 1], self.poses[p], joint_label))
         return values
 
-    def get_joint_acceleration_as_list(self, joint_label, absolute=False):
+    def get_joint_acceleration_as_list(self, joint_label, absolute=False, timestamp_start=None, timestamp_end=None):
         """Returns a list of all the accelerations (differences of velocity over time) for a specified joint.
 
         .. versionadded:: 2.0
@@ -1446,6 +1519,10 @@ class Sequence(object):
         absolute: boolean, optional
             If set on ``True`` (default), returns the maximum absolute acceleration value. If set on ``False``, returns
             the maximum acceleration value, even if a negative value has a higher absolute value.
+        timestamp_start: float or None, optional
+            If provided, the return values having a timestamp below the one provided will be ignored from the output.
+        timestamp_end: float or None, optional
+            If provided, the return values having a timestamp above the one provided will be ignored from the output.
 
         Returns
         -------
@@ -1460,16 +1537,22 @@ class Sequence(object):
         if joint_label not in self.poses[0].joints.keys():
             raise InvalidJointLabelException(joint_label)
 
+        if timestamp_start is None:
+            timestamp_start = self.poses[0].get_timestamp()
+        if timestamp_end is None:
+            timestamp_end = self.poses[-1].get_timestamp()
+
         values = []
         for p in range(2, len(self.poses)):
-            value = calculate_acceleration(self.poses[p - 2], self.poses[p - 1], self.poses[p], joint_label)
-            if absolute:
-                values.append(abs(value))
-            else:
-                values.append(value)
+            if timestamp_start <= self.poses[p].get_timestamp() <= timestamp_end:
+                value = calculate_acceleration(self.poses[p - 2], self.poses[p - 1], self.poses[p], joint_label)
+                if absolute:
+                    values.append(abs(value))
+                else:
+                    values.append(value)
         return values
 
-    def get_joint_time_series_as_list(self, joint_label, time_series="velocity"):
+    def get_joint_metric_as_list(self, joint_label, time_series="velocity", timestamp_start=None, timestamp_end=None):
         """For a specified joint, returns a list containing one of its time series (x coordinate, y coordinate,
         z coordinate, distance travelled, velocity, or acceleration).
 
@@ -1486,10 +1569,18 @@ class Sequence(object):
             • ``"x"``, ``"y"`` or ``"z"``, to return the values of the coordinate on a specified axis, for each
               timestamp.
             • The ``"distance"`` travelled over time (in meters), between consecutive poses.
+            • The ``"distance_x"``, ``"distance_y"`` or ``"distance_z"`` travelled over time on one axis (in meters),
+              between consecutive poses.
             • The ``"velocity"``, defined by the distance travelled over time (in meters per second), between
               consecutive poses.
             • The ``"acceleration"``, defined by the velocity over time (in meters per second squared), between
-              consecutive pairs of poses.
+              consecutive pairs of poses. ``"acceleration_abs"`` returns absolute values.
+
+        timestamp_start: float or None, optional
+            If provided, the return values having a timestamp below the one provided will be ignored from the output.
+
+        timestamp_end: float or None, optional
+            If provided, the return values having a timestamp above the one provided will be ignored from the output.
 
         Returns
         -------
@@ -1506,23 +1597,24 @@ class Sequence(object):
         if joint_label not in self.poses[0].joints.keys():
             raise InvalidJointLabelException(joint_label)
 
-        values = []
-        for p in range(0, len(self.poses)):
-            if time_series in ["x", "y", "z"]:
-                values.append(self.poses[p].joints[joint_label].get_coordinate(time_series))
-            elif time_series == "distance" and p > 0:
-                values.append(calculate_distance(self.poses[p - 1].joints[joint_label],
-                                                 self.poses[p].joints[joint_label]))
-            elif time_series == "velocity" and p > 0:
-                values.append(calculate_velocity(self.poses[p - 1], self.poses[p], joint_label))
-            elif time_series == "acceleration" and p > 1:
-                values.append(calculate_acceleration(self.poses[p - 2], self.poses[p - 1], self.poses[p], joint_label))
-            else:
-                raise InvalidParameterValueException("time_series", time_series, ["x", "y", "z", "distance", "velocity",
-                                                                                  "acceleration"])
-        return values
+        if time_series in ["x", "y", "z"]:
+            return self.get_joint_coordinate_as_list(joint_label, time_series, timestamp_start, timestamp_end)
+        elif time_series == "distance":
+            return self.get_joint_distance_as_list(joint_label, None, timestamp_start, timestamp_end)
+        elif time_series.startswith("distance"):
+            return self.get_joint_distance_as_list(joint_label, time_series[9:10], timestamp_start, timestamp_end)
+        elif time_series == "velocity":
+            return self.get_joint_velocity_as_list(joint_label, timestamp_start, timestamp_end)
+        elif time_series == "acceleration":
+            return self.get_joint_acceleration_as_list(joint_label, False, timestamp_start, timestamp_end)
+        elif time_series == "acceleration_abs":
+            return self.get_joint_acceleration_as_list(joint_label, True, timestamp_start, timestamp_end)
+        else:
+            raise InvalidParameterValueException("time_series", time_series, ["x", "y", "z", "distance", "distance_x",
+                                                                              "distance_y", "distance_z", "velocity",
+                                                                              "acceleration"])
 
-    def get_single_coordinates(self, axis, verbosity=1):
+    def get_single_coordinates(self, axis, timestamp_start=None, timestamp_end=None, verbosity=1):
         """Returns a dictionary containing the values of the coordinates on a single axis for all the joints. The
         dictionary will contain the joints labels as keys, and a list of coordinates as values. The coordinates are
         returned in meters.
@@ -1533,6 +1625,12 @@ class Sequence(object):
         ----------
         axis: str
             The axis from which to extract the coordinate: ``"x"``, ``"y"`` or ``"z"``.
+
+        timestamp_start: float or None, optional
+            If provided, the return values having a timestamp below the one provided will be ignored from the output.
+
+        timestamp_end: float or None, optional
+            If provided, the return values having a timestamp above the one provided will be ignored from the output.
 
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
@@ -1555,11 +1653,12 @@ class Sequence(object):
         for joint_label in self.get_joint_labels():
             if verbosity > 1:
                 print(str(joint_label), end=" ")
-            dict_coordinates[joint_label] = self.get_joint_coordinate_as_list(joint_label, axis)
+            dict_coordinates[joint_label] = self.get_joint_coordinate_as_list(joint_label, axis,
+                                                                              timestamp_start, timestamp_end)
 
         return dict_coordinates
 
-    def get_distances(self, axis=None, verbosity=1):
+    def get_distances(self, axis=None, timestamp_start=None, timestamp_end=None, verbosity=1):
         """Returns a dictionary containing the joint labels as keys, and a list of distances (distance travelled between
         two poses) as values. Distances are calculated using the :func:`tool_functions.calculate_distance()` function,
         and are defined by the distance travelled between two poses (in meters). The distances are returned in meters.
@@ -1571,6 +1670,13 @@ class Sequence(object):
         axis: str or None, optional
             If specified, the returned distances travelled will be calculated on a single axis. If ``None`` (default),
             the distance travelled will be calculated based on the 3D coordinates.
+
+        timestamp_start: float or None, optional
+            If provided, the return values having a timestamp below the one provided will be ignored from the output.
+
+        timestamp_end: float or None, optional
+            If provided, the return values having a timestamp above the one provided will be ignored from the output.
+
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
 
@@ -1597,11 +1703,12 @@ class Sequence(object):
         for joint_label in self.get_joint_labels():
             if verbosity > 1:
                 print(str(joint_label), end=" ")
-            dict_distances[joint_label] = self.get_joint_distance_as_list(joint_label, axis)
+            dict_distances[joint_label] = self.get_joint_distance_as_list(joint_label, axis,
+                                                                          timestamp_start, timestamp_end)
 
         return dict_distances
 
-    def get_distance_between_hands(self):
+    def get_distance_between_hands(self, timestamp_start=None, timestamp_end=None):
         """Returns a vector containing the distance (in meters) between the two hands across time. If the
         joint label system is Kinect, the distance will be calculated between ``"HandRight"`` and ``"HandLeft"``.
         If the joint label system is Qualisys, the distance will be calculated between ``"HandOutRight"`` and
@@ -1613,6 +1720,13 @@ class Sequence(object):
         ----
         This function is a wrapper for the function :meth:`Sequence.get_distance_between_joints`.
 
+        Parameters
+        ----------
+        timestamp_start: float or None, optional
+            If provided, the return values having a timestamp below the one provided will be ignored from the output.
+        timestamp_end: float or None, optional
+            If provided, the return values having a timestamp above the one provided will be ignored from the output.
+
         Returns
         -------
         list(float)
@@ -1620,13 +1734,13 @@ class Sequence(object):
         """
         labels = self.get_joint_labels()
         if "HandRight" in labels:
-            return self.get_distance_between_joints("HandRight", "HandLeft")
+            return self.get_distance_between_joints("HandRight", "HandLeft", timestamp_start, timestamp_end)
         elif "HandOutRight" in labels:
-            return self.get_distance_between_joints("HandOutRight", "HandOutLeft")
+            return self.get_distance_between_joints("HandOutRight", "HandOutLeft", timestamp_start, timestamp_end)
         else:
             raise Exception("The Sequence does not contain valid hand joint labels.")
 
-    def get_distance_between_joints(self, joint_label1, joint_label2):
+    def get_distance_between_joints(self, joint_label1, joint_label2, timestamp_start=None, timestamp_end=None):
         """Returns a vector containing the distance (in meters) between the two joints provided across time.
 
         .. versionadded:: 2.0
@@ -1637,6 +1751,10 @@ class Sequence(object):
             The label of the first joint (e.g., ``"Head"``).
         joint_label2: str
             The label of the second joint (e.g., ``"FootRight"``).
+        timestamp_start: float or None, optional
+            If provided, the return values having a timestamp below the one provided will be ignored from the output.
+        timestamp_end: float or None, optional
+            If provided, the return values having a timestamp above the one provided will be ignored from the output.
 
         Returns
         -------
@@ -1652,11 +1770,12 @@ class Sequence(object):
 
         distances = []
         for p in self.poses:
-            distances.append(calculate_distance(p.get_joint(joint_label1), p.get_joint(joint_label2)))
+            if timestamp_start < p.get_timestamp() < timestamp_end:
+                distances.append(calculate_distance(p.get_joint(joint_label1), p.get_joint(joint_label2)))
 
         return distances
 
-    def get_velocities(self, verbosity=1):
+    def get_velocities(self, timestamp_start=None, timestamp_end=None, verbosity=1):
         """Returns a dictionary containing the joint labels as keys, and a list of velocities (distance travelled over
         time between two poses) as values. Velocities are calculated using the
         :func:`tool_functions.calculate_velocity()` function, and are defined by the distance travelled between two
@@ -1667,6 +1786,12 @@ class Sequence(object):
 
         Parameters
         ----------
+        timestamp_start: float or None, optional
+            If provided, the return values having a timestamp below the one provided will be ignored from the output.
+
+        timestamp_end: float or None, optional
+            If provided, the return values having a timestamp above the one provided will be ignored from the output.
+
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
 
@@ -1693,11 +1818,11 @@ class Sequence(object):
         for joint_label in self.get_joint_labels():
             if verbosity > 1:
                 print(str(joint_label), end=" ")
-            dict_velocities[joint_label] = self.get_joint_velocity_as_list(joint_label)
+            dict_velocities[joint_label] = self.get_joint_velocity_as_list(joint_label, timestamp_start, timestamp_end)
 
         return dict_velocities
 
-    def get_accelerations(self, absolute=False, verbosity=1):
+    def get_accelerations(self, absolute=False, timestamp_start=None, timestamp_end=None, verbosity=1):
         """Returns a dictionary containing the joint labels as keys, and a list of accelerations (differences of
         velocity over time between two poses) as values. Accelerations are calculated using the
         :func:`tool_functions.calculate_acceleration()` function, and are defined by the difference of velocity between
@@ -1711,6 +1836,13 @@ class Sequence(object):
         absolute: boolean, optional
             If set on ``True``, returns the absolute acceleration values. If set on ``False`` (default), returns
             the original, signed acceleration values.
+
+        timestamp_start: float or None, optional
+            If provided, the return values having a timestamp below the one provided will be ignored from the output.
+
+        timestamp_end: float or None, optional
+            If provided, the return values having a timestamp above the one provided will be ignored from the output.
+
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
 
@@ -1737,11 +1869,12 @@ class Sequence(object):
         for joint_label in self.get_joint_labels():
             if verbosity > 1:
                 print(str(joint_label), end=" ")
-            dict_accelerations[joint_label] = self.get_joint_acceleration_as_list(joint_label, absolute)
+            dict_accelerations[joint_label] = self.get_joint_acceleration_as_list(joint_label, absolute,
+                                                                                  timestamp_start, timestamp_end)
 
         return dict_accelerations
 
-    def get_time_series_as_list(self, metric, verbosity=1):
+    def get_time_series_as_list(self, metric, timestamp_start=None, timestamp_end=None, verbosity=1):
         """Returns a dictionary containing one of the metrics for all joints: coordinate, distance travelled, velocity
         or acceleration.
 
@@ -1764,6 +1897,12 @@ class Sequence(object):
             • ``"acceleration"`` for the acceleration (in meters per second squared)
             • ``"acceleration_abs"`` for the absolute acceleration (in meters per second squared)
 
+        timestamp_start: float or None, optional
+            If provided, the return values having a timestamp below the one provided will be ignored from the output.
+
+        timestamp_end: float or None, optional
+            If provided, the return values having a timestamp above the one provided will be ignored from the output.
+
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
 
@@ -1785,19 +1924,19 @@ class Sequence(object):
         sequence. For accelerations, the lists returned have a length of :math:`n-2`.
         """
         if metric in ["x", "y", "z"]:
-            return self.get_single_coordinates(metric, verbosity)
+            return self.get_single_coordinates(metric, timestamp_start, timestamp_end, verbosity)
         elif metric == "distance":
-            return self.get_distances(None, verbosity)
+            return self.get_distances(None, timestamp_start, timestamp_end, verbosity)
         elif metric == "distance_hands":
-            return self.get_distance_between_hands()
+            return self.get_distance_between_hands(timestamp_start, timestamp_end)
         elif metric.startswith("distance"):
-            return self.get_distances(metric[-2:], verbosity)
+            return self.get_distances(metric[-2:], timestamp_start, timestamp_end, verbosity)
         elif metric == "velocity":
-            return self.get_velocities(verbosity)
+            return self.get_velocities(timestamp_start, timestamp_end, verbosity)
         elif metric == "acceleration":
-            return self.get_accelerations(False, verbosity)
+            return self.get_accelerations(False, timestamp_start, timestamp_end, verbosity)
         elif metric == "acceleration_abs":
-            return self.get_accelerations(True, verbosity)
+            return self.get_accelerations(True, timestamp_start, timestamp_end, verbosity)
         else:
             raise InvalidParameterValueException("metric", metric)
 
