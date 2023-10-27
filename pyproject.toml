@@ -25,6 +25,7 @@ dependencies = [
     "openpyxl >= 3.1, < 4",
     "pygame >= 2.5, < 3",
     "praat-parselmouth > 0.4, < 1",
+    "pyaudio-helper == 1.1.2, 2",
     "PyAudio >= 0.2.13, < 1"
 ]
 
