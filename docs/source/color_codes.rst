@@ -4,8 +4,8 @@ Color codes
 The following colors are available across the toolbox whenever a color parameter is requested. In the toolbox, colors
 can be entered through a number of different forms, including:
 
-    • **An RGB or RGBA tuple (e.g. ``(153, 204, 0)`` or ``(77, 77, 77, 255)``).**
-    • **An hexadecimal code, starting with a number sign (``#``, e.g. ``"#ffcc00"`` or ``"#c0ffee"``).**
+    • **An RGB or RGBA tuple** (e.g. ``(153, 204, 0)`` or ``(77, 77, 77, 255)``).
+    • **An hexadecimal code, starting with a number sign** (``#``, e.g. ``"#ffcc00"`` or ``"#c0ffee"``).
     • A case-insensitive string, containing any of the following:
         • The `HTML/CSS name <https://en.wikipedia.org/wiki/X11_color_names>`_ (e.g. ``"red"`` or
           ``"blanched almond"``).
@@ -17,8 +17,9 @@ can be entered through a number of different forms, including:
         • Any of the `MATLAB default plot colors
           <https://www.mathworks.com/help/matlab/creating_plots/specify-plot-colors.html>`_ (preceding the color name
           by ``"matlab:"``, e.g. ``"matlab:blue"``).
-        • A single letter representing one of the 9 default colors (``"r"`` (red), ``"g"`` (green), ``"b"`` (blue),
-          ``"c"`` (cyan), ``"m"`` (magenta), ``"y"`` (yellow), ``"o"`` (orange), ``"k"`` (key/black), ``"w"`` (white).
+        • A single letter representing one of the 11 default colors (``"r"`` (red), ``"g"`` (green), ``"b"`` (blue),
+          ``"c"`` (cyan), ``"m"`` (magenta), ``"y"`` (yellow), ``"o"`` (orange), ``"p"`` (purple), ``"t"`` (teal),
+          ``"k"`` (key/black), ``"w"`` (white).
 
 The complete list of accepted colors can be found below, ordered by hue:
 

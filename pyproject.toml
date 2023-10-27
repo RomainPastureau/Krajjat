@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "portaudio19-dev"]
 build-backend = "hatchling.build"
 
 [project]
