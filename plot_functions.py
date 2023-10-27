@@ -65,15 +65,15 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
         are plotted.
 
     figure_background_color: tuple or string or list, optional
-        The color of the background of the whole figure. See :ref:`color_codes` for the color name guidelines.
+        The color of the background of the whole figure. See :doc:`color_codes` for the color name guidelines.
         If more than one sequence is provided, this parameter should be a list with the color for each line.
 
     graph_background_color: tuple or string or list, optional
-        The color of the background of each graph. See :ref:`color_codes` for the color name guidelines.
+        The color of the background of each graph. See :doc:`color_codes` for the color name guidelines.
         If more than one sequence is provided, this parameter should be a list with the color for each line.
 
     line_color: tuple or string or list, optional
-        The color of the line(s) in the graph. See :ref:`color_codes` for the color name guidelines.
+        The color of the line(s) in the graph. See :doc:`color_codes` for the color name guidelines.
         If more than one sequence is provided, this parameter should be a list with the color for each line.
 
     line_width: float, optional

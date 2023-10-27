@@ -53,6 +53,7 @@ Poses
 Time
 """"
 .. automethod:: classes.sequence.Sequence.get_timestamps
+.. automethod:: classes.sequence.Sequence.get_timestamps_for_metric
 .. automethod:: classes.sequence.Sequence.get_time_between_two_poses
 .. automethod:: classes.sequence.Sequence.get_duration
 

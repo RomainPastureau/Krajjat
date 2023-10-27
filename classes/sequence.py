@@ -1213,7 +1213,7 @@ class Sequence(object):
             • ``"acceleration"`` for the acceleration (in meters per second squared); returns the timestamps except
               from the two first ones
             • ``"acceleration_abs"`` for the absolute acceleration (in meters per second squared); returns the
-            timestamps except from the two first ones
+              timestamps except from the two first ones
 
         relative: boolean
             Defines if the returned timestamps are relative to the first pose (in that case, the timestamp of the first

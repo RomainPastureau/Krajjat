@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sequence &mdash; krajjat 1.99.5 documentation</title>
+  <title>Sequence &mdash; krajjat 1.99.8 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
@@ -849,6 +849,53 @@ pose will be 0), or the original timestamps.</p></li>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>List of the timestamps of all the poses of the sequence, in seconds.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list(float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="classes.sequence.Sequence.get_timestamps_for_metric">
+<span class="sig-prename descclassname"><span class="pre">Sequence.</span></span><span class="sig-name descname"><span class="pre">get_timestamps_for_metric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metric</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#classes.sequence.Sequence.get_timestamps_for_metric" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a list of the timestamps for every value of the metric provided, in seconds.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 2.0.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>metric</strong> (<em>str</em>) – <p>The metric of interest. Depending on this value, the returned timestamps will not be the same length.
+The value of <code class="docutils literal notranslate"><span class="pre">metric</span></code> can be either:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;x&quot;</span></code>, for the values on the x axis (in meters); returns all the timestamps</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;y&quot;</span></code>, for the values on the y axis (in meters); returns all the timestamps</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;z&quot;</span></code>, for the values on the z axis (in meters); returns all the timestamps</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;distance_hands&quot;</span></code>, for the distance between the hands (in meters); returns all the timestamps</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;distance&quot;</span></code>, for the distance travelled (in meters); returns the timestamps except from the first</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;distance_x&quot;</span></code> for the distance travelled on the x axis (in meters); returns the timestamps except
+from the first</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;distance_y&quot;</span></code> for the distance travelled on the y axis (in meters); returns the timestamps except
+from the first</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;distance_z&quot;</span></code> for the distance travelled on the z axis (in meters); returns the timestamps except
+from the first</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;velocity&quot;</span></code> for the velocity (in meters per second); returns the timestamps except
+from the first</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;acceleration&quot;</span></code> for the acceleration (in meters per second squared); returns the timestamps except
+from the two first ones</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;acceleration_abs&quot;</span></code> for the absolute acceleration (in meters per second squared); returns the
+timestamps except from the two first ones</p></li>
+</ul>
+</p></li>
+<li><p><strong>relative</strong> (<em>boolean</em>) – Defines if the returned timestamps are relative to the first pose (in that case, the timestamp of the first
+pose will be 0), or the original timestamps.</p></li>
+<li><p><strong>timestamp_start</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If provided, the timestamps below this value will be ignored from the output.</p></li>
+<li><p><strong>timestamp_end</strong> (<em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – If provided, the timestamps above this value will be ignored from the output.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of the timestamps of the values described by the metric, in seconds.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list(float)</p>

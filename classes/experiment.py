@@ -4,7 +4,6 @@ from classes.exceptions import InvalidParameterValueException
 
 
 class Experiment(object):
-
     """Creates and return an Experiment object. An Experiment object can contain multiple Subject instances, which
     in turn contain Sequence instances.
 
