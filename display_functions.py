@@ -675,6 +675,14 @@ def _process_events(animation, window_area, modif_this, modif_other, seq_num, ma
                 if verbosity > 0:
                     print("Show lines (sequence " + str(seq_num) + "): " + str(animation.show_lines))
 
+            # Take a screenshot
+            elif event.key == K_s:
+                now = datetime.datetime.now()
+                name = "screenshot_" + str(now) + ".png"
+                cwd = os.getcwd()
+                pygame.image.save(window_area.window_area, cwd + "/" + name)
+                print("Screenshot saved as " + str(cwd) + "/" + name)
+
             elif modifiers[K_LSHIFT] or modifiers[K_RSHIFT]:
                 if event.key == K_RIGHT:
                     animation.set_shift_x(animation.shift_x + steps["shift_x"])

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "krajjat"
-version = "1.99.7"
+version = "1.99.8"
 authors = [
   { name="Romain Pastureau", email="r.pastureau@bcbl.eu" },
 ]
@@ -15,6 +15,11 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Operating System :: OS Independent",
+]
+dependencies = [
+    "scipy >= 1.11.0, < 2",
+    "numpy >= 1.25.0, < 2",
+    "opencv-python == 4.8.0.76"
 ]
 
 [project.urls]

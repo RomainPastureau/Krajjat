@@ -3764,7 +3764,7 @@ class Sequence(object):
         elif not 0 <= pose_index < len(self.poses):
             raise InvalidPoseIndexException(pose_index, len(self.poses))
 
-        if joint_label not in self.poses[pose_index].keys():
+        if joint_label not in self.poses[pose_index].get_joint_labels():
             raise InvalidJointLabelException(joint_label)
 
         joint = self.poses[pose_index].get_joint(joint_label).get_copy()

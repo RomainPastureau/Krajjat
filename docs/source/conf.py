@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.abspath("../.."))
 project = 'krajjat'
 copyright = '2023, Romain Pastureau'
 author = 'Romain Pastureau'
-release = '1.99.5'
+release = '1.99.8'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

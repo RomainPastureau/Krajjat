@@ -104,11 +104,18 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
         for sequence in sequence_or_sequences:
             timestamps.append(sequence.get_timestamps())
 
+    for sequence in timestamps:
+        print(sequence)
+
     # Handling timestamp_start and timestamp_end
     if timestamp_start is None:
-        timestamp_start = min(min(timestamps))
-    if timestamp_start is None:
-        timestamp_end = max(max(timestamps))
+        for timestamps_sequence in timestamps:
+            if timestamp_start is None or timestamp_start > min(timestamps_sequence):
+                timestamp_start = min(timestamps_sequence)
+    if timestamp_end is None:
+        for timestamps_sequence in timestamps:
+            if timestamp_end is None or timestamp_end < max(timestamps_sequence):
+                timestamp_end = max(timestamps_sequence)
 
     # Getting the epoch timestamps for each aligned sequence
     epoch_timestamps = []
@@ -184,9 +191,9 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
 
         if time_format:
             if (timestamp_end - timestamp_start).seconds >= 3600:
-                formatter = mdates.DateFormatter('%H:%M:%S.000')
+                formatter = mdates.AutoDateFormatter(mdates.AutoDateLocator(), defaultfmt='%H:%M:%S')
             else:
-                formatter = mdates.DateFormatter('%M:%S.000')
+                formatter = mdates.AutoDateFormatter(mdates.AutoDateLocator(), defaultfmt='%M:%S')
             plt.gcf().axes[i].xaxis.set_major_formatter(formatter)
 
         for j in range(len(sequence_or_sequences)):
@@ -194,7 +201,7 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
             if ylim is not None:
                 plt.ylim(ylim)
             if i == 0:
-                label = sequence_or_sequences[i].name
+                label = sequence_or_sequences[j].get_name()
             else:
                 label = None
 

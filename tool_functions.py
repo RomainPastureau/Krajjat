@@ -411,6 +411,7 @@ def align_two_sequences(sequence1, sequence2):
 
 
 def align_multiple_sequences(sequences, verbosity=1):
+    """Given a list of sequences, returns """
 
     # Get the time array
     timestamps = []

@@ -59,6 +59,8 @@ the sequences only by using a modifier.
       - .. image:: /icons32/l.png
     * - Show/hide pose index
       - .. image:: /icons32/p.png
+    * - Save the current window content as PNG
+      - .. image:: /icons32/s.png
     * - Move the animation*
       - .. image:: /icons32/left_click.png
         .. image:: /icons32/plus.png
