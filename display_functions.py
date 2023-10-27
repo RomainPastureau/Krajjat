@@ -5,9 +5,7 @@ from tool_functions import *
 import shutil
 import os
 import sys
-import pyaudio
 import wave
-
 
 def common_displayer(sequence1, sequence2=None, path_audio=None, path_video=None, position_sequences="side",
                      position_video="superimposed", resolution=0.5, height_window_in_meters=3.0, full_screen=False,
@@ -169,6 +167,10 @@ def common_displayer(sequence1, sequence2=None, path_audio=None, path_video=None
         path_audio = sequence1.path_audio
     if path_audio is not None:
         wavefile = wave.open(path_audio, "rb")
+        try:
+            import pyaudio
+        except ImportError:
+            raise ModuleNotFoundException("pyaudio", "read a video with sound.")
         p = pyaudio.PyAudio()
         audio = p.open(format=p.get_format_from_width(wavefile.getsampwidth()), channels=wavefile.getnchannels(),
                        rate=wavefile.getframerate(), output=True)

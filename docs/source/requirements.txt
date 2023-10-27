@@ -7,5 +7,5 @@ matplotlib == 3.7
 opencv-python == 4.8.0.76
 openpyxl == 3.1
 pygame == 2.5
-praat-parselmouth == 0.4
+praat-parselmouth == 0.4.3
 PyAudio == 0.2.13

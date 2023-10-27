@@ -2,7 +2,6 @@
 This class allows to perform a variety of transformations of the audio stream, such as getting the envelope, pitch and
 formants of the speech.
 """
-from scipy.signal import hilbert
 
 from classes.audio_derivatives import *
 from classes.exceptions import *
@@ -505,6 +504,11 @@ class Audio(object):
         except ImportError:
             raise ModuleNotFoundException("scipy", "open a file in .wav format.")
 
+        try:
+            import numpy as np
+        except ImportError:
+            raise ModuleNotFoundException("numpy", "open a file in .wav format.")
+
         audio_data = wavfile.read(self.path)
         self.frequency = audio_data[0]
 
@@ -782,6 +786,16 @@ class Audio(object):
             print("Creating an Envelope object...", end=" ")
 
         # If the parameter is an array of samples
+        try:
+            from scipy.signal import hilbert
+        except ImportError:
+            raise ModuleNotFoundException("scipy", "extracting the envelope of an audio file.")
+
+        try:
+            import numpy as np
+        except ImportError:
+            raise ModuleNotFoundException("numpy", "extracting the envelope of an audio file.")
+
         samples = np.abs(hilbert(self.samples))
 
         if resampling_frequency is None:
@@ -852,6 +866,11 @@ class Audio(object):
 
         if verbosity > 0:
             print("\tTurning the audio into a parselmouth object...", end=" ")
+
+        try:
+            import numpy as np
+        except ImportError:
+            raise ModuleNotFoundException("numpy", "get the pitch of an audio clip.")
 
         samples = np.array(self.samples, dtype=np.float64)
         parselmouth_sound = Sound(np.ndarray(np.shape(samples), dtype=np.float64, buffer=samples), self.frequency)
@@ -937,6 +956,11 @@ class Audio(object):
 
         if verbosity > 0:
             print("\tTurning the audio into a parselmouth object...", end=" ")
+
+        try:
+            import numpy as np
+        except ImportError:
+            raise ModuleNotFoundException("numpy", "get the intensity of an audio clip.")
 
         samples = np.array(self.samples, dtype=np.float64)
         parselmouth_sound = Sound(np.ndarray(np.shape(samples), dtype=np.float64, buffer=samples), self.frequency)
@@ -1024,6 +1048,11 @@ class Audio(object):
 
         if verbosity > 0:
             print("\tTurning the audio into a parselmouth object...", end=" ")
+
+        try:
+            import numpy as np
+        except ImportError:
+            raise ModuleNotFoundException("numpy", "get the formants of an audio clip.")
 
         samples = np.array(self.samples, dtype=np.float64)
         parselmouth_sound = Sound(np.ndarray(np.shape(samples), dtype=np.float64, buffer=samples), self.frequency)
@@ -1209,12 +1238,21 @@ class Audio(object):
         resampling_frequency: int, float or None, optional
             If not ``None``, the pitch will be resampled at the provided frequency before being returned.
 
-        mode: str, optional
+        resampling_mode: str, optional
             This parameter also allows for all the values accepted for the ``kind`` parameter in the function
             :func:`scipy.interpolate.interp1d`: ``"linear"``, ``"nearest"``, ``"nearest-up"``, ``"zero"``,
             ``"slinear"``, ``"quadratic"``, ``"cubic"``”, ``"previous"``, and ``"next"``. See the `documentation
             for this Python module
             <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`_ for more.
+
+        verbosity: int, optional
+            Sets how much feedback the code will provide in the console output:
+
+            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+              current steps.
+            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+              may clutter the output and slow down the execution.
 
         Returns
         -------

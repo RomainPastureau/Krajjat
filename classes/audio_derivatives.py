@@ -1,6 +1,5 @@
 """Classes for time series derived from audio clips: Envelope, Intensity, Pitch and Formants."""
-
-from scipy.signal import butter, lfilter
+from classes.exceptions import ModuleNotFoundException
 from tool_functions import resample_data
 
 
@@ -165,6 +164,10 @@ class AudioDerivative(object):
 		AudioDerivative
 			The AudioDerivative instance, with filtered values.
 		"""
+		try:
+			from scipy.signal import butter, lfilter
+		except ImportError:
+			raise ModuleNotFoundException("scipy", "apply a band-pass filter.")
 
 		if filter_below not in [None, 0] and filter_over not in [None, 0]:
 			if verbosity > 0:

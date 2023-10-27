@@ -7,7 +7,6 @@ import math
 import os
 import json
 import warnings
-import numpy as np
 
 from classes.exceptions import ModuleNotFoundException, InvalidParameterValueException
 from classes.graph_element import *
@@ -593,7 +592,10 @@ def read_xlsx(path):
     list(list)
         The content of the Excel file, with each element of the list being a row of the Excel file.
     """
-    import openpyxl as op
+    try:
+        import openpyxl as op
+    except ImportError:
+        raise ModuleNotFoundException("openpyxl", "read an Excel file.")
     workbook = op.load_workbook(path)
     data = workbook[workbook.sheetnames[0]]
 
@@ -771,7 +773,7 @@ def write_xlsx(table, path, verbosity=1):
     try:
         import openpyxl as op
     except ImportError:
-        raise ModuleNotFoundException("scipy", "save a file in .xlsx format.")
+        raise ModuleNotFoundException("openpyxl", "save a file in .xlsx format.")
     workbook_out = op.Workbook()
     sheet_out = workbook_out.active
 
@@ -937,7 +939,10 @@ def pad(data, time_points_data, time_points_padding, padding_value=0, verbosity=
         raise Exception("The last point of the time points padding array (" + str(time_points_padding[-1]) + ") must " +
                         "be superior or equal to the last time point of the data (" + str(time_points_data[-1]) + ").")
 
-    import numpy as np
+    try:
+        import numpy as np
+    except ImportError:
+        raise ModuleNotFoundException("numpy", "pad data.")
 
     padded_data = np.zeros(np.shape(time_points_padding), dtype=np.float64)
     inconsistency = False
@@ -1723,6 +1728,11 @@ def stereo_to_mono(audio_arrays, verbosity=1):
 
     if verbosity > 0:
         print("\n\tConverting audio samples from stereo to mono...", end=" ")
+
+    try:
+        import numpy as np
+    except ImportError:
+        raise ModuleNotFoundException("numpy", "turn stereo audio to mono.")
 
     new_audio_array = np.mean(audio_arrays, 1, np.intp)
 

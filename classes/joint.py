@@ -2,7 +2,6 @@
 handled by the methods in the class Pose, but some of them can be directly accessed."""
 
 from math import cos, sin
-
 from classes.exceptions import InvalidParameterValueException
 
 
