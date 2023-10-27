@@ -6,6 +6,7 @@
 /.venv/
 /doc/
 /docs/.venv/
+/docs/build/
 /classes/__pycache__/
 /.venv/bin/__pycache__/
 /__pycache__/
