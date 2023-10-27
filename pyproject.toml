@@ -19,12 +19,13 @@ classifiers = [
 dependencies = [
     "scipy >= 1.11.0, < 2",
     "numpy >= 1.25.0, < 2",
+    "chardet >= 5.2.0, < 6",
     "matplotlib >= 3.7, < 4",
     "opencv-python == 4.8.0.76",
     "openpyxl >= 3.1, < 4",
     "pygame >= 2.5, < 3",
     "praat-parselmouth > 0.4, < 1",
-    "PyAudio >= 0.2, < 1"
+    "PyAudio >= 0.2.13, < 1"
 ]
 
 [project.urls]

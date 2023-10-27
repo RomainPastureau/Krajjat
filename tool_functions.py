@@ -2,7 +2,6 @@
 import datetime
 import random
 
-import chardet
 import math
 import os
 import json
@@ -555,6 +554,11 @@ def read_text_table(path):
     list(list)
         The content of the text file, with each sub-list containing the elements of a row of the file.
     """
+
+    try:
+        import chardet
+    except ImportError:
+        raise ModuleNotFoundException("chardet", "read a table from a text file.")
 
     rawdata = open(path, "rb").read()
     encoding = chardet.detect(rawdata)['encoding']
