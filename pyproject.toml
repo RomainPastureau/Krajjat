@@ -29,6 +29,11 @@ dependencies = [
     "praat-parselmouth > 0.4, < 1"
 ]
 
+[external]
+build-requires = [
+    "pkg:nuget/portaudio@0.19.1"
+]
+
 [project.urls]
 "Homepage" = "https://github.com/RomainPastureau/Krajjat"
 "Bug Tracker" = "https://github.com/RomainPastureau/Krajjat/issues"
