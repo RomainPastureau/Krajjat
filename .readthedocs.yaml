@@ -8,7 +8,7 @@ build:
   tools:
     python: "3.11"
   apt_packages:
-    - libasound-dev
+    - portaudio19-dev
 
 python:
   install:
