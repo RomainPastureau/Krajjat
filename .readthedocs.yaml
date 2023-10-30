@@ -8,7 +8,7 @@ build:
   tools:
     python: "3.11"
   jobs:
-    pre_install:
+    post_create_environment:
       - bash sudo apt-get install libasound-dev
 
 python:
