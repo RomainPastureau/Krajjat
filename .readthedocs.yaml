@@ -8,7 +8,7 @@ build:
   tools:
     python: "3.11"
   commands:
-    - sudo apt-get install libasound-dev
+    - npm install libasound-dev
 
 python:
   install:
