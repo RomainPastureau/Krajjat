@@ -1,10 +1,10 @@
 [build-system]
-requires = ["hatchling", "portaudio19-dev @ git+https://github.com/PortAudio/portaudio@master"]
+requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
 name = "krajjat"
-version = "1.99.8"
+version = "1.99.9"
 authors = [
   { name="Romain Pastureau", email="r.pastureau@bcbl.eu" },
 ]
@@ -25,7 +25,7 @@ dependencies = [
     "opencv-python == 4.8.0.76",
     "openpyxl >= 3.1, < 4",
     "pygame >= 2.5, < 3",
-    "PyAudio >= 0.2.13, <1",
+    "PyAudio >= 0.2.13, < 1",
     "praat-parselmouth > 0.4, < 1"
 ]
 
