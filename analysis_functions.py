@@ -1,6 +1,8 @@
 """These functions allow to find significant relationships between movements, or between movements and audio properties.
 """
-from plot_functions import plot_silhouette
+from classes.exceptions import ModuleNotFoundException
+from classes.graph_element import Graph
+from plot_functions import plot_silhouette, plot_body_graphs
 
 
 def correlation_with_audio(experiment, group=None, condition=None, subjects=None, sequence_metric="distance",
@@ -31,3 +33,40 @@ def correlation_with_audio(experiment, group=None, condition=None, subjects=None
                     color_silhouette=color_silhouette, resolution=resolution, full_screen=full_screen,
                     path_save=path_save, verbosity=verbosity)
 
+def coherence_with_audio(experiment, group=None, condition=None, subjects=None, sequence_metric="distance",
+                         audio_metric="envelope", sampling_frequency=8, length_segment=32, specific_frequency=None,
+                         title=None, width_line=1, color_line="blue", verbosity=1):
+
+    try:
+        from scipy.signal import coherence
+    except ImportError:
+        raise ModuleNotFoundException("scipy", "calculate the coherence")
+
+    try:
+        import numpy as np
+    except ImportError:
+        raise ModuleNotFoundException("numpy", "calculate the coherence")
+
+    plot_dictionary = {}
+
+    for joint_label in experiment.get_joint_labels():
+        dataframe = experiment.get_dataframe(sequence_metric, joint_label, audio_metric)
+
+        if group is not None:
+            dataframe = dataframe.loc[dataframe["Group"] == group]
+        if condition is not None:
+            dataframe = dataframe.loc[dataframe["Condition"] == condition]
+        if subjects is not None:
+            dataframe = dataframe.loc[dataframe["Subject"].isin(subjects)]
+
+        frequencies, coherence_values = coherence(dataframe["SequenceMetric"], dataframe["AudioMetric"],
+                                                  fs=sampling_frequency, nperseg=length_segment)
+
+        if specific_frequency is not None:
+            plot_dictionary[joint_label] = coherence_values[frequencies == specific_frequency]
+        else:
+            graph = Graph()
+            graph.add_plot(frequencies, coherence_values, width_line, color_line)
+            plot_dictionary[joint_label] = graph
+
+    plot_body_graphs(plot_dictionary, title=title)
