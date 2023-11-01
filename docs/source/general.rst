@@ -2,6 +2,7 @@ Introduction
 ============
 
 .. toctree::
+
     install
     dependencies
     vocabulary

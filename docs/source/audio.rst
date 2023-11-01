@@ -35,9 +35,13 @@ Getter functions
 
 Transformation functions
 ^^^^^^^^^^^^^^^^^^^^^^^^
+.. _get_envelope:
 .. automethod:: classes.audio.Audio.get_envelope
+.. _get_pitch:
 .. automethod:: classes.audio.Audio.get_pitch
+.. _get_intensity:
 .. automethod:: classes.audio.Audio.get_intensity
+.. _get_formant:
 .. automethod:: classes.audio.Audio.get_formant
 .. automethod:: classes.audio.Audio.resample
 

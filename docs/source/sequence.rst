@@ -109,11 +109,16 @@ Metrics: total values
 
 Correction functions
 ^^^^^^^^^^^^^^^^^^^^
+.. _correct_jitter:
 .. automethod:: classes.sequence.Sequence.correct_jitter
+.. _re_reference:
 .. automethod:: classes.sequence.Sequence.re_reference
+.. _trim:
 .. automethod:: classes.sequence.Sequence.trim
 .. automethod:: classes.sequence.Sequence.trim_to_audio
+.. _resample:
 .. automethod:: classes.sequence.Sequence.resample
+.. _correct_zeros:
 .. automethod:: classes.sequence.Sequence.correct_zeros
 .. automethod:: classes.sequence.Sequence.randomize
 

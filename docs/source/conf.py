@@ -21,6 +21,9 @@ extensions = [
     'sphinx.ext.duration',
     'sphinx.ext.napoleon',
     'sphinx.ext.autodoc',
+    'sphinx_tabs.tabs',
+    'sphinx_copybutton',
+    #'sphinx.ext.autosectionlabel',
     #'sphinx-autodoc-typehints',
 ]
 
@@ -31,9 +34,15 @@ exclude_patterns = []
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = 'sphinx_rtd_theme'
+html_logo = 'img/krajjat-logo-black.png'
+# html_static_path = ["_static"]
 
 html_theme_options = {
-    "style_nav_header_background": "#99CC00"
+    "logo_only": True,
+    "style_nav_header_background": '#ffd242',
+    "collapse_navigation": False,
+    "navigation_depth": 4,
+    "includehidden": False
 }
 
 html_static_path = ['_static']

@@ -2,3 +2,23 @@
 .wy-table-responsive table th {
   white-space: normal;
 }
+
+.wy-side-nav-search input[type=text] {
+  width:100%;
+  border-radius:50px;
+  padding:6px 12px;
+  border-color:#000000
+}
+
+.rst-content section ul {
+  margin-top: 24px;
+}
+
+.rst-content .admonition {
+  margin-top: 24px;
+}
+
+/*
+.rst-content blockquote {
+  margin-bottom: 0px;
+} */

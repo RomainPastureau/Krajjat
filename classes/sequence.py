@@ -30,12 +30,12 @@ class Sequence(object):
     path_audio: str or None, optional
         Absolute path to an audio file corresponding to the sequence. The path should point to a .wav
         file. This path will be stored as an attribute of the Sequence object, and may be used automatically by
-        functions using an audio file (typically, :py:meth:`Sequence.synchronize()` and :py:func:`sequence_reader()`).
+        functions using an audio file (typically, :py:meth:`~Sequence.synchronize()` and :py:func:`sequence_reader()`).
         This parameter is however far from vital in the definition of a Sequence instance, and can be skipped safely.
 
     name: str or None, optional
         Defines a name for the Sequence instance. If a string is provided, the attribute :attr:`name` will take
-        its value. If not, see :meth:`Sequence._define_name_init()`.
+        its value. If not, see :meth:`~Sequence._define_name_init()`.
 
     condition: str or None, optional
         Optional field to represent in which experimental condition the sequence was recorded.

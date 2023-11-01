@@ -7,4 +7,4 @@ Functions
    display_functions
    tool_functions
    plot_functions
-   stats_functions
+   analysis_functions
