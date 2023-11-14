@@ -2,13 +2,13 @@ Classes
 =======
 
 .. toctree::
-    experiment
-    subject
-    sequence
-    pose
-    joint
-    audio
-    audio_derivatives
-    graphic_classes
-    graph_element
-    exceptions
+    classes/experiment
+    classes/subject
+    classes/sequence
+    classes/pose
+    classes/joint
+    classes/audio
+    classes/audio_derivatives
+    classes/graphic_classes
+    classes/graph_element
+    classes/exceptions

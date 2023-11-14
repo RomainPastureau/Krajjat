@@ -2,6 +2,6 @@ Appendix
 ========
 
 .. toctree::
-    color_codes
-    color_schemes
-    joint_labels
+    appendix/color_codes
+    appendix/color_schemes
+    appendix/joint_labels

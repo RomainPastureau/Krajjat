@@ -2,9 +2,8 @@ Functions
 =========
 
 .. toctree::
-
-   io_functions
-   display_functions
-   tool_functions
-   plot_functions
-   analysis_functions
+   functions/io_functions
+   functions/display_functions
+   functions/tool_functions
+   functions/plot_functions
+   functions/analysis_functions

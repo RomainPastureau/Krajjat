@@ -2,11 +2,10 @@ Introduction
 ============
 
 .. toctree::
-
-    install
-    dependencies
-    vocabulary
-    example
-    input
-    dejittering
-    release_notes
+    general/install
+    general/dependencies
+    general/vocabulary
+    general/example
+    general/input
+    general/dejittering
+    general/release_notes

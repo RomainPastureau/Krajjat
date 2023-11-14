@@ -34,13 +34,13 @@ The toolbox allows to:
      :ref:`a single joint <single_joint_movement_plotter>` or for
      :ref:`all of them <joints_movement_plotter>`.
    • **Perform statistical analyses** on the relationship between motion capture sequences and speech
-     (:doc:`analysis functions <analysis_functions>`).
+     (:doc:`analysis functions <functions/analysis_functions>`).
 
 
 Where do I start?
 -----------------
-Start :doc:`here <install>` to install the toolbox as a Python module. Once it is done, you can follow an example
-provided :doc:`here <example>`.
+Start :doc:`here <general/install>` to install the toolbox as a Python module. Once it is done, you can follow an
+example provided :doc:`here <general/example>`.
 
 
 Useful links
