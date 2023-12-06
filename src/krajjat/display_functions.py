@@ -869,7 +869,7 @@ def save_video_sequence(sequence1, path_output, fps=25, sequence2=None, path_aud
                                          **kwargs_parser(kwargs, "_seq2"))
 
     directory_output = "/".join(path_output.split("/")[:-1])
-    create_subfolders(directory_output, verbosity)
+    os.makedirs(directory_output, exist_ok=True)
 
     # Load the video
     video = None

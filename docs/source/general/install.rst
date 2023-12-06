@@ -61,6 +61,6 @@ portaudio via homebrew:
 
 FFmpeg
 ^^^^^^
-Saving video files using the function :func:`~display_functions.save_video_sequence` requires to have FFmpeg installed
-on your device. However, the toolbox will likely function without any issue as long as this one function is not used.
-To install FFmpeg on your system, `click here <https://ffmpeg.org/>`_.
+Saving video files using the function :func:`~krajjat.display_functions.save_video_sequence` requires to have FFmpeg
+installed on your device. However, the toolbox will likely function without any issue as long as this one function is
+not used. To install FFmpeg on your system, `click here <https://ffmpeg.org/>`_.

@@ -37,10 +37,44 @@ def correlation_with_audio(experiment, group=None, condition=None, subjects=None
 def coherence_with_audio(experiment, group=None, condition=None, subjects=None, sequence_metric="distance",
                          audio_metric="envelope", sampling_frequency=8, length_segment=32, specific_frequency=None,
                          title=None, width_line=1, color_line=None, verbosity=1):
+    """Calculates and plots the coherence between one metric derived from the sequences, and one metric derived from
+    the corresponding audio clips.
 
+    ..versionadded:: 2.0
+
+    Parameters
+    ----------
+    experiment: Experiment
+        An Experiment instance, containing the full dataset to be analyzed.
+
+    group: str or None
+        If specified, the analysis will focus exclusively on subjects whose
+        :attr:`~krajjat.classes.subject.Subject.group` attribute matches the value provided for this parameter.
+        Otherwise, if this parameter is set on `None` (default), subjects from all groups will be considered.
+
+    condition: str or None
+        If specified, the analysis will focus exclusively on sequences whose
+        :attr:`~krajjat.classes.sequence.Sequence.condition` attribute matches the value provided for this parameter.
+        Otherwise, if this parameter is set on `None` (default), all sequences will be considered.
+
+    subjects: list(str), str or None
+        If specified, the analysis will focus exclusively on subjects whose
+        :attr:`~krajjat.classes.subject.Subject.name` attribute matches the value(s) provided for this parameter.
+        This parameter can be a string (for one subject), or a list of strings (for multiple subjects).
+        Otherwise, if this parameter is set on `None`, all subjects will be considered. This parameter can be combined
+        with the parameter ``group`` (default), to perform the analysis on certain subjects from a certain group.
+
+    sequence_metric: str
+        The sequence 
+
+
+    """
+
+    # Define the colors of the lines if they are not defined in the parameters
     if color_line is None:
         color_line = ["b", "r"]
 
+    # Import scipy and numpy
     try:
         from scipy.signal import coherence
     except ImportError:
@@ -51,11 +85,13 @@ def coherence_with_audio(experiment, group=None, condition=None, subjects=None, 
     except ImportError:
         raise ModuleNotFoundException("numpy", "calculate the coherence")
 
+    # Create the plot dictionary
     plot_dictionary = {}
 
     if verbosity > 1:
         print("Calculating the coherence for each joint label...")
 
+    # Get the full dataframe
     dataframe = experiment.get_dataframe(sequence_metric, audio_metric, audio_filter_above=sampling_frequency,
                                          audio_resampling_frequency=sampling_frequency)
 

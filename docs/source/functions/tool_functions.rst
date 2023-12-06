@@ -13,7 +13,6 @@ Path functions
 .. autofunction:: krajjat.tool_functions.find_common_parent_path
 .. autofunction:: krajjat.tool_functions.compute_subpath
 .. autofunction:: krajjat.tool_functions.get_difference_paths
-.. autofunction:: krajjat.tool_functions.create_subfolders
 .. autofunction:: krajjat.tool_functions.get_objects_paths
 
 Name functions
@@ -24,6 +23,8 @@ Sequence comparison functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. autofunction:: krajjat.tool_functions.compute_different_joints
 .. autofunction:: krajjat.tool_functions.align_two_sequences
+.. autofunction:: krajjat.tool_functions.align_multiple_sequences
+.. autofunction:: krajjat.tool_functions.sort_sequences_by_date
 
 File reading functions
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -70,8 +71,8 @@ Audio functions
 .. autofunction:: krajjat.tool_functions.scale_audio
 .. autofunction:: krajjat.tool_functions.stereo_to_mono
 
-Joint labels loading functions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Internal loading functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. autofunction:: krajjat.tool_functions.load_kinect_joint_labels
 .. autofunction:: krajjat.tool_functions.load_qualisys_joint_labels
 .. autofunction:: krajjat.tool_functions.load_qualisys_joint_label_conversion
@@ -79,7 +80,13 @@ Joint labels loading functions
 .. autofunction:: krajjat.tool_functions.load_joints_connections
 .. autofunction:: krajjat.tool_functions.load_qualisys_to_kinect
 .. autofunction:: krajjat.tool_functions.load_joints_subplot_layout
+.. autofunction:: krajjat.tool_functions.load_joints_silhouette_layout
 .. autofunction:: krajjat.tool_functions.load_steps_gui
+
+Time functions
+^^^^^^^^^^^^^^
+.. autofunction:: krajjat.tool_functions.format_time
+.. autofunction:: krajjat.tool_functions.time_unit_to_datetime
 
 Miscellaneous functions
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -87,4 +94,3 @@ Miscellaneous functions
 .. autofunction:: krajjat.tool_functions.resample_images_to_frequency
 .. autofunction:: krajjat.tool_functions.get_min_max_values_from_plot_dictionary
 .. autofunction:: krajjat.tool_functions.kwargs_parser
-.. autofunction:: krajjat.tool_functions.format_time

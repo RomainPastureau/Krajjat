@@ -1,7 +1,9 @@
 """Default class defining an experiment. An experiment object can contain multiple subjects, which themselves can
 contain multiple sequences."""
+import os
+
 from krajjat.classes.exceptions import InvalidParameterValueException
-from krajjat.tool_functions import create_subfolders, get_system_csv_separator
+from krajjat.tool_functions import get_system_csv_separator
 
 
 class Experiment(object):
@@ -96,20 +98,20 @@ class Experiment(object):
         return self.subjects[subject_index]
 
     def get_subject_from_name(self, subject_name):
-        """Returns the first Subject instance in :attr:`subjects` having the attribute :attr:`subject.Subject.name`
-        matching the name provided as parameter.
+        """Returns the first Subject instance in :attr:`subjects` having the attribute
+        :attr:`~krajjat.classes.subject.Subject.name` matching the name provided as parameter.
 
         .. versionadded:: 2.0
 
         Parameters
         ----------
         subject_name: str
-            The name attribute of a Subject instance.
+            The :attr:`~krajjat.classes.subject.Subject.name` attribute of a Subject instance.
 
         Returns
         -------
         Subject
-            A Subject instance having the provided name as it attribute :attr:`subject.Subject.name`.
+            A Subject instance having the provided name as it attribute :attr:`~krajjat.classes.subject.Subject.name`.
         """
         for subject in self.subjects:
             if subject.get_name() == subject_name:
@@ -279,7 +281,7 @@ class Experiment(object):
         dataframe = self.get_dataframe(sequence_metric, audio_metric, audio_filter_below, audio_filter_above,
                                        audio_resampling_frequency)
 
-        create_subfolders(path)
+        os.makedirs(path, exist_ok=True)
         extension = path.split(".")[-1]
 
         if extension == "json":

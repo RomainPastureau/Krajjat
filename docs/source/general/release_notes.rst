@@ -10,7 +10,7 @@ Version 2.0 (01/09/2023)
     * Yes, it was a bad idea to have two Js in a row in an acronym.
     * Sphinx documentation added for each function and for the whole project.
     * Adding support for the Qualisys system (44 joints).
-    * Now handles all HTML color names for creating color schemes.
+    * Now handles HTML color names, Matplotlib color names (including xkcd) and Matlab color names.
     * Renamed functions and attributes to be more transparent with their use.
     * Added custom exceptions.
     * Large code sweeping.
@@ -70,4 +70,4 @@ Version 1.8 (18/10/2022)
 * In the classes file, changed the name of the variable ``"joint_number"`` to ``"joint_name"``.
 
 .. note::
-	Versions before 1.8 did not have release notes.
+    Versions before 1.8 did not have release notes.

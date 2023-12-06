@@ -37,3 +37,4 @@ kiwisolver~=1.4.5
 zipp~=3.17.0
 build~=1.0.3
 wheel~=0.41.2
+openpyxl~=3.1.2

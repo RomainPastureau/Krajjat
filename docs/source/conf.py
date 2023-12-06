@@ -23,7 +23,7 @@ templates_path = ['_templates']
 exclude_patterns = []
 
 html_theme = 'sphinx_rtd_theme'
-html_logo = 'img/krajjat-logo-black.png'
+html_logo = 'img/krajjat_logo_black.png'
 # html_static_path = ["_static"]
 
 html_theme_options = {

@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. image:: /img/krajjat-logo-black-cropped.png
+.. image:: /img/krajjat_logo_black_cropped.png
 
 Welcome on the **Krajjat** documentation!
 =========================================
@@ -21,15 +21,15 @@ The toolbox allows to:
      :ref:`resampling <resample>`, and
      :ref:`interpolating missing data <correct_zeros>`. See more details
      :ref:`here<processing_functions>`.
-   • Get **basic information** about the sequences, via e.g. :meth:`~classes.sequence.Sequence.print_stats`.
+   • Get **basic information** about the sequences, via e.g. :meth:`~krajjat.classes.sequence.Sequence.print_stats`.
    • Get **acoustic components** of the speech, such as the :ref:`envelope <get_envelope>`, the
      :ref:`intensity <get_intensity>`, the :ref:`pitch <get_pitch>`, or one
      of the :ref:`formants <get_formant>`.
    • **Convert the sequences** and save them in different formats (``.json``, ``.xlsx``, ``.txt``, ``.csv``, ``.tsv``
-     or ``.mat``), using :meth:`~classes.sequence.Sequence.save`.
-   • **Display the sequences** (:meth:`~display_functions.sequence_reader`), compare them side-by-side or superimposed
-     (:meth:`~display_functions.sequence_comparer`), and save them as video files
-     (:meth:`~display_functions.save_video_sequence`).
+     or ``.mat``), using :meth:`~krajjat.classes.sequence.Sequence.save`.
+   • **Display the sequences** (:meth:`~krajjat.display_functions.sequence_reader`), compare them side-by-side or
+     superimposed (:meth:`~krajjat.display_functions.sequence_comparer`), and save them as video files
+     (:meth:`~krajjat.display_functions.save_video_sequence`).
    • **Plot** the movement or acoustic variables, either for
      :ref:`a single joint <single_joint_movement_plotter>` or for
      :ref:`all of them <joints_movement_plotter>`.

@@ -4095,7 +4095,7 @@ class Sequence(object):
                     file_format = subfolders[-1].split(".")[-1]
 
         # Automatic creation of all the folders of the path if they don't exist
-        create_subfolders(folder_out)
+        os.makedirs(folder_out, exist_ok=True)
 
         if name is None and self.name is not None:
             name = self.name
@@ -4196,7 +4196,7 @@ class Sequence(object):
                 file_format = subfolders[-1].split(".")[-1]
 
         # Automatic creation of all the folders of the path if they don't exist
-        create_subfolders(folder_out)
+        os.makedirs(folder_out, exist_ok=True)
 
         # Handling file format
         file_format = file_format.strip(".")  # We remove the dot in the format

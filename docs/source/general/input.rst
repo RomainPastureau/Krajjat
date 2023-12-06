@@ -132,6 +132,6 @@ list as values:
 
 .. note::
     It is possible to have individual files for every sample. In that case, the name of the folder containing the
-    individual audio samples should be passed as parameter upon creation of the :class:`Audio` object. This incredibly
-    tedious way of opening and saving audio files has only been implemented to follow the same logic as for the Sequence
-    files, and should be avoided.
+    individual audio samples should be passed as parameter upon creation of the :class:`~krajjat.classes.audio.Audio`
+    object. This incredibly tedious way of opening and saving audio files has only been implemented to follow the same
+    logic as for the Sequence files, and should be avoided.

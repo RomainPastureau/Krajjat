@@ -1,7 +1,7 @@
 Dependencies
 ============
 
-As of the most recent version, Krajjat relies on 10 other python packages and 1 software in order to run all the
+As of the most recent version, Krajjat relies on 11 other python packages and 1 software in order to run all the
 functions properly. When installing Krajjat, all the dependencies should install automatically. However, **you may
 encounter some issues with PyAudio**: if you do so, check the corresponding section below. You will also need to
 install FFmpeg if you want to create videos from the toolbox.

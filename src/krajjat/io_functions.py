@@ -505,7 +505,7 @@ def save_stats(sequence_or_sequences, folder_out="", name="stats", file_format="
     """
 
     # Automatic creation of all the folders of the path if they don't exist
-    create_subfolders("/".join(folder_out.split("/")[:-1]))
+    os.makedirs("/".join(folder_out.split("/")[:-1]), exist_ok=True)
 
     # Open the sequence or sequences
     if type(sequence_or_sequences) is Sequence:

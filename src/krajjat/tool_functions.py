@@ -3,7 +3,6 @@ import datetime
 import random
 
 import math
-import os
 import json
 import warnings
 
@@ -196,44 +195,6 @@ def get_objects_paths(list_of_objects):
     for element in list_of_objects:
         paths.append(element.get_path())
     return paths
-
-
-def create_subfolders(path, verbosity=1):
-    """Creates all the subfolders that do not exist in a path. For example, if the folder ``"C:/Recordings/"`` is empty,
-    and the parameter ``"path"`` is set on ``"C:/Recordings/Subject_01/Session_01/Video_01/"``, the function will
-    successively create the folders ``"C:/Recordings/Subject_01/"``,  ``"C:/Recordings/Subject_01/Session_01/"``, and
-    ``"C:/Recordings/Subject_01/Session_01/Video_01/"``.
-
-    .. versionadded:: 2.0
-
-    Parameters
-    ----------
-    path: str
-        The absolute path to a folder.
-
-    verbosity: int, optional
-        Sets how much feedback the code will provide in the console output:
-
-        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
-        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
-          current steps.
-        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
-          may clutter the output and slow down the execution.
-    """
-
-    folders = path.split("/")  # We create a list of all the sub-folders of the path
-    for folder in range(len(folders)):
-        partial_path = ""
-        for i in range(folder + 1):
-            partial_path += folders[i] + "/"
-        if "." in folders[-1]:
-            if verbosity > 0:
-                print("Not creating " + path + " as it is not a valid folder.")
-            break
-        if not os.path.exists(partial_path):
-            os.mkdir(partial_path)
-            if verbosity > 0:
-                print("Creating folder: " + partial_path)
 
 
 # === Name functions ===
@@ -454,6 +415,37 @@ def align_multiple_sequences(sequences, verbosity=1):
             timestamps.append(sequence.get_timestamps())
 
     return timestamps
+
+
+def sort_sequences_by_date(sequences):
+    """Takes an array of sequences as parameter, and returns an array containing the same sequences, ordered by
+    recording date. If at least one sequence of the array has an attribute :attr:`Sequence.date_recording` set on
+    None, the function will return an error.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    sequences: list(Sequence)
+        A list of Sequence instances.
+
+    Returns
+    -------
+    list(Sequence)
+        A list of Sequence instances, ordered by date of recording.
+    """
+    dates = {}
+
+    for sequence in sequences:
+        if sequence.get_date_recording() is None:
+            raise Exception("The sequence " + str(sequence.name) + " does not have a date of recording. The sequences" +
+                            " cannot be sorted by recording date.")
+        else:
+            dates[sequence.get_date_recording()] = sequence
+
+    dates_sorted = sorted(dates.keys())
+    sequences_ordered = [dates[s] for s in dates_sorted]
+    return sequences_ordered
 
 
 # === File reading functions ===
@@ -1207,10 +1199,6 @@ def divide_in_windows(array, window_size, overlap=0, add_incomplete_window=True)
             windows.append(array[window_start:])
 
     return windows
-
-
-def order_sequences_by_date(sequences):
-    pass
 
 
 # === Color functions ===
@@ -1990,6 +1978,74 @@ def load_steps_gui():
 
     return steps
 
+# === Time functions ===
+def format_time(time, time_unit="s", time_format="hh:mm:ss"):
+    """Formats a given time in a given unit according to a time format.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    time: int or float
+        A value of time.
+    time_unit: str, optional
+        The unit of the ``time`` parameter. This parameter can take the following values: "ns", "1ns", "10ns", "100ns",
+        "µs", "1µs", "10µs", "100µs", "ms", "1ms", "10ms", "100ms", "s", "sec", "1s", "min", "mn", "h", "hr", "d",
+        "day".
+    time_format: str, optional
+        The format in which to return the time. Can be either "hh:mm:ss", "hh:mm:ss.ms", "hh:mm", "mm:ss" or "mm:ss.ms".
+    """
+    time = time / UNITS[time_unit]
+    hour = int(time // 3600)
+    minute = int((time // 60) % 60)
+    second = int((time % 60) // 1)
+    millisecond = int((time % 1) * 1000)
+
+    if time_format.startswith("hh:mm:ss"):
+        if time_format.endswith(".ms"):
+            return str(hour).zfill(2) + ":" + str(minute).zfill(2) + ":" + str(second).zfill(2) + "." + \
+                   str(millisecond).zfill(3)
+        else:
+            return str(hour).zfill(2) + ":" + str(minute).zfill(2) + ":" + str(second).zfill(2)
+
+    elif time_format == "hh:mm":
+        return str(hour).zfill(2) + ":" + str(minute).zfill(2)
+
+    elif time_format.startswith("mm:ss"):
+        minute = int(time // 60)
+        if time_format.endswith(".ms"):
+            return str(minute).zfill(2) + ":" + str(second).zfill(2) + "." + str(millisecond).zfill(3)
+        else:
+            return str(minute).zfill(2) + ":" + str(second).zfill(2)
+
+    else:
+        raise Exception('Wrong value for the time_format parameter. It should be "hh:mm:ss" or "mm:ss".')
+
+
+def time_unit_to_datetime(time, time_unit="s"):
+    """Turns any time unit into a ``datetime`` format.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    time: int or float
+        A value of time.
+    time_unit: str, optional
+        The unit of the ``time`` parameter. This parameter can take the following values: "ns", "1ns", "10ns", "100ns",
+        "µs", "1µs", "10µs", "100µs", "ms", "1ms", "10ms", "100ms", "s", "sec", "1s", "min", "mn", "h", "hr", "d",
+        "day".
+    """
+
+    time = time / UNITS[time_unit]
+    day = int(time // 86400)
+    hour = int(time // 3600) % 24
+    minute = int((time // 60) % 60)
+    second = int((time % 60) // 1)
+    microsecond = int((time % 1) * 1000000)
+
+    return datetime.datetime(1, 1, 1+day, hour, minute, second, microsecond)
+
 
 # === Miscellaneous functions ===
 def show_progression(verbosity, current_iteration, goal, next_percentage, step=10):
@@ -2151,71 +2207,3 @@ def kwargs_parser(dictionary, suffix):
             new_dictionary[key] = dictionary[key]
 
     return new_dictionary
-
-
-def format_time(time, time_unit="s", time_format="hh:mm:ss"):
-    """Formats a given time in a given unit according to a time format.
-
-    .. versionadded:: 2.0
-
-    Parameters
-    ----------
-    time: int or float
-        A value of time.
-    time_unit: str, optional
-        The unit of the ``time`` parameter. This parameter can take the following values: "ns", "1ns", "10ns", "100ns",
-        "µs", "1µs", "10µs", "100µs", "ms", "1ms", "10ms", "100ms", "s", "sec", "1s", "min", "mn", "h", "hr", "d",
-        "day".
-    time_format: str, optional
-        The format in which to return the time. Can be either "hh:mm:ss", "hh:mm:ss.ms", "hh:mm", "mm:ss" or "mm:ss.ms".
-    """
-    time = time / UNITS[time_unit]
-    hour = int(time // 3600)
-    minute = int((time // 60) % 60)
-    second = int((time % 60) // 1)
-    millisecond = int((time % 1) * 1000)
-
-    if time_format.startswith("hh:mm:ss"):
-        if time_format.endswith(".ms"):
-            return str(hour).zfill(2) + ":" + str(minute).zfill(2) + ":" + str(second).zfill(2) + "." + \
-                   str(millisecond).zfill(3)
-        else:
-            return str(hour).zfill(2) + ":" + str(minute).zfill(2) + ":" + str(second).zfill(2)
-
-    elif time_format == "hh:mm":
-        return str(hour).zfill(2) + ":" + str(minute).zfill(2)
-
-    elif time_format.startswith("mm:ss"):
-        minute = int(time // 60)
-        if time_format.endswith(".ms"):
-            return str(minute).zfill(2) + ":" + str(second).zfill(2) + "." + str(millisecond).zfill(3)
-        else:
-            return str(minute).zfill(2) + ":" + str(second).zfill(2)
-
-    else:
-        raise Exception('Wrong value for the time_format parameter. It should be "hh:mm:ss" or "mm:ss".')
-
-
-def time_unit_to_datetime(time, time_unit="s"):
-    """Turns any time unit into a ``datetime``format.
-
-    .. versionadded:: 2.0
-
-    Parameters
-    ----------
-    time: int or float
-        A value of time.
-    time_unit: str, optional
-        The unit of the ``time`` parameter. This parameter can take the following values: "ns", "1ns", "10ns", "100ns",
-        "µs", "1µs", "10µs", "100µs", "ms", "1ms", "10ms", "100ms", "s", "sec", "1s", "min", "mn", "h", "hr", "d",
-        "day".
-    """
-
-    time = time / UNITS[time_unit]
-    day = int(time // 86400)
-    hour = int(time // 3600) % 24
-    minute = int((time // 60) % 60)
-    second = int((time % 60) // 1)
-    microsecond = int((time % 1) * 1000000)
-
-    return datetime.datetime(1, 1, 1+day, hour, minute, second, microsecond)
