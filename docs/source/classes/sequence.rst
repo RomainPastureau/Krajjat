@@ -107,6 +107,11 @@ Metrics: total values
 .. automethod:: krajjat.classes.sequence.Sequence.get_total_velocity_per_joint
 .. automethod:: krajjat.classes.sequence.Sequence.get_total_acceleration_per_joint
 
+Fill level
+""""""""""
+.. automethod:: krajjat.classes.sequence.Sequence.get_fill_level_single_joint
+.. automethod:: krajjat.classes.sequence.Sequence.get_fill_level_per_joint
+
 Correction functions
 ^^^^^^^^^^^^^^^^^^^^
 .. _correct_jitter:

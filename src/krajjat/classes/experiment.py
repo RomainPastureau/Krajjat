@@ -224,6 +224,8 @@ class Experiment(object):
     def get_dataframe(self, sequence_metric="distance", audio_metric="envelope", audio_filter_below=None,
                       audio_filter_above=None, audio_resampling_frequency=None):
 
+        print(audio_metric)
+
         import pandas as pd
         sequence_metric_header = sequence_metric.title()
         audio_metric_header = audio_metric.title()
@@ -243,8 +245,9 @@ class Experiment(object):
                     raise Exception("Discrepancy between the number of audios (" + str(subject.get_number_of_audios()) +
                                     " and the number of sequences (" + str(subject.get_number_of_sequences()))
 
-                audio_or_derivative = self._get_audio_values(audio, audio_metric, audio_filter_above, audio_filter_below,
-                                                      audio_resampling_frequency)
+                #audio_or_derivative = self._get_audio_values(audio, audio_metric, audio_filter_above, audio_filter_below,
+                #                                      audio_resampling_frequency)
+                audio_or_derivative = audio
 
                 for joint_label in self.get_joint_labels():
                     sequence_values_joint = sequence_values[joint_label]
@@ -252,17 +255,17 @@ class Experiment(object):
                     audio_end_index = len(sequence_values_joint) + audio_start_index
                     audio_values_trimmed = list(audio_or_derivative.get_samples())[audio_start_index:audio_end_index]
 
-                    if audio_or_derivative.get_frequency() != sequence.get_framerate():
-                        raise Exception("The framerate of the sequence (" + str(sequence.get_framerate()) + ") is " +
-                                        "different from the frequency of the " + str(type(audio_or_derivative)) + " (" +
-                                        str(audio_or_derivative.get_frequency()) + "). Please be sure that the two " +
-                                        "variables are sampled at the same rate before proceeding.")
-
-                    if audio_or_derivative.get_timestamps()[audio_start_index] != timestamps[0]:
-                        raise Exception("The first timestamp of the sequence (" + timestamps[0] + ") is different " +
-                                        "from the first timestamp of the " + str(type(audio_or_derivative)) + " (" +
-                                        str(audio_or_derivative.get_timestamps()[audio_start_index]) + "). Please be " +
-                                        "sure that the two variables are sampled at the same rate before proceeding.")
+                    # if audio_or_derivative.get_frequency() != sequence.get_framerate():
+                    #     raise Exception("The framerate of the sequence (" + str(sequence.get_framerate()) + ") is " +
+                    #                     "different from the frequency of the " + str(type(audio_or_derivative)) + " (" +
+                    #                     str(audio_or_derivative.get_frequency()) + "). Please be sure that the two " +
+                    #                     "variables are sampled at the same rate before proceeding.")
+                    #
+                    # if audio_or_derivative.get_timestamps()[audio_start_index] != timestamps[0]:
+                    #     raise Exception("The first timestamp of the sequence (" + timestamps[0] + ") is different " +
+                    #                     "from the first timestamp of the " + str(type(audio_or_derivative)) + " (" +
+                    #                     str(audio_or_derivative.get_timestamps()[audio_start_index]) + "). Please be " +
+                    #                     "sure that the two variables are sampled at the same rate before proceeding.")
 
                     data["Subject"] += [subject.get_name() for _ in range(len(sequence_values_joint))]
                     data["Group"] += [subject.get_group() for _ in range(len(sequence_values_joint))]

@@ -266,6 +266,34 @@ class Joint(object):
         """
         return self._is_randomized
 
+    def get_is_zero(self):
+        """Returns `True` if the coordinates of the joint are (0, 0, 0).
+
+        ... versionadded:: 2.0
+
+        Returns
+        -------
+        bool
+            `True` if the coordinates of the joint are (0, 0, 0).
+        """
+        if self.x == 0 and self.y == 0 and self.z == 0:
+            return True
+        return False
+
+    def get_is_none(self):
+        """Returns `True` if the coordinates of the joint are (None, None, None).
+
+        ... versionadded:: 2.0
+
+        Returns
+        -------
+        bool
+            `True` if the coordinates of the joint are (None, None, None).
+        """
+        if self.x is None and self.y is None and self.z is None:
+            return True
+        return False
+
     def get_copy(self):
         """Returns a deep copy of itself.
 

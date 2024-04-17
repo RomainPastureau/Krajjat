@@ -156,8 +156,8 @@ class Sequence(object):
         condition: str
             The experimental condition in which the sequence was recorded.
 
-        Example
-        -------
+        Examples
+        --------
         >>> seq1 = Sequence("C:/Users/Harold/Sequences/English/seq.xlsx")
         >>> seq1.set_condition("English")
         >>> seq2 = Sequence("C:/Users/Harold/Sequences/Spanish/seq.xlsx")
@@ -827,10 +827,8 @@ class Sequence(object):
 
         kinect_joints = ["Head", "Neck", "SpineShoulder", "SpineMid", "SpineBase", ["KneeRight", "KneeLeft"],
                          ["AnkleRight", "AnkleLeft"], ["FootRight", "FootLeft"]]
-        qualisys_joints = ["HeadTop", ["ShoulderTopRight", "ShoulderTopLeft"], "Chest", ["WaistBackRight",
-                                                                                         "WaistBackLeft",
-                                                                                         "WaistFrontRight",
-                                                                                         "WaistFrontLeft"],
+        qualisys_joints = ["HeadTop", ["ShoulderTopRight", "ShoulderTopLeft"], "Chest",
+                           ["WaistBackRight", "WaistBackLeft", "WaistFrontRight", "WaistFrontLeft"],
                            ["KneeRight", "KneeLeft"],
                            ["AnkleRight", "AnkleLeft"], ["ForefootOutRight", "ForefootOutLeft"]]
 
@@ -852,6 +850,14 @@ class Sequence(object):
 
             # Getting the average joints
             for i in range(len(list_joints)):
+
+                if type(list_joints[i]) is list:
+                    for joint_label in list_joints[i]:
+                        if joint_label not in self.get_joint_labels():
+                            raise JointLabelNotFoundException(list_joints[i])
+                else:
+                    if list_joints[i] not in self.get_joint_labels():
+                        raise JointLabelNotFoundException(list_joints[i])
 
                 if type(list_joints[i]) is list:
                     joint = pose.generate_average_joint(list_joints[i], "Average", False)
@@ -980,7 +986,8 @@ class Sequence(object):
                 • ``"SD framerate"``: Standard deviation of the framerate of the sequence.
                 • ``"Min framerate"``: Output of :meth:`Sequence.get_min_framerate`.
                 • ``"Max framerate"``: Output of :meth:`Sequence.get_max_framerate`.
-                • ``"Average velocity X"``: Output of :meth:`Sequence.get_total_velocity_single_joint()` divided by the
+                • ``"Fill level X"``: Output of :meth:`Sequence.get_fill_level_per_joint`.
+                • ``"Average velocity X"``: Output of :meth:`Sequence.get_total_velocity_single_joint` divided by the
                   total number of poses. This key has one entry per joint label.
 
         """
@@ -991,7 +998,11 @@ class Sequence(object):
         stats["Number of poses"] = self.get_number_of_poses()
 
         # Height and distances stats
-        stats["Subject height"] = self.get_subject_height(0)
+        try:
+            stats["Subject height"] = self.get_subject_height(0)
+        except JointLabelNotFoundException:
+            print("Could not calculate the subject height because of missing joints.")
+            stats["Subject height"] = None
         stats["Left arm length"] = self.get_subject_arm_length("left", 0)
         stats["Right arm length"] = self.get_subject_arm_length("right", 0)
 
@@ -1001,6 +1012,10 @@ class Sequence(object):
         stats["SD framerate"] = stdev(frequencies)
         stats["Min framerate"] = self.get_min_framerate()
         stats["Max framerate"] = self.get_max_framerate()
+
+        # Fill level stats
+        for joint_label in self.get_joint_labels():
+            stats["Fill level " + joint_label] = self.get_fill_level_single_joint(joint_label)
 
         # Movement stats
         for joint_label in self.poses[0].joints.keys():
@@ -1108,7 +1123,8 @@ class Sequence(object):
         elif method in ["above", "higher", "over"]:
             return pose_index_after
         else:
-            raise Exception('Invalid parameter "method": the value should be "lower", "higher" or "closest".')
+            raise Exception('Invalid parameter "method":' + str(method) + '. The value should be "lower", "higher" or' +
+                            ' "closest".')
 
     def get_pose_from_timestamp(self, timestamp, method="closest"):
         """Returns the closest pose from the provided timestamp.
@@ -1941,6 +1957,20 @@ class Sequence(object):
         else:
             raise InvalidParameterValueException("metric", metric)
 
+    def get_max_coordinate_whole_sequence(self, axis, absolute=False):
+        dict_coordinate = self.get_single_coordinates(axis)
+        max_distance_whole_sequence = 0
+
+        for joint_label in dict_coordinate.keys():
+            if absolute:
+                local_maximum = np.max(np.abs(dict_coordinate[joint_label]))
+            else:
+                local_maximum = np.max(dict_coordinate[joint_label])
+            if local_maximum > max_distance_whole_sequence:
+                max_distance_whole_sequence = local_maximum
+
+        return max_distance_whole_sequence
+
     def get_max_distance_whole_sequence(self, axis=None):
         """Returns the single maximum value of the distance travelled between two poses across every joint of the
         sequence. The distances are first calculated using the :meth:`Sequence.get_distances()` function. The distance
@@ -2389,8 +2419,47 @@ class Sequence(object):
 
         return total_velocity_per_joint
 
-    # === Correction functions ===
+    def get_fill_level_single_joint(self, joint_label):
+        """Returns the ratio of poses for which a coordinates of the joint are not equal to (0, 0, 0). If the ratio is
+        1, the joint was tracked correctly for the whole duration of the sequence.
 
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        joint_label: str
+            The label of the joint (e.g. ``"Head"``).
+
+        Returns
+        --------
+        float
+            The ratio (between 0 and 1) of poses where the coordinates of the joint are not equal to (0, 0, 0).
+        """
+        i = 0
+        for p in range(len(self.poses)):
+            if not self.poses[p].joints[joint_label].get_is_zero():
+                i += 1
+
+        return i/len(self.poses)
+
+    def get_fill_level_per_joint(self):
+        """For each joint, returns the ratio of poses for which the coordinates are not equal to (0, 0, 0).
+
+        .. versionadded:: 2.0
+
+        Returns
+        --------
+        dict(str: float)
+            A dictionary where each key is a joint label, and each value is the ratio (between 0 and 1) of poses where
+            the coordinates of the joint are not equal to (0, 0, 0).
+        """
+        fill_levels = {}
+        for joint_label in self.get_joint_labels():
+            fill_levels[joint_label] = self.get_fill_level_single_joint(joint_label)
+
+        return fill_levels
+
+    # === Correction functions ===
     def correct_jitter(self, velocity_threshold, window, window_unit="poses", method="default", name=None, verbosity=1):
         """Detects and corrects rapid twitches and jumps in a motion sequence. These rapid movements, typically due to
         poor automatic detection of a joint in space, result in aberrant, unrealistic displacements from the joints.
@@ -2475,6 +2544,7 @@ class Sequence(object):
         # Create an empty sequence, the same length in poses as the original, just keeping the timestamp information
         # for each pose.
         new_sequence = self._create_new_sequence_with_timestamps(verbosity)
+        #new_sequence = Sequence()
         if name is None:
             new_sequence.name = self.name + " +CJ"
         else:
@@ -2499,8 +2569,13 @@ class Sequence(object):
         twitches = 0
         perc = 10
 
+        # We keep the joint positions for the first pose
+        new_sequence.poses[0] = self.poses[0].get_copy()
+
         # For every pose starting on the second one
         for p in range(1, len(self.poses)):
+
+            #new_sequence.poses.append(Pose(self.poses[p].timestamp))
 
             if verbosity > 1:
                 print("\nNew sequence:\n" + str(new_sequence.poses[p - 1]))
@@ -2546,7 +2621,8 @@ class Sequence(object):
                     print(joint_label + ": " + str(velocity_before))
 
                 # If we already corrected this joint, we ignore it to avoid overcorrection
-                if joint_label in new_sequence.poses[p].joints:
+                if joint_label in new_sequence.poses[p].joints and \
+                        new_sequence.poses[p].joints[joint_label] is not None:
 
                     if verbosity > 1:
                         print("\tAlready corrected.")
@@ -2639,7 +2715,7 @@ class Sequence(object):
                 else:
 
                     joint = self.copy_joint(p, joint_label)
-                    new_sequence.poses[p].add_joint(joint_label, joint)
+                    new_sequence.poses[p].add_joint(joint_label, joint, replace_if_exists=True)
                     new_sequence.poses[p].joints[joint_label]._is_corrected = False
 
         new_sequence._calculate_relative_timestamps()  # Sets the relative time from the first pose for each pose
@@ -2722,7 +2798,7 @@ class Sequence(object):
         # If the starting and ending joint are the same, we don't correct, it means it is the last pose of the sequence
         if start_pose_index == end_pose_index:
             joint = self.copy_joint(start_pose_index, joint_label)
-            new_sequence.poses[start_pose_index + 1].add_joint(joint_label, joint)
+            new_sequence.poses[start_pose_index + 1].add_joint(joint_label, joint, replace_if_exists=True)
 
             if verbosity > 1:
                 print("\t\t\t\tDid not correct joint " + str(start_pose_index + 1) +
@@ -2730,7 +2806,7 @@ class Sequence(object):
 
         elif start_pose_index == end_pose_index - 1:
             joint = self.copy_joint(start_pose_index, joint_label)
-            new_sequence.poses[start_pose_index + 1].add_joint(joint_label, joint)
+            new_sequence.poses[start_pose_index + 1].add_joint(joint_label, joint, replace_if_exists=True)
 
             if verbosity > 1:
                 print("\t\t\t\tDid not correct joint " + str(start_pose_index + 1) +
@@ -2754,7 +2830,7 @@ class Sequence(object):
                 # We copy the original joint, apply the new coordinates and add it to the new sequence
                 joint = self.copy_joint(pose_number, joint_label)
                 joint._correct_joint(x, y, z)
-                new_sequence.poses[pose_number].add_joint(joint_label, joint)
+                new_sequence.poses[pose_number].add_joint(joint_label, joint, replace_if_exists=True)
 
                 if verbosity > 1:
                     print("\t\t\t\tCorrecting joint: " + str(pose_number + 1) + ". Original coordinates: (" + str(
@@ -2884,11 +2960,11 @@ class Sequence(object):
                                 "reference joint.")
 
         if verbosity > 0:
-            print("Re-referencing to " + str(reference_joint_label) + "...", end=" ")
+            print("Re-referencing to " + str(reference_joint_label) + "...")
 
         # Create an empty sequence, the same length in poses as the original, just keeping the timestamp information
         # for each pose.
-        new_sequence = Sequence(None)
+        new_sequence = self._create_new_sequence_with_timestamps(verbosity)
         if name is None:
             new_sequence.name = self.name + " +RF"
         else:
@@ -2951,7 +3027,7 @@ class Sequence(object):
                 # Add to the sequence
                 joint = self.copy_joint(p, joint_label)
                 joint._correct_joint(new_x, new_y, new_z)
-                new_sequence.poses[p].add_joint(joint_label, joint)
+                new_sequence.poses[p].add_joint(joint_label, joint, replace_if_exists=True)
 
                 if verbosity > 1:
                     print(joint_label + ": ")
@@ -3803,7 +3879,12 @@ class Sequence(object):
             if key == "Duration":
                 print(str(key) + ": " + str(stats[key]) + " s")
             elif key in ["Subject height", "Left arm length", "Right arm length"]:
-                print(str(key) + ": " + str(round(stats[key], 3)) + " m")
+                if stats[key] is None:
+                    print(str(key) + ": Not available")
+                else:
+                    print(str(key) + ": " + str(round(stats[key], 3)) + " m")
+            elif "Fill level" in key:
+                print(str(key) + ": " + str(round(stats[key] * 100, 2)) + " %")
             elif "Average velocity" in key:
                 print(str(key) + ": " + str(round(stats[key] * 1000, 1)) + " mm/s")
             else:

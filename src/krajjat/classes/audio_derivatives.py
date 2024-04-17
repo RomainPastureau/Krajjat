@@ -175,16 +175,19 @@ class AudioDerivative(object):
 					  str(filter_over) + " Hz...")
 			b, a = butter(2, [filter_below, filter_over], "band", fs=self.frequency)
 			new_samples = lfilter(b, a, self.samples)
+
 		elif filter_below not in [None, 0]:
 			if verbosity > 0:
 				print("Applying a high-pass filter for frequencies over " + str(filter_below) + " Hz...")
 			b, a = butter(2, filter_below, "high", fs=self.frequency)
 			new_samples = lfilter(b, a, self.samples)
+
 		elif filter_over not in [None, 0]:
 			if verbosity > 0:
 				print("Applying a low-pass filter for frequencies below " + str(filter_over) + " Hz...")
 			b, a = butter(2, filter_over, "low", fs=self.frequency)
 			new_samples = lfilter(b, a, self.samples)
+
 		else:
 			new_samples = self.samples
 
@@ -240,7 +243,7 @@ class AudioDerivative(object):
 
 		if verbosity > 0:
 			print("100% - Done.")
-			print("\tOriginal" + self.kind.lower() + " had " + str(len(self.samples)) + " samples.")
+			print("\tOriginal " + self.kind.lower() + " had " + str(len(self.samples)) + " samples.")
 			print("\tNew " + self.kind.lower() + " has " + str(len(new_audio_derivative.samples)) + " samples.\n")
 
 		return new_audio_derivative

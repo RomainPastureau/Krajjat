@@ -36,6 +36,8 @@ Getter functions
 .. automethod:: krajjat.classes.joint.Joint.get_has_velocity_over_threshold
 .. automethod:: krajjat.classes.joint.Joint.get_is_corrected
 .. automethod:: krajjat.classes.joint.Joint.get_is_randomized
+.. automethod:: krajjat.classes.joint.Joint.get_is_zero
+.. automethod:: krajjat.classes.joint.Joint.get_is_none
 .. automethod:: krajjat.classes.joint.Joint.get_copy
 
 Rotation function

@@ -1,5 +1,7 @@
 """These functions allow to find significant relationships between movements, or between movements and audio properties.
 """
+import numpy as np
+
 from krajjat.classes.exceptions import ModuleNotFoundException
 from krajjat.classes.graph_element import Graph
 from krajjat.plot_functions import plot_silhouette, plot_body_graphs
@@ -13,22 +15,32 @@ def correlation_with_audio(experiment, group=None, condition=None, subjects=None
     import pingouin as pg
     stats = {}
 
+    dataframe = experiment.get_dataframe(sequence_metric, audio_metric)
+
+    if group is not None:
+        dataframe = dataframe.loc[dataframe["Group"] == group]
+    if condition is not None:
+        dataframe = dataframe.loc[dataframe["Condition"] == condition]
+    if subjects is not None:
+        dataframe = dataframe.loc[dataframe["Subject"].isin(subjects)]
+
     for joint_label in experiment.get_joint_labels():
-        dataframe = experiment.get_dataframe(sequence_metric, joint_label, audio_metric)
 
-        if group is not None:
-            dataframe = dataframe.loc[dataframe["Group"] == group]
-        if condition is not None:
-            dataframe = dataframe.loc[dataframe["Condition"] == condition]
-        if subjects is not None:
-            dataframe = dataframe.loc[dataframe["Subject"].isin(subjects)]
+        dataframe_joint_label = dataframe.loc[dataframe["Joint label"] == joint_label]
 
-        try:
-            output = pg.rm_corr(data=dataframe, x="SequenceMetric", y="AudioMetric", subject="Subject")
-            stats[joint_label] = output.at["rm_corr", "r"]
+        #print(dataframe_joint_label)
 
-        except AssertionError:
-            stats[joint_label] = 0
+        #try:
+        #output = pg.rm_corr(data=dataframe_joint_label, x=sequence_metric.capitalize(), y=audio_metric.capitalize(),
+        #                    subject="Subject")
+        output = pg.corr(x = dataframe_joint_label["Velocity"], y = dataframe_joint_label["Envelope"])
+
+        print(output)
+        print(joint_label, output.values[0][1])
+        stats[joint_label] = np.abs(output.values[0][1])
+
+        #except AssertionError:
+        #    stats[joint_label] = 0
 
     plot_silhouette(stats, title=title, color_scheme=color_scheme, color_background=color_background,
                     color_silhouette=color_silhouette, resolution=resolution, full_screen=full_screen,
@@ -65,7 +77,7 @@ def coherence_with_audio(experiment, group=None, condition=None, subjects=None, 
         with the parameter ``group`` (default), to perform the analysis on certain subjects from a certain group.
 
     sequence_metric: str
-        The sequence 
+        The sequence
 
 
     """

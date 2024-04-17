@@ -6,7 +6,7 @@ import math
 
 from krajjat.classes.audio import Audio
 from krajjat.classes.sequence import Sequence
-from krajjat.tool_functions import order_sequences_by_date
+from krajjat.tool_functions import sort_sequences_by_date
 
 
 class Subject(object):

@@ -179,3 +179,18 @@ class InvalidParameterValueException(Exception):
                 self.message += 'or "' + str(expected_values[-1]) + '".'
             else:
                 self.message += "or " + str(expected_values[-1]) + "."
+
+
+class JointLabelNotFoundException(Exception):
+    """Exception raised when a joint label was not found in a sequence.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    joint_label: str
+        The joint label that was not found in the sequence.
+    """
+
+    def __init__(self, joint_label):
+        self.message = f"The joint label {joint_label} could not be found in the sequence."

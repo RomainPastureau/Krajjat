@@ -1,10 +1,14 @@
 """Functions to perform simple tasks that can be used throughout the toolbox and beyond."""
 import datetime
+import os
 import random
 
 import math
 import json
 import warnings
+
+import chardet
+import numpy as np
 
 from krajjat.classes.exceptions import ModuleNotFoundException, InvalidParameterValueException
 from krajjat.classes.graph_element import *
@@ -17,6 +21,10 @@ UNITS = {"ns": 1000000000, "1ns": 1000000000, "10ns": 100000000, "100ns": 100000
          "s": 1, "sec": 1, "1s": 1, "min": 1 / 60, "mn": 1 / 60, "h": 1 / 3600, "hr": 1 / 3600,
          "d": 1 / 86400, "day": 1 / 86400}
 
+MODULE_DIR = os.path.dirname(__file__)
+
+DEFAULT_FONT_PATH = os.path.join(MODULE_DIR, "res", "junction_bold.otf")
+SILHOUETTE_PATH = os.path.join(MODULE_DIR, "res", "silhouette.png")
 
 # === Folder and path functions ===
 def find_common_parent_path(paths):
@@ -525,9 +533,13 @@ def read_json(path):
         The content of the json file.
     """
 
-    f = open(path, "r", encoding="utf-16-le")
-    content = f.read()
-    f.close()
+    with open(path, "rb") as f:
+        rawdata = f.read()
+        encoding = chardet.detect(rawdata)['encoding']
+
+    with open(path, "r", encoding=encoding) as f:
+        content = f.read()
+
     return json.loads(content)
 
 
@@ -552,12 +564,12 @@ def read_text_table(path):
     except ImportError:
         raise ModuleNotFoundException("chardet", "read a table from a text file.")
 
-    rawdata = open(path, "rb").read()
-    encoding = chardet.detect(rawdata)['encoding']
+    with open(path, "rb") as f:
+        rawdata = f.read()
+        encoding = chardet.detect(rawdata)['encoding']
 
-    file = open(path, "r", encoding=encoding)
-    data = file.read().split("\n")
-    file.close()
+    with open(path, "r", encoding=encoding) as f:
+        data = f.read().split("\n")
 
     # If the data is exported from QTM (Qualisys), convert the tsv to manageable data
     if path.split(".")[-1] == "tsv":
@@ -650,7 +662,7 @@ def convert_data_from_qtm(data, verbosity=1):
         elements = data[i].split("\t")
 
         if elements[0] == "MARKER_NAMES":
-            header = "Timestamp"
+            header = ["Timestamp"]
             for j in range(1, len(elements)):
 
                 # We remove the prefix by looking for a joint name in the label:
@@ -663,9 +675,9 @@ def convert_data_from_qtm(data, verbosity=1):
                             elements[j] = label
                             break
 
-                header += "\t" + joints_conversions[elements[j]] + "_X"
-                header += "\t" + joints_conversions[elements[j]] + "_Y"
-                header += "\t" + joints_conversions[elements[j]] + "_Z"
+                header.append(joints_conversions[elements[j]] + "_X")
+                header.append(joints_conversions[elements[j]] + "_Y")
+                header.append(joints_conversions[elements[j]] + "_Z")
             new_data.append(header)
 
             if verbosity > 0:
@@ -691,7 +703,7 @@ def convert_data_from_qtm(data, verbosity=1):
                 else:
                     line.append(float(elements[j]) / 1000)
 
-            if line != "":
+            if line:
                 new_data.append(line)
 
     if verbosity > 0:
@@ -701,7 +713,7 @@ def convert_data_from_qtm(data, verbosity=1):
 
 
 # === File saving functions ===
-def write_text_table(table, separator, path, verbosity=1):
+def write_text_table(table, separator, path, encoding="utf-8", verbosity=1):
     """Converts a table to a string, where elements on the same row are separated by a defined separator, and each row
     is separated by a line break.
 
@@ -715,6 +727,9 @@ def write_text_table(table, separator, path, verbosity=1):
         The character used to separate elements on the same row.
     path: str
         The complete path of the text file to save.
+    encoding: str, optional
+        The encoding of the file to save. By default, the file is saved in UTF-8 encoding. This input can take any of
+        the `official Python accepted formats <https://docs.python.org/3/library/codecs.html#standard-encodings>`_.
     verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
 
@@ -742,7 +757,7 @@ def write_text_table(table, separator, path, verbosity=1):
         if i != len(table) - 1:
             text += "\n"
 
-    with open(path, 'w', encoding="utf-16-le") as f:
+    with open(path, 'w', encoding=encoding) as f:
         f.write(text)
 
 
@@ -805,7 +820,7 @@ def resample_data(data, time_points, frequency, mode="linear", time_unit="s"):
     frequency: int or float
         The frequency at which you wish to resample the time series.
     mode: str, optional
-        The way to interpolate the data. This parameter also allows for all the values accepted for the ``kind``
+        The way to interpolate the data. This parameter allows for all the values accepted for the ``kind``
         parameter in the function :func:`scipy.interpolate.interp1d`: ``"linear"``, ``"nearest"``, ``"nearest-up"``,
         ``"zero"``, ``"slinear"``, ``"quadratic"``, ``"cubic"``”, ``"previous"``, and ``"next"``. See the
         `documentation for this Python module
@@ -882,10 +897,177 @@ def interpolate_data(data, time_points_data, time_points_interpolation, mode="li
     np_data = array(data)
     np_time_points = array(time_points_data)
     np_time_points_complete = array(time_points_interpolation)
-    interp = interpolate.interp1d(np_time_points, np_data, kind=mode)
+    #interp = interpolate.interp1d(np_time_points, np_data, kind=mode)
+    interp = interpolate.CubicSpline(np_time_points, np_data)
 
     resampled_data = interp(np_time_points_complete)
     return resampled_data, np_time_points_complete
+
+
+def resample_data_windows(data, original_frequency, resampling_frequency, window, overlap, mode="linear", verbosity=1):
+    """Resamples a time series to a new frequency, using overlapping windows to reduce the computational load.
+
+    .. versionadded:: 2.0
+
+    Important
+    ---------
+    This function is dependent of the modules `numpy <https://numpy.org/>`_ and `scipy <https://scipy.org/>`_.
+
+    Parameters
+    ----------
+    data: list(float) or numpy.ndarray(float)
+        A list or an array of values.
+
+    original_frequency: int or float
+        The sampling frequency of the array, in Hz.
+
+    resampling_frequency: int or float
+        The frequency at which you want to resample the array, in Hz. A frequency of 4 will return samples
+        at 0.25 s intervals.
+
+    window: int or None, optional
+        The amount of elements to interpolate the data from of at a time. The bigger this parameter is, the more
+        resources the computation will need. If this parameter is set on `None`, the window size will be set on
+        the number of elements in the data array.
+
+    overlap: int or None, optional
+        The amount of elements overlapping between each window. If this parameter is not `None`, each window will
+        overlap with the previous (and, logically, the next) for the specified amount of elements. Then, only the
+        central values of each window will be preserved and concatenated; this allows to discard any "edge" effect
+        due to the windowing. If the parameter is set on `None` or 0, the windows will not overlap.
+
+    mode: str, optional
+        The way to interpolate the data. This parameter also allows for all the values accepted for the ``kind``
+        parameter in the function :func:`scipy.interpolate.interp1d`: ``"linear"``, ``"nearest"``, ``"nearest-up"``,
+        ``"zero"``, ``"slinear"``, ``"quadratic"``, ``"cubic"``”, ``"previous"``, and ``"next"``. See the
+        `documentation for this Python module
+        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`_ for more.
+
+    Returns
+    -------
+    numpy.ndarray(float)
+        The interpolated values.
+    numpy.ndarray(float)
+        The interpolated time points (same as the parameter ``time_points_interpolation``).
+    """
+
+    try:
+        from numpy import array
+    except ImportError:
+        raise ModuleNotFoundException("numpy", "interpolate data.")
+
+    try:
+        from scipy import interpolate
+    except ImportError:
+        raise ModuleNotFoundException("scipy", "interpolate data.")
+
+    # Settings
+    if window is None:
+        window = len(data)
+    if overlap is None:
+        overlap = 0
+    nb_windows = get_number_of_windows(len(data), window, overlap, True)
+
+    original_timestamps = np.arange(0, len(data)/original_frequency, 1/original_frequency)
+    resampled_timestamps = np.arange(0, max(original_timestamps), 1/resampling_frequency)
+    if resampled_timestamps[-1] > max(original_timestamps):
+        resampled_timestamps = resampled_timestamps[:-1]
+
+    resampled_data = np.zeros(resampled_timestamps)
+    j = 0
+    resampled_end = 0
+    t = 0
+    for i in range(nb_windows):
+
+        array_start = i * (window - overlap)
+        array_end = np.min([(i + 1) * window - i * overlap, len(data)])
+        if verbosity > 1:
+            print("\t\tGetting samples from window " + str(i + 1) + "/" + str(nb_windows) + ": samples " +
+                  str(array_start) + " to " + str(array_end) + "... ", end=" ")
+
+        resampled_start = resampled_end
+        while t < original_timestamps[array_end]:
+            resampled_end += 1
+            t = resampled_timestamps[resampled_end]
+
+        interp = interpolate.interp1d(original_timestamps[array_start:array_end], data[array_start:array_end],
+                                      kind=mode)
+        resampled_window = interp(resampled_timestamps[resampled_start:resampled_end])
+
+        # Keep only the center values
+        if i == 0:
+            slice_start = 0
+        else:
+            slice_start = overlap // 2  # We stop one before if the overlap is odd
+
+        if i == nb_windows - 1:
+            slice_end = len(resampled_window)
+        else:
+            slice_end = window - int(np.ceil(overlap / 2))
+
+        preserved_samples = resampled_window[slice_start:slice_end]
+        resampled_data[j:j + len(preserved_samples)] = preserved_samples
+        j += len(preserved_samples)
+
+    return resampled_data, resampled_timestamps
+
+
+def cosine_filter(nb_samples, par_cell, f_vect, ws_vect):
+    """Creates and returns a filter used to get the envelope of an audio stream.
+
+    Parameters
+    ----------
+    nb_samples: int
+        The length of the filter. It should be equal to the amount of samples in the array to filter.
+    par_cell: list(str)
+        Array with "low", "high" or "notch".
+    f_vect: list(float)
+        Array with normalized frequencies (0 = 0 Hz; 1 = fsample/2).
+    ws_vect: list(float)
+        Array with normalized frequency width.
+
+    Returns
+    -------
+    np.ndarray(float)
+        Filter in the Fourier space
+    """
+
+    f_h = np.ones(nb_samples)
+
+    for i in range(len(f_vect)):
+        f = f_vect[i]
+        ws = ws_vect[i]
+        f_low = nb_samples * (f - ws / 2) / 2
+        f_high = nb_samples * (f + ws / 2) / 2
+        f_mult = np.zeros(nb_samples)
+
+        if par_cell[i] == "low":
+            f_mult[:int(f_low) + 1] = 1
+            f_mult[int(np.ceil(f_high)):int(np.ceil((nb_samples + 1) / 2))] = 0
+            f_mult[int(np.ceil(f_low)):int(f_high) + 1] = np.cos(
+                (np.arange(int(np.ceil(f_low)), int(f_high) + 1) - f_low - 1) / (f_high - f_low) * np.pi / 2) ** 2
+            f_mult[int(np.ceil((nb_samples + 1) / 2)):] = f_mult[int((nb_samples + 1) / 2) - 1:0:-1]
+
+        elif par_cell[i] == "high":
+            f_mult[:int(f_low) + 1] = 0
+            f_mult[int(np.ceil(f_high)):int(np.ceil((nb_samples + 1) / 2))] = 1
+            f_mult[int(np.ceil(f_low)):int(f_high) + 1] = np.sin(
+                (np.arange(int(np.ceil(f_low)), int(f_high) + 1) - f_low - 1) / (f_high - f_low) * np.pi / 2) ** 2
+            f_mult[int(np.ceil((nb_samples + 1) / 2)):] = f_mult[int((nb_samples + 1) / 2) - 1:0:-1]
+
+        elif par_cell[i] == "notch":
+            f_mult[:int(f_low) + 1] = 1
+            f_mult[int(np.ceil(f_high)):int(np.ceil((nb_samples + 1) / 2))] = 1
+            f_mult[int(np.ceil(f_low)):int(f_high) + 1] = np.cos(
+                (np.arange(int(np.ceil(f_low)), int(f_high) + 1) - f_low - 1) / (f_high - f_low) * np.pi) ** 2
+            f_mult[int(np.ceil((nb_samples + 1) / 2)):] = f_mult[int((nb_samples + 1) / 2) - 1:0:-1]
+
+        else:
+            raise ValueError("The filter must be low, high or notch")
+
+        f_h = f_h * f_mult
+
+    return f_h
 
 
 def pad(data, time_points_data, time_points_padding, padding_value=0, verbosity=1):
@@ -1158,6 +1340,56 @@ def generate_random_joints(number_of_joints, x_scale=0.2, y_scale=0.3, z_scale=0
     return random_joints
 
 
+def get_number_of_windows(array_length_or_array, window_size, overlap=0, add_incomplete_window=True):
+    """Given an array, calculates how many windows from the defined `window_size` can be created, with or
+    without overlap.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    array_length_or_array: list(int or float) or np.array(int or float) or int
+        An array of numerical values, or its length.
+    window_size: int
+        The number of array elements in each window.
+    overlap: int
+        The number of array elements overlapping in each window.
+    add_incomplete_window: bool
+        If set on ``True``, the last window will be included even if its size is smaller than ``window_size``.
+        Otherwise, it will be ignored.
+
+    Returns
+    -------
+    int
+        The number of windows than can be created from the array.
+    """
+
+    if not isinstance(array_length_or_array, int):
+        array_length = len(array_length_or_array)
+    else :
+        array_length = array_length_or_array
+
+    if overlap >= window_size:
+        raise Exception("The size of the overlap (" + str(overlap) + ") cannot be bigger than or equal to the size " +
+                        "of the window (" + str(window_size) + ").")
+    if overlap > array_length or window_size > array_length:
+        raise Exception("The size of the window (" + str(window_size) + ") or the overlap (" + str(overlap) + ") " +
+                        "cannot be bigger than the size of the array (" + str(array_length) + ").")
+
+    window_start = 0
+    i = 0
+
+    while window_start + window_size <= array_length:
+        i += 1
+        window_start += window_size - overlap
+
+    if add_incomplete_window:
+        if array_length - window_start - overlap != 0:
+            i += 1
+
+    return i
+
+
 def divide_in_windows(array, window_size, overlap=0, add_incomplete_window=True):
     """Given an array of values, divides the array in windows of a size ``window_size``, with or without an overlap.
 
@@ -1216,9 +1448,9 @@ def load_color_names():
         A dictionary of the color names and their RGBA values.
     """
     colors_dict = {}
-    file = open("res/color_codes.txt", "r")
-    content = file.read().split("\n")
-    file.close()
+
+    with open(os.path.join(MODULE_DIR, "res/color_codes.txt"), "r", encoding="utf-8") as f:
+        content = f.read().split("\n")
 
     for line in content:
         els = line.split("\t")
@@ -1239,9 +1471,8 @@ def load_color_schemes():
     """
     color_schemes = {}
     colors_dict = load_color_names()
-    file = open("res/color_schemes.txt", "r")
-    content = file.read().split("\n")
-    file.close()
+    with open(os.path.join(MODULE_DIR, "res/color_schemes.txt"), "r", encoding="utf-8") as f:
+        content = f.read().split("\n")
 
     for line in content:
         elements = line.split("\t")
@@ -1434,7 +1665,7 @@ def convert_color(color, color_format="rgb", include_alpha=True):
     # Color: tuple
     if type(color) is tuple:
         if len(color) == 3:
-            converted_color = color
+            converted_color = list(color)
             if include_alpha:
                 converted_color.append(255)
             converted_color = tuple(converted_color)
@@ -1745,8 +1976,8 @@ def load_kinect_joint_labels():
     list(str)
         The list of the Kinect joint labels.
     """
-    file = open("res/kinect_joint_labels.txt")
-    joint_labels = file.read().split("\n")
+    with open(os.path.join(MODULE_DIR, "res/kinect_joint_labels.txt"), "r", encoding="utf-8") as f:
+        joint_labels = f.read().split("\n")
     return joint_labels
 
 
@@ -1767,8 +1998,8 @@ def load_qualisys_joint_labels(label_style="original"):
     list(str)
         The list of the Qualisys joint labels.
     """
-    file = open("res/kualisys_joint_labels.txt")
-    joint_labels = file.read().split("\n")
+    with open(os.path.join(MODULE_DIR, "res/kualisys_joint_labels.txt"), "r", encoding="utf-8") as f:
+        joint_labels = f.read().split("\n")
 
     joint_labels_original = []
     joint_labels_krajjat = []
@@ -1796,9 +2027,10 @@ def load_qualisys_joint_label_conversion():
     dict(str: str)
         A dictionary with the original Qualisys joint labels as keys, and the Kualisys renamed joint labels as values.
     """
-    file = open("res/kualisys_joint_labels.txt")
-    content = file.read().split("\n")
-    file.close()
+    import os
+
+    with open(os.path.join(MODULE_DIR, "res/kualisys_joint_labels.txt"), "r", encoding="utf-8") as f:
+        content = f.read().split("\n")
 
     joints_conversions = {}
 
@@ -1824,7 +2056,8 @@ def load_joint_labels(path):
     list(str)
         A list containing joint labels.
     """
-    with open("res/" + path, 'r') as f:
+
+    with open(os.path.join(MODULE_DIR, "res", path), "r", encoding="utf-8") as f:
         content = f.read().split("\n")
     return content
 
@@ -1844,7 +2077,7 @@ def load_joints_connections(path):
     list(list(str))
         A list of sub-lists, each containing two elements (two joint labels).
     """
-    with open("res/" + path, 'r') as f:
+    with open(os.path.join(MODULE_DIR, "res", path), "r", encoding="utf-8") as f:
         content = f.read().split("\n")
     connections = []
 
@@ -1866,8 +2099,8 @@ def load_qualisys_to_kinect():
     dict(str: list(str))
         A dictionary of Kinect joint labels as keys, and a series of Kualisys joint labels as values.
     """
-    file = open("res/kualisys_to_kinect.txt")
-    content = file.read().split("\n")
+    with open(os.path.join(MODULE_DIR, "res", "kualisys_to_kinect.txt"), "r", encoding="utf-8") as f:
+        content = f.read().split("\n")
     connections = {}
 
     for line in content:
@@ -1895,10 +2128,10 @@ def load_joints_subplot_layout(joint_layout):
     """
 
     if joint_layout.lower() == "kinect":
-        with open("res/kinect_joints_subplot_layout.txt") as f:
+        with open(os.path.join(MODULE_DIR, "res", "kinect_joints_subplot_layout.txt")) as f:
             content = f.read().split("\n")
     elif joint_layout.lower() in ["qualisys", "kualisys"]:
-        with open("res/kualisys_joints_subplot_layout.txt") as f:
+        with open(os.path.join(MODULE_DIR, "res", "kualisys_joints_subplot_layout.txt")) as f:
             content = f.read().split("\n")
     else:
         raise Exception("Wrong layout argument: should be 'kinect' or 'qualisys'.")
@@ -1939,10 +2172,10 @@ def load_joints_silhouette_layout(joint_layout):
     """
 
     if joint_layout.lower() == "kinect":
-        with open("res/kinect_joints_silhouette_layout.txt") as f:
+        with open(os.path.join(MODULE_DIR, "res", "kinect_joints_silhouette_layout.txt")) as f:
             content = f.read().split("\n")
     elif joint_layout.lower() in ["qualisys", "kualisys"]:
-        with open("res/kualisys_joints_silhouette_layout.txt") as f:
+        with open(os.path.join(MODULE_DIR, "res", "kualisys_joints_silhouette_layout.txt")) as f:
             content = f.read().split("\n")
     else:
         try:
@@ -1968,7 +2201,7 @@ def load_steps_gui():
 
     .. versionadded:: 2.0
     """
-    with open("res/steps_gui.txt") as f:
+    with open(os.path.join(MODULE_DIR, "res/steps_gui.txt"), "r", encoding="utf-8") as f:
         lines = f.read().split("\n")
 
     steps = {}
@@ -1977,6 +2210,7 @@ def load_steps_gui():
         steps[elements[0]] = float(elements[1])
 
     return steps
+
 
 # === Time functions ===
 def format_time(time, time_unit="s", time_format="hh:mm:ss"):
@@ -2045,6 +2279,29 @@ def time_unit_to_datetime(time, time_unit="s"):
     microsecond = int((time % 1) * 1000000)
 
     return datetime.datetime(1, 1, 1+day, hour, minute, second, microsecond)
+
+
+def time_unit_to_timedelta(time, time_unit="s"):
+    """Turns any time unit into a ``timedelta`` format.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    time: int or float
+        A value of time.
+    time_unit: str, optional
+        The unit of the ``time`` parameter. This parameter can take the following values: "ns", "1ns", "10ns", "100ns",
+        "µs", "1µs", "10µs", "100µs", "ms", "1ms", "10ms", "100ms", "s", "sec", "1s", "min", "mn", "h", "hr", "d",
+        "day".
+    """
+
+    time = time / UNITS[time_unit]
+    day = int(time // 86400)
+    second = int((time % 86400) // 1)
+    microsecond = int((time % 1) * 1000000)
+
+    return datetime.timedelta(day, second, microsecond)
 
 
 # === Miscellaneous functions ===
@@ -2173,6 +2430,7 @@ def get_min_max_values_from_plot_dictionary(plot_dictionary, keys_to_exclude=Non
                     if local_max > max_value:
                         max_value = local_max
             else:
+                print(plot_dictionary[key])
                 if plot_dictionary[key] < min_value:
                     min_value = plot_dictionary[key]
                 if plot_dictionary[key] > max_value:

@@ -3,6 +3,14 @@
 /tests/test_file.py
 /tests/test_stats.py
 /tests/test_video_generation.py
+/tests/test_video_generation-ROMAIN-TINKYWINKY.py
+/tests/test_resampling.py
+/tests/test_presentation.py
+/tests/test_matlab.py
+/tests/test_find_delay.py
+/tests/test_envelope.py
+/tests/test_correlation.py
+/tests/lund_processing.py
 /.venv/
 /doc/
 /docs/.venv/

@@ -2,10 +2,17 @@
 This class allows to perform a variety of transformations of the audio stream, such as getting the envelope, pitch and
 formants of the speech.
 """
+from collections import OrderedDict
+from datetime import time
+
+from matplotlib import pyplot as plt
+from scipy import signal
+
 from krajjat.tool_functions import *
 from krajjat.classes.exceptions import *
 from krajjat.classes.audio_derivatives import *
 from scipy.signal import butter, lfilter
+import statsmodels.api as sm
 
 
 class Audio(object):
@@ -17,7 +24,7 @@ class Audio(object):
 
     Parameters
     ----------
-    path_or_samples: str or list(int)
+    path_or_samples: str or list(int) or numpy.ndarray(int)
         The path to the audio file, or a list containing the samples of an audio file. If the file is a path, it should
         either point to a `.wav` file, or to a file containing the timestamps and samples in a text form (`.json`,
         `.csv`, `.tsv`, `.txt` or `.mat`). It is also possible to point to a folder containing one file per sample.
@@ -79,7 +86,7 @@ class Audio(object):
 
         if type(path_or_samples) is str:
             self._load_from_path(path_or_samples, verbosity)
-        elif type(path_or_samples) is list:
+        elif isinstance(path_or_samples, (list, np.ndarray)):
             self._load_from_samples(path_or_samples, frequency, verbosity)
         else:
             raise Exception("Invalid type for the argument path_or_samples: should be str or list.")
@@ -227,7 +234,7 @@ class Audio(object):
 
         Parameters
         ----------
-        samples: list(int)
+        samples: list(int) or numpy.ndarray(int)
             A list containing the audio samples, in chronological order.
         frequency: int or float
             The amount of samples per second.
@@ -242,10 +249,13 @@ class Audio(object):
 
         """
 
-        if verbosity > 0:
+        if verbosity > 1:
             print("Parameter path_or_samples detected as being samples.")
 
-        self.samples = samples
+        if not isinstance(samples, np.ndarray):
+            self.samples = np.array(samples)
+        else:
+            self.samples = samples
         if frequency is not None:
             self.frequency = frequency
         else:
@@ -738,9 +748,37 @@ class Audio(object):
         """
         return self.frequency
 
+    def get_info(self):
+        """Returns a dictionary containing data from the Audio clip.
+
+        .. versionadded:: 2.0
+
+        Returns
+        -------
+        OrderedDict
+            An ordered dictionary where each descriptor is associated to its value. The included information fields are:
+
+                • ``"Name"``: The :attr:`name` attribute of the audio clip.
+                • ``"Path"``: The :attr:`path` attribute of the audio clip.
+                • ``"Condition"``: The :attr:`condition` attribute of the audio clip.
+                • ``"Frequency"``: Output of :meth:`Audio.get_frequency`.
+                • ``"Number of samples"``: Output of :meth:`Audio.get_number_of_samples`.
+                • ``"Duration"``: Output of :meth:`Audio.get_duration`.
+        """
+
+        stats = OrderedDict()
+        stats["Name"] = self.name
+        stats["Path"] = self.path
+        stats["Condition"] = self.condition
+        stats["Frequency"] = self.frequency
+        stats["Number of samples"] = self.get_number_of_samples()
+        stats["Duration"] = self.get_duration()
+
+        return stats
+
     # === Transformation functions ===
-    def get_envelope(self, filter_below=None, filter_over=None, resampling_frequency=None, resampling_mode="cubic",
-                     name=None, verbosity=1):
+    def get_envelope(self, window=10000, overlap=5000, filter_below=None, filter_over=None, resampling_frequency=None,
+                     resampling_mode="cubic", name=None, verbosity=1):
         """Calculates the envelope of the audio clip, and returns an Envelope object. The function can also optionally
         perform a band-pass filtering and a resampling, if the corresponding parameters are provided.
 
@@ -748,6 +786,17 @@ class Audio(object):
 
         Parameters
         ----------
+        window: int or None, optional
+            The amount of samples to calculate the envelope of at a time. The bigger this parameter is, the more
+            resources the computation will need. If this parameter is set on `None`, the window size will be set on
+            the number of samples.
+
+        overlap: int or None, optional
+            The amount of samples overlapping between each window. If this parameter is not `None`, each window will
+            overlap with the previous (and, logically, the next) for the specified amount of samples. Then, only the
+            central values of each window will be preserved and concatenated; this allows to discard any "edge" effect
+            due to the windowing. If the parameter is set on `None` or 0, the windows will not overlap.
+
         filter_below: int, float or None, optional
             If not ``None`` nor 0, this value will be provided as the lowest frequency of the band-pass filter.
 
@@ -783,7 +832,7 @@ class Audio(object):
             The filtered envelope of the audio clip.
         """
         if verbosity > 0:
-            print("Creating an Envelope object...", end=" ")
+            print("Creating an Envelope object...")
 
         # If the parameter is an array of samples
         try:
@@ -796,16 +845,59 @@ class Audio(object):
         except ImportError:
             raise ModuleNotFoundException("numpy", "extracting the envelope of an audio file.")
 
-        samples = np.abs(hilbert(self.samples))
-
-        if resampling_frequency is None:
-            resampling_frequency = self.frequency
-
+        # Settings
+        if window is None:
+            window = len(self.samples)
+        if overlap is None:
+            overlap = 0
         if name is None:
             name = self.name + " (ENV)"
+        nb_windows = get_number_of_windows(len(self.samples), window, overlap, True)
+
+        if verbosity == 1:
+            print("Getting the Hilbert transform...", end=" ")
+        elif verbosity > 1:
+            print("\tGetting the Hilbert transform...")
+            print("\t\tDividing the samples in " + str(nb_windows) + " window(s) of " + str(window) +
+                  " samples, with an overlap of " + str(overlap) + " samples.")
+
+        # Getting the envelope
+        samples = np.zeros(len(self.samples))
+        j = 0
+        for i in range(nb_windows):
+
+            # Get the Hilbert transform of the window
+            array_start = i * (window - overlap)
+            array_end = np.min([(i + 1) * window - i * overlap, len(self.samples)])
+            if verbosity > 1:
+                print("\t\tGetting samples from window " + str(i + 1) + "/" + str(nb_windows) + ": samples " +
+                      str(array_start) + " to " + str(array_end) + "... ", end=" ")
+            hilbert_window = np.abs(hilbert(self.samples[array_start:array_end]))
+
+            # Keep only the center values
+            if i == 0:
+                slice_start = 0
+            else :
+                slice_start = overlap // 2  # We stop one before if the overlap is odd
+
+            if i == nb_windows - 1:
+                slice_end = len(hilbert_window)
+            else :
+                slice_end = window - int(np.ceil(overlap / 2))
+
+            if verbosity > 1:
+                print("\n\t\tKeeping the samples from " + str(slice_start) + " to " + str(slice_end) + " in the window: samples " +
+                      str(array_start + slice_start) + " to " + str(array_start + slice_end) + "...", end = " ")
+
+            preserved_samples = hilbert_window[slice_start:slice_end]
+            samples[j:j + len(preserved_samples)] = preserved_samples
+            j += len(preserved_samples)
+
+            if verbosity > 1:
+                print("Done.")
 
         if verbosity > 0:
-            print("Done.")
+            print("Done.\n")
 
         envelope = Envelope(samples, self.timestamps, self.frequency, name, self.condition)
 
@@ -987,7 +1079,7 @@ class Audio(object):
 
         samples, timestamps = pad(intensity.values.T, intensity_timestamps,
                                   [i / resampling_frequency for i in range(0, round(self.get_duration() *
-                                                                                  resampling_frequency + 1))], 100)
+                                                                                    resampling_frequency + 1))], 100)
 
         if verbosity > 0:
             print("Done.")
@@ -1168,11 +1260,15 @@ class Audio(object):
             at 0.25 s intervals.
 
         mode: str, optional
-            This parameter also allows for all the values accepted for the ``kind`` parameter in the function
+            This parameter allows for all the values accepted for the ``kind`` parameter in the function
             :func:`scipy.interpolate.interp1d`: ``"linear"``, ``"nearest"``, ``"nearest-up"``, ``"zero"``,
             ``"slinear"``, ``"quadratic"``, ``"cubic"``”, ``"previous"``, and ``"next"``. See the `documentation
             for this Python module
             <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`_ for more.
+            This parameter also allows another special value, ``"take"``, which keeps one out of :math:`n` samples,
+            where :math:`n` is equal to the original frequency divided by the resampling frequency. This allows for
+            faster computation. Note that this function will return a warning if the resampling frequency is not a
+            integer divider of the original frequency.
 
         name: str or None, optional
             Defines the name of the output audio clip. If set on ``None``, the name will be the same as the input
@@ -1207,10 +1303,23 @@ class Audio(object):
         if verbosity > 0:
             print("\tPerforming the resampling...", end=" ")
 
-        resampled_audio_array, resampled_audio_times = resample_data(self.samples, self.timestamps, frequency, mode)
-        resampled_audio_array = list(resampled_audio_array)
+        if mode == "take":
+            if frequency > self.frequency:
+                raise Exception("""The mode "take" does not allow for upsampling of the data. Please input a resampling
+                frequency inferior to the original (""" + str(self.frequency) + ").")
+            factor_resampling = self.frequency / frequency
+            if factor_resampling != int(factor_resampling):
+                raise Warning("""The downsampling factor is not an integer, meaning that the downsampling may not be
+                accurate. To ensure an accurate resampling with the "take" mode, use a resampling frequency that is
+                an integer divider of the original frequency.""")
+            indices = np.arange(0, len(self.samples), factor_resampling, dtype=int)
+            resampled_audio_array = np.take(self.samples, indices)
 
-        new_audio = Audio(resampled_audio_array, frequency, name)
+        else:
+            resampled_audio_array, resampled_audio_times = resample_data(self.samples, self.timestamps, frequency, mode)
+            resampled_audio_array = list(resampled_audio_array)
+
+        new_audio = Audio(resampled_audio_array, frequency, name, verbosity=verbosity)
         new_audio.path = self.path
 
         if verbosity > 0:
@@ -1267,6 +1376,269 @@ class Audio(object):
 
         return audio
 
+    def find_excerpt_starting_timestamp(self, other, window=10000, overlap=5000, resampling_rate=None, filter_over=50,
+                                        threshold=0.9, verbosity=1):
+        """This function tries to find the timestamp at which an excerpt of the current Audio instance begins.
+        The computation is performed through cross-correlation, by first turning the audio clips into downsampled and
+        filtered envelopes to accelerate the processing. The function returns the timestamp of the maximal correlation
+        value, or `None` if this value is below threshold.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        other: Audio
+            An Audio instance, corresponding to an excerpt of the current Audio instance.
+
+        window: int
+            The amount of samples to calculate the envelope of at a time. The bigger this parameter is, the more
+            resources the computation will need. If this parameter is set on `None`, the window size will be set on
+            the number of samples.
+
+        overlap: int or None, optional
+            The amount of samples overlapping between each window when computing the envelope. If this parameter is
+            not `None`, each window will overlap with the previous (and, logically, the next) for the specified amount
+            of samples. Then, only the central values of each window will be preserved and concatenated; this allows to
+            discard any "edge" effect due to the windowing. If the parameter is set on `None` or 0, the windows will not
+            overlap.
+
+        resampling_rate: int or None, optional
+            The sampling rate at which to downsample the audio files for the cross-correlation. A larger value will
+            result in longer computation times (default: 1000). Setting the parameter on `None` will not downsample the
+            audio clips.
+
+        filter_over: int or None, optional
+            If set, a low-pass filter will be applied on the envelopes before performing the cross-correlation (default:
+            50 Hz).
+
+        threshold: float, optional
+            The threshold of the maximum correlation value between the two audio clips, relative to the maximum
+            correlation value between the excerpt and itself. This value should be between 0 and 1; if the maximum
+            found value is below the threshold, the function will return `None` instead of a timestamp.
+
+        verbosity: int, optional
+            Sets how much feedback the code will provide in the console output:
+
+            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+              current steps.
+            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+              may clutter the output and slow down the execution.
+
+        Returns
+        -------
+        float or None
+            The timestamp of the current Audio instance at which the excerpt can be found, or `None` if the excerpt is
+            not contained in the current Audio instance.
+        """
+
+        if verbosity > 0:
+            print("Trying to find when " + str(other.name) + " starts in " + str(self.name) + ".")
+
+        if verbosity > 0:
+            print("\t" + str(self.name) + " contains " + str(len(self.samples)) + " samples, at a rate of " +
+                  str(self.frequency) + " Hz.")
+            print("\t" + str(other.name) + " contains " + str(len(other.samples)) + " samples, at a rate of " +
+                  str(other.frequency) + " Hz.")
+
+        if resampling_rate != None:
+            rate = resampling_rate
+            if verbosity > 0:
+                print("\tPerforming resampling...")
+            resampled_y1 = self.resample(resampling_rate, mode="cubic", verbosity=verbosity)
+            resampled_y2 = other.resample(resampling_rate, mode="cubic", verbosity=verbosity)
+            if verbosity > 0:
+                print("\tResampling done.")
+        else:
+            rate = self.frequency
+            if self.frequency != other.frequency:
+                raise Exception("The rate of the two audio clips you are trying to correlate are different (" +
+                                str(self.frequency) + " and " + str(other.frequency) + "). You must indicate a " +
+                                "resampling rate to perform the cross-correlation.")
+            resampled_y1 = self
+            resampled_y2 = other
+
+        if verbosity > 0:
+            print("\tComputing the envelopes...")
+
+        y1 = resampled_y1.get_envelope(window=window, overlap=overlap, filter_over=filter_over,
+                                       verbosity=verbosity).samples
+        y2 = resampled_y2.get_envelope(window=window, overlap=overlap, filter_over=filter_over,
+                                       verbosity=verbosity).samples
+
+        plt.subplot(4, 1, 1)
+        plt.plot(self.samples)
+        plt.subplot(4, 1, 2)
+        plt.plot(y1)
+        plt.subplot(4, 1, 3)
+        plt.plot(other.samples)
+        plt.subplot(4, 1, 4)
+        plt.plot(y2)
+        plt.show()
+
+        if verbosity > 0:
+            print("\tEnvelopes obtained.")
+
+        if verbosity > 0:
+            print("\tComputing the correlation...")
+
+        y2_normalized = (y2 - y2.mean()) / y2.std() / np.sqrt(y2.size)
+        y1_m = signal.correlate(y1, np.ones(y2.size), 'valid') ** 2 / y2_normalized.size
+        y1_m2 = signal.correlate(y1 ** 2, np.ones(y2.size), "valid")
+        cross_correlation = signal.correlate(y1, y2_normalized, "valid") / np.sqrt(y1_m2 - y1_m)
+        correlation_value = np.max(cross_correlation)
+
+        if correlation_value > threshold:
+            delay = np.argmax(cross_correlation)
+            t = format_time(delay * 1000 / rate, "ms", "hh:mm:ss.ms")
+            if verbosity > 0:
+                print("\tMaximum correlation (" + str(round(correlation_value, 3)) + ") found at timestamp " +
+                      str(t))
+            return delay * self.frequency / rate
+
+        else:
+            if verbosity > 0:
+                print("\tNo correlation over threshold found (max correlation: " + str(round(correlation_value, 3)) +
+                      ")")
+            return None
+
+
+    def find_excerpts_starting_timestamps(self, excerpts, window=10000, overlap=5000, resampling_rate=1000,
+                                          filter_over=50, threshold=0.9, verbosity=1):
+        """This function tries to find the timestamp at which multiple excerpts of the current Audio instance begin.
+        The computation is performed through cross-correlation, by first turning the audio clips into downsampled and
+        filtered envelopes to accelerate the processing. For each excerpt, the function returns the timestamp of the
+        maximal correlation value, or `None` if this value is below threshold.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        excerpts: list(Audio)
+            A list of Audio instances, each corresponding to an excerpt of the current Audio instance.
+
+        window: int
+            The amount of samples to calculate the envelope of at a time. The bigger this parameter is, the more
+            resources the computation will need. If this parameter is set on `None`, the window size will be set on
+            the number of samples.
+
+        overlap: int or None, optional
+            The amount of samples overlapping between each window when computing the envelope. If this parameter is
+            not `None`, each window will overlap with the previous (and, logically, the next) for the specified amount
+            of samples. Then, only the central values of each window will be preserved and concatenated; this allows to
+            discard any "edge" effect due to the windowing. If the parameter is set on `None` or 0, the windows will not
+            overlap.
+
+        resampling_rate: int or None, optional
+            The sampling rate at which to downsample the audio files for the cross-correlation. A larger value will
+            result in longer computation times (default: 1000). Setting the parameter on `None` will not downsample the
+            audio clips.
+
+        filter_over: int or None, optional
+            If set, a low-pass filter will be applied on the envelopes before performing the cross-correlation (default:
+            50 Hz).
+
+        threshold: float, optional
+            The threshold of the maximum correlation value between the original audio clip and each excerpt, relative
+            to the maximum correlation value between each excerpt and itself. This value should be between 0 and 1;
+            if, for a given excerpt, the maximum found value is below the threshold, the function will return `None`
+            instead of a timestamp.
+
+        verbosity: int, optional
+            Sets how much feedback the code will provide in the console output:
+
+            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+              current steps.
+            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+              may clutter the output and slow down the execution.
+
+        Returns
+        -------
+        list(float or None)
+            The timestamps of the current Audio instance at which each excerpt can be found, or `None` if the excerpt is
+            not contained in the current Audio instance.
+        """
+
+        delays = []
+
+        if verbosity > 0:
+            print("Processing the current audio clip...")
+            print("\t" + str(self.name) + " contains " + str(len(self.samples)) + " samples, at a rate of " +
+                  str(self.frequency) + " Hz.")
+
+        if resampling_rate != None:
+            if verbosity > 0:
+                print("\tPerforming resampling...\n")
+            resampled_y1 = self.resample(resampling_rate, mode="cubic", verbosity=verbosity)
+            if verbosity > 0:
+                print("\tResampling done.")
+        else:
+            resampled_y1 = self
+            for excerpt in excerpts:
+                if excerpt.frequency != self.frequency:
+                    raise Exception("The rate of at least one excerpt you are trying to correlate is different (" +
+                                    str(excerpt.frequency) + " Hz) from the rate of this audio clip (" +
+                                    str(self.frequency) + " Hz). You must indicate a resampling rate to perform the " +
+                                    "cross-correlation.")
+
+        if verbosity > 0:
+            print("\tComputing the envelope...")
+
+        y1 = resampled_y1.get_envelope(window=window, overlap=overlap, filter_over=filter_over,
+                                       verbosity=verbosity).samples
+        if verbosity > 0:
+            print("\tEnvelope obtained.")
+
+        for excerpt in excerpts:
+
+            if verbosity > 0:
+                print("Trying to find when " + str(excerpt.name) + " starts in " + str(self.name) + ".")
+                print("\t" + str(excerpt.name) + " contains " + str(len(excerpt.samples)) + " samples, at a rate of " +
+                      str(self.frequency) + " Hz.")
+
+            if resampling_rate != None:
+                rate = resampling_rate
+                if verbosity > 1:
+                    print("\tPerforming resampling...\n")
+                resampled_y2 = excerpt.resample(resampling_rate, mode="cubic", verbosity=verbosity)
+                if verbosity > 1:
+                    print("\tResampling done.")
+            else:
+                rate = excerpt.frequency
+                resampled_y2 = excerpt
+
+            if verbosity > 1:
+                print("\tComputing the envelope...")
+            y2 = resampled_y2.get_envelope(window=window, overlap=overlap, filter_over=filter_over,
+                                           verbosity=verbosity).samples
+            if verbosity > 1:
+                print("\tEnvelope obtained.")
+                print("\tComputing correlation...", end=" ")
+
+            y2_normalized = (y2 - y2.mean()) / y2.std() / np.sqrt(y2.size)
+            y1_m = signal.correlate(y1, np.ones(y2.size), 'valid') ** 2 / y2_normalized.size
+            y1_m2 = signal.correlate(y1 ** 2, np.ones(y2.size), "valid")
+            cross_correlation = signal.correlate(y1, y2_normalized, "valid") / np.sqrt(y1_m2 - y1_m)
+            correlation_value = np.max(cross_correlation)
+
+            if correlation_value > threshold:
+                delay = np.argmax(cross_correlation)
+                t = format_time(delay * 1000 / rate, "ms", "hh:mm:ss.ms")
+                if verbosity > 0:
+                    print("\tMaximum correlation (" + str(round(correlation_value, 3)) + ") found at timestamp " +
+                          str(t))
+                delay = delay * self.frequency / rate
+            else:
+                delay = None
+                if verbosity > 0:
+                    print("\tNo correlation over threshold found (max correlation: " +
+                          str(round(correlation_value, 3)) + ")")
+
+            delays.append(delay)
+
+        return delays
+
     # === Conversion functions ===
 
     def convert_to_table(self):
@@ -1307,8 +1679,8 @@ class Audio(object):
         return data
 
     # === Print functions ===
-    def print_details(self, include_name=True, include_condition=True, include_number_of_samples=True,
-                      include_duration=True):
+    def print_details(self, include_name=True, include_condition=True, include_frequency=True,
+                      include_number_of_samples=True, include_duration=True):
         """Prints a series of details about the audio clip.
 
         .. versionadded:: 2.0
@@ -1319,6 +1691,8 @@ class Audio(object):
             If set on ``True`` (default), adds the attribute :attr:`name` to the printed string.
         include_condition: bool, optional
             If set on ``True`` (default), adds the attribute :attr:`condition` to the printed string.
+        include_frequency: bool, optional
+            If set on ``True`` (default), adds the attribute :attr:`frequency` to the printed string.
         include_number_of_samples: bool, optional
             If set on ``True`` (default), adds the length of the attribute :attr:`samples` to the printed string.
         include_duration: bool, optional
@@ -1329,10 +1703,13 @@ class Audio(object):
             string += "Name: " + str(self.name) + " · "
         if include_condition:
             string += "Condition: " + str(self.condition) + " · "
+        if include_frequency:
+            string += "Frequency: " + str(self.frequency) + " Hz · "
         if include_number_of_samples:
             string += "Number of samples: " + str(self.get_number_of_samples()) + " · "
         if include_duration:
-            string += "Duration: " + str(round(self.get_duration(), 2)) + " s" + " · "
+            t = self.get_duration()
+            string += "Duration: " + str(time_unit_to_timedelta(t)) + " · "
         if len(string) > 3:
             string = string[:-3]
 

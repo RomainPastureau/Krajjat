@@ -185,7 +185,7 @@ def common_displayer(sequence1, sequence2=None, path_audio=None, path_video=None
     if "font" in kwargs.keys():
         font = pygame.font.SysFont(kwargs.get("font"), int(resolution[1] * 0.04), True)
     else:
-        font = pygame.font.Font("../../res/junction_bold.otf", int(resolution[1] * 0.04))
+        font = pygame.font.Font(DEFAULT_FONT_PATH, int(resolution[1] * 0.04))
     font_color = kwargs.get("font_color", "white")
     progress_pose_text = str(animation1.get_current_pose_index() + 1) + "/" + \
                          str(animation1.sequence.get_number_of_poses())
@@ -307,11 +307,11 @@ def common_displayer(sequence1, sequence2=None, path_audio=None, path_video=None
                                                 window.get_height() - progress_pose_surface.get_height()))
 
         if timer.update_marker:
-            animation1.set_pose_from_timestamp(timer.timer, verbosity)
+            animation1.set_pose_from_timestamp(timer.timer, verbosity=verbosity)
             if animation2 is not None:
-                animation2.set_pose_from_timestamp(timer.timer, verbosity)
+                animation2.set_pose_from_timestamp(timer.timer, verbosity=verbosity)
             if video is not None:
-                video.set_frame_from_timestamp(timer.timer, verbosity)
+                video.set_frame_from_timestamp(timer.timer, verbosity=verbosity)
             if audio is not None:
                 try:
                     wavefile.setpos(int(timer.timer / 1000 * wavefile.getframerate()))
@@ -370,7 +370,7 @@ def sequence_reader(sequence, path_audio=None, path_video=None, position_video="
         The path of a video file (ending in ``.mp4``) to read behind or next to the Sequence instance(s).
 
     position_video: str, optional
-        Defines if the video should be displayed behind the sequence(s) (``"background"``, default), or next to the
+        Defines if the video should be displayed behind the sequence(s) (``"superimposed"``, default), or next to the
         sequence(s) (``"side"``). This parameter is ignored if no video is provided.
 
     resolution: tuple(int, int) or float or None, optional

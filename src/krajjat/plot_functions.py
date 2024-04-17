@@ -279,13 +279,22 @@ def joints_movement_plotter(sequence, time_series="velocity", audio_or_derivativ
 
     timestamps = sequence.get_timestamps()[1:]
 
-    # Compute velocities of the joints
     if time_series in ["x", "y", "z"]:
-        joints_time_series = sequence.get_distances(time_series)
+        joints_time_series = sequence.get_single_coordinates(time_series)
         total_time_series_per_joint = sequence.get_total_distance_per_joint(time_series)
-        max_value_whole_sequence = sequence.get_max_distance_whole_sequence(time_series)
+        max_value_whole_sequence = sequence.get_max_coordinate_whole_sequence(time_series)
+        timestamps = sequence.get_timestamps()
         title_scale = "Sum of the distances travelled on the " + time_series + " coordinate"
-        title = "Distance travelled on the " + time_series + " coordinate between poses for each joint of the sequence"
+        title = "Position on the " + time_series + " coordinate for each joint of the sequence"
+
+    # Compute velocities of the joints
+    elif time_series in ["distance_x", "distance_y", "distance_z"]:
+        joints_time_series = sequence.get_distances(time_series[-1])
+        total_time_series_per_joint = sequence.get_total_distance_per_joint(time_series[-1])
+        max_value_whole_sequence = sequence.get_max_distance_whole_sequence(time_series[-1])
+        title_scale = "Sum of the distances travelled on the " + time_series[-1] + " coordinate"
+        title = "Distance travelled on the " + time_series[-1] + " coordinate between poses for each joint of " +\
+                "the sequence"
 
     elif time_series == "distance":
         joints_time_series = sequence.get_distances()
@@ -390,7 +399,7 @@ def framerate_plotter(sequence_or_sequences, line_width=1.0, line_color="#000000
     plt.rcParams["figure.figsize"] = (12, 6)
     plt.subplots_adjust(left=0.03, bottom=0.03, right=0.97, top=0.9, wspace=0.3, hspace=0.7)
     labels = get_difference_paths(get_objects_names(sequence_or_sequences))
-    print(labels)
+    # print(labels)
     for i in range(len(labels)):
         if len(labels[i]) == 1:
             labels[i] = labels[i][0]
@@ -643,7 +652,7 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
 
     # Get colors
     color_list = calculate_color_points_on_gradient(color_scheme, 100)
-    print(convert_colors(color_list, "hex", include_alpha=False))
+    #print(convert_colors(color_list, "hex", include_alpha=False))
     color_list = convert_colors(color_list, "hex", include_alpha=False)
 
     # Show the scale if max_scale is not None
@@ -776,7 +785,7 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, min_scale=
     ratio_h = resolution[1] / 1080
 
     # Load silhouette picture, color it and resize it
-    silhouette = pygame.image.load("res/silhouette.png")
+    silhouette = pygame.image.load(SILHOUETTE_PATH)
     silhouette.get_size()
     color_background = convert_color(color_background, "rgb", False)
     if color_background != (255, 255, 255):
@@ -792,7 +801,7 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, min_scale=
     colors = convert_colors(color_scheme, "rgb", True)  # Color scheme
     color_silhouette = convert_color(color_silhouette, "rgb", False)
     luminance = color_background[0] * 0.2126 + color_background[1] * 0.7152 + color_background[2] * 0.0722
-    font = pygame.font.Font("res/junction_bold.otf", int(resolution[1] * 0.04))
+    font = pygame.font.Font(DEFAULT_FONT_PATH, int(resolution[1] * 0.04))
     if luminance > 0.5:
         font_color = convert_color("black", "rgb", False)
     else:
@@ -906,10 +915,10 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, min_scale=
         if circle_position is not None:
             window.blit(circle, circle_position)
 
+        window.blit(silhouette, (silhouette_x, 0))
+
         if title is not None:
             window.blit(title_plot, ((window.get_width() - title_plot.get_width()) // 2, 5 * ratio_h))
-
-        window.blit(silhouette, (silhouette_x, 0))
 
         to_blit = []
         for joint in order_joints:
