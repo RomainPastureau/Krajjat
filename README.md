@@ -1,4 +1,4 @@
-# **Krajjat 1.99.7**
+# **Krajjat 1.99.14**
 ### ~~Kinect Realignment Algorithm for Joint Jumps And Twitches~~
 ### ~~Kinetic Recordings Algorithms for Joint Jazzing in an All-in-one Toolbox~~
 ### Kinetic Recordings And Juxtaposition of Jabbering Along That

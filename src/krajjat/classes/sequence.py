@@ -98,6 +98,8 @@ class Sequence(object):
         The date at which the recording was performed, extracted from the file.
     time_unit: str
         The time unit of the timestamps.
+    joint_labels: list(str)
+        A list containing the joint labels present in each pose of the sequence.
     """
 
     def __init__(self, path=None, path_audio=None, name=None, condition=None, time_unit="auto",
@@ -114,6 +116,7 @@ class Sequence(object):
         self.randomized = False  # True if the joints positions are randomized
         self.date_recording = None  # Placeholder for the date of the recording.
         self.time_unit = time_unit  # Time unit of the timestamps
+        self.joint_labels = []
 
         # In the case where a file or folder is passed as argument,
         # we load the sequence
@@ -124,6 +127,9 @@ class Sequence(object):
 
         if start_timestamps_at_zero:
             self.set_first_timestamp(0)
+
+        self._set_joint_labels(verbosity)
+        self._apply_joint_labels(None, True, verbosity)
 
     # === Name and setter functions ===
     def set_name(self, name):
@@ -461,7 +467,7 @@ class Sequence(object):
             data = read_json(path)
             if pose_index == 0:
                 self._load_date_recording(data, verbosity)
-            self._create_pose_from_json(data)
+            self._create_pose_from_json(data, verbosity)
 
         # Excel file
         elif file_extension == "xlsx":
@@ -586,7 +592,7 @@ class Sequence(object):
 
         self.poses.append(pose)
 
-    def _create_pose_from_json(self, data):
+    def _create_pose_from_json(self, data, verbosity=1):
         """Reads the content of a json file containing a single pose, and converts the content of a specified pose index
         into a pose object.
 
@@ -596,11 +602,31 @@ class Sequence(object):
         ----------
         data: list or dict
             The content of a json file.
+
+        verbosity: int, optional
+            Sets how much feedback the code will provide in the console output:
+
+            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+              current steps.
+            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+              may clutter the output and slow down the execution.
         """
 
-        joints = data["Bodies"][0]["Joints"]
+        # If there is at least a body found
+        if len(data["Bodies"]) != 0:
+            joints = data["Bodies"][0]["Joints"]
+            if verbosity > 1:
+                print(str(len(joints)) + " joints were found in pose " + str(len(self.poses) + 1))
+
+        # Otherwise, no mocap data
+        else:
+            joints = {}
+            if verbosity > 1:
+                print("No mocap data was found for pose " + str(len(self.poses) + 1))
         timestamp = data["Timestamp"]
 
+        # We create a pose and create all the joint elements there
         pose = Pose(timestamp)
         for j in joints:
             joint = Joint(j["JointType"], j["Position"]["X"], j["Position"]["Y"], j["Position"]["Z"])
@@ -650,6 +676,111 @@ class Sequence(object):
                 print("found: " + self.get_printable_date_recording())
             else:
                 print("not found.")
+
+    def _set_joint_labels(self, verbosity=1):
+        """Scans through all the poses of the Sequence instance, and sets the parameter :attr:`Sequence.joint_labels`
+        with the joint labels appearing at least once.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        verbosity: int, optional
+            Sets how much feedback the code will provide in the console output:
+
+            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+              current steps.
+            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+              may clutter the output and slow down the execution.
+        """
+        if verbosity > 1:
+            print("Scanning the joint labels...")
+
+        joint_labels = {}
+
+        for p in range(len(self.poses)):
+
+            if verbosity > 1:
+                print("\t" + str(len(self.poses[p].joints)) + " joints found in pose " + str(p + 1))
+
+            for joint in self.poses[p].get_joint_labels():
+                joint_labels[joint] = None
+
+        self.joint_labels = list(joint_labels.keys())
+
+    def _apply_joint_labels(self, default_value=None, check_length_only=True, verbosity=1):
+        """Verifies if each pose of the Sequence instance contains a Joint object for each of the joint labels present
+        in :attr:`Sequence.joint_labels`. If some Joint objects are missing (typically, if the skeleton was not detected
+        for one frame), the function creates Joint objects with all the coordinates equal to `default_value`.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        default_value: None, numpy.nan, int or float (optional)
+            The default value to set to all the coordinates for the missing joint labels. By default, it is equal to
+            `None`, but it can be set on 0 (in that case, missing joints will have a coordinate of (0, 0, 0)), numpy.nan
+            or any other numerical value.
+
+        check_length_only: bool, optional
+            If set on `True` (default), the function only checks if the number of joint labels in the pose is equal
+            to the number of labels in the attribute :attr:`joint_labels` of the Sequence instance. If you want to check
+            thoroughly that the name of the joint labels is exactly the same, set this parameter on `False` - the
+            computation time may be impacted.
+
+        verbosity: int, optional
+            Sets how much feedback the code will provide in the console output:
+
+            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+              current steps.
+            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+              may clutter the output and slow down the execution.
+        """
+        if verbosity > 1:
+            print("Adding joint labels to the poses missing them...")
+
+        for p in range(len(self.poses)):
+            joint_labels_pose = self.poses[p].get_joint_labels()
+
+            if verbosity > 1:
+                print("\tChecking pose " + str(p + 1) + "...", end=" ")
+
+            if check_length_only:
+                if not len(joint_labels_pose) == len(self.joint_labels):
+
+                    if verbosity > 1:
+                        print(str(len(joint_labels_pose)) + " out of " + str(len(self.joint_labels)) + " found.")
+
+                    for joint_label in self.joint_labels:
+                        if joint_label not in joint_labels_pose:
+
+                            if verbosity > 1:
+                                print("\t\tAdding joint label " + str(joint_label) + "...", end=" ")
+
+                            self.poses[p].add_joint(Joint(joint_label, default_value, default_value, default_value))
+
+                            if verbosity > 1:
+                                print("OK.")
+
+            else:
+
+                for joint_label in self.joint_labels:
+                    if joint_label not in joint_labels_pose:
+
+                        if verbosity > 1:
+                            print("\t\tAdding joint label " + str(joint_label) + "...", end=" ")
+
+                        self.poses[p].add_joint(Joint(joint_label, default_value, default_value, default_value))
+
+                        if verbosity > 1:
+                            print("OK.")
+
+                    else:
+
+                        if verbosity > 1:
+                            print("\t\tJoint label " + str(joint_label) + " found.")
 
     # === Calculation functions ===
 
