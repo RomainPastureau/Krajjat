@@ -9,6 +9,7 @@ import warnings
 
 import chardet
 import numpy as np
+from scipy.interpolate import CubicSpline, PchipInterpolator, Akima1DInterpolator, interp1d
 
 from krajjat.classes.exceptions import ModuleNotFoundException, InvalidParameterValueException
 from krajjat.classes.graph_element import *
@@ -25,6 +26,7 @@ MODULE_DIR = os.path.dirname(__file__)
 
 DEFAULT_FONT_PATH = os.path.join(MODULE_DIR, "res", "junction_bold.otf")
 SILHOUETTE_PATH = os.path.join(MODULE_DIR, "res", "silhouette.png")
+
 
 # === Folder and path functions ===
 def find_common_parent_path(paths):
@@ -797,36 +799,73 @@ def write_xlsx(table, path, verbosity=1):
 
 
 # === Calculation functions ===
-def resample_data(data, time_points, frequency, mode="linear", time_unit="s"):
-    """Resamples non-uniform data to a uniform time series according to a specific frequency, by interpolating the data.
-
-    .. versionadded:: 2.0
-
-    Note
-    ----
-    This function is a wrapper for :func:`interpolate_data`, solely creating a new array of time points from the
-    indicated frequency.
-
-    Important
-    ---------
-    This function is dependent of the module `numpy <https://numpy.org/>`_.
+def resample_data(array, original_timestamps, resampling_frequency, number_of_windows=1, overlap_ratio=0.5,
+                  mode="cubic", time_unit="s", verbosity=1):
+    """Resamples an array to the `resampling_frequency` parameter. It first creates a new set of timestamps at the
+    desired frequency, and then interpolates the original data to the new timestamps.
 
     Parameters
     ----------
-    data: list(float) or numpy.ndarray(float)
-        A list or an array of values.
-    time_points: list(float) or numpy.ndarray(float)
+    array: list or np.ndarray
+        An array of samples.
+
+    original_timestamps: list(float) or numpy.ndarray(float)
         A list or an array of the time points corresponding to the values of the data.
-    frequency: int or float
-        The frequency at which you wish to resample the time series.
+
+    resampling_frequency: int or float
+        The frequency at which you want to resample the array, in Hz. A frequency of 4 will return samples
+        at 0.25 s intervals.
+
+    number_of_windows: int or None, optional
+        The number of windows in which to cut the original array. The lower this parameter is, the more
+        resources the computation will need. If this parameter is set on `None`, the window size will be set on
+        the number of samples. Note that this number has to be inferior to 2 times the number of samples in the array;
+        otherwise, at least some windows would only contain one sample.
+
+    overlap_ratio: float or None, optional
+        The ratio of samples overlapping between each window. If this parameter is not `None`, each window will
+        overlap with the previous (and, logically, the next) for an amount of samples equal to the number of samples in
+        a window times the overlap ratio. Then, only the central values of each window will be preserved and
+        concatenated; this allows to discard any "edge" effect due to the windowing. If the parameter is set on `None`
+        or 0, the windows will not overlap.
+
     mode: str, optional
-        The way to interpolate the data. This parameter allows for all the values accepted for the ``kind``
-        parameter in the function :func:`scipy.interpolate.interp1d`: ``"linear"``, ``"nearest"``, ``"nearest-up"``,
-        ``"zero"``, ``"slinear"``, ``"quadratic"``, ``"cubic"``”, ``"previous"``, and ``"next"``. See the
-        `documentation for this Python module
-        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`_ for more.
+        This parameter allows for various values:
+
+        • ``"linear"`` performs a linear
+          `numpy.interp <https://numpy.org/devdocs/reference/generated/numpy.interp.html>`_ interpolation. This method,
+          though simple, may not be very precise for upsampling naturalistic stimuli.
+        • ``"cubic"`` performs a cubic interpolation via `scipy.interpolate.CubicSpline
+          <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.CubicSpline.html>`_. This method,
+          while smoother than the linear interpolation, may lead to unwanted oscillations nearby strong variations in
+          the data.
+        • ``"pchip"`` performs a monotonic cubic spline interpolation (Piecewise Cubic Hermite Interpolating
+          Polynomial) via `scipy.interpolate.PchipInterpolator
+          <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.PchipInterpolator.html>`_.
+        • ``"akima"`` performs another type of monotonic cubic spline interpolation, using
+        `scipy.interpolate.Akima1DInterpolator
+        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Akima1DInterpolator.html>`_.
+        • ``"take"`` keeps one out of n samples from the original array. While being the fastest computation, it will
+          be prone to imprecision if the downsampling factor is not an integer divider of the original frequency.
+        • ``"interp1d_XXX"`` uses the function `scipy.interpolate.interp1d
+          <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`. The XXX part of the
+          parameter can be replaced by ``"linear"``, ``"nearest"``, ``"nearest-up"``, ``"zero"``, "slinear"``,
+          ``"quadratic"``, ``"cubic"``”, ``"previous"``, and ``"next"`` (see the documentation of this function for
+          specifics).
+
     time_unit: str, optional
-        The time unit of the time points. By default, it is set on "s" (seconds).
+        The time unit of the time points. This parameter can take the following values: "ns", "1ns", "10ns", "100ns",
+        "µs", "1µs", "10µs", "100µs", "ms", "1ms", "10ms", "100ms", "s" (default), "sec", "1s", "min", "mn", "h", "hr",
+        "d", "day".
+
+    verbosity: int, optional
+        Sets how much feedback the code will provide in the console output:
+
+        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+          current steps.
+        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+          may clutter the output and slow down the execution.
 
     Returns
     -------
@@ -834,18 +873,215 @@ def resample_data(data, time_points, frequency, mode="linear", time_unit="s"):
         The resampled values.
     numpy.ndarray(float)
         The resampled time points, at a fixed frequency.
+
+    Warning
+    -------
+    This function allows both the **upsampling** and the **downsampling** of arrays. However, during any of
+    these operations, the algorithm only **estimates** the real values of the samples. You should then consider
+    the upsampling (and the downsampling, to a lesser extent) with care.
     """
 
-    try:
-        from numpy import arange
-    except ImportError:
-        raise ModuleNotFoundException("numpy", "resample data.")
+    if len(array) != len(original_timestamps):
+        raise Exception("The length of the data array (" + str(len(array)) + ") is inconsistent with the length of " +
+                        "the time points (" + str(len(original_timestamps)) + ").")
 
-    step = (1 / frequency) * UNITS[time_unit]
-    resampled_time_points = arange(min(time_points), max(time_points) + step/2, step)
-    if resampled_time_points[-1] > max(time_points):
-        resampled_time_points = resampled_time_points[:-1]
-    return interpolate_data(data, time_points, resampled_time_points, mode)
+    if verbosity > 0:
+        print("\tResampling the array at " + str(resampling_frequency) + " Hz (mode: " + str(mode) + ")...")
+        if verbosity > 1:
+            print("\t\tPerforming the resampling...")
+        else:
+            print("\t\tPerforming the resampling...", end=" ")
+
+    step = (1 / resampling_frequency) * UNITS[time_unit]
+
+    # Define the timestamps
+    resampled_timestamps = np.arange(original_timestamps[0], original_timestamps[-1] + (1 / resampling_frequency),
+                                     1 / resampling_frequency)
+
+    # If the last timestamp is over the last original timestamp, we remove it
+    if resampled_timestamps[-1] > original_timestamps[-1]:
+        resampled_timestamps = resampled_timestamps[:-1]
+
+    # Settings
+    if number_of_windows is None:
+        number_of_windows = 1
+
+    if overlap_ratio is None:
+        overlap_ratio = 0
+
+    if number_of_windows > 2 * len(array):
+        raise Exception("The number of windows is too big, and will lead to windows having only one sample." +
+                        " Please consider using a number of windows lower than " + str(2 * len(array)) + ".")
+
+    window = int(get_window_length(len(array), number_of_windows, overlap_ratio))
+    overlap = int(np.ceil(overlap_ratio * window))
+
+    if verbosity > 1 and number_of_windows != 1:
+        print("\t\t\tCreating " + str(number_of_windows) + " window(s), each containing " + str(window) +
+              " samples, with a " + str(round(overlap_ratio * 100, 2)) + " % overlap (" + str(overlap) +
+              " samples).")
+
+    resampled_array = np.zeros(np.size(resampled_timestamps))
+    j = 0
+    next_percentage = 10
+
+    for i in range(number_of_windows):
+
+        window_start_original = i * (window - overlap)
+        window_end_original = np.min([(i + 1) * window - i * overlap, len(original_timestamps) - 1])
+        window_start_resampled = int(np.round(original_timestamps[window_start_original] * resampling_frequency))
+        window_end_resampled = int(np.round(original_timestamps[window_end_original] * resampling_frequency))
+
+        if verbosity == 1:
+            while i / number_of_windows > next_percentage / 100:
+                print(str(next_percentage) + "%", end=" ")
+                next_percentage += 10
+
+        if verbosity > 1:
+            print("\t\t\tGetting samples from window " + str(i + 1) + "/" + str(number_of_windows) + ".")
+
+        resampled_window = resample_window(array, original_timestamps, resampled_timestamps, window_start_original,
+                                           window_end_original, window_start_resampled, window_end_resampled,
+                                           mode, verbosity)
+
+        if verbosity > 1:
+            print("Done.\n\t\t\t\tThe resampled window contains " + str(np.size(resampled_window)) + " sample(s).")
+
+        # Keep only the center values
+        if i == 0:
+            window_slice_start = 0
+            resampled_slice_start = 0
+        else:
+            window_slice_start = (j - window_start_resampled) // 2
+            resampled_slice_start = window_start_resampled + window_slice_start
+
+        preserved_samples = resampled_window[window_slice_start:]
+
+        if verbosity > 1:
+            print("\t\t\tKeeping the samples from " + str(resampled_slice_start) + " to " +
+                  str(resampled_slice_start + len(preserved_samples) - 1) + " (in the window, samples " +
+                  str(window_slice_start) + " to " + str(len(resampled_window) - 1) + ")", end="")
+            if resampled_slice_start != j:
+                print(" · Rewriting samples " + str(resampled_slice_start) + " to " + str(j - 1) + "...", end=" ")
+            else:
+                print("...", end=" ")
+
+        resampled_array[resampled_slice_start:resampled_slice_start + len(preserved_samples)] = preserved_samples
+        j = resampled_slice_start + len(preserved_samples)
+
+        if verbosity > 1:
+            print("Done.")
+
+    if verbosity == 1:
+        print("100% - Done.")
+    elif verbosity > 1:
+        print("\t\tResampling done.")
+
+    if verbosity > 0:
+        print("\t\tThe original array had " + str(len(array)) + " samples.")
+        print("\t\tThe new array has " + str(len(resampled_array)) + " samples.")
+
+    return resampled_array, resampled_timestamps
+
+
+def resample_window(array, original_timestamps, resampled_timestamps, index_start_original, index_end_original,
+                    index_start_resampled, index_end_resampled, method="cubic", verbosity=1):
+    """Performs and returns the resampling on a subarray of samples.
+
+    Parameters
+    ----------
+    array: list or np.ndarray
+        An array of samples.
+
+    original_timestamps: list or np.ndarray
+        An array containing the timestamps for each sample of the original array.
+
+    resampled_timestamps: list or np.ndarray
+        An array containing the timestamps for each desired sample in the resampled array.
+
+    index_start_original: int
+        The index in the array where the window starts.
+
+    index_end_original: int
+        The index in the array where the window ends.
+
+    index_start_resampled: int
+        The index in the resampled array where the window starts.
+
+    index_end_resampled: int
+        The index in the resampled array where the window ends.
+
+    method: str, optional
+        This parameter allows for various values:
+
+        • ``"linear"`` performs a linear
+          `numpy.interp <https://numpy.org/devdocs/reference/generated/numpy.interp.html>`_ interpolation. This method,
+          though simple, may not be very precise for upsampling naturalistic stimuli.
+        • ``"cubic"`` performs a cubic interpolation via `scipy.interpolate.CubicSpline
+          <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.CubicSpline.html>`_. This method,
+          while smoother than the linear interpolation, may lead to unwanted oscillations nearby strong variations in
+          the data.
+        • ``"pchip"`` performs a monotonic cubic spline interpolation (Piecewise Cubic Hermite Interpolating
+          Polynomial) via `scipy.interpolate.PchipInterpolator
+          <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.PchipInterpolator.html>`_.
+        • ``"akima"`` performs another type of monotonic cubic spline interpolation, using
+        `scipy.interpolate.Akima1DInterpolator
+        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Akima1DInterpolator.html>`_.
+        • ``"take"`` keeps one out of n samples from the original array. While being the fastest computation, it will
+          be prone to imprecision if the downsampling factor is not an integer divider of the original frequency.
+        • ``"interp1d_XXX"`` uses the function `scipy.interpolate.interp1d
+          <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`. The XXX part of the
+          parameter can be replaced by ``"linear"``, ``"nearest"``, ``"nearest-up"``, ``"zero"``, "slinear"``,
+          ``"quadratic"``, ``"cubic"``”, ``"previous"``, and ``"next"`` (see the documentation of this function for
+          specifics).
+
+    verbosity: int, optional
+        Sets how much feedback the code will provide in the console output:
+
+        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+          current steps.
+        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+          may clutter the output and slow down the execution.
+
+    Returns
+    -------
+    np.array
+        The envelope of the original array.
+    """
+
+    array_window = array[index_start_original:index_end_original + 1]
+    original_timestamps_window = original_timestamps[index_start_original:index_end_original + 1]
+    resampled_timestamps_window = resampled_timestamps[index_start_resampled:index_end_resampled + 1]
+
+    if verbosity > 1:
+        print("\t\t\t\tIn the original array, the window contains samples " + str(index_start_original) + " to " +
+              str(index_end_original) + " (from timestamps " + str(original_timestamps_window[0]) + " to " +
+              str(original_timestamps_window[-1]) + ").")
+        print("\t\t\t\tIn the new array, the window contains samples " + str(index_start_resampled) + " to " +
+              str(index_end_resampled) + " (from timestamps " + str(resampled_timestamps_window[0]) + " to " +
+              str(resampled_timestamps_window[-1]) + ").")
+        print("\t\t\t\tInterpolating the data...", end=" ")
+
+    if np.size(array_window) == 1:
+        raise Exception("Only one sample is present in the current window. Please select a larger window size.")
+
+    if method == "linear":
+        return np.interp(resampled_timestamps_window, array_window, original_timestamps_window)
+    elif method == "cubic":
+        interp = CubicSpline(original_timestamps_window, array_window)
+        return interp(resampled_timestamps_window)
+    elif method == "pchip":
+        interp = PchipInterpolator(original_timestamps_window, array_window)
+        return interp(resampled_timestamps_window)
+    elif method == "akima":
+        interp = Akima1DInterpolator(original_timestamps_window, array_window)
+        return interp(resampled_timestamps_window)
+    elif method.startswith("interp1d"):
+        interp = interp1d(original_timestamps, array, kind=method.split("_")[1])
+        return interp(resampled_timestamps_window)
+    else:
+        raise Exception("Invalid resampling method: " + str(method) + ".")
 
 
 def interpolate_data(data, time_points_data, time_points_interpolation, mode="linear"):
@@ -897,119 +1133,10 @@ def interpolate_data(data, time_points_data, time_points_interpolation, mode="li
     np_data = array(data)
     np_time_points = array(time_points_data)
     np_time_points_complete = array(time_points_interpolation)
-    #interp = interpolate.interp1d(np_time_points, np_data, kind=mode)
-    interp = interpolate.CubicSpline(np_time_points, np_data)
+    interp = interpolate.interp1d(np_time_points, np_data, kind=mode)
 
     resampled_data = interp(np_time_points_complete)
     return resampled_data, np_time_points_complete
-
-
-def resample_data_windows(data, original_frequency, resampling_frequency, window, overlap, mode="linear", verbosity=1):
-    """Resamples a time series to a new frequency, using overlapping windows to reduce the computational load.
-
-    .. versionadded:: 2.0
-
-    Important
-    ---------
-    This function is dependent of the modules `numpy <https://numpy.org/>`_ and `scipy <https://scipy.org/>`_.
-
-    Parameters
-    ----------
-    data: list(float) or numpy.ndarray(float)
-        A list or an array of values.
-
-    original_frequency: int or float
-        The sampling frequency of the array, in Hz.
-
-    resampling_frequency: int or float
-        The frequency at which you want to resample the array, in Hz. A frequency of 4 will return samples
-        at 0.25 s intervals.
-
-    window: int or None, optional
-        The amount of elements to interpolate the data from of at a time. The bigger this parameter is, the more
-        resources the computation will need. If this parameter is set on `None`, the window size will be set on
-        the number of elements in the data array.
-
-    overlap: int or None, optional
-        The amount of elements overlapping between each window. If this parameter is not `None`, each window will
-        overlap with the previous (and, logically, the next) for the specified amount of elements. Then, only the
-        central values of each window will be preserved and concatenated; this allows to discard any "edge" effect
-        due to the windowing. If the parameter is set on `None` or 0, the windows will not overlap.
-
-    mode: str, optional
-        The way to interpolate the data. This parameter also allows for all the values accepted for the ``kind``
-        parameter in the function :func:`scipy.interpolate.interp1d`: ``"linear"``, ``"nearest"``, ``"nearest-up"``,
-        ``"zero"``, ``"slinear"``, ``"quadratic"``, ``"cubic"``”, ``"previous"``, and ``"next"``. See the
-        `documentation for this Python module
-        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`_ for more.
-
-    Returns
-    -------
-    numpy.ndarray(float)
-        The interpolated values.
-    numpy.ndarray(float)
-        The interpolated time points (same as the parameter ``time_points_interpolation``).
-    """
-
-    try:
-        from numpy import array
-    except ImportError:
-        raise ModuleNotFoundException("numpy", "interpolate data.")
-
-    try:
-        from scipy import interpolate
-    except ImportError:
-        raise ModuleNotFoundException("scipy", "interpolate data.")
-
-    # Settings
-    if window is None:
-        window = len(data)
-    if overlap is None:
-        overlap = 0
-    nb_windows = get_number_of_windows(len(data), window, overlap, True)
-
-    original_timestamps = np.arange(0, len(data)/original_frequency, 1/original_frequency)
-    resampled_timestamps = np.arange(0, max(original_timestamps), 1/resampling_frequency)
-    if resampled_timestamps[-1] > max(original_timestamps):
-        resampled_timestamps = resampled_timestamps[:-1]
-
-    resampled_data = np.zeros(resampled_timestamps)
-    j = 0
-    resampled_end = 0
-    t = 0
-    for i in range(nb_windows):
-
-        array_start = i * (window - overlap)
-        array_end = np.min([(i + 1) * window - i * overlap, len(data)])
-        if verbosity > 1:
-            print("\t\tGetting samples from window " + str(i + 1) + "/" + str(nb_windows) + ": samples " +
-                  str(array_start) + " to " + str(array_end) + "... ", end=" ")
-
-        resampled_start = resampled_end
-        while t < original_timestamps[array_end]:
-            resampled_end += 1
-            t = resampled_timestamps[resampled_end]
-
-        interp = interpolate.interp1d(original_timestamps[array_start:array_end], data[array_start:array_end],
-                                      kind=mode)
-        resampled_window = interp(resampled_timestamps[resampled_start:resampled_end])
-
-        # Keep only the center values
-        if i == 0:
-            slice_start = 0
-        else:
-            slice_start = overlap // 2  # We stop one before if the overlap is odd
-
-        if i == nb_windows - 1:
-            slice_end = len(resampled_window)
-        else:
-            slice_end = window - int(np.ceil(overlap / 2))
-
-        preserved_samples = resampled_window[slice_start:slice_end]
-        resampled_data[j:j + len(preserved_samples)] = preserved_samples
-        j += len(preserved_samples)
-
-    return resampled_data, resampled_timestamps
 
 
 def cosine_filter(nb_samples, par_cell, f_vect, ws_vect):
@@ -1366,7 +1493,7 @@ def get_number_of_windows(array_length_or_array, window_size, overlap=0, add_inc
 
     if not isinstance(array_length_or_array, int):
         array_length = len(array_length_or_array)
-    else :
+    else:
         array_length = array_length_or_array
 
     if overlap >= window_size:
@@ -1376,18 +1503,46 @@ def get_number_of_windows(array_length_or_array, window_size, overlap=0, add_inc
         raise Exception("The size of the window (" + str(window_size) + ") or the overlap (" + str(overlap) + ") " +
                         "cannot be bigger than the size of the array (" + str(array_length) + ").")
 
-    window_start = 0
-    i = 0
+    number_of_windows = (array_length - overlap) / (window_size - overlap)
 
-    while window_start + window_size <= array_length:
-        i += 1
-        window_start += window_size - overlap
+    if add_incomplete_window and array_length + (overlap * (window_size - 1)) % window_size != 0:
+        return int(np.ceil(number_of_windows))
 
-    if add_incomplete_window:
-        if array_length - window_start - overlap != 0:
-            i += 1
+    return int(number_of_windows)
 
-    return i
+
+def get_window_length(array_length_or_array, number_of_windows, overlap_ratio):
+    """Given an array to be split in a given overlapping number of windows, calculates the number of elements in each
+    window.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    array_length_or_array: list, np.ndarray or int
+        An array of numerical values, or its length.
+    number_of_windows: int
+        The number of windows to split the array in.
+    overlap_ratio: float
+        The ratio of overlapping elements between each window.
+
+    Returns
+    -------
+    int
+        The number of elements in each window. Note: the last window may have fewer elements than the others if the
+        number of windows does not divide the result of :math:`array_length + (number_of_windows - 1) × overlap`.
+    """
+
+    if not isinstance(array_length_or_array, int):
+        array_length = len(array_length_or_array)
+    else:
+        array_length = array_length_or_array
+
+    if overlap_ratio >= 1 or overlap_ratio < 0:
+        raise Exception("The size of the overlap ratio (" + str(overlap_ratio) + ") must be superior or equal to 0, " +
+                        "and strictly inferior to 1.")
+
+    return array_length / (number_of_windows + overlap_ratio - number_of_windows * overlap_ratio)
 
 
 def divide_in_windows(array, window_size, overlap=0, add_incomplete_window=True):

@@ -234,7 +234,7 @@ class AudioDerivative(object):
 			print("Resampling at " + str(frequency) + " Hz (mode: " + str(mode) + ")...")
 			print("\tPerforming the resampling...", end=" ")
 
-		samples_resampled, timestamps_resampled = resample_data(self.samples, self.timestamps, frequency, mode)
+		samples_resampled, timestamps_resampled = resample_data(self.samples, self.timestamps, frequency, mode=mode)
 
 		if name is None:
 			name = self.name

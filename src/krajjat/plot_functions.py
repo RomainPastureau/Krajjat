@@ -104,9 +104,6 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
         for sequence in sequence_or_sequences:
             timestamps.append(sequence.get_timestamps())
 
-    for sequence in timestamps:
-        print(sequence)
-
     # Handling timestamp_start and timestamp_end
     if timestamp_start is None:
         for timestamps_sequence in timestamps:

@@ -11,7 +11,7 @@ from scipy import signal
 from krajjat.tool_functions import *
 from krajjat.classes.exceptions import *
 from krajjat.classes.audio_derivatives import *
-from scipy.signal import butter, lfilter
+from scipy.signal import butter, lfilter, hilbert
 import statsmodels.api as sm
 
 
@@ -777,41 +777,37 @@ class Audio(object):
         return stats
 
     # === Transformation functions ===
-    def get_envelope(self, window=10000, overlap=5000, filter_below=None, filter_over=None, resampling_frequency=None,
-                     resampling_mode="cubic", name=None, verbosity=1):
-        """Calculates the envelope of the audio clip, and returns an Envelope object. The function can also optionally
-        perform a band-pass filtering and a resampling, if the corresponding parameters are provided.
-
-        .. versionadded:: 2.0
+    def get_envelope(self, number_of_windows=100, overlap_ratio=0.5, filter_below=None, filter_over=None, name=None,
+                     verbosity=1):
+        """Calculates the envelope of an array, and returns it. The function can also optionally perform a band-pass
+        filtering, if the corresponding parameters are provided.
 
         Parameters
         ----------
-        window: int or None, optional
-            The amount of samples to calculate the envelope of at a time. The bigger this parameter is, the more
-            resources the computation will need. If this parameter is set on `None`, the window size will be set on
-            the number of samples.
+        array: list or np.ndarray
+            An array of samples.
 
-        overlap: int or None, optional
-            The amount of samples overlapping between each window. If this parameter is not `None`, each window will
-            overlap with the previous (and, logically, the next) for the specified amount of samples. Then, only the
-            central values of each window will be preserved and concatenated; this allows to discard any "edge" effect
-            due to the windowing. If the parameter is set on `None` or 0, the windows will not overlap.
+        frequency: int or float
+            The sampling frequency of the array, in Hz.
+
+        number_of_windows: int or None, optional
+            The number of windows in which to cut the original array. The lower this parameter is, the more
+            resources the computation will need. If this parameter is set on `None`, the window size will be set on
+            the number of samples. Note that this number has to be inferior to 2 times the number of samples in the
+            array; otherwise, at least some windows would only contain one sample.
+
+        overlap_ratio: float or None, optional
+            The ratio of samples overlapping between each window. If this parameter is not `None`, each window will
+            overlap with the previous (and, logically, the next) for an amount of samples equal to the number of samples
+            in a window times the overlap ratio. Then, only the central values of each window will be preserved and
+            concatenated; this allows to discard any "edge" effect due to the windowing. If the parameter is set on
+            `None` or 0, the windows will not overlap.
 
         filter_below: int, float or None, optional
             If not ``None`` nor 0, this value will be provided as the lowest frequency of the band-pass filter.
 
         filter_over: int, float or None, optional
             If not ``None`` nor 0, this value will be provided as the highest frequency of the band-pass filter.
-
-        resampling_frequency: int, float or None, optional
-            If not ``None``, the envelope will be resampled at the provided frequency before being returned.
-
-        resampling_mode: str, optional
-            This parameter allows for all the values accepted for the ``kind`` parameter in the function
-            :func:`scipy.interpolate.interp1d`: ``"linear"``, ``"nearest"``, ``"nearest-up"``, ``"zero"``,
-            ``"slinear"``, ``"quadratic"``, ``"cubic"`` (default), ``"previous``", and ``"next"``. See the
-            `documentation for this Python module
-            <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`_ for more.
 
         name: str or None, optional
             Defines the name of the envelope. If set on ``None``, the name will be the same as the original Audio
@@ -828,13 +824,13 @@ class Audio(object):
 
         Returns
         -------
-        Envelope
-            The filtered envelope of the audio clip.
+        np.array
+            The envelope of the original array.
         """
+
         if verbosity > 0:
             print("Creating an Envelope object...")
 
-        # If the parameter is an array of samples
         try:
             from scipy.signal import hilbert
         except ImportError:
@@ -846,65 +842,84 @@ class Audio(object):
             raise ModuleNotFoundException("numpy", "extracting the envelope of an audio file.")
 
         # Settings
-        if window is None:
-            window = len(self.samples)
-        if overlap is None:
-            overlap = 0
+        if number_of_windows is None:
+            number_of_windows = 1
+
+        if overlap_ratio is None:
+            overlap_ratio = 0
+
         if name is None:
             name = self.name + " (ENV)"
-        nb_windows = get_number_of_windows(len(self.samples), window, overlap, True)
 
-        if verbosity == 1:
-            print("Getting the Hilbert transform...", end=" ")
+        if number_of_windows > 2 * len(self.samples):
+            raise Exception("The number of windows is too big, and will lead to windows having only one sample." +
+                            " Please consider using a number of windows lower than or equal to " +
+                            str(2 * len(self.samples)) + ".")
+
+        window = int(get_window_length(len(self.samples), number_of_windows, overlap_ratio))
+        overlap = int(np.ceil(overlap_ratio * window))
+
+        # Hilbert transform
+        if verbosity > 0:
+            print("\tGetting the Hilbert transform...", end=" ")
         elif verbosity > 1:
             print("\tGetting the Hilbert transform...")
-            print("\t\tDividing the samples in " + str(nb_windows) + " window(s) of " + str(window) +
+            print("\t\tDividing the samples in " + str(number_of_windows) + " window(s) of " + str(window) +
                   " samples, with an overlap of " + str(overlap) + " samples.")
 
-        # Getting the envelope
-        samples = np.zeros(len(self.samples))
+        envelope_samples = np.zeros(len(self.samples))
         j = 0
-        for i in range(nb_windows):
+        next_percentage = 10
+
+        for i in range(number_of_windows):
+
+            if verbosity == 1:
+                while i / number_of_windows > next_percentage / 100:
+                    print(str(next_percentage) + "%", end=" ")
+                    next_percentage += 10
 
             # Get the Hilbert transform of the window
             array_start = i * (window - overlap)
             array_end = np.min([(i + 1) * window - i * overlap, len(self.samples)])
             if verbosity > 1:
-                print("\t\tGetting samples from window " + str(i + 1) + "/" + str(nb_windows) + ": samples " +
+                print("\t\t\tGetting samples from window " + str(i + 1) + "/" + str(number_of_windows) + ": samples " +
                       str(array_start) + " to " + str(array_end) + "... ", end=" ")
             hilbert_window = np.abs(hilbert(self.samples[array_start:array_end]))
 
             # Keep only the center values
             if i == 0:
                 slice_start = 0
-            else :
+            else:
                 slice_start = overlap // 2  # We stop one before if the overlap is odd
 
-            if i == nb_windows - 1:
+            if i == number_of_windows - 1:
                 slice_end = len(hilbert_window)
-            else :
+            else:
                 slice_end = window - int(np.ceil(overlap / 2))
 
             if verbosity > 1:
-                print("\n\t\tKeeping the samples from " + str(slice_start) + " to " + str(slice_end) + " in the window: samples " +
-                      str(array_start + slice_start) + " to " + str(array_start + slice_end) + "...", end = " ")
+                print("\n\t\t\tKeeping the samples from " + str(slice_start) + " to " + str(slice_end) + " in the " +
+                      "window: samples " + str(array_start + slice_start) + " to " + str(
+                    array_start + slice_end) + "...",
+                      end=" ")
 
             preserved_samples = hilbert_window[slice_start:slice_end]
-            samples[j:j + len(preserved_samples)] = preserved_samples
+            envelope_samples[j:j + len(preserved_samples)] = preserved_samples
             j += len(preserved_samples)
 
             if verbosity > 1:
                 print("Done.")
 
-        if verbosity > 0:
-            print("Done.\n")
+        if verbosity == 1:
+            print("100% - Done.")
+        elif verbosity > 1:
+            print("Done.")
 
-        envelope = Envelope(samples, self.timestamps, self.frequency, name, self.condition)
+        envelope = Envelope(envelope_samples, self.timestamps, self.frequency, name, self.condition)
 
+        # Filtering
         if filter_below is not None or filter_over is not None:
             envelope = envelope.filter_frequencies(filter_below, filter_over, name, verbosity)
-        if resampling_frequency is not None:
-            envelope = envelope.resample(resampling_frequency, resampling_mode, name, verbosity)
 
         return envelope
 
@@ -1222,24 +1237,33 @@ class Audio(object):
             The Audio instance, with filtered values.
         """
 
+        # Band-pass filter
         if filter_below not in [None, 0] and filter_over not in [None, 0]:
             if verbosity > 0:
                 print("Applying a band-pass filter for frequencies between " + str(filter_below) + " and " +
-                      str(filter_over) + " Hz...")
+                      str(filter_over) + " Hz...", end=" ")
             b, a = butter(2, [filter_below, filter_over], "band", fs=self.frequency)
             new_samples = lfilter(b, a, self.samples)
+
+        # High-pass filter
         elif filter_below not in [None, 0]:
             if verbosity > 0:
-                print("Applying a high-pass filter for frequencies over " + str(filter_below) + " Hz...")
+                print("Applying a high-pass filter for frequencies over " + str(filter_below) + " Hz...", end=" ")
             b, a = butter(2, filter_below, "high", fs=self.frequency)
             new_samples = lfilter(b, a, self.samples)
+
+        # Low-pass filter
         elif filter_over not in [None, 0]:
             if verbosity > 0:
-                print("Applying a low-pass filter for frequencies below " + str(filter_over) + " Hz...")
+                print("Applying a low-pass filter for frequencies below " + str(filter_over) + " Hz...", end=" ")
             b, a = butter(2, filter_over, "low", fs=self.frequency)
             new_samples = lfilter(b, a, self.samples)
+
         else:
             new_samples = self.samples
+
+        if verbosity > 0:
+            print("Done.")
 
         if name is None:
             name = self.name
@@ -1316,7 +1340,8 @@ class Audio(object):
             resampled_audio_array = np.take(self.samples, indices)
 
         else:
-            resampled_audio_array, resampled_audio_times = resample_data(self.samples, self.timestamps, frequency, mode)
+            resampled_audio_array, resampled_audio_times = resample_data(self.samples, self.timestamps, frequency,
+                                                                         mode=mode)
             resampled_audio_array = list(resampled_audio_array)
 
         new_audio = Audio(resampled_audio_array, frequency, name, verbosity=verbosity)

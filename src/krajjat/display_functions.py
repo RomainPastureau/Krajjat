@@ -984,3 +984,6 @@ def save_video_sequence(sequence1, path_output, fps=25, sequence2=None, path_aud
     p.wait()
 
     print("100% - Done.")
+
+    pygame.quit()
+    sys.exit()

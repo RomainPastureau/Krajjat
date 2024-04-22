@@ -2089,6 +2089,24 @@ class Sequence(object):
             raise InvalidParameterValueException("metric", metric)
 
     def get_max_coordinate_whole_sequence(self, axis, absolute=False):
+        """Returns the single maximum value of all the joints and for the whole sequence of a coordinate on a specified
+        axis, in meters.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        axis: str
+            The axis from which to get the maximum coordinate: ``"x"``, ``"y"`` or ``"z"``.
+
+        absolute: bool, optional
+            If set on `True`, returns the maximum absolute value. Otherwise (default), returns the maximum value.
+
+        Returns
+        --------
+        float
+            Maximum value of a coordinate on a specified axis, in meters.
+        """
         dict_coordinate = self.get_single_coordinates(axis)
         max_distance_whole_sequence = 0
 
@@ -2675,7 +2693,6 @@ class Sequence(object):
         # Create an empty sequence, the same length in poses as the original, just keeping the timestamp information
         # for each pose.
         new_sequence = self._create_new_sequence_with_timestamps(verbosity)
-        #new_sequence = Sequence()
         if name is None:
             new_sequence.name = self.name + " +CJ"
         else:
@@ -2705,8 +2722,6 @@ class Sequence(object):
 
         # For every pose starting on the second one
         for p in range(1, len(self.poses)):
-
-            #new_sequence.poses.append(Pose(self.poses[p].timestamp))
 
             if verbosity > 1:
                 print("\nNew sequence:\n" + str(new_sequence.poses[p - 1]))
@@ -3437,7 +3452,7 @@ class Sequence(object):
         x_points = OrderedDict()
         y_points = OrderedDict()
         z_points = OrderedDict()
-        time_points = []
+        time_points = self.get_timestamps(relative=True)
 
         # Create vectors of position and time
         for p in range(len(self.poses)):
@@ -3452,11 +3467,14 @@ class Sequence(object):
                 x_points[j].append(self.poses[p].joints[j].x)
                 y_points[j].append(self.poses[p].joints[j].y)
                 z_points[j].append(self.poses[p].joints[j].z)
-            time_points.append(self.poses[p].timestamp)
 
         if verbosity > 0:
             print("100% - Done.")
+
+        if verbosity == 1:
             print("\tPerforming the resampling...", end=" ")
+        if verbosity > 1:
+            print("\tPerforming the resampling...")
 
         # Define the percentage counter
         perc = 10
@@ -3472,14 +3490,17 @@ class Sequence(object):
 
         for joint_label in x_points.keys():
             if verbosity > 1:
-                print("\t\tJoint label: " + str(joint_label))
+                print("\n\tJoint label: " + str(joint_label))
             perc = show_progression(verbosity, i, no_joints, perc)
-            new_x_points[joint_label], new_time_points = resample_data(x_points[joint_label],
-                                                                       time_points, frequency, mode, self.time_unit)
-            new_y_points[joint_label], new_time_points = resample_data(y_points[joint_label],
-                                                                       time_points, frequency, mode, self.time_unit)
-            new_z_points[joint_label], new_time_points = resample_data(z_points[joint_label],
-                                                                       time_points, frequency, mode, self.time_unit)
+            new_x_points[joint_label], new_time_points = resample_data(x_points[joint_label], time_points, frequency,
+                                                                       mode=mode, time_unit=self.time_unit,
+                                                                       verbosity=verbosity)
+            new_y_points[joint_label], new_time_points = resample_data(y_points[joint_label], time_points, frequency,
+                                                                       mode=mode, time_unit=self.time_unit,
+                                                                       verbosity=verbosity)
+            new_z_points[joint_label], new_time_points = resample_data(z_points[joint_label], time_points, frequency,
+                                                                       mode=mode, time_unit=self.time_unit,
+                                                                       verbosity=verbosity)
             i += 1
 
         # Define the percentage counter
