@@ -9,8 +9,9 @@ import wave
 
 
 def common_displayer(sequence1, sequence2=None, path_audio=None, path_video=None, position_sequences="side",
-                     position_video="superimposed", resolution=0.5, height_window_in_meters=3.0, full_screen=False,
-                     manual=False, start_pose=0, verbosity=1, **kwargs):
+                     position_video="superimposed", timestamp_video_start=None, resolution=0.5,
+                     height_window_in_meters=3.0, full_screen=False, manual=False, start_pose=0,
+                     x_axis="x", y_axis="y", verbosity=1, **kwargs):
     """Common displayer function wrapped in all the other graphic functions. Allows to display one or two sequences,
     in a Pygame window, in a highly customizable way. A sequence can be displayed jointly with an audio file or a
     video file.
@@ -44,6 +45,9 @@ def common_displayer(sequence1, sequence2=None, path_audio=None, path_video=None
         Defines if the video should be displayed behind the sequence(s) (``"superimposed"``, default), or next to the
         sequence(s) (``"side"``)  This parameter is ignored if no video is provided.
 
+    timestamp_video_start: int or None, optional
+        If specified, indicated what timestamp of the video (in seconds) matches the start of the sequence.
+
     resolution: tuple(int, int) or float or None, optional
         The resolution of the Pygame window that will display the Sequence instance(s). This parameter can be:
 
@@ -68,6 +72,12 @@ def common_displayer(sequence1, sequence2=None, path_audio=None, path_video=None
 
     start_pose: int, optional
         The index of the pose at which to start the sequence.
+
+    x_axis: str, optional
+        Sets which axis should be matched to the x display axis (default `"x"`, can be `"y"` or `"z"` too).
+
+    y_axis: str, optional
+        Sets which axis should be matched to the y display axis (default `"y"`, can be `"x"` or `"z"` too).
 
     verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
@@ -131,15 +141,15 @@ def common_displayer(sequence1, sequence2=None, path_audio=None, path_video=None
                                    window_areas_elements[1], height_window_in_meters)]
 
     # Generates a graphic sequence from the sequence
-    animation1 = GraphicSequence(sequence1, window_areas[0], start_pose, verbosity,
+    animation1 = GraphicSequence(sequence1, window_areas[0], start_pose, x_axis, y_axis, verbosity,
                                  **kwargs_parser(kwargs, "_seq1"))
     animation2 = None
     if sequence2 is not None:
         if window_areas[0].contains("sequence2"):
-            animation2 = GraphicSequence(sequence2, window_areas[0], start_pose, verbosity,
+            animation2 = GraphicSequence(sequence2, window_areas[0], start_pose, x_axis, y_axis, verbosity,
                                          **kwargs_parser(kwargs, "_seq2"))
         else:
-            animation2 = GraphicSequence(sequence2, window_areas[1], start_pose, verbosity,
+            animation2 = GraphicSequence(sequence2, window_areas[1], start_pose, x_axis, y_axis, verbosity,
                                          **kwargs_parser(kwargs, "_seq2"))
 
     pygame.mouse.set_visible(True)
@@ -153,7 +163,7 @@ def common_displayer(sequence1, sequence2=None, path_audio=None, path_video=None
     # Load the video
     video = None
     if path_video is not None:
-        video = Video(path_video, window_areas[0].get_resolution())
+        video = Video(path_video, window_areas[0].get_resolution(), timestamp_video_start)
 
     if window_areas[0].contains("video"):
         animation1.set_color_background("transparent")
@@ -195,6 +205,8 @@ def common_displayer(sequence1, sequence2=None, path_audio=None, path_video=None
     progress_time_surface = font.render(progress_time_text, True, font_color)
 
     run = True
+
+    count = 0
 
     # Program loop
     while run:
@@ -333,7 +345,8 @@ def common_displayer(sequence1, sequence2=None, path_audio=None, path_video=None
                       "Pose: " + str(animation1.get_current_pose_index()),
                       "Frame: " + str(video.get_current_frame_index()),
                       "Ratio: " + ratio,
-                      "Difference: " + str(int(video.get_timestamp() - animation1.get_timestamp())) + " ms.\n")
+                      "Difference: " + str(int(video.get_timestamp() - animation1.get_timestamp())) + " ms " +
+                      "Pygame loops: " + str(count) + "\n")
 
         if timer.get_last_full_second() != last_recorded_second:
             last_recorded_second = timer.get_last_full_second()
@@ -343,13 +356,15 @@ def common_displayer(sequence1, sequence2=None, path_audio=None, path_video=None
         timer.update()
 
         pygame.display.flip()
+        count += 1
 
     pygame.quit()
     sys.exit()
 
 
-def sequence_reader(sequence, path_audio=None, path_video=None, position_video="superimposed", resolution=0.5,
-                    height_window_in_meters=3.0, full_screen=False, start_pose=0, verbosity=1, **kwargs):
+def sequence_reader(sequence, path_audio=None, path_video=None, position_video="superimposed", timestamp_video_start=0,
+                    resolution=0.5, height_window_in_meters=3.0, full_screen=False, start_pose=0, x_axis="x",
+                    y_axis="y", verbosity=1, **kwargs):
     """Displays the joints of the sequence in real time and loops back to the beginning when over.
 
     .. versionadded: 2.0
@@ -373,6 +388,9 @@ def sequence_reader(sequence, path_audio=None, path_video=None, position_video="
         Defines if the video should be displayed behind the sequence(s) (``"superimposed"``, default), or next to the
         sequence(s) (``"side"``). This parameter is ignored if no video is provided.
 
+    timestamp_video_start: int or None, optional
+        If specified, indicated what timestamp of the video (in seconds) matches the start of the sequence.
+
     resolution: tuple(int, int) or float or None, optional
         The resolution of the Pygame window that will display the Sequence instance(s). This parameter can be:
 
@@ -393,6 +411,12 @@ def sequence_reader(sequence, path_audio=None, path_video=None, position_video="
     start_pose: int, optional
         The index of the pose at which to start the sequence.
 
+    x_axis: str, optional
+        Sets which axis should be matched to the x display axis (default `"x"`, can be `"y"` or `"z"` too).
+
+    y_axis: str, optional
+        Sets which axis should be matched to the y display axis (default `"y"`, can be `"x"` or `"z"` too).
+
     verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
 
@@ -407,13 +431,14 @@ def sequence_reader(sequence, path_audio=None, path_video=None, position_video="
     """
 
     common_displayer(sequence, path_audio=path_audio, path_video=path_video, position_video=position_video,
-                     resolution=resolution, height_window_in_meters=height_window_in_meters, full_screen=full_screen,
-                     start_pose=start_pose, verbosity=verbosity, **kwargs)
+                     timestamp_video_start=timestamp_video_start, resolution=resolution,
+                     height_window_in_meters=height_window_in_meters, full_screen=full_screen,
+                     start_pose=start_pose, x_axis=x_axis, y_axis=y_axis, verbosity=verbosity, **kwargs)
 
 
 def sequence_comparer(sequence1, sequence2, path_audio=None, path_video=None, position_sequences="side",
-                      resolution=0.5, height_window_in_meters=3.0, full_screen=False, manual=False, start_pose=0,
-                      verbosity=1, **kwargs):
+                      timestamp_video_start=0, resolution=0.5, height_window_in_meters=3.0,
+                      full_screen=False, manual=False, start_pose=0, x_axis="x", y_axis="y", verbosity=1, **kwargs):
     """Compares two sequences side by side or on top of each other.
 
     .. versionadded:: 2.0
@@ -439,6 +464,9 @@ def sequence_comparer(sequence1, sequence2, path_audio=None, path_video=None, po
     position_sequences: str, optional
         Defines if the sequences should be displayed next to each other (``"side"``, default), or on top of each other
         (``"superimposed"``). This parameter is ignored if only one sequence is provided.
+
+    timestamp_video_start: int or None, optional
+        If specified, indicated what timestamp of the video (in seconds) matches the start of the sequence.
 
     resolution: tuple(int, int) or float or None, optional
         The resolution of the Pygame window that will display the Sequence instance(s). This parameter can be:
@@ -474,18 +502,25 @@ def sequence_comparer(sequence1, sequence2, path_audio=None, path_video=None, po
         • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
           may clutter the output and slow down the execution.
 
+    x_axis: str, optional
+        Sets which axis should be matched to the x display axis (default `"x"`, can be `"y"` or `"z"` too).
+
+    y_axis: str, optional
+        Sets which axis should be matched to the y display axis (default `"y"`, can be `"x"` or `"z"` too).
+
     **kwargs: dict, optional
         A dictionary of optional arguments. See :ref:`keyword_arguments_display_functions`.
     """
 
     common_displayer(sequence1, sequence2, path_audio=path_audio, path_video=path_video,
-                     position_sequences=position_sequences, position_video="superimposed", resolution=resolution,
+                     position_sequences=position_sequences, position_video="superimposed",
+                     timestamp_video_start=timestamp_video_start, resolution=resolution,
                      height_window_in_meters=height_window_in_meters, full_screen=full_screen, manual=manual,
-                     start_pose=start_pose, verbosity=verbosity, **kwargs)
+                     start_pose=start_pose, x_axis=x_axis, y_axis=y_axis, verbosity=verbosity, **kwargs)
 
 
-def pose_reader(sequence, start_pose=0, resolution=0.5, height_window_in_meters=3.0, full_screen=False, verbosity=1,
-                **kwargs):
+def pose_reader(sequence, start_pose=0, resolution=0.5, height_window_in_meters=3.0, full_screen=False, x_axis="x",
+                y_axis="y", verbosity=1, **kwargs):
     """Reads a sequence and offers a manuel control over the poses, with the arrows of the keyboard.
 
     .. versionadded:: 2.0
@@ -515,6 +550,12 @@ def pose_reader(sequence, start_pose=0, resolution=0.5, height_window_in_meters=
     full_screen: bool, optional
         Defines if the window will be set full screen (``True``) or not (``False``, default).
 
+    x_axis: str, optional
+        Sets which axis should be matched to the x display axis (default `"x"`, can be `"y"` or `"z"` too).
+
+    y_axis: str, optional
+        Sets which axis should be matched to the y display axis (default `"y"`, can be `"x"` or `"z"` too).
+
     verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
 
@@ -530,7 +571,7 @@ def pose_reader(sequence, start_pose=0, resolution=0.5, height_window_in_meters=
 
     common_displayer(sequence, start_pose=start_pose, resolution=resolution,
                      height_window_in_meters=height_window_in_meters, full_screen=full_screen, manual=True,
-                     verbosity=verbosity, **kwargs)
+                     x_axis=x_axis, y_axis=y_axis, verbosity=verbosity, **kwargs)
 
 
 def _process_events(animation, window_area, modif_this, modif_other, seq_num, manual, event, modifiers, steps,
@@ -719,9 +760,9 @@ def _process_events(animation, window_area, modif_this, modif_other, seq_num, ma
 
 
 def save_video_sequence(sequence1, path_output, fps=25, sequence2=None, path_audio=None, path_video=None,
-                        position_sequences="side", position_video="superimposed", resolution=(1920, 1080),
-                        height_window_in_meters=3.0, frame_selection="lower", image_type="PNG", quality=5, verbosity=1,
-                        **kwargs):
+                        position_sequences="side", position_video="superimposed", timestamp_video_start=0,
+                        resolution=(1920, 1080), height_window_in_meters=3.0, frame_selection="lower", image_type="PNG",
+                        quality=5, verbosity=1, **kwargs):
     """Creates a video from a sequence and saves it on the disk. The function generates images using Pygame, following
     all the arguments in parameters. Each image is then saved in a temporary folder. Using ffmpeg, a video is
     created, using the mpeg4 encoding.
@@ -763,6 +804,9 @@ def save_video_sequence(sequence1, path_output, fps=25, sequence2=None, path_aud
     position_video: str, optional
         Defines if the video should be displayed behind the sequence(s) (``"superimposed"``, default), or next to the
         sequence(s) (``"side"``)  This parameter is ignored if no video is provided.
+
+    timestamp_video_start: int or None, optional
+        If specified, indicated what timestamp of the video (in seconds) matches the start of the sequence.
 
     resolution: tuple(int, int) or float or None, optional
         The resolution of the output video. This parameter can be:
@@ -874,7 +918,7 @@ def save_video_sequence(sequence1, path_output, fps=25, sequence2=None, path_aud
     # Load the video
     video = None
     if path_video is not None:
-        video = Video(path_video, window_areas[0].get_resolution())
+        video = Video(path_video, window_areas[0].get_resolution(), timestamp_video_start)
 
     if window_areas[0].contains("video"):
         animation1.set_color_background("transparent")

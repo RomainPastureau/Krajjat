@@ -77,7 +77,6 @@ class Sequence(object):
 
     Attributes
     ----------
-
     path: str
         Path to the sequence passed as a parameter upon creation.
     path_audio: str
@@ -96,6 +95,8 @@ class Sequence(object):
         :meth:`Sequence.randomize()`. Is ``False`` upon initialisation.
     date_recording: datetime
         The date at which the recording was performed, extracted from the file.
+    metadata: dict
+        A dictionary containing metadata about the recording, extracted from the file.
     time_unit: str
         The time unit of the timestamps.
     joint_labels: list(str)
@@ -115,6 +116,7 @@ class Sequence(object):
         self.poses = []  # List of the poses in the sequence, ordered
         self.randomized = False  # True if the joints positions are randomized
         self.date_recording = None  # Placeholder for the date of the recording.
+        self.metadata = {}  # Dictionary containing the metadata of the recording.
         self.time_unit = time_unit  # Time unit of the timestamps
         self.joint_labels = []
 
@@ -288,6 +290,7 @@ class Sequence(object):
         if len(self.poses) == 0:
             raise EmptySequenceException()
 
+        self._load_date_recording(verbosity)
         self._calculate_relative_timestamps()  # Sets the relative time from the first pose for each pose
 
     def _fetch_files_from_folder(self, verbosity=1):
@@ -408,9 +411,10 @@ class Sequence(object):
 
         """
 
-        if verbosity > 0:
+        if verbosity == 1:
             print("Opening sequence from " + self.path + "...", end=" ")
-
+        elif verbosity > 1:
+            print("Opening sequence from " + self.path + "...")
         perc = 10  # Used for the progression percentage
 
         # If the path is a folder, we load every single file
@@ -419,16 +423,14 @@ class Sequence(object):
             for i in range(len(self.files)):
 
                 if verbosity > 1:
-                    print("Loading file " + str(i) + " of " + str(len(self.files)) + ":" + self.path + "...", end=" ")
+                    print("Loading file " + str(i + 1) + " of " + str(len(self.files)) + ": " + self.path + "...",
+                          end=" ")
 
                 # Show percentage if verbosity
                 perc = show_progression(verbosity, i, len(self.files), perc)
 
                 # Create the Pose object, passes as parameter the index and the file path
                 self._load_single_pose_file(i, self.path + "/" + self.files[i], verbosity)
-
-                if verbosity > 1:
-                    print("OK.")
 
             if verbosity > 0:
                 print("100% - Done.")
@@ -466,7 +468,7 @@ class Sequence(object):
         if file_extension == "json":
             data = read_json(path)
             if pose_index == 0:
-                self._load_date_recording(data, verbosity)
+                self._load_json_metadata(data, verbosity)
             self._create_pose_from_json(data, verbosity)
 
         # Excel file
@@ -477,7 +479,7 @@ class Sequence(object):
         elif file_extension in ["txt", "csv", "tsv"]:
 
             # Open the file and read the data
-            data = read_text_table(path)
+            data, self.metadata = read_text_table(path, verbosity)
             self._create_pose_from_table_row(data)
 
         else:
@@ -508,17 +510,17 @@ class Sequence(object):
             # Open the file and read the data
             data = read_json(self.path)
 
-            self._load_date_recording(data, verbosity)
+            self._load_json_metadata(data, verbosity)
 
-            for p in range(len(data)):
+            for p in range(len(data["Poses"])):
                 if verbosity > 1:
-                    print("Loading pose " + str(p) + " of " + str(len(data)) + "...", end=" ")
+                    print("Loading pose " + str(p) + " of " + str(len(data["Poses"])) + "...", end=" ")
 
                 # Show percentage if verbosity
-                perc = show_progression(verbosity, p, len(data), perc)
+                perc = show_progression(verbosity, p, len(data["Poses"]), perc)
 
                 # Create the Pose object, passes as parameter the index and the data
-                self._create_pose_from_json(data[p])
+                self._create_pose_from_json(data["Poses"][p])
 
                 if verbosity > 1:
                     print("OK.")
@@ -541,7 +543,7 @@ class Sequence(object):
         # Text file (csv or txt)
         elif self.path.split(".")[-1] in ["csv", "tsv", "txt"]:
 
-            data = read_text_table(self.path)
+            data, self.metadata = read_text_table(self.path, verbosity)
 
             # For each pose
             for p in range(len(data) - 1):
@@ -617,13 +619,13 @@ class Sequence(object):
         if len(data["Bodies"]) != 0:
             joints = data["Bodies"][0]["Joints"]
             if verbosity > 1:
-                print(str(len(joints)) + " joints were found in pose " + str(len(self.poses) + 1))
+                print(str(len(joints)) + " joints were found.")
 
         # Otherwise, no mocap data
         else:
             joints = {}
             if verbosity > 1:
-                print("No mocap data was found for pose " + str(len(self.poses) + 1))
+                print("No mocap data found.")
         timestamp = data["Timestamp"]
 
         # We create a pose and create all the joint elements there
@@ -634,17 +636,15 @@ class Sequence(object):
 
         self.poses.append(pose)
 
-    def _load_date_recording(self, data, verbosity=1):
-        """Loads the date of a recording from the information contained in the file(s). For recordings performed with
-        the Qualisys system, the function simply gets the date from the line starting with ``"TIME_STAMP"``. For the
-        recordings performed with Kinect, the timestamp value of the first pose is converted to a date.
+    def _load_json_metadata(self, data, verbosity=1):
+        """Loads the data from the file apart from the joint positions, and saves it in the parameter :param:`metadata`.
+        For Kinect data, this function will load all the elements from the JSON file apart from `"Bodies"`.
 
         .. versionadded:: 2.0
 
         Parameters
         ----------
-
-        data: dict or list
+        data: dict
             The data from the file containing the full recording, or containing the first pose of the recording.
 
         verbosity: int, optional
@@ -655,21 +655,57 @@ class Sequence(object):
               current steps.
             • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
               may clutter the output and slow down the execution.
+        """
 
+        if verbosity > 1:
+            print("Trying to find metadata...", end=" ")
+
+        for key in data:
+            if key not in ["Poses", "Bodies"]:
+                self.metadata[key] = data[key]
+
+        if verbosity > 1:
+            if len(self.metadata) == 0:
+                print("Found no metadata entries.")
+            elif len(self.metadata) == 1:
+                print("Found 1 metadata entry.")
+            else:
+                print("Found " + str(len(self.metadata)) + " metadata entries.")
+
+            for key in self.metadata:
+                print("\t" + str(key) + ": " + str(self.metadata[key]))
+
+    def _load_date_recording(self, verbosity=1):
+        """Loads the date of a recording from the information contained in the recording metadata.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        verbosity: int, optional
+            Sets how much feedback the code will provide in the console output:
+
+            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+              current steps.
+            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+              may clutter the output and slow down the execution.
         """
 
         if verbosity > 1:
             print("Trying to find recording date...", end=" ")
 
-        if type(data) is dict:
-            if "Timestamp" in data.keys():
-                self.date_recording = datetime(1, 1, 1) + timedelta(microseconds=data["Timestamp"] / 10)
+        if "Timestamp" in self.metadata.keys():
+            if type(self.metadata["Timestamp"]) == str:
+                self.metadata["Timestamp"] = datetime.fromisoformat(self.metadata["Timestamp"])
+            elif self.metadata["Timestamp"] > 2147483647:
+                self.metadata["Timestamp"] = (self.metadata["Timestamp"] - 621355968000000000) / 10000000
+            else:
+                self.metadata["Timestamp"] = datetime.fromtimestamp(self.metadata["Timestamp"])
+            self.date_recording = self.metadata["Timestamp"]
 
-        elif type(data) is list:
-            if len(data) > 7:
-                splitted = data[7].split("\t")
-                if splitted[0] == "TIME_STAMP":
-                    self.date_recording = datetime.fromisoformat(splitted[1].replace(",", ""))
+        elif "TIME_STAMP" in self.metadata.keys():
+            self.date_recording = datetime.fromisoformat(self.metadata["TIME_STAMP"][0].replace(",", ""))
 
         if verbosity > 1:
             if self.date_recording is not None:
@@ -763,6 +799,11 @@ class Sequence(object):
 
                             if verbosity > 1:
                                 print("OK.")
+
+                else:
+
+                    if verbosity > 1:
+                        print("OK.")
 
             else:
 
@@ -1466,7 +1507,7 @@ class Sequence(object):
         framerates = []
         for p in range(1, len(self.poses) - 1):
             time_points.append(self.poses[p].relative_timestamp)
-            framerate = 1 / (self.poses[p].relative_timestamp - self.poses[p - 1].relative_timestamp)
+            framerate = round(1 / (self.poses[p].relative_timestamp - self.poses[p - 1].relative_timestamp), 3)
             framerates.append(framerate)
 
         return framerates, time_points
@@ -1488,7 +1529,7 @@ class Sequence(object):
         else:
             raise Exception("The framerate is variable, between " + str(self.get_min_framerate()) + " and " +
                             str(self.get_max_framerate()) + " poses per second (average " +
-                            str(self.get_average_framerate()) + " poses per second.")
+                            str(self.get_average_framerate()) + " poses per second).")
 
     def get_average_framerate(self):
         """Returns the average number of poses per second of the sequence.
@@ -2609,7 +2650,8 @@ class Sequence(object):
         return fill_levels
 
     # === Correction functions ===
-    def correct_jitter(self, velocity_threshold, window, window_unit="poses", method="default", name=None, verbosity=1):
+    def correct_jitter(self, velocity_threshold, window, window_unit="poses", method="default", correct_twitches=True,
+                       correct_jumps=True, name=None, verbosity=1):
         """Detects and corrects rapid twitches and jumps in a motion sequence. These rapid movements, typically due to
         poor automatic detection of a joint in space, result in aberrant, unrealistic displacements from the joints.
         Though originally developed to handle Kinect data, the algorithm can be used for any 3D-tracked biological
@@ -2662,6 +2704,14 @@ class Sequence(object):
                   In case one of these values is used, all the corrected joints are first set to (0, 0, 0) by the
                   function, before calling the :meth:`Sequence.correct_zeros()` function to interpolate the missing
                   values.
+
+        correct_twitches: bool, optional
+            If set on `True` (default), corrects the abnormal movements where the joints come back below threshold
+            within the specified window. If set on `False`, the jitter correction will not correct the twitches.
+
+        correct_jumps: bool, optional
+            If set on `True` (default), corrects the abnormal movements where the joints do not come back below
+            threshold within the specified window. If set on `False`, the jitter correction will not correct the jumps.
 
         name: str or None, optional
             Defines the name of the output sequence. If set on ``None``, the name will be the same as the input
@@ -2815,38 +2865,55 @@ class Sequence(object):
 
                                 if verbosity > 1:
                                     print("velocity back under threshold defined by pose " + str(p) + ".")
-                                    print("\t\t\tCorrecting for twitch...")
 
-                                new_sequence, realigned_points = \
-                                    self._correct_jitter_window(new_sequence, p - 1, k, joint_label, realigned_points,
-                                                                verbosity)
+                                if correct_twitches:
+                                    if verbosity > 1:
+                                        print("\t\t\tCorrecting for twitch...")
 
-                                if method not in ["old", "default"]:
-                                    for i in range(p, k):
-                                        dict_joints_to_correct[joint_label].append(i)
+                                    new_sequence, realigned_points = \
+                                        self._correct_jitter_window(new_sequence, p - 1, k, joint_label,
+                                                                    realigned_points, verbosity)
 
-                                twitches += 1
+                                    if method not in ["old", "default"]:
+                                        for i in range(p, k):
+                                            dict_joints_to_correct[joint_label].append(i)
 
-                                break
+                                    twitches += 1
+
+                                    break
+
+                                else:
+                                    if verbosity > 1:
+                                        print("\t\t\tNot correcting for the twitch as the parameter correct_twitches" +
+                                              "is set on False.")
 
                             # Jump case: No pose of the window is below threshold.
                             if k == p + window_effective - 1 or k == len(self.poses) - 1:
 
                                 if verbosity > 1:
                                     print("velocity still over threshold at the end of the window.")
-                                    print("\t\t\tCorrecting for jump...")
 
-                                new_sequence, realigned_points = \
-                                    self._correct_jitter_window(new_sequence, p - 1, k, joint_label, realigned_points,
-                                                                verbosity)
+                                if correct_jumps:
 
-                                if method not in ["old", "default"]:
-                                    for i in range(p, k):
-                                        dict_joints_to_correct[joint_label].append(i)
+                                    if verbosity > 1:
+                                        print("\t\t\tCorrecting for jump...")
 
-                                jumps += 1
+                                    new_sequence, realigned_points = \
+                                        self._correct_jitter_window(new_sequence, p - 1, k, joint_label,
+                                                                    realigned_points, verbosity)
 
-                                break
+                                    if method not in ["old", "default"]:
+                                        for i in range(p, k):
+                                            dict_joints_to_correct[joint_label].append(i)
+
+                                    jumps += 1
+
+                                    break
+
+                                else:
+                                    if verbosity > 1:
+                                        print("\t\t\tNot correcting for the jump as the parameter correct_jumps" +
+                                              "is set on False.")
 
                             # Wait: if there are still poses in the window, we continue.
                             else:
@@ -2862,7 +2929,7 @@ class Sequence(object):
 
                     joint = self.copy_joint(p, joint_label)
                     new_sequence.poses[p].add_joint(joint_label, joint, replace_if_exists=True)
-                    new_sequence.poses[p].joints[joint_label]._is_corrected = False
+                    new_sequence.poses[p].joints[joint_label]._is_dejittered = False
 
         new_sequence._calculate_relative_timestamps()  # Sets the relative time from the first pose for each pose
 
@@ -2962,7 +3029,7 @@ class Sequence(object):
         for pose_number in range(start_pose_index + 1, end_pose_index):
 
             # If a joint was already corrected we don't correct it to avoid overcorrection
-            if self.poses[pose_number].joints[joint_label]._is_corrected:
+            if self.poses[pose_number].joints[joint_label]._is_dejittered:
 
                 if verbosity > 1:
                     print("\t\t\t\tDid not correct joint " + str(pose_number + 1) + " as it was already corrected.")
@@ -2976,6 +3043,7 @@ class Sequence(object):
                 # We copy the original joint, apply the new coordinates and add it to the new sequence
                 joint = self.copy_joint(pose_number, joint_label)
                 joint._correct_joint(x, y, z)
+                joint._set_is_dejittered(True)
                 new_sequence.poses[pose_number].add_joint(joint_label, joint, replace_if_exists=True)
 
                 if verbosity > 1:
@@ -3173,6 +3241,7 @@ class Sequence(object):
                 # Add to the sequence
                 joint = self.copy_joint(p, joint_label)
                 joint._correct_joint(new_x, new_y, new_z)
+                joint._set_is_rereferenced(True)
                 new_sequence.poses[p].add_joint(joint_label, joint, replace_if_exists=True)
 
                 if verbosity > 1:
@@ -3454,6 +3523,9 @@ class Sequence(object):
         z_points = OrderedDict()
         time_points = self.get_timestamps(relative=True)
 
+        # Turn timestamps into microsecond accuracy
+        time_points = np.round(np.array(time_points), 6)
+
         # Create vectors of position and time
         for p in range(len(self.poses)):
 
@@ -3581,8 +3653,7 @@ class Sequence(object):
         -------
         Please note that for long series of 0 coordinates, the interpolation of the data may not be accurate. When
         running this function with a verbosity of 1 or more, the longest duration of a 0 coordinate will be displayed.
-
-"""
+        """
 
         t = add_tabs * "\t"
 
@@ -3612,8 +3683,10 @@ class Sequence(object):
 
         # Define the zero counter
         counter_zeros = {}
+        last_index = {}
         for joint_label in self.poses[0].joints.keys():
             counter_zeros[joint_label] = 0
+            last_index[joint_label] = None
 
         # Create vectors of position and time
         for p in range(len(self.poses)):
@@ -3642,30 +3715,35 @@ class Sequence(object):
                     time_zeros = self.get_time_between_two_poses(p - counter_zeros[joint_label], p)
                     if time_zeros >= min_duration_warning:
                         if verbosity > 0:
-                            print(t + "\t\t\tWarning: sequence of (0, 0, 0) coordinates of " + str(time_zeros) +
-                                  " s for the joint " + str(joint_label) + ".")
+                            print(t + "\t\t\tWarning: sequence of (0, 0, 0) coordinates of " +
+                                  str(round(time_zeros, 3)) + " s for the joint " + str(joint_label) + ".")
                     counter_zeros[joint_label] = 0
 
                     # If these are the first non-zero coordinates, we create a non-zero coordinate
-                    if p != 0 and len(x_points) == 0:
+                    if p != 0 and len(x_points[joint_label]) == 0:
                         if verbosity > 1:
                             print(t + "\t\t\tThis is the first pose for the joint " + str(joint_label) + " having " +
-                                  "non-zero coordinates. Creating a pose at timestamp 0 with these coordinates.")
-                        x_points[joint_label].append(self.poses[p].joints[joint_label].x)
-                        y_points[joint_label].append(self.poses[p].joints[joint_label].y)
-                        z_points[joint_label].append(self.poses[p].joints[joint_label].z)
-                        time_points[joint_label].append(self.poses[0].timestamp)
+                                  "non-zero coordinates. Creating a pose at all the previous timestamps with these " +
+                                  "coordinates.")
+                        for q in range(p):
+                            x_points[joint_label].append(self.poses[p].joints[joint_label].x)
+                            y_points[joint_label].append(self.poses[p].joints[joint_label].y)
+                            z_points[joint_label].append(self.poses[p].joints[joint_label].z)
+                            time_points[joint_label].append(self.poses[q].timestamp)
+                            last_index[joint_label] = q
 
                     # We add the coordinates and timestamps
                     x_points[joint_label].append(self.poses[p].joints[joint_label].x)
                     y_points[joint_label].append(self.poses[p].joints[joint_label].y)
                     z_points[joint_label].append(self.poses[p].joints[joint_label].z)
                     time_points[joint_label].append(self.poses[p].timestamp)
+                    last_index[joint_label] = p
 
                 # If coordinate is zero
                 else:
 
                     counter_zeros[joint_label] += 1
+                    self.poses[p].joints[joint_label]._set_is_zero_corrected(True)
 
                     # If it's the last pose of the sequence
                     if p == len(self.poses) - 1:
@@ -3673,29 +3751,33 @@ class Sequence(object):
                         time_zeros = self.get_time_between_two_poses(p - counter_zeros[joint_label], p)
                         if time_zeros >= min_duration_warning:
                             if verbosity > 0:
-                                print(t + "\t\t\tWarning: sequence of (0, 0, 0) coordinates of " + str(time_zeros) +
-                                      " s for the joint " + str(joint_label) + ".")
+                                print(t + "\t\t\tWarning: sequence of (0, 0, 0) coordinates of " +
+                                      str(round(time_zeros, 3)) + " s for the joint " + str(joint_label) + ".")
 
                         # If the vector is still empty, we add a first coordinate
-                        if len(x_points) == 0:
+                        if len(x_points[joint_label]) == 0:
                             if verbosity > 1:
                                 print(t + "\t\t\tAll the coordinates for the joint " + str(joint_label) + " were " +
                                       "(0, 0, 0). Creating a pose at timestamp 0 with (0, 0, 0) coordinates.")
-                            x_points[joint_label].append(self.poses[p].joints[joint_label].x)
-                            y_points[joint_label].append(self.poses[p].joints[joint_label].y)
-                            z_points[joint_label].append(self.poses[p].joints[joint_label].z)
-                            time_points[joint_label].append(self.poses[0].timestamp)
+                            x_points[joint_label][0] = self.poses[p].joints[joint_label].x
+                            y_points[joint_label][0] = self.poses[p].joints[joint_label].y
+                            z_points[joint_label][0] = self.poses[p].joints[joint_label].z
+                            time_points[joint_label][0] = self.poses[0].timestamp
+                            last_index[joint_label] = 0
 
                         # We copy the last coordinate we added to the vector as an ending point
                         if verbosity > 1:
                             print(
                                 t + "\t\t\tThis is the last pose for the joint " + str(joint_label) + ", and it has " +
                                 "(0, 0, 0) coordinates. Copying the last pose having non-zero coordinates to put at " +
-                                "the end of the series.")
-                        x_points[joint_label].append(x_points[joint_label][-1])
-                        y_points[joint_label].append(y_points[joint_label][-1])
-                        z_points[joint_label].append(z_points[joint_label][-1])
-                        time_points[joint_label].append(self.poses[p].timestamp)
+                                "all the following timestamps at the end of the series.")
+
+                        s = len(x_points[joint_label]) - 1
+                        for q in range(last_index[joint_label] + 1, p + 1):
+                            x_points[joint_label].append(x_points[joint_label][s])
+                            y_points[joint_label].append(y_points[joint_label][s])
+                            z_points[joint_label].append(z_points[joint_label][s])
+                            time_points[joint_label].append(self.poses[q].timestamp)
 
                     zero_points_detected += 1
 
@@ -3732,7 +3814,7 @@ class Sequence(object):
 
         if zero_points_detected != 0:
             if verbosity > 0:
-                print(t + "\tPerforming the correction..", end=" ")
+                print(t + "\tPerforming the correction...", end=" ")
 
             # Define the percentage counter
             perc = 10
@@ -3752,6 +3834,7 @@ class Sequence(object):
                     if i == 0:
                         print("")
                     print(t + "\t\tCorrecting the time series for the joint " + joint_label + "...", end=" ")
+
                 new_x_points[joint_label], new_time_points = interpolate_data(x_points[joint_label],
                                                                               time_points[joint_label],
                                                                               self.get_timestamps(relative=False), mode)
@@ -3761,6 +3844,7 @@ class Sequence(object):
                 new_z_points[joint_label], new_time_points = interpolate_data(z_points[joint_label],
                                                                               time_points[joint_label],
                                                                               self.get_timestamps(relative=False), mode)
+
                 if verbosity > 1:
                     print("OK")
                 i += 1
@@ -3781,12 +3865,11 @@ class Sequence(object):
                     print(t + "\t\tCreating pose " + str(p + 1) + " out of " + str(len(self.poses)) + "... ", end="")
                 pose = Pose(new_time_points[p])
                 for joint_label in new_x_points.keys():
-                    x = new_x_points[joint_label][p]
-                    y = new_y_points[joint_label][p]
-                    z = new_z_points[joint_label][p]
-                    joint = Joint(joint_label, x, y, z)
-                    joint.joint_label = joint_label
-                    joint._set_is_corrected(True)
+                    joint = self.poses[p].joints[joint_label].get_copy()
+                    self.poses[p].joints[joint_label]._set_is_zero_corrected(False)
+                    joint.set_x(new_x_points[joint_label][p])
+                    joint.set_y(new_y_points[joint_label][p])
+                    joint.set_z(new_z_points[joint_label][p])
                     pose.add_joint(joint_label, joint)
                 new_sequence.poses.append(pose)
                 if verbosity > 1:
@@ -4043,7 +4126,7 @@ class Sequence(object):
                 print(str(key) + ": " + str(stats[key]))
 
     def print_details(self, include_name=True, include_condition=True, include_date_recording=True,
-                            include_number_of_poses=True, include_duration=True):
+                            include_number_of_poses=True, include_duration=True, add_tabs=0):
         """Prints a series of details about the sequence.
 
         .. versionadded:: 2.0
@@ -4060,8 +4143,14 @@ class Sequence(object):
             If set on ``True`` (default), adds the length of the attribute :attr:`poses` to the printed string.
         include_duration: bool, optional
             If set on ``True`` (default), adds the duration of the Sequence to the printed string.
+        add_tabs: int, optional
+            Adds the specified amount of tabulations to the verbosity outputs. This parameter may be used by other
+            functions to encapsulate the verbosity outputs by indenting them. In a normal use, it shouldn't be set
+            by the user.
         """
-        string = ""
+        t = add_tabs * "\t"
+
+        string = t
         if include_name:
             string += "Name: " + str(self.name) + " · "
         if include_condition:
@@ -4071,7 +4160,7 @@ class Sequence(object):
         if include_number_of_poses:
             string += "Number of poses: " + str(self.get_number_of_poses()) + " · "
         if include_duration:
-            string += "Duration: " + str(round(self.get_duration(), 2)) + " s" + " · "
+            string += "Duration: " + str(time_unit_to_timedelta(self.get_duration())) + " s  · "
         if len(string) > 3:
             string = string[:-3]
 
@@ -4125,15 +4214,16 @@ class Sequence(object):
 
         Returns
         -------
-        list
-            A list containing the data of the sequence, ready to be exported in JSON.
+        dict
+            A dictionary containing the data of the sequence, ready to be exported in JSON.
         """
 
-        data = []
+        data = self.metadata
+        data["Poses"] = []
 
         # For each pose
         for p in range(len(self.poses)):
-            data.append(self.poses[p].convert_to_json(use_relative_timestamps))
+            data["Poses"].append(self.poses[p].convert_to_json(use_relative_timestamps))
 
         return data
 
@@ -4257,8 +4347,8 @@ class Sequence(object):
 
     # === Saving functions ===
 
-    def save(self, folder_out="", name=None, file_format="json", individual=False, use_relative_timestamps=True,
-             verbosity=1):
+    def save(self, folder_out="", name=None, file_format="json", encoding="utf-8", individual=False,
+             use_relative_timestamps=True, verbosity=1):
         """Saves a sequence in a file or a folder. The function saves the sequence under
         ``folder_out/name.file_format``. All the non-existent subfolders present in the ``folder_out`` path will be
         created by the function. The function also updates the :attr:`path` attribute of the Sequence.
@@ -4296,6 +4386,11 @@ class Sequence(object):
                 While it is possible to save sequences as ``.mat`` or custom extensions, the toolbox will not recognize
                 these files upon opening. The support for ``.mat`` and custom extensions as input may come in a future
                 release, but for now these are just offered as output options.
+
+        encoding: str, optional
+            The encoding of the file to save. By default, the file is saved in UTF-8 encoding. This input can take any
+            of the
+            `official Python accepted formats <https://docs.python.org/3/library/codecs.html#standard-encodings>`_.
 
         individual: bool, optional
             If set on ``False`` (default), the function will save the sequence in a unique file.
@@ -4356,7 +4451,7 @@ class Sequence(object):
             self._save_xlsx(folder_out, name, individual, use_relative_timestamps, verbosity)
 
         else:
-            self._save_txt(folder_out, name, file_format, individual, use_relative_timestamps, verbosity)
+            self._save_txt(folder_out, name, file_format, encoding, individual, use_relative_timestamps, verbosity)
 
         if individual:
             self.path = folder_out + name
@@ -4541,7 +4636,7 @@ class Sequence(object):
             for p in range(len(self.poses)):
                 perc = show_progression(verbosity, p, len(self.poses), perc)
                 with open(folder_out + "/" + name + "_" + str(p) + ".json", 'w', encoding="utf-16-le") as f:
-                    json.dump(data[p], f)
+                    json.dump(data["Poses"][p], f)
 
     def _save_mat(self, folder_out, name=None, individual=False, use_relative_timestamps=True, verbosity=1):
         """Saves a sequence as a Matlab .mat file or files. This function is called by the :meth:`Sequence.save`
@@ -4659,8 +4754,8 @@ class Sequence(object):
                 perc = show_progression(verbosity, p, len(self.poses), perc)
                 write_xlsx(data, folder_out + "/" + name + "_" + str(p) + ".xlsx", 0)
 
-    def _save_txt(self, folder_out, name=None, file_format="csv", individual=False, use_relative_timestamps=True,
-                  verbosity=1):
+    def _save_txt(self, folder_out, name=None, file_format="csv", encoding="utf-8", individual=False,
+                  use_relative_timestamps=True, verbosity=1):
         """Saves a sequence as .txt, .csv, .tsv, or custom extension files or file. This function is called by the
         :meth:`Sequence.save` method, and saves the Sequence instance as ``folder_out/name.file_format``.
 
@@ -4682,6 +4777,11 @@ class Sequence(object):
             on ``","``. By default, the function will detect which separator the system uses. ``"txt"`` and ``"tsv"``
             both separate the values by a tabulation. Any other string will not return an error, but rather be used as
             a custom extension. The data will be saved as in a text file (using tabulations as values separators).
+
+        encoding: str, optional
+            The encoding of the file to save. By default, the file is saved in UTF-8 encoding. This input can take any
+            of the
+            `official Python accepted formats <https://docs.python.org/3/library/codecs.html#standard-encodings>`_.
 
         individual: bool, optional
             If set on ``False`` (default), the function will save the sequence in a unique file.
@@ -4723,7 +4823,7 @@ class Sequence(object):
             if name is None:
                 name = "out"
             write_text_table(self.convert_to_table(use_relative_timestamps), separator,
-                             folder_out + "/" + name + "." + file_format, verbosity)
+                             folder_out + "/" + name + "." + file_format, encoding, verbosity)
         else:
             for p in range(len(self.poses)):
                 if name is None:

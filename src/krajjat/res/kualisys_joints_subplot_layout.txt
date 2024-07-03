@@ -6,7 +6,7 @@ HeadLeft	12
 ElbowRight	15
 ArmRight	16
 ShoulderTopRight	17
-SpineShoulder	18
+SpineTop	18
 ShoulderTopLeft	19
 ArmLeft	20
 ElbowLeft	21

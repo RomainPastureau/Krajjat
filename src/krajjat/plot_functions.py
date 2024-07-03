@@ -1,8 +1,9 @@
 """These various functions allow to plot the data from the Sequence and Audio instances on graphs, or to plot
-statistics calculated using the stats_functions."""
+statistics calculated using the analysis_functions."""
 
 import pygame
 from pygame.locals import *
+from scipy import signal
 
 from krajjat.tool_functions import *
 from krajjat.lib import gradients
@@ -11,11 +12,10 @@ import matplotlib.colors as colors
 import matplotlib.cm as cm
 import matplotlib.dates as mdates
 import seaborn as sns
-import sys
 
 
-def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight", metrics="all", align=True,
-                                  timestamp_start=None, timestamp_end=None, ylim=None, time_format=True,
+def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight", metrics="all", domain="time",
+                                  align=True, x_start=None, x_end=None, ylim=None, time_format=True,
                                   figure_background_color=None, graph_background_color=None, line_color=None,
                                   line_width=1.0, verbosity=1):
     """Plots the x, y, z positions across time of the joint of one or more sequences, along with the distance travelled,
@@ -43,17 +43,21 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
         ``"distance"``, ``"velocity"`` and ``"acceleration"``. This value can also be ``"all"`` (default) and will
         in that case display all the aforementioned metrics.
 
+    domain: str, optional
+        Defines if to plot the movement in the time domain (`"time"`, default) or in the frequency domain
+        (`"frequency"`).
+
     align: bool, optional
         If this parameter is set on ``"True"`` (default), and if the parameter ``sequence_or_sequences`` is a list
         containing more than one sequence instance, the function will try to check if one or more of the sequences
         provided is or are sub-sequences of others. If it is the case, the function will align the timestamps of the
         sequences for the plot. If only one sequence is provided, this parameter is ignored.
 
-    timestamp_start: float or None, optional
-        If defined, indicates at what timestamp the plot starts.
+    x_start: float or None, optional
+        If defined, indicates at what timestamp or frequency value the plot starts.
 
-    timestamp_end: float or None, optional
-        If defined, indicates at what timestamp the plot ends.
+    x_end: float or None, optional
+        If defined, indicates at what timestamp or frequency value the plot ends.
 
     ylim: list(int or float), optional
         If defined, sets the lower and upper limits of the y axis for all sub-graphs (e.g. `[0, 1]`)
@@ -105,21 +109,30 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
             timestamps.append(sequence.get_timestamps())
 
     # Handling timestamp_start and timestamp_end
-    if timestamp_start is None:
+    x_end_to_define = False
+    if x_start is None:
         for timestamps_sequence in timestamps:
-            if timestamp_start is None or timestamp_start > min(timestamps_sequence):
-                timestamp_start = min(timestamps_sequence)
-    if timestamp_end is None:
+            if domain == "time":
+                if x_start is None or x_start < min(timestamps_sequence):
+                    x_start = min(timestamps_sequence)
+            elif domain == "frequency":
+                if x_start is None or x_start < 0:
+                    x_start = 0
+    if x_end is None:
         for timestamps_sequence in timestamps:
-            if timestamp_end is None or timestamp_end < max(timestamps_sequence):
-                timestamp_end = max(timestamps_sequence)
+            if domain == "time":
+                if x_end is None or x_end > max(timestamps_sequence):
+                    x_end = max(timestamps_sequence)
+            elif domain == "frequency":
+                x_end_to_define = True
+                x_end = 0
 
     # Getting the epoch timestamps for each aligned sequence
     epoch_timestamps = []
     for i in range(len(timestamps)):
         sequence_epoch_timestamps = []
         for t in timestamps[i]:
-            if timestamp_start <= t <= timestamp_end:
+            if x_start <= t <= x_end:
                 sequence_epoch_timestamps.append(t)
         epoch_timestamps.append(sequence_epoch_timestamps)
     timestamps = epoch_timestamps
@@ -145,16 +158,27 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
             plot_timestamps[key].append(sequence.get_timestamps_for_metric(key, False, timestamps[i][0],
                                                                            timestamps[i][-1]))
 
+        if domain == "frequency":
+            for key in values.keys():
+                plot_timestamps[key][i], values[key][i] = signal.welch(np.array(values[key][i]),
+                                                                       sequence.get_framerate(), "flattop", 1024,
+                                                                       scaling="spectrum")
+                print(plot_timestamps[key][i])
+                if x_end_to_define and x_end < plot_timestamps[key][i][-1]:
+
+                    x_end = plot_timestamps[key][i][-1]
+                    print(x_end)
+
     if type(metrics) is str and metrics.lower() == "all":
         metrics = ["x", "y", "z", "distance", "velocity", "acceleration"]
 
-    if time_format:
+    if time_format and domain != "frequency":
         for key in plot_timestamps:
             for i in range(len(plot_timestamps[key])):
                 for j in range(len(plot_timestamps[key][i])):
                     plot_timestamps[key][i][j] = time_unit_to_datetime(plot_timestamps[key][i][j])
-        timestamp_start = time_unit_to_datetime(timestamp_start)
-        timestamp_end = time_unit_to_datetime(timestamp_end)
+        x_start = time_unit_to_datetime(x_start)
+        x_end = time_unit_to_datetime(x_end)
 
     sns.set()
     plt.rcParams["figure.figsize"] = (12, 9)
@@ -186,15 +210,19 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
         if graph_background_color is not None:
             ax.set_facecolor(convert_color(graph_background_color, "hex", False))
 
-        if time_format:
-            if (timestamp_end - timestamp_start).seconds >= 3600:
+        if time_format and domain != "frequency":
+            if (x_end - x_start).seconds >= 3600:
                 formatter = mdates.AutoDateFormatter(mdates.AutoDateLocator(), defaultfmt='%H:%M:%S')
             else:
                 formatter = mdates.AutoDateFormatter(mdates.AutoDateLocator(), defaultfmt='%M:%S')
             plt.gcf().axes[i].xaxis.set_major_formatter(formatter)
+            if (x_end - x_start).seconds >= 3600:
+                plt.xlabel("Time (hh:mm:ss.ms)")
+            else:
+                plt.xlabel("Time (mm:ss.ms)")
 
         for j in range(len(sequence_or_sequences)):
-            plt.xlim([timestamp_start, timestamp_end])
+            plt.xlim([x_start, x_end])
             if ylim is not None:
                 plt.ylim(ylim)
             if i == 0:
@@ -209,18 +237,14 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
                 plt.legend(bbox_to_anchor=(0, 1, 1, 0), loc="lower left", mode="expand",
                            ncol=len(sequence_or_sequences))
 
-        if (timestamp_end - timestamp_start).seconds >= 3600:
-            plt.xlabel("Time (hh:mm:ss.ms)")
-        else:
-            plt.xlabel("Time (mm:ss.ms)")
-
         plt.ylabel(metrics[i] + " (" + labels_units[metrics[i]] + ")", **parameters)
 
     plt.show()
 
 
-def joints_movement_plotter(sequence, time_series="velocity", audio_or_derivative=None, overlay_audio=False,
-                            line_width=1.0, color_scheme="default", show_scale=False, verbosity=1):
+def joints_movement_plotter(sequence, time_series="velocity", domain="time", audio_or_derivative=None,
+                            overlay_audio=False, line_width=1.0, color_scheme="default", show_scale=False,
+                            show_graph=True, path_saving=None, verbosity=1):
     """Plots the distance or velocity across time of the joints, in separate sub-graphs whose localisation roughly
     follows the original body position of the joints.
 
@@ -237,6 +261,10 @@ def joints_movement_plotter(sequence, time_series="velocity", audio_or_derivativ
         travelled between poses on one single axis, ``"distance"`` for the euclidian 3D distance travelled between
         poses, ``"velocity"`` (default) for the velocity between poses, or ``"acceleration"`` for the changes of
         velocity between pairs of poses.
+
+    domain: str, optional
+        Defines if to plot the movement in the time domain (`"time"`, default) or in the frequency domain
+        (`"frequency"`).
 
     audio_or_derivative: Audio, AudioDerivative or None, optional
         An Audio instance, or any of the AudioDerivative child classes (:class:`Envelope`, :class:`Pitch`,
@@ -259,6 +287,13 @@ def joints_movement_plotter(sequence, time_series="velocity", audio_or_derivativ
 
     show_scale: bool, optional
         If set on ``True``, shows a colored scale on the left side of the graph.
+
+    show_graph: bool, optional
+        If set on `False`, the function does not show the graph. This parameter can be set if the purpose of the
+        function is to save the graph in a file, without having to halt the execution of the code when opening a window.
+
+    path_saving: str or None
+        If not `None`, the function saves the obtained graph at the given path.
 
     verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
@@ -319,6 +354,18 @@ def joints_movement_plotter(sequence, time_series="velocity", audio_or_derivativ
         raise InvalidParameterValueException("time_series", time_series, ["x", "y", "z", "distance", "velocity",
                                                                           "acceleration"])
 
+    if domain == "frequency":
+        max_value_whole_sequence = 0
+        for key in joints_time_series.keys():
+            timestamps, joints_time_series[key] = signal.welch(np.array(joints_time_series[key]),
+                                                               sequence.get_framerate(), "flattop", 1024,
+                                                               scaling="spectrum")
+            if np.max(joints_time_series[key]) > max_value_whole_sequence:
+                max_value_whole_sequence = np.max(joints_time_series[key])
+
+    if sequence.get_name() is not None:
+        title += " " + str(sequence.get_name())
+
     # We define the plot dictionary
     plot_dictionary = {}
 
@@ -346,14 +393,16 @@ def joints_movement_plotter(sequence, time_series="velocity", audio_or_derivativ
     for joint in joints_time_series.keys():
         graph = Graph()
         if overlay_audio:
-            graph.add_plot(audio_or_derivative.get_timestamps(), scaled_audio_or_derivative, line_width, "#d5cdd8")
-        graph.add_plot(timestamps, joints_time_series[joint], line_width, joints_colors[joint])
+            graph.add_plot(audio_or_derivative.get_timestamps(), scaled_audio_or_derivative, None, line_width,
+                           "#d5cdd8")
+        graph.add_plot(timestamps, joints_time_series[joint], None, line_width, joints_colors[joint])
         plot_dictionary[joint] = graph
 
     title_audio = None
     if audio_or_derivative is not None:
         graph = Graph()
-        graph.add_plot(audio_or_derivative.get_timestamps(), audio_or_derivative.get_samples(), line_width, "#a102db")
+        graph.add_plot(audio_or_derivative.get_timestamps(), audio_or_derivative.get_samples(), None, line_width,
+                       "#a102db")
         plot_dictionary["Audio"] = graph
         title_audio = audio_or_derivative.kind
 
@@ -361,7 +410,8 @@ def joints_movement_plotter(sequence, time_series="velocity", audio_or_derivativ
         print("Done.")
 
     plot_body_graphs(plot_dictionary, min_scale=0, max_scale=max_value_whole_sequence, show_scale=show_scale,
-                     title_scale=title_scale, color_scheme=color_scheme, title=title, title_audio=title_audio)
+                     title_scale=title_scale, color_scheme=color_scheme, title=title, title_audio=title_audio,
+                     show_graph=show_graph, path_saving=path_saving)
 
 
 def framerate_plotter(sequence_or_sequences, line_width=1.0, line_color="#000000"):
@@ -543,7 +593,8 @@ def audio_plotter(audio, threshold_low_pass_envelope=10, number_of_formants=3):
 
 
 def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale=None, max_scale=None, show_scale=False,
-                     title_scale=None, color_scheme="default", title_audio="Audio"):
+                     title_scale=None, color_scheme="default", title_audio="Audio", full_screen=False, show_graph=True,
+                     path_saving=None):
     """Creates multiple sub-plots placed so that each joint is roughly placed where it is located on the body. The
     values of each subplot are taken from the parameter ``plot_dictionary``, and the positions from the layout
     differ between Kinect and Kualisys systems.
@@ -592,6 +643,16 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
         is located in the top-left corner of the plot, and is not scaled the same way as the other plots. By default,
         the title of this sub-plot is ``"Audio"``, but this parameter allows to change the title to put the name of an
         AudioDerivative type, such as ``"Envelope"`` or ``"Pitch"``, for example.
+
+    full_screen: bool, optional
+        If set on `True`, shows the figure in full screen. By default, set on `False`.
+
+    show_graph: bool, optional
+        If set on `False`, the function does not show the graph. This parameter can be set if the purpose of the
+        function is to save the graph in a file, without having to halt the execution of the code when opening a window.
+
+    path_saving: str or None
+        If not `None`, the function saves the obtained graph at the given path.
     """
 
     # Getting the joint layout
@@ -603,18 +664,24 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
     joints_positions, joint_layout = load_joints_subplot_layout(joint_layout)
 
     # Figure parameters
-    sns.set()
+    sns.set(font_scale=0.8)
     plt.rcParams["figure.figsize"] = (12, 9)
+
+    # plt.rcParams["font.size"] = 7
     if joint_layout == "kinect":
         rows, cols = 7, 5
     else:
         rows, cols = 13, 7
-    fig, axes = plt.subplots(nrows=rows, ncols=cols)
+    fig, axes = plt.subplots(nrows=rows, ncols=cols)  # constrained_layout=True)
     if title is not None:
-        plt.subplots_adjust(left=0.03, bottom=0.03, right=0.97, top=0.93, wspace=0.3, hspace=0.6)
+        plt.subplots_adjust(left=0.03, bottom=0.03, right=0.97, top=0.93, wspace=0.3, hspace=0.8)
         fig.suptitle(title, fontsize="x-large", fontweight="bold")
     else:
-        plt.subplots_adjust(left=0.03, bottom=0.03, right=0.97, top=0.97, wspace=0.3, hspace=0.6)
+        plt.subplots_adjust(left=0.03, bottom=0.03, right=0.97, top=0.97, wspace=0.3, hspace=0.8)
+
+    if full_screen:
+        manager = plt.get_current_fig_manager()
+        manager.full_screen_toggle()
 
     # Get min and max values
     min_value, max_value = get_min_max_values_from_plot_dictionary(plot_dictionary, keys_to_exclude=["Audio"])
@@ -630,7 +697,10 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
         else:
             plt.title(title_audio)
         for subplot in plot_dictionary[key].plots:
-            plt.plot(subplot.x, subplot.y, linewidth=subplot.line_width, color=subplot.color)
+            plt.plot(subplot.x, subplot.y, linewidth=subplot.line_width, color=subplot.color, label=subplot.label)
+            if subplot.sd is not None:
+                plt.fill_between(subplot.x, subplot.y - subplot.sd, subplot.y + subplot.sd,
+                                 alpha=0.5, facecolor=subplot.color)
 
     # Delete unused axes
     if "Audio" not in plot_dictionary.keys():
@@ -649,7 +719,6 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
 
     # Get colors
     color_list = calculate_color_points_on_gradient(color_scheme, 100)
-    #print(convert_colors(color_list, "hex", include_alpha=False))
     color_list = convert_colors(color_list, "hex", include_alpha=False)
 
     # Show the scale if max_scale is not None
@@ -659,12 +728,23 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
         norm = colors.Normalize(vmin=min_scale, vmax=max_scale)
         cbax = fig.add_axes([0.91, 0.15, 0.02, 0.7])
         plt.colorbar(cm.ScalarMappable(norm=norm, cmap=cmap), cax=cbax, orientation='vertical', label=title_scale)
-    plt.show()
+
+    handles, labels = plt.gca().get_legend_handles_labels()
+    fig.legend(handles, labels, loc='upper right')
+
+    if path_saving is not None:
+        plt.savefig(path_saving)
+
+    if show_graph:
+        plt.show()
+
+    plt.close()
 
 
 def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, min_scale="auto", max_scale="auto",
                     show_scale=True, title_scale=None, color_scheme="default", color_background="white",
-                    color_silhouette="black", resolution=0.5, full_screen=False, path_save=None, verbosity=1):
+                    color_silhouette="black", resolution=0.5, full_screen=False, show_graph=True, path_save=None,
+                    verbosity=1):
     """Plots a silhouette with circles representing the different joints, colored according to their values in the
     ``plot_dictionary``. Passing the mouse on the different joints shows, in the bottom right corner, the value
     associated to the joint the mouse is on.
@@ -745,6 +825,10 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, min_scale=
     full_screen: bool, optional
         Defines if the window will be set full screen (``True``) or not (``False``, default).
 
+    show_graph: bool, optional
+        If set on `False`, the function does not show the graph. This parameter can be set if the purpose of the
+        function is to save the graph in a file, without having to halt the execution of the code when opening a window.
+
     path_save: str or None optional
         If provided, the function will save the silhouette as a picture. The path should contain the folder, the name
         file, and one of the following extensions: ``".png"``, ``".jpeg"`` or ``".bmp"``.
@@ -772,10 +856,14 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, min_scale=
         print("Window resolution: " + str(resolution))
 
     # Setting up the full screen mode
-    if full_screen:
-        window = pygame.display.set_mode(resolution, pygame.FULLSCREEN)
+    if not show_graph:
+        pygame.display.set_mode((1, 1))
+        window = pygame.Surface(resolution)
     else:
-        window = pygame.display.set_mode(resolution)
+        if full_screen:
+            window = pygame.display.set_mode(resolution, pygame.FULLSCREEN)
+        else:
+            window = pygame.display.set_mode(resolution)
 
     # Scale variables to the resolution
     ratio_w = resolution[0] / 1920
@@ -783,7 +871,6 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, min_scale=
 
     # Load silhouette picture, color it and resize it
     silhouette = pygame.image.load(SILHOUETTE_PATH)
-    silhouette.get_size()
     color_background = convert_color(color_background, "rgb", False)
     if color_background != (255, 255, 255):
         for x in range(silhouette.get_width()):
@@ -825,11 +912,14 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, min_scale=
     values_to_plot = {}
 
     for joint in plot_dictionary.keys():
-        ratio = (plot_dictionary[joint] - min_scale) / (max_scale - min_scale)  # Get the ratio of the max value
-        color_in = calculate_color_ratio(colors, ratio)  # Turn that into a color
-        color_edge = (color_in[0], color_in[1], color_in[2], 0)  # Transparent color of the circle edge for the gradient
-        circles[joint] = gradients.radial(int(joints_positions[joint][2] * ratio_h), color_in, color_edge)
-        values_to_plot[joint] = font.render(str(joint) + ": " + str(round(plot_dictionary[joint], 2)), True, font_color)
+        if joint in joints_positions.keys():
+            ratio = (plot_dictionary[joint] - min_scale) / (max_scale - min_scale)  # Get the ratio of the max value
+            color_in = calculate_color_ratio(colors, ratio)  # Turn that into a color
+            # Transparent color of the circle edge for the gradient
+            color_edge = (color_in[0], color_in[1], color_in[2], 0)
+            circles[joint] = gradients.radial(int(joints_positions[joint][2] * ratio_h), color_in, color_edge)
+            values_to_plot[joint] = font.render(str(joint) + ": " + str(round(plot_dictionary[joint], 2)), True,
+                                                font_color)
 
     # Color scale on the side of the graph
     scale_height = 500
@@ -872,6 +962,7 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, min_scale=
     color_edge = (color_in[0], color_in[1], color_in[2], 0)  # Transparent color of the circle edge for the gradient
     circle = gradients.radial(int(150 * ratio_w), color_in, color_edge)
     run = True  # Loop variable
+    img = None
 
     # Program loop
     while run:
@@ -948,5 +1039,236 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, min_scale=
             pygame.image.save(window, path_save)
             path_save = None
 
+        if show_graph is False:
+            run = False
+            img = pygame.surfarray.array3d(window)
+
     pygame.quit()
-    sys.exit()
+
+    return img
+
+
+def _plot_figure_find_excerpt(audio1, audio2, envelope1, envelope2, y1, y2, window_size_env, overlap_ratio_env,
+                              filter_below, filter_over, resampling_rate, window_size_res, overlap_ratio_res,
+                              cross_correlation, threshold, return_delay_format, return_value, plot_figure, path_figure,
+                              name_figure, plot_intermediate_steps, verbosity):
+    """
+    Creates and/or saves a figure given the parameters of the Audio.find_excerpt function.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    audio1: Audio
+        An Audio instance.
+    audio2: Audio
+        A second Audio instance, being allegedly an excerpt from the first.
+    envelope1: Envelope
+        An Envelope object calculated from the audio1 object.
+    envelope2: Envelope
+        An Envelope object calculated from the audio2 object.
+    y1: Envelope
+        A resampled Envelope object, calculated from the envelope1 object.
+    y2: Envelope
+        A resampled Envelope object, calculated from the envelope2 object.
+    window_size_env: int
+        The size of the windows in which the Audio instances were cut to calculate the envelopes.
+    overlap_ratio_env: float
+        The overlap ratio between the windows to calculate the envelopes.
+    filter_below: int, float or None
+        The lower limit of the bandpass filter applied to the envelopes.
+    filter_over: int, float or None
+        The upper limit of the bandpass filter applied to the envelopes.
+    resampling_rate: int, float or None
+        The rate at which the envelopes were resampled.
+    window_size_res: int
+        The size of the windows in which the envelopes were cut to resample them.
+    overlap_ratio_env: float
+        The overlap ratio between the windows to calculate the resampled envelopes.
+    cross_correlation: np.array
+        The output array of the cross-correlation.
+    threshold: float
+        The threshold of the maximum correlation value between the two audio clips, relative to the maximum
+        correlation value between the excerpt and itself.
+    return_delay_format: str
+        Indicates the format of the displayed index_max_correlation, either ``"index"``, ``"ms"``, ``"s"``, or
+        ``"timedelta"``.
+    return_value: int, float or timedelta
+        The value of the index_max_correlation in the format specified by the previous parameter.
+    plot_figure: bool
+        If set on `True`, plots the figure in a Matplotlib window.
+    path_figure: str or None
+        If set, saves the figure at the given path.
+    name_figure: str or None
+        If set, considers that `path_figure` is the directory where to save the figure, and `name_figure` is the name
+        of the file.
+    plot_intermediate_steps: bool
+        If set on `True`, plots the original audio clips, the envelopes and the resampled arrays (if calculated) besides
+        the cross-correlation.
+    verbosity: int, optional
+        Sets how much feedback the code will provide in the console output:
+
+        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+          current steps.
+        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+          may clutter the output and slow down the execution.
+    """
+
+    number_of_plots = 2
+    if plot_intermediate_steps:
+        number_of_plots += 4
+        if resampling_rate is not None:
+            number_of_plots += 2
+
+    rate = y1.frequency
+
+    max_correlation_value = np.max(cross_correlation)
+    index_max_correlation = np.argmax(cross_correlation)
+
+    fig, ax = plt.subplots(int(np.ceil(number_of_plots / 2)), 2, constrained_layout=True, figsize=(16, 8))
+
+    i = 0
+
+    if plot_intermediate_steps:
+        ax[i // 2][i % 2].set_title(audio1.name + ": " + str(round(audio1.frequency, 2)) + " Hz")
+        ax[i // 2][i % 2].plot(np.arange(0, len(audio1.samples)) / audio1.frequency, audio1.samples)
+        i += 1
+
+        ax[i // 2][i % 2].set_title(audio2.name + ": " + str(round(audio2.frequency, 2)) + " Hz")
+        ax[i // 2][i % 2].plot(np.arange(0, len(audio2.samples)) / audio2.frequency, audio2.samples, color="orange")
+        i += 1
+
+        band_pass_low = "0" if filter_below is None else filter_below
+        band_pass_high = "∞" if filter_over is None else filter_over
+
+        number_of_windows = get_number_of_windows(len(audio1.samples), window_size_env, overlap_ratio_env)
+        title = "Envelope " + audio1.name + ": " + str(audio1.frequency) + "Hz, " + str(number_of_windows) + \
+                " w, " + str(overlap_ratio_env) + " o"
+        if filter_below is not None or filter_over is not None:
+            title += " · Band-pass [" + str(band_pass_low) + ", " + str(band_pass_high) + "]"
+        ax[i // 2][i % 2].set_title(title)
+        ax[i // 2][i % 2].plot(np.arange(0, len(envelope1.samples)) / audio1.frequency, envelope1.samples)
+        i += 1
+
+        number_of_windows = get_number_of_windows(len(audio2.samples), window_size_env, overlap_ratio_env)
+        title = "Envelope " + audio2.name + ": " + str(audio2.frequency) + "Hz, " + str(number_of_windows) + \
+                " w, " + str(overlap_ratio_env) + " o"
+        if filter_below is not None or filter_over is not None:
+            title += " · Band-pass [" + str(band_pass_low) + ", " + str(band_pass_high) + "]"
+        ax[i // 2][i % 2].set_title(title)
+        ax[i // 2][i % 2].plot(np.arange(0, len(envelope2)) / audio2.frequency, envelope2.samples, color="orange")
+        i += 1
+
+        if resampling_rate is not None:
+            number_of_windows = get_number_of_windows(len(envelope1.samples), window_size_res, overlap_ratio_res)
+            title = "Resampled Envelope " + audio1.name + ": " + str(resampling_rate) + " Hz, " + \
+                    str(number_of_windows) + " w, " + str(overlap_ratio_res) + " o"
+            ax[i // 2][i % 2].set_title(title)
+            ax[i // 2][i % 2].plot(np.arange(0, len(y1.samples)) / resampling_rate, y1.samples)
+            i += 1
+
+            number_of_windows = get_number_of_windows(len(envelope2.samples), window_size_res, overlap_ratio_res)
+            title = "Resampled Envelope " + audio2.name + ": " + str(resampling_rate) + " Hz, " + \
+                    str(number_of_windows) + " w, " + str(overlap_ratio_res) + " o"
+            ax[i // 2][i % 2].set_title(title)
+            ax[i // 2][i % 2].plot(np.arange(0, len(y2.samples)) / resampling_rate, y2.samples, color="orange")
+            i += 1
+
+        # Title
+        title = "Cross-correlation"
+
+        ax[i // 2][i % 2].set_title(title)
+        ax[i // 2][i % 2].set_ylim(np.min(cross_correlation), 1.5)
+        ax[i // 2][i % 2].plot(cross_correlation, color="green")
+        text = ""
+        if return_delay_format == "index":
+            text = "Sample "
+        text += str(return_value)
+        if return_delay_format in ["ms", "s"]:
+            text += return_delay_format
+
+        if max_correlation_value >= threshold:
+            text += " · Correlation value: " + str(round(max_correlation_value, 3))
+            bbox_props = dict(boxstyle="square,pad=0.3", fc="#99cc00", ec="k", lw=0.72)
+        else:
+            text += " · Correlation value (below threshold): " + str(round(max_correlation_value, 3))
+            bbox_props = dict(boxstyle="square,pad=0.3", fc="#ff0000", ec="k", lw=0.72)
+        arrow_props = dict(arrowstyle="->", connectionstyle="angle,angleA=90")
+        kw = dict(xycoords='data', textcoords="data",
+                  arrowprops=arrow_props, bbox=bbox_props, ha="center", va="center")
+        ax[i // 2][i % 2].annotate(text, xy=(index_max_correlation, max_correlation_value),
+                                   xytext=(index_max_correlation, 1.4), **kw)
+
+        i += 1
+
+        ax[i // 2][i % 2].set_title("Aligned arrays")
+        ax[i // 2][i % 2].plot(np.arange(0, len(audio1.samples)) / audio1.frequency, audio1.samples, color="#04589388",
+                               linewidth=1)
+
+        resampled_timestamps_array2 = np.arange(0, len(audio2.samples)) / audio2.frequency + \
+                                      index_max_correlation / rate
+        resampled_timestamps_array2 = resampled_timestamps_array2[:len(audio2.samples)]
+        ax[i // 2][i % 2].plot(resampled_timestamps_array2, audio2.samples, color="#ffa500aa", linewidth=2)
+
+        if path_figure is not None:
+            if name_figure is not None:
+                if verbosity > 0:
+                    print("\nSaving the graph under " + str(path_figure) + "/" + str(name_figure) + "...", end=" ")
+                plt.savefig(str(path_figure) + "/" + str(name_figure))
+            else:
+                if verbosity > 0:
+                    print("\nSaving the graph under " + str(path_figure) + "...", end=" ")
+                plt.savefig(str(path_figure))
+            if verbosity > 0:
+                print("Done.")
+
+        if plot_figure:
+            if verbosity > 0:
+                print("\nShowing the graph...")
+            plt.show()
+
+
+def _plot_components(pca_or_ica, components, joint_labels, title, selected_components=None):
+    """Plots the components of a PCA or an ICA.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    pca_or_ica: numpy.ndarray
+        The components returned by a Principal Component Analysis.
+    components: numpy.ndarray
+        The components_ attribute of the PCA, containing the directions of maximum variance in the data for each feature
+        (the joint labels).
+    joint_labels: list(str)
+        The labels of each feature.
+    title: str
+        The title of the figure.
+    selected_components: int, list(int) or None
+        If set, plots only the selected component(s). The components start at index 0.
+    """
+
+    n_components = np.shape(components)[0]
+    max_components = np.max(components)
+
+    if selected_components is None:
+        selected_components = [i for i in range(n_components)]
+    elif type(selected_components) == int:
+        selected_components = [selected_components]
+
+    fig, ax = plt.subplots(len(selected_components), 2, width_ratios=[1, 4], constrained_layout=True)
+    fig.suptitle(title)
+
+    for i in range(len(selected_components)):
+        dict_plot = {joint_labels[j]: components[selected_components[i]][j] for j in range(len(joint_labels))}
+        img = plot_silhouette(dict_plot, show_graph=False, max_scale=max_components, resolution=(300, 300))
+        img = np.transpose(img, (1, 0, 2))
+        ax[i][0].imshow(img)
+        ax[i][0].xaxis.set_visible(False)
+        plt.setp(ax[i][0].get_yticklabels(), visible=False)
+        ax[i][0].set_yticks([])
+        ax[i][0].set_ylabel(f"Component {selected_components[i]}")
+        ax[i][1].plot(pca_or_ica[:, i])
+
+    plt.show()

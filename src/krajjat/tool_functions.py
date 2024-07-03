@@ -9,6 +9,7 @@ import warnings
 
 import chardet
 import numpy as np
+import pandas as pd
 from scipy.interpolate import CubicSpline, PchipInterpolator, Akima1DInterpolator, interp1d
 
 from krajjat.classes.exceptions import ModuleNotFoundException, InvalidParameterValueException
@@ -545,8 +546,10 @@ def read_json(path):
     return json.loads(content)
 
 
-def read_text_table(path):
+def read_text_table(path, verbosity=1):
     """Detects the encoding, loads and returns the content of a ``.csv``, ``.tsv`` or ``.txt`` file containing a table.
+    The function also returns a dictionary containing the metadata contained in the file. The metadata is any line
+    from the beginning of the file before the appearance of `Timestamp` or `MARKER_NAME` (for Qualisys files).
 
     .. versionadded:: 2.0
 
@@ -554,11 +557,21 @@ def read_text_table(path):
     ----------
     path: str
         The path to a text file.
+    verbosity: int, optional
+        Sets how much feedback the code will provide in the console output:
+
+        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+          current steps.
+        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+          may clutter the output and slow down the execution.
 
     Returns
     -------
     list(list)
         The content of the text file, with each sub-list containing the elements of a row of the file.
+    dict() or None
+        The metadata of the recording, if contained in the text file; `None` otherwise.
     """
 
     try:
@@ -576,15 +589,28 @@ def read_text_table(path):
     # If the data is exported from QTM (Qualisys), convert the tsv to manageable data
     if path.split(".")[-1] == "tsv":
         if data[0].split("\t")[0] == "NO_OF_FRAMES":
-            return convert_data_from_qtm(data)
+            return convert_data_from_qtm(data, verbosity)
 
     separator = get_filetype_separator(path.split(".")[-1])
 
     new_data = []
+    metadata = {}
+    save_data = False
     for line in data:
-        new_data.append(line.split(separator))
+        elements = line.split(separator)
+        if not save_data:
+            if elements[0] == "Timestamp":
+                save_data = True
+            else:
+                if len(elements) == 2:
+                    metadata[elements[0]] = elements[1]
+                else:
+                    metadata[elements[0]] = elements[1:]
 
-    return new_data
+        if save_data:
+            new_data.append(line.split(separator))
+
+    return new_data, metadata
 
 
 def read_xlsx(path):
@@ -608,6 +634,7 @@ def read_xlsx(path):
         raise ModuleNotFoundException("openpyxl", "read an Excel file.")
     workbook = op.load_workbook(path)
     data = workbook[workbook.sheetnames[0]]
+    workbook.close()
 
     # Get the headers (timestamp and joint labels) from the first row
     table = []
@@ -620,11 +647,24 @@ def read_xlsx(path):
     return table
 
 
+def read_pandas_dataframe(path, verbosity=1):
+
+    if path.split(".")[-1] == "json":
+        return pd.read_json(path)
+    elif path.split(".")[-1] == "csv":
+        return pd.read_csv(path, sep=SEPARATOR)
+    elif path.split(".")[-1] == "xlsx":
+        return pd.read_excel(path)
+    elif path.split(".")[-1] == "pkl":
+        return pd.read_pickle(path)
+    return None
+
+
 # === Conversion functions ===
 def convert_data_from_qtm(data, verbosity=1):
     """Processes and converts the data from a ``.tsv`` file produced by QTM, by stripping the header data,
     standardizing the name of the joint labels, and converting the distance unit from mm to m. This function then
-    returns the loaded table.
+    returns the loaded table, along with a dictionary containing the metadata of the recording.
 
     .. versionadded:: 2.0
 
@@ -645,9 +685,13 @@ def convert_data_from_qtm(data, verbosity=1):
     -------
     list(list(str))
         A table containing the QTM data, with each sub-list containing the elements of a row of the file.
+    dict
+        A dictionary containing the metadata from the recording contained in the file.
     """
     new_data = []
+    metadata = {}
     save_data = False
+    save_metadata = True
 
     if verbosity > 0:
         print("\n\tConverting data from Qualisys...")
@@ -664,6 +708,7 @@ def convert_data_from_qtm(data, verbosity=1):
         elements = data[i].split("\t")
 
         if elements[0] == "MARKER_NAMES":
+            save_metadata = False
             header = ["Timestamp"]
             for j in range(1, len(elements)):
 
@@ -684,6 +729,12 @@ def convert_data_from_qtm(data, verbosity=1):
 
             if verbosity > 0:
                 print("\t\tLabels standardized.")
+
+        if save_metadata:
+            if len(elements) == 2:
+                metadata[elements[0]] = elements[1]
+            else:
+                metadata[elements[0]] = elements[1:]
 
         if elements[0] == "1":
             save_data = True
@@ -711,7 +762,7 @@ def convert_data_from_qtm(data, verbosity=1):
     if verbosity > 0:
         print("100% - Done.")
 
-    return new_data
+    return new_data, metadata
 
 
 # === File saving functions ===
@@ -796,10 +847,11 @@ def write_xlsx(table, path, verbosity=1):
         for j in range(len(table[i])):
             sheet_out.cell(i + 1, j + 1, table[i][j])
     workbook_out.save(path)
+    workbook_out.close()
 
 
 # === Calculation functions ===
-def resample_data(array, original_timestamps, resampling_frequency, number_of_windows=1, overlap_ratio=0.5,
+def resample_data(array, original_timestamps, resampling_frequency, window_size=1e7, overlap_ratio=0.5,
                   mode="cubic", time_unit="s", verbosity=1):
     """Resamples an array to the `resampling_frequency` parameter. It first creates a new set of timestamps at the
     desired frequency, and then interpolates the original data to the new timestamps.
@@ -816,11 +868,12 @@ def resample_data(array, original_timestamps, resampling_frequency, number_of_wi
         The frequency at which you want to resample the array, in Hz. A frequency of 4 will return samples
         at 0.25 s intervals.
 
-    number_of_windows: int or None, optional
-        The number of windows in which to cut the original array. The lower this parameter is, the more
-        resources the computation will need. If this parameter is set on `None`, the window size will be set on
-        the number of samples. Note that this number has to be inferior to 2 times the number of samples in the array;
-        otherwise, at least some windows would only contain one sample.
+    window_size: int, optional
+        The size of the windows in which to cut the elements to perform the resampling. Cutting long arrays
+        in windows allows to speed up the computation. If this parameter is set on `None`, the window size will be
+        set on the number of elements. A good value for this parameter is generally 10 million (1e7). If this
+        parameter is set on 0, on None or on a number of samples bigger than the amount of elements in the array, the
+        window size is set on the length of the array.
 
     overlap_ratio: float or None, optional
         The ratio of samples overlapping between each window. If this parameter is not `None`, each window will
@@ -895,29 +948,25 @@ def resample_data(array, original_timestamps, resampling_frequency, number_of_wi
     step = (1 / resampling_frequency) * UNITS[time_unit]
 
     # Define the timestamps
-    resampled_timestamps = np.arange(original_timestamps[0], original_timestamps[-1] + (1 / resampling_frequency),
+    start_timestamp = np.round(original_timestamps[0], 6)
+    end_timestamp = np.round(original_timestamps[-1], 6)
+    resampled_timestamps = np.arange(start_timestamp, end_timestamp + (1 / resampling_frequency),
                                      1 / resampling_frequency)
 
     # If the last timestamp is over the last original timestamp, we remove it
-    if resampled_timestamps[-1] > original_timestamps[-1]:
+    if np.round(resampled_timestamps[-1], 6) > end_timestamp:
         resampled_timestamps = resampled_timestamps[:-1]
 
     # Settings
-    if number_of_windows is None:
-        number_of_windows = 1
-
     if overlap_ratio is None:
         overlap_ratio = 0
 
-    if number_of_windows > 2 * len(array):
-        raise Exception("The number of windows is too big, and will lead to windows having only one sample." +
-                        " Please consider using a number of windows lower than " + str(2 * len(array)) + ".")
-
-    window = int(get_window_length(len(array), number_of_windows, overlap_ratio))
-    overlap = int(np.ceil(overlap_ratio * window))
+    window_size = int(window_size)
+    overlap = int(np.ceil(overlap_ratio * window_size))
+    number_of_windows = get_number_of_windows(len(array), window_size, overlap_ratio, True)
 
     if verbosity > 1 and number_of_windows != 1:
-        print("\t\t\tCreating " + str(number_of_windows) + " window(s), each containing " + str(window) +
+        print("\t\t\tCreating " + str(number_of_windows) + " window(s), each containing " + str(window_size) +
               " samples, with a " + str(round(overlap_ratio * 100, 2)) + " % overlap (" + str(overlap) +
               " samples).")
 
@@ -927,8 +976,8 @@ def resample_data(array, original_timestamps, resampling_frequency, number_of_wi
 
     for i in range(number_of_windows):
 
-        window_start_original = i * (window - overlap)
-        window_end_original = np.min([(i + 1) * window - i * overlap, len(original_timestamps) - 1])
+        window_start_original = i * (window_size - overlap)
+        window_end_original = np.min([(i + 1) * window_size - i * overlap, len(original_timestamps) - 1])
         window_start_resampled = int(np.round(original_timestamps[window_start_original] * resampling_frequency))
         window_end_resampled = int(np.round(original_timestamps[window_end_original] * resampling_frequency))
 
@@ -1101,12 +1150,29 @@ def interpolate_data(data, time_points_data, time_points_interpolation, mode="li
         A list or an array of the time points corresponding to the values of the data.
     time_points_interpolation: list(float) or numpy.ndarray(float)
         A list or an array of the time points to which interpolate the data.
-    mode: str, optional
-        The way to interpolate the data. This parameter also allows for all the values accepted for the ``kind``
-        parameter in the function :func:`scipy.interpolate.interp1d`: ``"linear"``, ``"nearest"``, ``"nearest-up"``,
-        ``"zero"``, ``"slinear"``, ``"quadratic"``, ``"cubic"``”, ``"previous"``, and ``"next"``. See the
-        `documentation for this Python module
-        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`_ for more.
+    method: str, optional
+        This parameter allows for various values:
+
+        • ``"linear"`` performs a linear
+          `numpy.interp <https://numpy.org/devdocs/reference/generated/numpy.interp.html>`_ interpolation. This method,
+          though simple, may not be very precise for upsampling naturalistic stimuli.
+        • ``"cubic"`` performs a cubic interpolation via `scipy.interpolate.CubicSpline
+          <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.CubicSpline.html>`_. This method,
+          while smoother than the linear interpolation, may lead to unwanted oscillations nearby strong variations in
+          the data.
+        • ``"pchip"`` performs a monotonic cubic spline interpolation (Piecewise Cubic Hermite Interpolating
+          Polynomial) via `scipy.interpolate.PchipInterpolator
+          <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.PchipInterpolator.html>`_.
+        • ``"akima"`` performs another type of monotonic cubic spline interpolation, using
+        `scipy.interpolate.Akima1DInterpolator
+        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Akima1DInterpolator.html>`_.
+        • ``"take"`` keeps one out of n samples from the original array. While being the fastest computation, it will
+          be prone to imprecision if the downsampling factor is not an integer divider of the original frequency.
+        • ``"interp1d_XXX"`` uses the function `scipy.interpolate.interp1d
+          <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`. The XXX part of the
+          parameter can be replaced by ``"linear"``, ``"nearest"``, ``"nearest-up"``, ``"zero"``, "slinear"``,
+          ``"quadratic"``, ``"cubic"``”, ``"previous"``, and ``"next"`` (see the documentation of this function for
+          specifics).
 
     Returns
     -------
@@ -1133,10 +1199,28 @@ def interpolate_data(data, time_points_data, time_points_interpolation, mode="li
     np_data = array(data)
     np_time_points = array(time_points_data)
     np_time_points_complete = array(time_points_interpolation)
-    interp = interpolate.interp1d(np_time_points, np_data, kind=mode)
 
-    resampled_data = interp(np_time_points_complete)
-    return resampled_data, np_time_points_complete
+    #print(time_points_data)
+
+    if mode == "linear":
+        return np.interp(np_time_points_complete, np_data, np_time_points), np_time_points_complete
+    elif mode == "cubic":
+        interp = CubicSpline(np_time_points, np_data)
+        return interp(np_time_points_complete), np_time_points_complete
+    elif mode == "pchip":
+        for t in range(1, len(time_points_data)):
+            if time_points_data[t] <= time_points_data[t-1]:
+                print(t, t-1, time_points_data[t], time_points_data[t-1])
+        interp = PchipInterpolator(np_time_points, np_data)
+        return interp(np_time_points_complete), np_time_points_complete
+    elif mode == "akima":
+        interp = Akima1DInterpolator(np_time_points, np_data)
+        return interp(np_time_points_complete), np_time_points_complete
+    elif mode.startswith("interp1d"):
+        interp = interp1d(np_time_points, np_data, kind=mode.split("_")[1])
+        return interp(np_time_points_complete), np_time_points_complete
+    else:
+        raise Exception("Invalid resampling method: " + str(mode) + ".")
 
 
 def cosine_filter(nb_samples, par_cell, f_vect, ws_vect):
@@ -1467,7 +1551,7 @@ def generate_random_joints(number_of_joints, x_scale=0.2, y_scale=0.3, z_scale=0
     return random_joints
 
 
-def get_number_of_windows(array_length_or_array, window_size, overlap=0, add_incomplete_window=True):
+def get_number_of_windows(array_length_or_array, window_size, overlap_ratio=0, add_incomplete_window=True):
     """Given an array, calculates how many windows from the defined `window_size` can be created, with or
     without overlap.
 
@@ -1479,8 +1563,8 @@ def get_number_of_windows(array_length_or_array, window_size, overlap=0, add_inc
         An array of numerical values, or its length.
     window_size: int
         The number of array elements in each window.
-    overlap: int
-        The number of array elements overlapping in each window.
+    overlap_ratio: int or float
+        The ratio of array elements overlapping between each window and the next.
     add_incomplete_window: bool
         If set on ``True``, the last window will be included even if its size is smaller than ``window_size``.
         Otherwise, it will be ignored.
@@ -1496,12 +1580,13 @@ def get_number_of_windows(array_length_or_array, window_size, overlap=0, add_inc
     else:
         array_length = array_length_or_array
 
-    if overlap >= window_size:
-        raise Exception("The size of the overlap (" + str(overlap) + ") cannot be bigger than or equal to the size " +
-                        "of the window (" + str(window_size) + ").")
-    if overlap > array_length or window_size > array_length:
-        raise Exception("The size of the window (" + str(window_size) + ") or the overlap (" + str(overlap) + ") " +
-                        "cannot be bigger than the size of the array (" + str(array_length) + ").")
+    overlap = int(np.ceil(overlap_ratio * window_size))
+
+    if overlap_ratio >= 1:
+        raise Exception("The size of the overlap (" + str(overlap) + ") cannot be bigger than or equal to the " +
+                        "size of the window (" + str(window_size) + ").")
+    if window_size > array_length:
+        window_size = array_length
 
     number_of_windows = (array_length - overlap) / (window_size - overlap)
 
@@ -2585,7 +2670,7 @@ def get_min_max_values_from_plot_dictionary(plot_dictionary, keys_to_exclude=Non
                     if local_max > max_value:
                         max_value = local_max
             else:
-                print(plot_dictionary[key])
+                # print(plot_dictionary[key])
                 if plot_dictionary[key] < min_value:
                     min_value = plot_dictionary[key]
                 if plot_dictionary[key] > max_value:

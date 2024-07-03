@@ -2,7 +2,7 @@ HeadTop	HeadTop
 HeadFront	HeadFront
 HeadR	HeadRight
 HeadL	HeadLeft
-SpineTop	SpineShoulder
+SpineTop	SpineTop
 RShoulderTop	ShoulderTopRight
 RShoulderBack	ShoulderBackRight
 RArm	ArmRight

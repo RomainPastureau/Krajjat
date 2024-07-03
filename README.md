@@ -1,4 +1,4 @@
-# **Krajjat 1.99.14**
+# **Krajjat 1.99.15**
 ### ~~Kinect Realignment Algorithm for Joint Jumps And Twitches~~
 ### ~~Kinetic Recordings Algorithms for Joint Jazzing in an All-in-one Toolbox~~
 ### Kinetic Recordings And Juxtaposition of Jabbering Along That
@@ -13,7 +13,7 @@ You can find more details in the [documentation](https://krajjat.readthedocs.io/
 
 ### Pre-processing
 The pre-processing functions allow to:
-* Automatically correct rapid artifacts in the recordings (jumps and twitches of joints placement).
+* Automatically correct fast artifacts in the recordings (jumps and twitches of joints placement).
 * Re-reference all the positions according to a specific joint.
 * Trimming a motion sequence to the duration of an audio file, or to a defined duration.
 * Resampling a motion sequence to a target frequency.
@@ -44,9 +44,13 @@ The best way to install the toolbox is to follow the recommendations in the
 ### Dependencies
 * **Scipy** and **Numpy** for handling audio files and large numeric arrays
 * **Matplotlib** and **Seaborn** for plottings
+* **Pandas** to create dataframes for the analysis functions
+* **chardet** to detect the encoding of files
 * **Openpyxl** to process .xls and .xlsx documents
 * **Pygame** for sequence visualization
+* **OpenCV** and **PyAudio** for displaying video and audio
 * **Parselmouth** to use Praat functions to process the audio files
+* **FFmpeg** to save videos
 
 ## What's new?
 See the [release notes](<https://krajjat.readthedocs.io/en/latest/release_notes.html>).

@@ -439,6 +439,12 @@ class GraphicSequence(object):
     start_pose: int, optional
         The index of the pose at which to start the sequence.
 
+    x_axis: str, optional
+        Sets which axis should be matched to the x display axis (default `"x"`, can be `"y"` or `"z"` too).
+
+    y_axis: str, optional
+        Sets which axis should be matched to the y display axis (default `"y"`, can be `"x"` or `"z"` too).
+
     verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
 
@@ -551,7 +557,7 @@ class GraphicSequence(object):
         close.
     """
 
-    def __init__(self, sequence, graphic_window, start_pose=0, verbosity=1, **kwargs):
+    def __init__(self, sequence, graphic_window, start_pose=0, x_axis="x", y_axis="y", verbosity=1, **kwargs):
 
         self.sequence = sequence
         self.current_pose_index = start_pose
@@ -569,7 +575,7 @@ class GraphicSequence(object):
         self.connections_to_show = []
         self.joints_to_show = []
         self.set_ignore_bottom(kwargs.get("ignore_bottom", False))
-        self._load_poses(graphic_window, verbosity)
+        self._load_poses(graphic_window, x_axis, y_axis, verbosity)
         self.show_lines = kwargs.get("show_lines", True)
         self.color_background = kwargs.get("color_background", "black")
 
@@ -591,7 +597,7 @@ class GraphicSequence(object):
         self.set_show_joints_corrected(kwargs.get("show_joints_corrected", True))
         self._generate_all_joint_surfaces()
 
-    def _load_poses(self, graphic_window, verbosity=1):
+    def _load_poses(self, graphic_window, x_axis="x", y_axis="y", verbosity=1):
         """Converts a :class:`Sequence` into a :class:`_GraphicSequence` and add them to the :attr:`poses`
         attribute.
 
@@ -601,6 +607,12 @@ class GraphicSequence(object):
         ----------
         graphic_window: WindowArea
             The window object, where to display the sequence.
+
+        x_axis: str, optional
+            Sets which axis should be matched to the x display axis (default `"x"`, can be `"y"` or `"z"` too).
+
+        y_axis: str, optional
+            Sets which axis should be matched to the y display axis (default `"y"`, can be `"x"` or `"z"` too).
 
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
@@ -624,7 +636,7 @@ class GraphicSequence(object):
                 perc = show_progression(verbosity, p, len(self.sequence.poses), perc)
             elif verbosity > 1:
                 print("\tLoading pose " + str(p+1) + " of " + str(len(self.sequence.poses)) + "...")
-            self.poses.append(GraphicPose(self.sequence.poses[p], graphic_window, verbosity))
+            self.poses.append(GraphicPose(self.sequence.poses[p], graphic_window, x_axis, y_axis, verbosity))
 
         if verbosity > 0:
             print("100% - Done.")
@@ -671,6 +683,24 @@ class GraphicSequence(object):
             self.connections_top = load_joints_connections("kualisys_skeleton_connections_top.txt")
             self.connections_all = load_joints_connections("kualisys_skeleton_connections_top.txt")
             self.connections_all += load_joints_connections("kualisys_skeleton_connections_bottom.txt")
+
+        for connection in self.connections_top:
+            keep = True
+            for joint_label in connection:
+                if joint_label not in self.sequence.get_joint_labels():
+                    keep = False
+                    break
+            if not keep:
+                self.connections_top.remove(connection)
+
+        for connection in self.connections_all:
+            keep = True
+            for joint_label in connection:
+                if joint_label not in self.sequence.get_joint_labels():
+                    keep = False
+                    break
+            if not keep:
+                self.connections_all.remove(connection)
 
     def _add_entry_joint_surfaces(self, entry, size, color):
         """Adds or modifies an entry in the dictionary of Surface objects :attr:`joint_surfaces`.
@@ -1226,8 +1256,11 @@ class GraphicSequence(object):
         window_area.fill(self.color_background)
         if self.current_pose_index == len(self.sequence.poses) - 1:
             self.next_pose(timer)
-        elif self.sequence.poses[self.current_pose_index + 1].get_relative_timestamp() * 1000 <= timer.get_timer():
-            self.next_pose(timer)
+        else:
+            while self.sequence.poses[self.current_pose_index + 1].get_relative_timestamp() * 1000 <= timer.get_timer():
+                self.next_pose(timer)
+                if self.current_pose_index == len(self.sequence.poses) - 1:
+                    break
         self.poses[self.current_pose_index].show(window_area, self.joint_surfaces, self.joints_to_show,
                                                  self.connections_to_show, self.color_line, self.width_line,
                                                  self.show_lines, self.shift_x, self.shift_y, self.zoom_level)
@@ -1262,6 +1295,12 @@ class GraphicPose(object):
     graphic_window: WindowArea
         The window object, where to display the sequence.
 
+    x_axis: str, optional
+        Sets which axis should be matched to the x display axis (default `"x"`, can be `"y"` or `"z"` too).
+
+    y_axis: str, optional
+        Sets which axis should be matched to the y display axis (default `"y"`, can be `"x"` or `"z"` too).
+
     verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
 
@@ -1280,12 +1319,12 @@ class GraphicPose(object):
         List of all the :class:`_GraphicJoint` objects counterparts of the :class:`Joint` objects.
     """
 
-    def __init__(self, pose, graphic_window, verbosity=1):
+    def __init__(self, pose, graphic_window, x_axis="x", y_axis="y", verbosity=1):
         self.pose = pose
         self.joints = {}
-        self._load_joints(graphic_window, verbosity)
+        self._load_joints(graphic_window, x_axis, y_axis, verbosity)
 
-    def _load_joints(self, graphic_window, verbosity=1):
+    def _load_joints(self, graphic_window, x_axis="x", y_axis="y", verbosity=1):
         """Creates :class:`_GraphicJoint` elements for each joint of the pose and add them to the :attr:`joints`
         attribute.
 
@@ -1295,6 +1334,12 @@ class GraphicPose(object):
         ----------
         graphic_window: WindowArea
             The window object, where to display the sequence.
+
+        x_axis: str, optional
+            Sets which axis should be matched to the x display axis (default `"x"`, can be `"y"` or `"z"` too).
+
+        y_axis: str, optional
+            Sets which axis should be matched to the y display axis (default `"y"`, can be `"x"` or `"z"` too).
 
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
@@ -1308,7 +1353,8 @@ class GraphicPose(object):
         for joint_label in self.pose.joints.keys():
             if verbosity > 1:
                 print("\t\tLoading " + str(joint_label) + "...")
-            self.joints[joint_label] = GraphicJoint(self.pose.joints[joint_label], graphic_window, verbosity)
+            self.joints[joint_label] = GraphicJoint(self.pose.joints[joint_label], graphic_window, x_axis, y_axis,
+                                                    verbosity)
 
     def show_line(self, graphic_window, connection, color_line, width_line, shift_x=0, shift_y=0, zoom_level=1):
         """Shows a single line between two joints specified in ``connection`` on the ``window`` object.
@@ -1340,12 +1386,17 @@ class GraphicPose(object):
             Defines the zoom level compared to the original view. A zoom level of 2 will make the joints appear twice as
             close.
         """
-        joint1 = self.joints[connection[0]]
-        joint2 = self.joints[connection[1]]
 
-        pygame.draw.line(graphic_window.window_area, color_line,
-                         ((joint1.x + shift_x) * zoom_level, (joint1.y + shift_y) * zoom_level),
-                         ((joint2.x + shift_x) * zoom_level, (joint2.y + shift_y) * zoom_level), width_line)
+        try:
+            joint1 = self.joints[connection[0]]
+            joint2 = self.joints[connection[1]]
+
+            pygame.draw.line(graphic_window.window_area, color_line,
+                             ((joint1.x + shift_x) * zoom_level, (joint1.y + shift_y) * zoom_level),
+                             ((joint2.x + shift_x) * zoom_level, (joint2.y + shift_y) * zoom_level), width_line)
+
+        except KeyError:
+            pass
 
     def show(self, graphic_window, joint_surfaces, joints_to_show, connections_to_show, color_line, width_line,
              show_lines, shift_x=0, shift_y=0, zoom_level=1):
@@ -1411,6 +1462,12 @@ class GraphicJoint(object):
     graphic_window: WindowArea
         The window object, where to display the sequence.
 
+    x_axis: str, optional
+        Sets which axis should be matched to the x display axis (default `"x"`, can be `"y"` or `"z"` too).
+
+    y_axis: str, optional
+        Sets which axis should be matched to the y display axis (default `"y"`, can be `"x"` or `"z"` too).
+
     verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
 
@@ -1432,13 +1489,13 @@ class GraphicJoint(object):
         The y coordinate, in pixels.
     """
 
-    def __init__(self, joint, graphic_window, verbosity=1):
+    def __init__(self, joint, graphic_window, x_axis="x", y_axis="y", verbosity=1):
         self.joint = joint
         self.x = None
         self.y = None
-        self.convert_coordinates(graphic_window, verbosity)
+        self.convert_coordinates(graphic_window, x_axis, y_axis, verbosity)
 
-    def convert_coordinates(self, graphic_window, verbosity=1):
+    def convert_coordinates(self, graphic_window, x_axis="x", y_axis="y", verbosity=1):
         """Converts the original coordinates into graphic coordinates.
 
         .. versionadded:: 2.0
@@ -1447,6 +1504,12 @@ class GraphicJoint(object):
         ----------
         graphic_window: WindowArea
             The window object, where to display the sequence.
+
+        x_axis: str, optional
+            Sets which axis should be matched to the x display axis (default `"x"`, can be `"y"` or `"z"` too).
+
+        y_axis: str, optional
+            Sets which axis should be matched to the y display axis (default `"y"`, can be `"x"` or `"z"` too).
 
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
@@ -1457,10 +1520,19 @@ class GraphicJoint(object):
             • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
               may clutter the output and slow down the execution.
         """
-        self.x = graphic_window.convert_x(self.joint.x, 1)
+        factor_x = 1
+        factor_y = 1
+        if x_axis[0] == "-":
+            factor_x = -1
+            x_axis = x_axis[1]
+        if y_axis[0] == "-":
+            factor_y = -1
+            y_axis = y_axis[1]
+
+        self.x = graphic_window.convert_x(factor_x * self.joint.get_coordinate(x_axis), 1)
         if verbosity > 1:
             print("\t\t\tCoordinate x (" + str(self.joint.x) + "): " + str(self.x))
-        self.y = graphic_window.convert_y(self.joint.y, 1)
+        self.y = graphic_window.convert_y(factor_y * self.joint.get_coordinate(y_axis), 1)
         if verbosity > 1:
             print("\t\t\tCoordinate y (" + str(self.joint.y) + "): " + str(self.y))
 
@@ -1553,8 +1625,12 @@ class Video(object):
     ----------
     path: str
         The path of the video file.
+
     resolution: tuple(int, int)
         The resolution of the window area, where the video should be displayed.
+
+    timestamp_video_start: float or None, optional
+        If specified, indicates what timestamp of the video (in seconds) matches the start of the sequence.
 
     Attributes
     ----------
@@ -1563,6 +1639,9 @@ class Video(object):
 
     resolution: tuple(int, int)
         The resolution of the window area, where the video should be displayed.
+
+    timestamp_video_start: float
+        Indicates what timestamp of the video (in seconds) matches the start of the sequence (by default, set at 0).
 
     fps: float
         The framerate of the video.
@@ -1583,15 +1662,20 @@ class Video(object):
         A VideoCapture object.
     """
 
-    def __init__(self, path, resolution):
+    def __init__(self, path, resolution, timestamp_video_start):
         self.path = path
         self.resolution = resolution
+        if timestamp_video_start is None:
+            self.timestamp_video_start = 0
+        else:
+            self.timestamp_video_start = timestamp_video_start
         self.play = True
         self.fps = 0
         self.number_of_frames = 0
         self.current_frame_index = 0
         self.current_frame_surface = None
         self.time_next_frame = 0
+        self.frame_start = 0
         self.video = None
         self._load_video()
 
@@ -1607,7 +1691,13 @@ class Video(object):
         self.fps = self.video.get(cv2.CAP_PROP_FPS)
         self.number_of_frames = int(self.video.get(cv2.CAP_PROP_FRAME_COUNT))
         self.time_next_frame = 1 / self.fps * 1000
+        self._set_frame_start()
+        self.video.set(cv2.CAP_PROP_POS_FRAMES, self.current_frame_index)
         self._load_frame()
+
+    def _set_frame_start(self):
+        self.frame_start = int(self.timestamp_video_start * self.fps)
+        self.current_frame_index = self.frame_start
 
     def _load_frame(self):
         """Loads the next frame of the video and turns it in a pygame surface.
@@ -1640,7 +1730,7 @@ class Video(object):
         float
             The duration of the video, in milliseconds.
         """
-        return self.number_of_frames / self.fps * 1000
+        return (self.number_of_frames - self.frame_start) / self.fps * 1000
 
     def get_number_of_frames(self):
         """Returns the total number of frames in the video.
@@ -1652,7 +1742,7 @@ class Video(object):
         int
             The total number of frames in the video.
         """
-        return self.number_of_frames
+        return self.number_of_frames - self.frame_start
 
     def get_fps(self):
         """Returns the framerate of the video.
@@ -1702,7 +1792,7 @@ class Video(object):
         if self.current_frame_index == self.number_of_frames - 1:
             self.time_next_frame = -1
         else:
-            self.time_next_frame = (self.current_frame_index + 1) / self.fps * 1000
+            self.time_next_frame = (self.current_frame_index - self.frame_start + 1) / self.fps * 1000
         self.video.set(cv2.CAP_PROP_POS_FRAMES, self.current_frame_index)
         self._load_frame()
 
@@ -1733,11 +1823,11 @@ class Video(object):
               may clutter the output and slow down the execution.
         """
         if method in ["below", "lower", "under"]:
-            frame_index = int(self.fps * timestamp / 1000)
+            frame_index = int(self.fps * timestamp / 1000) + self.frame_start
         elif method in ["above", "higher", "over"]:
-            frame_index = math.ceil(self.fps * timestamp / 1000)
+            frame_index = math.ceil(self.fps * timestamp / 1000) + self.frame_start
         elif method == "closest":
-            frame_index = round(self.fps * timestamp / 1000)
+            frame_index = round(self.fps * timestamp / 1000) + self.frame_start
         else:
             raise Exception('Invalid parameter "method": the value should be "lower", "higher" or "closest".')
 
@@ -1762,7 +1852,7 @@ class Video(object):
             • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
               may clutter the output and slow down the execution.
         """
-        self.set_frame_from_index(0, verbosity)
+        self.set_frame_from_index(self.frame_start, verbosity)
         self.time_next_frame = 1 / self.fps * 1000
 
     def next_frame(self):
@@ -1803,6 +1893,7 @@ class Video(object):
         timer: Timer
             A :class:`Timer` instance.
         """
-        if self.time_next_frame != -1 and timer.timer > self.time_next_frame:
+
+        while self.time_next_frame != -1 and timer.timer > self.time_next_frame:
             self.next_frame()
         window_area.blit(self.current_frame_surface, (0, 0))

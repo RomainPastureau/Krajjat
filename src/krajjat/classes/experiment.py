@@ -1,6 +1,7 @@
 """Default class defining an experiment. An experiment object can contain multiple subjects, which themselves can
-contain multiple sequences."""
+contain multiple trials."""
 import os
+from collections import OrderedDict
 
 from krajjat.classes.exceptions import InvalidParameterValueException
 from krajjat.tool_functions import get_system_csv_separator
@@ -8,7 +9,7 @@ from krajjat.tool_functions import get_system_csv_separator
 
 class Experiment(object):
     """Creates and return an Experiment object. An Experiment object can contain multiple Subject instances, which
-    in turn contain Sequence instances.
+    in turn contain Trial instances.
 
     .. versionadded:: 2.0
 
@@ -21,15 +22,31 @@ class Experiment(object):
     ----------
     name: str or None
         The name of the experiment.
-    subjects: list(Subject)
-        A list of Subject instances.
+    subjects: OrderedDict(subject)
+        An ordered dictionary of Subject instances.
     """
 
     def __init__(self, name=None):
-        self.name = name
-        self.subjects = []
+        self._name = name
+        self.subjects = OrderedDict()
 
-    def set_name(self, name):
+    # == Getter/Setter functions =======================================================================================
+
+    @property
+    def name(self):
+        """Returns the attribute :attr:`name` of the Experiment instance.
+
+        .. versionadded:: 2.0
+
+        Returns
+        -------
+        str
+            The name of the experiment.
+        """
+        return self._name
+
+    @name.setter
+    def name(self, name):
         """Sets the attribute :attr:`Experiment.name` of the Experiment instance.
 
         .. versionadded:: 2.0
@@ -39,7 +56,9 @@ class Experiment(object):
         name: str
             The name of the experiment.
         """
-        self.name = name
+        self._name = name
+
+    # == Managing subjects =============================================================================================
 
     def add_subject(self, subject):
         """Adds a Subject instance to the subject.
@@ -51,19 +70,56 @@ class Experiment(object):
         subject: Subject
             A Subject instance.
         """
-        self.subjects.append(subject)
+        if subject.name in self.subjects.keys():
+            raise Exception(f"A subject with this name ({subject.name}) already exists in this experiment.")
+        self.subjects[subject.name] = subject
 
-    def get_subjects(self):
-        """Returns the attribute :attr:`subjects` of the Experiment instance.
+    def get_subjects(self, names=None, group=None, **kwargs):
+        """Returns the complete list or a sublist of subjects from the Experiment instance.
 
         .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        names: list(str), optional
+            A list of subject names. If provided, the returned Subject instances will be a sublist of the subjects
+            from the experiment.
+        group: str, int or None, optional
+            If provided, the function will return the subjects having a :attr:`Subject.group` equal to the provided
+            value. In the case were a list of subject names is also provided, the subjects in that list and belonging
+            to that group will be returned.
+
+        Note
+        ----
+        The function also allows for other arguments, as long as each argument is a custom attribute set to the
+        Subject instances.
 
         Returns
         -------
         list(Subject)
             A list of Subject instances.
         """
-        return self.subjects
+        subjects = []
+
+        if names is str:
+            names = [names]
+
+        for name in self.subjects.keys():
+            add_subject = True
+
+            if names is not None and name not in names:
+                add_subject = False
+            if group is not None and self.subjects[name].group != group:
+                add_subject = False
+
+            for arg in kwargs.keys():
+                if getattr(self.subjects[name], arg) != kwargs[arg]:
+                    add_subject = False
+
+            if add_subject:
+                subjects.append(self.subjects[name])
+
+        return subjects
 
     def get_subjects_names(self):
         """Returns a list containing the attributes :attr:`subject.Subject.name` for each subject.
@@ -75,115 +131,22 @@ class Experiment(object):
         list(str)
             A list of all the subjects names.
         """
-        names = []
-        for subject in self.subjects:
-            names.append(subject.get_name())
-        return names
+        return self.subjects.keys()
 
-    def get_subject_from_index(self, subject_index):
-        """Returns the Subject instance matching the given index.
+    def remove_subject(self, name):
+        """Removes a subject from the Experiment instance corresponding to the given name.
 
         .. versionadded:: 2.0
 
         Parameters
         ----------
-        subject_index: int
-            The index of the subject.
-
-        Returns
-        -------
-        Subject
-            A Subject instance corresponding to the provided index.
+        name: str
+            The name of the subject to remove.
         """
-        return self.subjects[subject_index]
-
-    def get_subject_from_name(self, subject_name):
-        """Returns the first Subject instance in :attr:`subjects` having the attribute
-        :attr:`~krajjat.classes.subject.Subject.name` matching the name provided as parameter.
-
-        .. versionadded:: 2.0
-
-        Parameters
-        ----------
-        subject_name: str
-            The :attr:`~krajjat.classes.subject.Subject.name` attribute of a Subject instance.
-
-        Returns
-        -------
-        Subject
-            A Subject instance having the provided name as it attribute :attr:`~krajjat.classes.subject.Subject.name`.
-        """
-        for subject in self.subjects:
-            if subject.get_name() == subject_name:
-                return subject
-
-    def remove_subject_from_index(self, subject_index):
-        """Removes a subject from the Experiment instance corresponding to the given index.
-
-        .. versionadded:: 2.0
-
-        Parameters
-        ----------
-        subject_index: int
-            The index of the subject to remove.
-        """
-        del self.subjects[subject_index]
-
-    def remove_subject_from_name(self, subject_name):
-        """Removes the first Subject instance in :attr:`subjects` having the attribute :attr:`subject.Subject.name`
-        matching the name provided as parameter.
-
-        .. versionadded:: 2.0
-
-        Parameters
-        ----------
-        subject_name: str
-            The name attribute of a Subject instance.
-        """
-        for subject in self.subjects:
-            if subject.get_name() == subject_name:
-                self.subjects.remove(subject)
-                break
-
-    def get_subjects_from_group(self, group):
-        """Returns a list of all the subjects that have an attribute :attr:`subject.Subject.group` equal to
-        the condition provided.
-
-        .. versionadded:: 2.0
-
-        Parameters
-        ----------
-        group: str
-            An subject group.
-
-        Returns
-        -------
-        list(Subject)
-            A list of Subject instances.
-        """
-        selected_subjects = []
-        for subject in self.subjects:
-            if subject.get_condition() == group:
-                selected_subjects.append(subject)
-        return selected_subjects
-
-    def get_subjects_from_attribute(self, attribute, value):
-        """Returns a list of all the subjects that have a provided attribute equal to a provided value.
-
-        .. versionadded:: 2.0
-
-        Parameters
-        ----------
-        attribute: str
-            The name of the Subject attribute to compare to the value.
-        value: any
-            The value to match to each Subject's provided attribute.
-        """
-        selected_subjects = []
-        for subject in self.subjects:
-            if subject.get_attribute(attribute) == value:
-                selected_subjects.append(subject)
-        return selected_subjects
+        if name in self.subjects.keys():
+            del self.subjects[name]
+        else:
+            raise Exception(f"No subject with the name {name} was found in the experiment.")
 
     def get_number_of_subjects(self):
         """Returns the length of the :attr:`subjects` attribute.
@@ -197,18 +160,6 @@ class Experiment(object):
         """
         return len(self.subjects)
 
-    def get_name(self):
-        """Returns the attribute :attr:`name` of the Experiment instance.
-
-        .. versionadded:: 2.0
-
-        Returns
-        -------
-        str
-            The name of the experiment.
-        """
-        return self.name
-
     def get_joint_labels(self):
         """Returns the joint labels from the first sequence of the first subject of the experiment.
 
@@ -219,115 +170,403 @@ class Experiment(object):
         list(str)
             A list of joint labels.
         """
-        return self.subjects[0].get_sequence_from_index(0).get_joint_labels()
+        joint_labels = []
+        for subject in self.subjects.keys():
+            joint_labels_subject = self.subjects[subject].get_joint_labels()
+            for joint_label in joint_labels_subject:
+                if joint_label not in joint_labels:
+                    joint_labels.append(joint_label)
 
-    def get_dataframe(self, sequence_metric="distance", audio_metric="envelope", audio_filter_below=None,
-                      audio_filter_above=None, audio_resampling_frequency=None):
+        return joint_labels
 
-        print(audio_metric)
+    def get_dataframe(self, sequence_measure="distance", audio_measure="envelope", sampling_frequency=None,
+                      exclude_columns=None, include_columns=None, verbosity=1, **kwargs):
+        """Returns the data from the experiment as a Pandas dataframe containing multiple columns.
 
-        import pandas as pd
-        sequence_metric_header = sequence_metric.title()
-        audio_metric_header = audio_metric.title()
-        data = {"Subject": [], "Group": [], "Trial": [], "Condition": [], "Joint label": [], "Timestamp": [],
-                sequence_metric_header: [], audio_metric_header: []}
+        .. versionadded:: 2.0
 
-        for subject in self.subjects:
+        Parameters
+        ----------
+        sequence_measure: str or list(str), optional
+            The time series to be returned, can be one or a combination of the following:
 
-            for i in range(len(subject.get_sequences())):
-                sequence = subject.get_sequence_from_index(i)
-                sequence_values = sequence.get_time_series_as_list(sequence_metric)
-                timestamps = sequence.get_timestamps_for_metric(sequence_metric)
+            • ``"x"``, for the values on the x axis (in meters)
+            • ``"y"``, for the values on the y axis (in meters)
+            • ``"z"``, for the values on the z axis (in meters)
+            • ``"distance_hands"``, for the distance between the hands (in meters)
+            • ``"distance"``, for the distance travelled (in meters)
+            • ``"distance_x"`` for the distance travelled on the x axis (in meters)
+            • ``"distance_y"`` for the distance travelled on the y axis (in meters)
+            • ``"distance_z"`` for the distance travelled on the z axis (in meters)
+            • ``"velocity"`` for the velocity (in meters per second)
+            • ``"acceleration"`` for the acceleration (in meters per second squared)
+            • ``"acceleration_abs"`` for the absolute acceleration (in meters per second squared)
 
-                if i < subject.get_number_of_audios():
-                    audio = subject.get_audio_from_index(i)
-                else:
-                    raise Exception("Discrepancy between the number of audios (" + str(subject.get_number_of_audios()) +
-                                    " and the number of sequences (" + str(subject.get_number_of_sequences()))
+        audio_measure: str, list(str) or None, optional
+            The time series to be returned, can be one or a combination of the following:
 
-                #audio_or_derivative = self._get_audio_values(audio, audio_metric, audio_filter_above, audio_filter_below,
-                #                                      audio_resampling_frequency)
-                audio_or_derivative = audio
+            • ``"audio"``, for the original sample values.
+            • ``"envelope"``
+            • ``"pitch"``
+            • ``"f1"``, ``"f2"``, ``"f3"``, ``"f4"``, ``"f5"`` for the values of the corresponding formant
+            • ``"intensity"``
 
-                for joint_label in self.get_joint_labels():
-                    sequence_values_joint = sequence_values[joint_label]
-                    audio_start_index = len(sequence) - len(sequence_values_joint)
-                    audio_end_index = len(sequence_values_joint) + audio_start_index
-                    audio_values_trimmed = list(audio_or_derivative.get_samples())[audio_start_index:audio_end_index]
+            This value can also be `None`: in that case, none of the data will be affected to audio measures.
 
-                    # if audio_or_derivative.get_frequency() != sequence.get_framerate():
-                    #     raise Exception("The framerate of the sequence (" + str(sequence.get_framerate()) + ") is " +
-                    #                     "different from the frequency of the " + str(type(audio_or_derivative)) + " (" +
-                    #                     str(audio_or_derivative.get_frequency()) + "). Please be sure that the two " +
-                    #                     "variables are sampled at the same rate before proceeding.")
-                    #
-                    # if audio_or_derivative.get_timestamps()[audio_start_index] != timestamps[0]:
-                    #     raise Exception("The first timestamp of the sequence (" + timestamps[0] + ") is different " +
-                    #                     "from the first timestamp of the " + str(type(audio_or_derivative)) + " (" +
-                    #                     str(audio_or_derivative.get_timestamps()[audio_start_index]) + "). Please be " +
-                    #                     "sure that the two variables are sampled at the same rate before proceeding.")
+        sampling_frequency: float, optional
+            The frequency at which to resample the two measures before adding them to the dataframe. By default,
+            no resampling is applied. If the sampling frequency of the Sequence and its corresponding Audio differ,
+            the function will return an exception.
 
-                    data["Subject"] += [subject.get_name() for _ in range(len(sequence_values_joint))]
-                    data["Group"] += [subject.get_group() for _ in range(len(sequence_values_joint))]
-                    data["Trial"] += [sequence.get_name() for _ in range(len(sequence_values_joint))]
-                    data["Condition"] += [sequence.get_condition() for _ in range(len(sequence_values_joint))]
-                    data["Joint label"] += [joint_label for _ in range(len(sequence_values_joint))]
-                    data["Timestamp"] += timestamps
-                    data[sequence_metric_header] += sequence_values_joint
-                    data[audio_metric_header] += audio_values_trimmed
+        exclude_columns: list or None, optional
+            A list of the columns to exclude from the dataframe. By default, the columns included are:
+
+            • ``"subject"``, containing the subject :attr:`Subject.name`.
+            • ``"group"``, containing the :attr:`Subject.group` attribute of the :class:`Subject` instances.
+            • ``"trial"``, containing the :attr:`Trial.trial_id` attribute of each :class:`Trial` instance.
+            • ``"condition"``, containing the :attr:`Trial.condition` attribute of each :class:`Trial` instance.
+            • ``"modality"`, containing ``"mocap"`` for data from Sequence instances, ``"audio"`` for data from
+              Audio instances, or ``"pca"`` or ``"ica"`` for data from PCA or ICA computations.
+            • ``"label"``, containing the name of each feature: either the name of a joint label, ``"audio"``, or
+              a PCA/ICA number.
+            • ``"measure"``, indicating the selected sequence measure (e.g. ``"distance"``) or audio measure (e.g.
+              ``"envelope"``
+            • ``"timestamp"``, containing the timestamps for each Trial.
+            • ``"value"``, containing the measure value of the current modality label at the given timestamp.
+
+        include_columns: list or None, optional
+            A list of columns to include to the dataframe. The function will try to find attributes matching the given
+            column names in the Subject and the Trial instances.
+
+            .. note::
+            The function first tries to find the attribute value in the Subject instance, then in the Trial instances.
+            If there is a match in the Subject instance, the function will not try to find an attribute value in the
+            Trial instances, so ensure that you have unique attribute names between Subject and Trial instances.
+            Moreover, if a specific attribute cannot be found for a specific Subject or Trial, the function sets the
+            values to numpy.nan.
+
+        verbosity: int, optional
+            Sets how much feedback the code will provide in the console output:
+
+            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+              current steps.
+            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+              may clutter the output and slow down the execution.
+
+        Note
+        ----
+        The function also allows to set a series af other attributes related to the generation of an Audio or
+        AudioDerivative object. For example, if you choose `"envelope"` as an audio measure, you can add parameters
+        used to generate an envelope in the function :meth:`Audio.get_envelope`, such as `"window_size"`
+        or ``"filter_below"`; these will be directly used when generating the envelope. To know which parameters can be
+        used for each audio derivative, please refer to the corresponding methods in the :class:`Audio`:
+            • :meth:`Audio.filter_and_resample`
+            • :meth:`Audio.get_envelope`
+            • :meth:`Audio.get_pitch`
+            • :meth:`Audio.get_formant`
+            • :meth:`Audio.get_intensity`
+        """
+
+        if verbosity > 1:
+            print("Creating a dataframe for the experiment.")
+            print("Number of subjects: " + str(len(self.subjects)))
+            print("Number of recordings: " + str(sum([len(s) for s in self.subjects])))
+
+        # Import the modules
+        try:
+            import pandas as pd
+        except ImportError:
+            raise ModuleNotFoundError("pandas", "generating an experiment dataframe")
+
+        try:
+            import numpy as np
+        except ImportError:
+            raise ModuleNotFoundError("numpy", "generating an experiment dataframe")
+
+        # Define the column headers
+        columns = ["subject", "group", "trial", "condition", "modality", "label", "measure", "timestamp", "value"]
+        if exclude_columns is not None:
+            for column in exclude_columns:
+                columns.remove(column)
+        if include_columns is not None:
+            for column in include_columns:
+                columns.append(column)
+        columns.append(sequence_measure)
+        if audio_measure is not None:
+            columns.append(audio_measure)
+
+        # Define the joint labels
+        joint_labels = self.get_joint_labels()
+
+        # Create the dataframe skeleton
+        # data = {column: np.zeros(rows, dtype=types.get(column, str)) for column in columns}
+        data = {column: [] for column in columns}
+        data[sequence_measure] = np.array([])
+        data[audio_measure] = np.array([])
+        i = 0
+        j = 0
+
+        # For each subject
+        for subject_name in self.subjects:
+            subject = self.subjects[subject_name]
+
+            # For each trial
+            for trial_id in subject.trials:
+                trial = subject.trials[trial_id]
+
+                if not trial.has_sequence():
+                    raise Exception(f"A Sequence is missing for Subject {subject_name}, Trial {trial_id}.")
+                sequence = trial.sequence
+
+                if sequence.get_framerate() != sampling_frequency:
+                    sequence = sequence.resample(sampling_frequency, kwargs.get("mode", "pchip"), verbosity=verbosity)
+
+                sequence_values = sequence.get_time_series_as_list(sequence_measure,
+                                                                   timestamp_start=kwargs.get("timestamp_start", None),
+                                                                   timestamp_end=kwargs.get("timestamp_end", None),
+                                                                   verbosity=verbosity)
+
+                timestamps = sequence.get_timestamps_for_metric(sequence_measure,
+                                                                timestamp_start=kwargs.get("timestamp_start", None),
+                                                                timestamp_end=kwargs.get("timestamp_end", None))
+
+                j += 1
+
+                audio_values = None
+                if audio_measure is not None:
+                    if not trial.has_sequence():
+                        raise Exception(f"An Audio is missing for Subject {subject_name}, Trial {trial_id}.")
+
+                    audio = trial.audio
+
+                    if audio_measure == "envelope":
+                        audio = audio.get_envelope(kwargs.get("window_size", 1e6), kwargs.get("overlap_ratio", 0.5),
+                                                   kwargs.get("filter_below", None), kwargs.get("filter_over", None),
+                                                   verbosity=verbosity)
+
+                    elif audio_measure == "pitch":
+                        audio = audio.get_pitch(kwargs.get("filter_below", None), kwargs.get("filter_over", None),
+                                                kwargs.get("pitch_method", None),
+                                                zeros_as_nan=kwargs.get("zeros_as_nan", False), verbosity=verbosity)
+
+                    elif audio_measure in ["f1", "f2", "f3", "f4", "f5"]:
+                        audio = audio.get_formant(kwargs.get("filter_below", None), kwargs.get("filter_over", None),
+                                                  formant_number=kwargs.get("formant_number", int(audio_measure[1])),
+                                                  verbosity=verbosity)
+
+                    elif audio_measure == "intensity":
+                        audio = audio.get_intensity(kwargs.get("filter_below", None), kwargs.get("filter_over", None),
+                                                    verbosity=verbosity)
+
+                    elif audio_measure == "audio":
+                        audio = audio.filter_frequencies(kwargs.get("filter_below", None), kwargs.get("filter_over",
+                                                                                                      None))
+
+                    else:
+                        raise InvalidParameterValueException("audio_measure", audio_measure)
+
+                    if audio.frequency != sampling_frequency:
+                        audio = audio.resample(sampling_frequency, mode=kwargs.get("mode", "pchip"),
+                                               window_size=kwargs.get("res_window_size", 1e7),
+                                               overlap_ratio=kwargs.get("res_overlap_ratio", 0.5), verbosity=verbosity)
+
+                    audio_values = audio.samples
+
+                for joint_label in joint_labels:
+                    points = len(timestamps)
+
+                    if joint_label in sequence_values.keys():
+                        sequence_values_joint = sequence_values[joint_label]
+                    else:
+                        sequence_values_joint = [np.nan for _ in range(points)]
+                    if audio_measure is not None:
+                        audio_values = audio_values[:len(sequence_values_joint)]
+
+                    for column in columns:
+                        if column == "subject":
+                            data["subject"] += [subject_name for _ in range(points)]
+                        elif column == "group":
+                            data["group"] += [subject.group for _ in range(points)]
+                        elif column == "trial":
+                            data["trial"] += [trial_id for _ in range(points)]
+                        elif column == "condition":
+                            data["condition"] += [trial.condition for _ in range(points)]
+                        elif column == "joint_label":
+                            data["joint_label"] += [joint_label for _ in range(points)]
+                        elif column == "timestamp":
+                            data["timestamp"] += timestamps
+                        else:
+                            if column == sequence_measure:
+                                data[sequence_measure] = np.concatenate((data[sequence_measure],
+                                                                        np.array(sequence_values_joint)))
+                            elif audio_measure is not None and column == audio_measure:
+                                data[audio_measure] = np.concatenate((data[audio_measure], np.array(audio_values)))
+                            elif hasattr(subject, column):
+                                data[column] += [getattr(subject, column) for _ in range(points)]
+                            elif hasattr(trial, column):
+                                data[column] += [getattr(trial, column) for _ in range(points)]
+                            else:
+                                data[column] += [np.nan for _ in range(points)]
+
+                    i += points
 
         return pd.DataFrame(data)
 
-    def save_dataframe(self, path, sequence_metric="distance", audio_metric="envelope", audio_filter_below=None,
-                      audio_filter_above=None, audio_resampling_frequency=None):
+    def save_dataframe(self, folder_out="", name="dataframe", file_format="pkl", sequence_measure="distance",
+                       audio_measure="envelope", sampling_frequency=None, exclude_columns=None, include_columns=None,
+                       verbosity=1, **kwargs):
+        """Saves a dataframe to disk.
 
-        dataframe = self.get_dataframe(sequence_metric, audio_metric, audio_filter_below, audio_filter_above,
-                                       audio_resampling_frequency)
+        .. versionadded:: 2.0
 
-        os.makedirs(path, exist_ok=True)
-        extension = path.split(".")[-1]
+        Parameters
+        ----------
+        folder_out: str, optional
+            The path to the folder where to save the dataframe. If one or more subfolders of the path do not exist,
+            the function will create them. If the string provided is empty (by default), the sequence will be saved in
+            the current working directory. If the string provided contains a file with an extension, the fields ``name``
+            and ``file_format`` will be ignored.
+
+        name: str,  optional
+            Defines the name of the file or files where to save the dataframe. By default, it is set on `"dataframe`.
+
+        file_format: str, optional
+            The file format in which to save the sequence. The file format must be ``"pkl"`` (default),
+            ``"json"`` (default), ``"xlsx"``, ``"txt"``, ``"csv"``, ``"tsv"``, or, if you are a masochist,
+            ``"mat"``. Notes:
+
+                • ``"xls"`` will save the file with an ``.xlsx`` extension.
+                · Excel files have a limited amount of rows, which may not be compatible with big datasets.
+                • Any string starting with a dot will be accepted (e.g. ``".csv"`` instead of ``"csv"``).
+                • ``"csv;"`` will force the value separator on ``;``, while ``"csv,"`` will force the separator
+                  on ``,``. By default, the function will detect which separator the system uses.
+                • ``"txt"`` and ``"tsv"`` both separate the values by a tabulation.
+                • Any other string will not return an error, but rather be used as a custom extension. The data will
+                  be saved as in a text file (using tabulations as values separators).
+
+        sequence_measure: str
+            The time series to be returned, can be either:
+
+            • ``"x"``, for the values on the x axis (in meters)
+            • ``"y"``, for the values on the y axis (in meters)
+            • ``"z"``, for the values on the z axis (in meters)
+            • ``"distance_hands"``, for the distance between the hands (in meters)
+            • ``"distance"``, for the distance travelled (in meters)
+            • ``"distance_x"`` for the distance travelled on the x axis (in meters)
+            • ``"distance_y"`` for the distance travelled on the y axis (in meters)
+            • ``"distance_z"`` for the distance travelled on the z axis (in meters)
+            • ``"velocity"`` for the velocity (in meters per second)
+            • ``"acceleration"`` for the acceleration (in meters per second squared)
+            • ``"acceleration_abs"`` for the absolute acceleration (in meters per second squared)
+
+        audio_measure: str
+            The time series to be returned, can be either:
+
+            • ``"audio"``, for the original sample values.
+            • ``"envelope"``
+            • ``"pitch"``
+            • ``"f1"``, ``"f2"``, ``"f3"``, ``"f4"``, ``"f5"`` for the values of the corresponding formant
+            • ``"intensity"``
+
+        sampling_frequency: float, optional
+            The frequency at which to resample the two measures before adding them to the dataframe. By default,
+            no resampling is applied. If the sampling frequency of the Sequence and its corresponding Audio differ,
+            the function will return an exception.
+
+        exclude_columns: list or None, optional
+            A list of the columns to exclude from the dataframe. By default, the columns included are:
+
+            • `"subject"`, containing the subject :attr:`Subject.name`.
+            • `"group"`, containing the :attr:`Subject.group` attribute of the :class:`Subject` instances.
+            • `"trial"`, containing the :attr:`Trial.trial_id` attribute of each :class:`Trial` instance.
+            • `"condition"`, containing the :attr:`Trial.condition` attribute of each :class:`Trial` instance.
+            • `"joint_label"`, containing the name of each joint label for each sequence.
+            • `"timestamp"`, containing the timestamps for each Trial.
+            • A column containing the selected sequence measure, which will be either ``"x"``, ``"y"``, ``"z"``,
+              ``"distance_hands"``, ``"distance"``, ``"distance_x"``, ``"distance_y"``, ``"distance_z"``,
+              ``"velocity"``, ``"acceleration"``, or ``"acceleration_abs"``.
+            • A column containing the selected audio measure, either ``"audio"``, ``"envelope"``, ``"pitch"``,
+              `"f1"``, ``"f2"``, ``"f3"``, ``"f4"``, ``"f5"``, or ``"intensity"``.
+
+        include_columns: list or None, optional
+            A list of columns to include to the dataframe. The function will try to find attributes matching the given
+            column names in the Subject and the Trial instances.
+
+            .. note::
+            The function first tries to find the attribute value in the Subject instance, then in the Trial instances.
+            If there is a match in the Subject instance, the function will not try to find an attribute value in the
+            Trial instances, so ensure that you have unique attribute names between Subject and Trial instances.
+            Moreover, if a specific attribute cannot be found for a specific Subject or Trial, the function sets the
+            values to numpy.nan.
+
+        verbosity: int, optional
+            Sets how much feedback the code will provide in the console output:
+
+            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+              current steps.
+            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+              may clutter the output and slow down the execution.
+
+        Note
+        ----
+        The function also allows to set a series af other attributes related to the generation of an Audio or
+        AudioDerivative object. For example, if you choose `"envelope"` as an audio measure, you can add parameters
+        used to generate an envelope in the function :meth:`Audio.get_envelope`, such as `"window_size"`
+        or ``"filter_below"`; these will be directly used when generating the envelope. To know which parameters can be
+        used for each audio derivative, please refer to the corresponding methods in the :class:`Audio`:
+            • :meth:`Audio.filter_and_resample`
+            • :meth:`Audio.get_envelope`
+            • :meth:`Audio.get_pitch`
+            • :meth:`Audio.get_formant`
+            • :meth:`Audio.get_intensity`
+        """
+
+        dataframe = self.get_dataframe(sequence_measure, audio_measure, sampling_frequency, exclude_columns,
+                                       include_columns, verbosity, **kwargs)
+
+        if "." in folder_out.split("/")[-1]:
+            path_out = folder_out
+            folder_out = "/".join(folder_out.split("/")[:-1])
+        else:
+            path_out = folder_out + "/" + name + "." + file_format
+
+        # Automatic creation of all the folders of the path if they don't exist
+        os.makedirs(folder_out, exist_ok=True)
+        extension = path_out.split(".")[-1]
 
         if extension == "json":
-            dataframe.to_json(path)
+            dataframe.to_json(path_out)
         elif extension == "csv":
             sep = get_system_csv_separator()
-            dataframe.to_csv(path, sep)
+            dataframe.to_csv(path_out, sep)
         elif extension in ["xls", "xlsx"]:
-            dataframe.to_excel(path)
+            dataframe.to_excel(path_out)
+        elif extension == "pkl":
+            dataframe.to_pickle(path_out)
         elif extension == ".mat":
             try:
                 import scipy.io.savemat as savemat
             except ImportError:
                 raise ModuleNotFoundError("scipy", "saving a dataframe as a mat file")
-            savemat(path, {"data": dataframe.to_dict()})
+            savemat(path_out, {"data": dataframe.to_dict()})
         else:
-            with open(path) as f:
+            with open(path_out) as f:
                 f.write(dataframe.to_string())
 
-    def _get_audio_values(self, audio, audio_metric, audio_filter_below, audio_filter_above, audio_resampling_frequency):
-        if audio_metric == "audio":
-            return audio.filter_and_resample(audio_filter_below, audio_filter_above, audio_resampling_frequency)
-        elif audio_metric == "envelope":
-            return audio.get_envelope(audio_filter_below, audio_filter_above, audio_resampling_frequency)
-        elif audio_metric == "intensity":
-            return audio.get_intensity(audio_filter_below, audio_filter_above, audio_resampling_frequency)
-        elif audio_metric == "pitch":
-            return audio.get_pitch(audio_filter_below, audio_filter_above, audio_resampling_frequency)
-        elif audio_metric.startswith("f") and len(audio_metric) == 2:
-            return audio.get_formant(audio_filter_below, audio_filter_above, audio_resampling_frequency,
-                                     formant_number=int(audio_metric[1]))
-        else:
-            raise InvalidParameterValueException("audio_metric", audio_metric)
-
     # == Print functions ==
-    def print_subjects_details(self, include_name=True, include_condition=True, include_date_recording=True,
-                                include_number_of_poses=True, include_duration=True):
+    def print_subjects_details(self, include_trials=False, include_name=True, include_condition=True,
+                               include_date_recording=True, include_number_of_poses=True, include_duration=True,
+                               add_tabs=0):
         """Prints details on each Subject instance.
 
         .. versionadded:: 2.0
 
         Parameters
         ----------
+        include_trials: bool, optional
+            If set on `True`, the printed output will contain details from each trial contained in the subject.
         include_name: bool, optional
             If set on ``True`` (default), adds the attribute :attr:`name` to the printed string.
         include_condition: bool, optional
@@ -338,19 +577,29 @@ class Experiment(object):
             If set on ``True`` (default), adds the length of the attribute :attr:`poses` to the printed string.
         include_duration: bool, optional
             If set on ``True`` (default), adds the duration of the Sequence to the printed string.
+        add_tabs: int, optional
+            Adds the specified amount of tabulations to the verbosity outputs. This parameter may be used by other
+            functions to encapsulate the verbosity outputs by indenting them. In a normal use, it shouldn't be set
+            by the user.
         """
-        if len(self.subjects) == 1:
-            title = "=   Experiment " + str(self.name) + ", with " + str(len(self.subjects)) + " subject.   ="
-        else:
-            title = "=   Experiment " + str(self.name) + ", with " + str(len(self.subjects)) + " subjects.   ="
-        print("=" * len(title))
-        print(title)
-        print("=" * len(title) + str("\n"))
 
-        for i in range(len(self.subjects)):
-            subject = self.subjects[i]
-            print("Subject " + str(i+1) + "/" + str(len(self.subjects)))
-            subject.print_sequences_details(include_name, include_condition, include_date_recording,
-                                            include_number_of_poses, include_duration)
+        t = add_tabs * "\t"
+        # Header
+        if len(self.subjects) == 1:
+            title = t + f"==   Experiment {self.name}, with {len(self.subjects)} subject.   =="
+        else:
+            title = t + f"==   Experiment {self.name}, with {len(self.subjects)} subjects.   =="
+        print(t + "=" * len(title))
+        print(title)
+        print(t + "=" * len(title) + str("\n"))
+
+        # Subjects
+        i = 0
+        for subject_name in self.subjects.keys():
+            subject = self.subjects[subject_name]
+            # print(t + f"Subject {i + 1}/{len(self.subjects)}: {subject_name}")
+            subject.print_sequences_details(include_trials, include_name, include_condition, include_date_recording,
+                                            include_number_of_poses, include_duration, 1 + add_tabs)
             if i != len(self.subjects) - 1:
                 print("")
+            i += 1

@@ -70,7 +70,7 @@ def global_correlating(trials, signals, time_vector, concat_series=False, cross_
         plot_dictionary = {}
         for joint in average_correlations.keys():
             graph = Graph()
-            graph.add_plot(time_window, average_correlations[joint], line_width, "#aa0000")
+            graph.add_plot(time_window, average_correlations[joint], None, line_width, "#aa0000")
             plot_dictionary[joint] = graph
         plot_body_graphs(plot_dictionary, name="Cross-correlation")
 
@@ -443,7 +443,7 @@ def global_coherence(trials, signals, time_vector, concat_series=False, frequenc
                     max_coherence = average_coherence[i]
 
             graph = Graph()
-            graph.add_plot(list(freq), list(average_coherence), line_width, "#000000")
+            graph.add_plot(list(freq), list(average_coherence), None, line_width, "#000000")
             plot_dictionary[joint] = graph
 
     if specific_band != "all":
