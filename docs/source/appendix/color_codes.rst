@@ -16,7 +16,8 @@ can be entered through a number of different forms, including:
           by ``"tab:"``, e.g. ``"tab:blue"``).
         • Any of the `MATLAB default plot colors
           <https://www.mathworks.com/help/matlab/creating_plots/specify-plot-colors.html>`_ (preceding the color name
-          by ``"matlab:"``, e.g. ``"matlab:blue"``).
+          by ``"matlab:"``, e.g. ``"matlab:blue"``, or using the starting letter of the color preceded by ``"m"``,
+          e.g. ``"mb"``).
         • A single letter representing one of the 11 default colors (``"r"`` (red), ``"g"`` (green), ``"b"`` (blue),
           ``"c"`` (cyan), ``"m"`` (magenta), ``"y"`` (yellow), ``"o"`` (orange), ``"p"`` (purple), ``"t"`` (teal),
           ``"k"`` (key/black), ``"w"`` (white).

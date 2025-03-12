@@ -1,6 +1,6 @@
 HeadTop	960	10	50
 HeadFront	960	60	50
-HeadRight	910	70	50
+HeadRight	910	50	50
 HeadLeft	1010	50	50
 SpineTop	960	160	100
 ShoulderTopRight	860	195	100

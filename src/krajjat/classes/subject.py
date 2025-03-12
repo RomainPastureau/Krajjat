@@ -49,16 +49,15 @@ class Subject(object):
     """
 
     def __init__(self, name: str, group: str | int = None, gender: str = None, age: int = None):
-        self._name = name
-        self._group = group
-        self._gender = gender
-        self._age = age
+        self.name = name
+        self.group = group
+        self.gender = gender
+        self.age = age
         self.trials = OrderedDict()
 
     # == Getter/Setter functions =======================================================================================
 
-    @property
-    def name(self):
+    def get_name(self):
         """Returns the attribute :attr:`name` of the Subject instance.
 
         .. versionadded:: 2.0
@@ -68,10 +67,9 @@ class Subject(object):
         str
             The name or identifier of the subject.
         """
-        return self._name
+        return self.name
 
-    @name.setter
-    def name(self, name):
+    def set_name(self, name):
         """Sets the attribute :attr:`Subject.name` of the Subject instance.
 
         .. versionadded:: 2.0
@@ -82,10 +80,9 @@ class Subject(object):
             The name or identifier of the subject.
         """
         assert isinstance(name, str)
-        self._name = name
+        self.name = name
 
-    @property
-    def group(self):
+    def get_group(self):
         """Returns the attribute :attr:`group` of the Subject instance.
 
         .. versionadded:: 2.0
@@ -95,10 +92,9 @@ class Subject(object):
         str
             The experimental group the subject belongs to.
         """
-        return self._group
+        return self.group
 
-    @group.setter
-    def group(self, group):
+    def set_group(self, group):
         """Sets the attribute :attr:`Subject.group` of the Subject instance.
 
         .. versionadded:: 2.0
@@ -109,10 +105,9 @@ class Subject(object):
             The experimental group the subject belongs to.
         """
         assert isinstance(group, (str, int))
-        self._group = group
+        self.group = group
 
-    @property
-    def gender(self):
+    def get_gender(self):
         """Returns the attribute :attr:`gender` of the Subject instance.
 
         .. versionadded:: 2.0
@@ -122,10 +117,9 @@ class Subject(object):
         str
             The gender of the subject (e.g. ``"F"```or ``"Female"``).
         """
-        return self._gender
+        return self.gender
 
-    @gender.setter
-    def gender(self, gender):
+    def set_gender(self, gender):
         """Sets the attribute :attr:`Subject.gender` of the Subject instance.
 
         .. versionadded:: 2.0
@@ -135,10 +129,9 @@ class Subject(object):
         gender: str
             The gender of the subject (e.g. ``"F"```or ``"Female"``).
         """
-        self._gender = gender
+        self.gender = gender
 
-    @property
-    def age(self):
+    def get_age(self):
         """Returns the attribute :attr:`age` of the Subject instance.
 
         .. versionadded:: 2.0
@@ -148,10 +141,9 @@ class Subject(object):
         int
             The age of the subject, in years.
         """
-        return self._age
+        return self.age
 
-    @age.setter
-    def age(self, age):
+    def set_age(self, age):
         """Sets the attribute :attr:`Subject.age` of the Subject instance.
 
         .. versionadded:: 2.0
@@ -161,7 +153,7 @@ class Subject(object):
         age: int or None
             The age of the subject, in years.
         """
-        self._age = age
+        self.age = age
 
     # == Special getters ===============================================================================================
 
@@ -463,7 +455,7 @@ class Subject(object):
             The duration between the beginning of the first and the end of the last sequence.
         """
         sequences = self.get_sequences()
-        sequences_in_order = sort_sequences_by_date(sequences)
+        sequences_in_order = sort_sequences_by_date(*sequences)
         duration = sequences_in_order[-1].get_date_recording() - sequences_in_order[0].get_date_recording()
         duration += datetime.timedelta(seconds=sequences_in_order[-1].get_duration())
         return duration
@@ -538,9 +530,9 @@ class Subject(object):
         session. If no session date is provided, the current date is used to calculate the age of the subject. Dates
         must be provided in the gregorian calendar.
 
-        Parameters
         .. versionadded:: 2.0
 
+        Parameters
         ----------
         day_birth: int
             The day of birth of the subject, between 1 and 31.
@@ -622,6 +614,20 @@ class Subject(object):
             raise Exception(f"A trial with this ID {trial.trial_id} already exists for subject {self.name}.")
         else:
             self.trials[trial.trial_id] = trial
+
+    def add_attribute(self, name, value):
+        """Adds an attribute to the Trial instance.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        name: str
+            The name of the attribute.
+        value: any
+            The value of the attribute.
+        """
+        setattr(self, name, value)
 
     def add_sequence(self, sequence, trial_id=None, condition=None):
         """Adds a Sequence instance to the subject.

@@ -1,19 +1,25 @@
 """Functions to perform simple tasks that can be used throughout the toolbox and beyond."""
 import datetime
+import glob
 import os
+import os.path as op
 import random
 
 import math
 import json
+import string
 import warnings
+from ast import literal_eval
 
 import chardet
 import numpy as np
 import pandas as pd
 from scipy.interpolate import CubicSpline, PchipInterpolator, Akima1DInterpolator, interp1d
+from scipy.signal import savgol_filter
 
-from krajjat.classes.exceptions import ModuleNotFoundException, InvalidParameterValueException
-from krajjat.classes.graph_element import *
+from krajjat.classes.exceptions import ModuleNotFoundException, InvalidParameterValueException, NotASubPathException, \
+    InvalidPathException, DifferentSequencesLengthsException, MissingRecordingDateException
+from krajjat.classes.graph_element import Graph
 from krajjat.classes.joint import Joint
 
 # Constants
@@ -23,70 +29,14 @@ UNITS = {"ns": 1000000000, "1ns": 1000000000, "10ns": 100000000, "100ns": 100000
          "s": 1, "sec": 1, "1s": 1, "min": 1 / 60, "mn": 1 / 60, "h": 1 / 3600, "hr": 1 / 3600,
          "d": 1 / 86400, "day": 1 / 86400}
 
-MODULE_DIR = os.path.dirname(__file__)
+MODULE_DIR = op.dirname(__file__)
 
-DEFAULT_FONT_PATH = os.path.join(MODULE_DIR, "res", "junction_bold.otf")
-SILHOUETTE_PATH = os.path.join(MODULE_DIR, "res", "silhouette.png")
+DEFAULT_FONT_PATH = op.join(MODULE_DIR, "res", "junction_bold.otf")
+SILHOUETTE_PATH = op.join(MODULE_DIR, "res", "silhouette.png")
 
 
 # === Folder and path functions ===
-def find_common_parent_path(paths):
-    """Finds the common root to a series of paths. If the root of the paths is different, the function returns an
-    empty string.
-
-    .. versionadded:: 2.0
-
-    Parameters
-    ----------
-    paths: list(str)
-        The list of paths. If the list contains only one element, this element will be returned by the function.
-
-    Returns
-    -------
-    str
-        The common parent path between the paths passed as parameters.
-
-    Example
-    -------
-    >>> path1 = "C:/Users/Olivia/Documents/Word/Novels/Celsius 233.docx"
-    >>> path2 = "C:/Users/Olivia/Documents/Word/Novels/Arrogance and Preconception.docx"
-    >>> path3 = "C:/Users/Olivia/Documents/Word/Documentation/Krajjat documentation.docx"
-    >>> path4 = "C:/Users/Olivia/Documents/Excel/Results/Results_1.xlsx"
-    >>> path5 = "C:/Users/Olivia/Documents/Excel/Results/Results_2.xlsx"
-    >>> path6 = "C:/Users/Olivia/Documents/Contract.pdf"
-    >>> print(find_common_parent_path([path1, path2, path3, path4, path5, path6]))
-    C:/Users/Olivia/Documents/
-    """
-
-    if len(paths) == 1:
-        return paths[0]
-
-    paths_separated = []
-    min_length = None
-
-    for path in paths:
-        sub_paths = path.split("/")
-        paths_separated.append(sub_paths)
-        if min_length is None:
-            min_length = len(sub_paths)
-        elif len(sub_paths) < min_length:
-            min_length = len(sub_paths)
-
-    common_parent_path = ""
-    add_path = True
-    for i in range(min_length):
-        for j in range(1, len(paths_separated)):
-            if not paths_separated[j - 1][i] == paths_separated[j][i]:
-                add_path = False
-                break
-
-        if add_path:
-            common_parent_path += paths_separated[0][i] + "/"
-
-    return common_parent_path
-
-
-def compute_subpath(path1, path2):
+def compute_subpath(path1, path2, separator=os.sep, remove_leading_separators=True, remove_ending_separators=True):
     """Considering two absolute paths path1 and path2, where one is a parent path of the other, this function
     returns the subdirectories absent from the other.
 
@@ -98,6 +48,14 @@ def compute_subpath(path1, path2):
         An absolute path.
     path2: str
         An absolute path.
+    separator: str
+        The separator symbol between the elements of the path (default: ``os.sep``).
+    remove_leading_separators: bool
+        If `True` (default), the function will remove the leading separators from the subpath (e.g. ``"/docs/file.txt"``
+        will become ``"docs/file.txt"``).
+    remove_ending_separators: bool
+        If `True` (default), the function will remove the ending separators from the subpath (e.g. ``"/docs/files/"``
+        will become ``"/docs/files"``).
 
     Returns
     -------
@@ -109,35 +67,45 @@ def compute_subpath(path1, path2):
     >>> path1 = "C:/Users/Shawn/"
     >>> path2 = "C:/Users/Shawn/Music/Coldplay/A Rush of Blood to the Head/"
     >>> print(compute_subpath(path1, path2))
-    Music/Coldplay/A Rush of Blood to the Head/
+    Music/Coldplay/A Rush of Blood to the Head
     """
 
-    path1 = path1.split("/")
-    path2 = path2.split("/")
-
-    i = 0
-
-    for i in range(min(len(path1), len(path2))):
-        if path1[i] != path2[i]:
-            break
+    path1 = op.normpath(path1)
+    path2 = op.normpath(path2)
 
     if len(path1) > len(path2):
-        sub_path = "/".join(path1[i:])
+        if path2 not in path1:
+            raise NotASubPathException(path2, path1)
+        else:
+            sub_path = path1.replace(path2, "")
     else:
-        sub_path = "/".join(path2[i:])
+        if path1 not in path2:
+            raise NotASubPathException(path2, path1)
+        else:
+            sub_path = path2.replace(path1, "")
+
+    if remove_leading_separators:
+        while sub_path.startswith(separator):
+            sub_path = sub_path[len(separator):]
+
+    if remove_ending_separators:
+        while sub_path.endswith(separator):
+            sub_path = sub_path[:-len(separator)]
 
     return sub_path
 
 
-def get_difference_paths(paths):
+def get_difference_paths(*paths, separator="/"):
     """Returns, for each path, a list of the subfolders that are not common with all the other paths.
 
     .. versionadded:: 2.0
 
     Parameters
     ----------
-    paths: list(str)
-        The list of paths.
+    paths: str
+        The paths, or a list of paths preceded by an asterisk ``*``.
+    separator: str
+        The separator symbol between the elements of the path (default: ``"/"``).
 
     Returns
     -------
@@ -149,16 +117,20 @@ def get_difference_paths(paths):
     -------
     >>> path1 = "C:/Sequences/Raw/Subject1/Feb1/Sequence1"
     >>> path2 = "C:/Sequences/Resampled/Subject1/Mar1/Sequence1"
-    >>> get_difference_paths([path1, path2])
+    >>> get_difference_paths(path1, path2)
+    [['Raw', 'Feb1'], ['Original', 'Mar1']]
+    >>> get_difference_paths(*[path1, path2])
     [['Raw', 'Feb1'], ['Original', 'Mar1']]
     """
-    paths_splitted = []
+
+    paths_split = []
     min_len = None
 
+    # We split each path in lists, and get the smallest path length
     for path in paths:
-        path_splitted = path.split("/")
-        paths_splitted.append(path_splitted)
-        length_path = len(path_splitted)
+        path_split = path.split(separator)
+        paths_split.append(path_split)
+        length_path = len(path_split)
         if min_len is None:
             min_len = length_path
         elif min_len > length_path:
@@ -166,72 +138,272 @@ def get_difference_paths(paths):
 
     new_paths = [[] for _ in range(len(paths))]
 
+    # We calculate which subpaths are not the same
     if min_len > 1:
         for i in range(min_len):
             keep = False
-            for p in range(len(paths_splitted)):
-                if paths_splitted[p][i] != paths_splitted[0][i]:
+            for p in range(len(paths_split)):
+                if paths_split[p][i] != paths_split[0][i]:
                     keep = True
             if keep:
-                for p in range(len(paths_splitted)):
-                    new_paths[p].append(paths_splitted[p][i])
+                for p in range(len(paths_split)):
+                    new_paths[p].append(paths_split[p][i])
 
-        for p in range(len(paths_splitted)):
-            if len(paths_splitted[p]) > min_len:
-                for i in range(min_len, len(paths_splitted[p])):
-                    new_paths[p].append(paths_splitted[p][i])
+        for p in range(len(paths_split)):
+            if len(paths_split[p]) > min_len:
+                for i in range(min_len, len(paths_split[p])):
+                    new_paths[p].append(paths_split[p][i])
 
     else:
-        new_paths = paths_splitted
+        new_paths = paths_split
 
     return new_paths
 
 
-def get_objects_paths(list_of_objects):
+def get_objects_paths(*objects):
     """Returns a list of the attributes ``path`` of the objects passed as parameter (Sequence or Audio instances).
 
     .. versionadded:: 2.0
 
     Parameters
     ----------
-    list_of_objects: list(Sequence) or list(Audio)
-        A list of Sequence or Audio instances.
+    objects: Sequence|Audio
+        One or many Sequence or Audio instances, or a list of these objects preceded by an asterisk ``*``.
 
     Returns
     -------
     list(str)
         A list of paths.
+
+    Example
+    -------
+    >>> sequence1 = Sequence("C:/Documents/Sequences/sequence1.json")
+    >>> sequence2 = Sequence("C:/Documents/Sequences/sequence2.json")
+    >>> get_objects_paths(sequence1, sequence2)
+    ["C:/Documents/Sequences/sequence1.json", "C:/Documents/Sequences/sequence2.json"]
+    >>> get_objects_paths(*[sequence1, sequence2])
     """
     paths = []
-    for element in list_of_objects:
+    for element in objects:
         paths.append(element.get_path())
     return paths
 
 
+def sort_files_trailing_index(path, accepted_extensions=None, separator="_", ignore_files_without_index=True,
+                              error_if_missing_indices=True, error_if_multiple_extensions=True, object_type="sequence",
+                              verbosity=1, add_tabs=0):
+    """Assuming a list of files where each name contains a trailing index (e.g. filename_42.ext), returns the list
+    of files sorted by their trailing index.
+
+    Note
+    ----
+    This function allows to order the files consistently across different file systems despite the lack of leading zeros
+    in the index: some systems would place ``pose_11.json`` alphabetically before ``pose_2.json`` (1 comes before 2),
+    while some other systems place it after as 11 is greater than 2. In order to avoid these inconsistencies, the
+    function converts the number after the underscore into an integer to place it properly according to its index.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    path: str
+        A path containing files where each name contains a trailing index (e.g. filename_42.ext).
+
+    accepted_extensions: str|list|None
+        An extension, or a list containing the extensions accepted. Any file with a different extension will be ignored
+        by the function. If set on `None`, all the extensions are accepted. Note that having multiple extensions in the
+        target folder may raise an exception - see the parameter `error_if_multiple_extensions`.
+
+    separator: str
+        A character, or series of characters to look for in the name of the file that separate the name of the file
+        from its index (default: underscore ``"_"``). If the separator is blank, the function tries to find the trailing
+        number.
+
+    ignore_files_without_index: bool
+        If set on `False`, the function returns an error when finding a file that does not contain the separator symbol
+        and hence, cannot find the index. If set on `True` (default), the files without indices are simply ignored.
+
+    error_if_missing_indices: bool
+        If set on `True` (default), the function checks, after sorting the files, if some expected indices are missing.
+        For example, if a `file_23.ext` and a `file_25.ext` are found, but no `file_24.ext`, the function would return
+        an error. If set on `False`, the function does not check for missing indices and returns the sorted files.
+
+    error_if_multiple_extensions: bool
+        If set on `True`, raises an error if more than one of the accepted extensions are found in the folder. If set on
+        `False`, does not raise an error - the function will, however, return an error if two files have the same
+        index but with different extensions.
+
+    object_type: str
+        The type of object that will be created from opening this file. This parameter only exists in order to return
+        exceptions.
+
+    verbosity: int, optional
+        Sets how much feedback the code will provide in the console output:
+
+        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+          current steps.
+        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+          may clutter the output and slow down the execution.
+
+    add_tabs: int, optional
+        Adds the specified amount of tabulations to the verbosity outputs. This parameter may be used by other
+        functions to encapsulate the verbosity outputs by indenting them. In a normal use, it shouldn't be set
+        by the user.
+
+    Example
+    -------
+    >>> # Let's consider a directory with the following files: `sequence_1.txt`, `sequence_10.txt`,
+    >>> # `sequence_100.txt`, `sequence_11.txt` and `sequence_2.txt`.
+    >>> print(sort_files_trailing_index("C:/Sequences"))
+    ["sequence_1.txt", "sequence_2.txt", "sequence_10.txt", "sequence_11.txt", "sequence_100.txt"]
+    """
+
+    t = add_tabs * "\t"
+
+    if "*" in path:
+        files = [os.path.split(file)[1] for file in glob.glob(path)]
+        path = os.path.split(path)[0]
+    else:
+        files = os.listdir(path)  # List all the files in the folder
+    files_indices = {}
+    # ordered_files = ["" for _ in range(len(files))]  # Create an empty list the length of the files
+    extensions_found = []  # Save the valid extensions found in the folder
+
+    accept_any_extension = False
+    if accepted_extensions is None:
+        accept_any_extension = True
+
+    # Here, we find all the files that have an index in the folder.
+    for f in files:
+
+        # We check if the element is a file
+        if op.isfile(op.join(path, f)):
+
+            # We get the file extension - if there is no dot, there is no extension
+            if "." in f:
+                extension = f.split(".")[-1]
+            else:
+                extension = ""
+
+            if accept_any_extension or extension in accepted_extensions:
+
+                if verbosity > 1:
+                    print(t+"\tAdding file: " + str(f))
+
+                # We try to find the index
+                if separator in f:
+
+                    if len(separator) > 0:
+                        file_index = f.split(".")[0].split(separator)[-1]
+                    else:
+                        file_index = ""
+                        for i in range(len(f.split(".")[0])-1, 0, -1):
+                            if f[i] in string.digits:
+                                file_index = f[i] + file_index
+                            else:
+                                break
+
+                    if len(file_index) > 0:
+                        if file_index.isdigit():
+                            files_indices[f] = int(file_index)
+                        else:
+                            if ignore_files_without_index:
+                                if verbosity > 1:
+                                    print(t + f"\tIgnoring file (no index detected in the name): " + str(f))
+                            else:
+                                raise Exception(f"A file without an index was found: ({f}).")
+
+                    elif not ignore_files_without_index:
+                        raise Exception(f"A file without an index was found: ({f}).")
+
+                    if extension not in extensions_found:
+                        extensions_found.append(extension)
+
+                        if len(extensions_found) > 1 and error_if_multiple_extensions:
+                            raise InvalidPathException(path, object_type, "More than one of the accepted extensions "
+                                                       "has been found in the provided folder: " +
+                                                       f"{extensions_found[0]} and {extensions_found[1]}")
+
+                else:
+
+                    if ignore_files_without_index:
+                        if verbosity > 1:
+                            print(t+f"""\tIgnoring file (no "{separator}" detected in the name): """ + str(f))
+
+                    else:
+                        raise Exception(f"A file without an index was found: ({f}).")
+
+            else:
+                if verbosity > 1:
+                    print(t+"\tIgnoring file (not an accepted filetype): " + str(f))
+
+        else:
+            if verbosity > 1:
+                print(t+"\tIgnoring folder: " + str(f))
+
+    # Reverse dictionary
+    indices_files = {v: k for k, v in files_indices.items()}
+    indices = list(indices_files.keys())
+    indices.sort()
+
+    if len(indices_files) != len(files_indices):
+        values = {i: 0 for i in indices}
+        for k in files_indices.keys():
+            values[files_indices[k]] += 1
+            if values[files_indices[k]] == 2:
+                raise InvalidPathException(path, object_type, f"At least two files have the same index ( " +
+                                           f"{files_indices[k]}) in the target folder.")
+
+    ordered_files = []
+    last_index = None
+    for index in indices:
+        ordered_files.append(indices_files[index])
+
+        if last_index is not None and index != last_index + 1 and error_if_missing_indices:
+            raise InvalidPathException(path, object_type, f"At least one of the files is missing (index " +
+                                       f"{last_index + 1}).")
+        last_index = index
+
+    if verbosity > 0:
+        print(str(len(ordered_files)) + " file(s) found.")
+
+    return ordered_files
+
+
 # === Name functions ===
-def get_objects_names(list_of_objects):
+def get_objects_names(*objects):
     """Returns a list of the attributes ``name`` of the objects passed as parameter (Sequence or Audio instances).
 
     .. versionadded:: 2.0
 
     Parameters
     ----------
-    list_of_objects: list(Sequence) or list(Audio)
-        A list of Sequence or Audio instances.
+    objects: Sequence|Audio
+        One or many Sequence or Audio instances, or a list of these objects preceded by an asterisk ``*``.
 
     Returns
     -------
     list(str)
         A list of names.
+
+    Example
+    -------
+    >>> sequence1 = Sequence("C:/Documents/Sequences/sequence1.json")
+    >>> sequence2 = Sequence("C:/Documents/Sequences/sequence2.json", name="seq2")
+    >>> get_objects_names(sequence1, sequence2)
+    ["sequence1.json", "seq2"]
+    >>> get_objects_names(*[sequence1, sequence2])
+    ["sequence1.json", "seq2"]
     """
     names = []
-    for element in list_of_objects:
+    for element in objects:
         names.append(element.get_name())
     return names
 
 
 # === Sequences functions ===
-def compute_different_joints(sequence1, sequence2, verbosity=False):
+def compute_different_joints(sequence1, sequence2, acceptable_rounding_decimal=5, verbosity=1):
     """Returns the number of joints having different coordinates between two sequences having the same amount of poses.
     This function can be used to check how many joints have been modified by a processing function.
 
@@ -240,6 +412,83 @@ def compute_different_joints(sequence1, sequence2, verbosity=False):
     Note
     ----
     To discard the rounding errors due to other functions, this function rounds the coordinates to the fifth decimal.
+
+    Parameters
+    ----------
+    sequence1: Sequence
+        A Sequence instance.
+    sequence2: Sequence
+        A Sequence instance.
+    acceptable_rounding_decimal: int
+        The decimal at which to round the values to account for rounding errors (default: 5).
+    verbosity: int, optional
+        Sets how much feedback the code will provide in the console output:
+
+        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+          current steps.
+        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+          may clutter the output and slow down the execution.
+
+    Returns
+    -------
+    int
+        The number of different joints between the two sequences.
+    int
+        The total number of joints in each of the sequences.
+
+    Example
+    -------
+    >>> sequence_1 = Sequence("sequence_1.json")
+    >>> sequence_1_corrected = sequence_1.correct_jitter(0.1, 2)
+    >>> print(compute_different_joints(sequence_1, sequence_1_corrected))
+    (1, 9)
+    """
+    if len(sequence1) != len(sequence2):
+        raise DifferentSequencesLengthsException(sequence1, sequence2)
+
+    different_joints = 0
+    total_joints = 0
+
+    rd = acceptable_rounding_decimal
+
+    for p in range(len(sequence1.poses)):  # For all the poses
+        for j in sequence1.poses[p].joints.keys():  # For all the joints
+
+            # We round the coordinates to 5 significant digits in order to account for rounding errors
+            if round(sequence1.poses[p].joints[j].x, rd) == round(sequence2.poses[p].joints[j].x, rd) and \
+                    round(sequence1.poses[p].joints[j].y, rd) == round(sequence2.poses[p].joints[j].y, rd) and \
+                    round(sequence1.poses[p].joints[j].z, rd) == round(sequence2.poses[p].joints[j].z, rd):
+                total_joints += 1
+
+            else:
+                # If verbosity, we show the number of the pose, the name of the joint, and the coordinates of the
+                # two sequences
+                if verbosity > 0:
+                    print("Pose n°" + str(p) + ", " + str(j))
+                    print("X: " + str(sequence1.poses[p].joints[j].x) +
+                          "; Y: " + str(sequence1.poses[p].joints[j].y) +
+                          "; Z: " + str(sequence1.poses[p].joints[j].z))
+                    print("X: " + str(sequence2.poses[p].joints[j].x) +
+                          "; Y: " + str(sequence2.poses[p].joints[j].y) +
+                          "; Z: " + str(sequence2.poses[p].joints[j].z))
+
+                different_joints += 1
+                total_joints += 1
+
+    # We print the result
+    if verbosity > 0:
+        print("Different joints: " + str(different_joints) + "/" + str(total_joints) + " (" + str(round(
+            different_joints * 100 / total_joints, 2)) + "%).")
+
+    return different_joints, total_joints
+
+
+def align_two_sequences(sequence1, sequence2, verbosity=1):
+    """Checks if one sequence is a subset of another; if true, the function returns the indices at which the two
+    sequences start synchronizing. Otherwise, it returns ``False``.
+
+    .. versionadded:: 2.0
 
     Parameters
     ----------
@@ -258,67 +507,17 @@ def compute_different_joints(sequence1, sequence2, verbosity=False):
 
     Returns
     -------
-    int
-        The number of different joints between the two sequences.
-    int
-        The total number of joints in each of the sequences.
-    """
-    if len(sequence1) != len(sequence2):
-        raise Exception("The two sequences do not have the same size (" + str(len(sequence1)) + " and " +
-                        str(len(sequence2)) + ").")
-
-    different_joints = 0
-    total_joints = 0
-
-    for p in range(len(sequence1.poses)):  # For all the poses
-        for j in sequence1.poses[p].joints.keys():  # For all the joints
-
-            # We round the coordinates to 5 significant digits in order to account for rounding errors
-            if round(sequence1.poses[p].joints[j].x, 5) == round(sequence2.poses[p].joints[j].x, 5) and \
-                    round(sequence1.poses[p].joints[j].y, 5) == round(sequence2.poses[p].joints[j].y, 5) and \
-                    round(sequence1.poses[p].joints[j].z, 5) == round(sequence2.poses[p].joints[j].z, 5):
-                total_joints += 1
-
-            else:
-                # If verbosity, we show the number of the pose, the name of the joint, and the coordinates of the
-                # two sequences
-                if verbosity:
-                    print("Pose n°" + str(p) + ", " + str(j))
-                    print("X: " + str(sequence1.poses[p].joints[j].x) +
-                          "; Y: " + str(sequence1.poses[p].joints[j].y) +
-                          "; Z: " + str(sequence1.poses[p].joints[j].z))
-                    print("X: " + str(sequence2.poses[p].joints[j].x) +
-                          "; Y: " + str(sequence2.poses[p].joints[j].y) +
-                          "; Z: " + str(sequence2.poses[p].joints[j].z))
-                different_joints += 1
-                total_joints += 1
-
-    # We print the result
-    print("Different joints: " + str(different_joints) + "/" + str(total_joints) + " (" + str(
-        different_joints / total_joints) + "%).")
-
-    return different_joints, total_joints
-
-
-def align_two_sequences(sequence1, sequence2):
-    """Checks if one sequence is a subset of another; if true, the function returns the indices at which the two
-    sequences start synchronizing. Otherwise, it returns ``False``.
-
-    .. versionadded:: 2.0
-
-    Parameters
-    ----------
-    sequence1: Sequence
-        A Sequence instance.
-    sequence2: Sequence
-        A Sequence instance.
-
-    Returns
-    -------
-    list or False
-        If one of the sequences is a subsequence of the other, the function returns a list of two integers,
+    tuple or None
+        If one of the sequences is a subsequence of the other, the function returns a tuple of two integers,
         corresponding to the indices of the first and the second sequences where the two sequences synchronize,
-        respectively. Otherwise, this function returns ``False``.
+        respectively. Otherwise, this function returns `None`.
+
+    Example
+    -------
+    >>> sequence_1 = Sequence("C:/Users/Shawn/sequence_1.tsv")  # This sequence is sampled at 10 Hz
+    >>> sequence_2 = sequence_1.trim(start = 1)  # We trim at 1s, meaning we remove the first 10 poses
+    >>> print(align_two_sequences(sequence_1, sequence_2))
+    (0, 10)
     """
 
     indices = None
@@ -334,7 +533,9 @@ def align_two_sequences(sequence1, sequence2):
 
     # If the joints are not the same between the two sequences, we return False.
     if joint_labels_1 != joint_labels_2:
-        return False
+        if verbosity > 0:
+            print("No alignment found between the two sequences: the joint labels are different.")
+        return None
 
     # We compare for the x coordinate of the first joint
     subsequence1 = []
@@ -346,17 +547,19 @@ def align_two_sequences(sequence1, sequence2):
         subsequence2.append(sequence2.poses[p].joints[joint_labels_2[0]].x)
 
     if longest_sequence == 2:
-        for i in range(0, len(subsequence2) - len(subsequence1)):
+        for i in range(0, len(subsequence2) - len(subsequence1) + 1):
             if subsequence1 == subsequence2[i:i + len(subsequence1)]:
-                indices = [0, i]
+                indices = (0, i)
     else:
-        for i in range(0, len(subsequence1) - len(subsequence2)):
+        for i in range(0, len(subsequence1) - len(subsequence2) + 1):
             if subsequence2 == subsequence1[i:i + len(subsequence2)]:
-                indices = [i, 0]
+                indices = (i, 0)
 
     # If we didn't find any subsequence, we return False
     if indices is None:
-        return False
+        if verbosity > 0:
+            print("No alignment found between the two sequences: no match found for the x coordinates.")
+        return None
 
     # Otherwise, we check for every other coordinate
     for joint_label in joint_labels_1:
@@ -365,23 +568,60 @@ def align_two_sequences(sequence1, sequence2):
 
             subsequence1 = []
             for p in range(0, len(sequence1.poses)):
-                subsequence1.append(sequence1.poses[p].joints[joint_label].position[coordinate])
+                subsequence1.append(sequence1.poses[p].joints[joint_label].get_position()[coordinate])
             subsequence2 = []
             for p in range(0, len(sequence2.poses)):
-                subsequence2.append(sequence2.poses[p].joints[joint_label].position[coordinate])
+                subsequence2.append(sequence2.poses[p].joints[joint_label].get_position()[coordinate])
 
             if longest_sequence == 2:
                 if subsequence1 != subsequence2[indices[1]:indices[1] + len(subsequence1)]:
-                    return False
+                    if verbosity > 0:
+                        print("No alignment found between the two sequences: mismatch for the values.")
+                    return None
             else:
                 if subsequence2 != subsequence1[indices[0]:indices[0] + len(subsequence2)]:
-                    return False
+                    if verbosity > 0:
+                        print("No alignment found between the two sequences: mismatch for the values.")
+                    return None
+
+    if verbosity > 0:
+        print(f"Alignment found between the two sequences, at indices {indices[0]} and {indices[1]}.")
 
     return indices
 
 
-def align_multiple_sequences(sequences, verbosity=1):
-    """Given a list of sequences, returns """
+def align_multiple_sequences(*sequences, verbosity=1):
+    """Returns the synchronized timestamps of multiple sequences. If one or more sequences passed as parameter are
+    not subsets of other sequences or do not contain other sequences, their original timestamps are returned.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    sequences: Sequence
+        One or more Sequence instances.
+    verbosity: int, optional
+        Sets how much feedback the code will provide in the console output:
+
+        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+          current steps.
+        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+          may clutter the output and slow down the execution.
+
+    Returns
+    -------
+    list(list(float))
+        A list of synchronized timestamps arrays, matching the order the Sequence instances were passed as parameters.
+
+    Example
+    -------
+    >>> sequence_1 = Sequence("C:/Users/Irving/sequence_1.tsv")  # This sequence is sampled at 10 Hz with 5 samples
+    >>> sequence_2 = sequence_1.trim(start = 0.1)  # We trim at 0.1s, meaning we remove the first pose
+    >>> sequence_3 = sequence_1.trim(start = 0.3)  # We trim at 0.3s, meaning we remove the first 3 poses
+    >>> print(align_multiple_sequences(sequence_1, sequence_2, sequence_3))
+    [[0.0, 0.1, 0.2, 0.3, 0.4], [0.1, 0.2, 0.3, 0.4], [0.3, 0.4]]
+    """
 
     # Get the time array
     timestamps = []
@@ -395,7 +635,7 @@ def align_multiple_sequences(sequences, verbosity=1):
             prior_sequence = sequences[prior_sequence_index]
 
             # Returns False if the two sequence don't align, returns two indices otherwise
-            alignment_indices = align_two_sequences(sequence, prior_sequence)
+            alignment_indices = align_two_sequences(sequence, prior_sequence, verbosity)
 
             # If the sequences do align
             if alignment_indices:
@@ -428,29 +668,41 @@ def align_multiple_sequences(sequences, verbosity=1):
     return timestamps
 
 
-def sort_sequences_by_date(sequences):
-    """Takes an array of sequences as parameter, and returns an array containing the same sequences, ordered by
+def sort_sequences_by_date(*sequences):
+    """Takes multiple sequences as a parameter, and returns an array containing the same sequences, ordered by
     recording date. If at least one sequence of the array has an attribute :attr:`Sequence.date_recording` set on
-    None, the function will return an error.
+    `None`, the function will throw an error.
 
     .. versionadded:: 2.0
 
     Parameters
     ----------
-    sequences: list(Sequence)
+    sequences: Sequence
         A list of Sequence instances.
 
     Returns
     -------
     list(Sequence)
         A list of Sequence instances, ordered by date of recording.
+
+    Raises
+    ------
+    MissingRecordingDateException
+        If the recording date is missing from one of the sequences.
+
+    Example
+    -------
+    >>> sequence_1 = Sequence("C:/Users/Walter/sequence_1.tsv", name="seq_1")  # Sequence recorded 2000-01-01
+    >>> sequence_2 = Sequence("C:/Users/Walter/sequence_1.tsv", name="seq_2")  # Sequence recorded 2000-01-03
+    >>> sequence_3 = Sequence("C:/Users/Walter/sequence_1.tsv", name="seq_3")  # Sequence recorded 2000-01-02
+    >>> print(sort_sequences_by_date(sequence_1, sequence_2, sequence_3))
+    [seq_1, seq_3, seq_2]
     """
     dates = {}
 
     for sequence in sequences:
         if sequence.get_date_recording() is None:
-            raise Exception("The sequence " + str(sequence.name) + " does not have a date of recording. The sequences" +
-                            " cannot be sorted by recording date.")
+            raise MissingRecordingDateException(sequence)
         else:
             dates[sequence.get_date_recording()] = sequence
 
@@ -468,10 +720,11 @@ def get_system_csv_separator():
 
     Note
     ----
-    This function detects the local decimal separator, and sets the csv delimiter on a semicolon (";") if the local
-    decimal separator is a comma (","). In any other case, the csv delimiter is set on a comma (","). Note that in
-    specific regions of the world, the result may not be ideal. In that case, you can force the csv delimiter to be
-    the symbol of your choice by writing "csv," or "csv;" when asked for a file extension.
+    This function detects the local decimal separator, and sets the csv delimiter on a semicolon (``";"``) if the local
+    decimal separator is a comma (``","``). In any other case, the csv delimiter is set on a comma (``","``). Note that
+    in certain cases, the result of this function may not be ideal (e.g. if the comma can be used as a symbol in the
+    values of the csv file). In that case, you can force the csv delimiter to be the symbol of your choice by writing
+    ``"csv,"`` or ``"csv;"`` when asked for a file extension.
 
     Returns
     -------
@@ -499,7 +752,7 @@ SEPARATOR = get_system_csv_separator()
 
 def get_filetype_separator(extension):
     """Returns the separator used in specific text format files (comma, semicolon or tab). For csv, returns the
-    separator used on the current system. For txt or tsv files, returns a tabulation symbol.
+    separator used on the current system. For txt or tsv files (or any other extension), returns a tabulation symbol.
 
     .. versionadded:: 2.0
 
@@ -512,6 +765,13 @@ def get_filetype_separator(extension):
     -------
     str
          The character used as separator between values in the target file extension.
+
+    Examples
+    --------
+    >>> get_filetype_separator("csv")
+    ","
+    >>> get_filetype_separator("tsv")
+    "\t"
     """
     if extension == "csv":  # Get the separator from local user (to get , or ;)
         separator = SEPARATOR
@@ -521,7 +781,7 @@ def get_filetype_separator(extension):
 
 
 def read_json(path):
-    """Loads and returns the content of a ``.json`` file.
+    """Detects the encoding, loads and returns the content of a `.json` file.
 
     .. versionadded:: 2.0
 
@@ -532,8 +792,13 @@ def read_json(path):
 
     Returns
     -------
-    list or dict
+    list|dict
         The content of the json file.
+
+    Example
+    -------
+    >>> read_json("winning_lottery_numbers.json")
+    {"January 1": [4, 8, 15, 16, 23, 42], "January 2": [1, 2, 3, 5, 8, 13]}
     """
 
     with open(path, "rb") as f:
@@ -546,10 +811,13 @@ def read_json(path):
     return json.loads(content)
 
 
-def read_text_table(path, verbosity=1):
-    """Detects the encoding, loads and returns the content of a ``.csv``, ``.tsv`` or ``.txt`` file containing a table.
+def read_text_table(path, convert_strings=True, separator=None, read_metadata=True, standardize_labels="auto",
+                    keyword_data_start="Timestamp", keyword_data_in_table=True, verbosity=1):
+    """Detects the encoding, loads and returns the content of a `.csv`, `.tsv` or `.txt` file containing a table.
     The function also returns a dictionary containing the metadata contained in the file. The metadata is any line
     from the beginning of the file before the appearance of `Timestamp` or `MARKER_NAME` (for Qualisys files).
+    Each line of the metadata must contain two elements: a key and a value, separated by one of the three accepted
+    separators (tab, ``","`` or ``";"``).
 
     .. versionadded:: 2.0
 
@@ -557,6 +825,25 @@ def read_text_table(path, verbosity=1):
     ----------
     path: str
         The path to a text file.
+    convert_strings: bool, optional
+        If `True` (default), the function will try to convert the values from the table to other types (int, float,
+        boolean).
+    separator: str|None, optional
+        If `None`, the symbol separating each cell on a row in the file will be deduced from the extension, using
+        :func:`get_filetype_separator`. Otherwise, the value of this parameter will be used (e.g. ``"\\t"``, ``","``,
+        ``";"``).
+    read_metadata: bool, optional
+        If set on `True` (default), the function tries to find metadata leading the file, before the keyword
+        "Timestamps" starts a new line.
+    keyword_data_start: str, optional
+        The keyword that marks when to stop saving metadata and start saving data (default: ``"Timestamp"``).
+    keyword_data_in_table: bool, optional
+        If `True` (default), the line starting with the `keyword_data_start` is included in the table. Otherwise,
+        the table starts at the next available line.
+    standardize_labels: bool|str, optional
+        If set on ``"auto"`` (default), renames the Qualisys labels (if ``"HeadR"`` is detected in the joint labels -
+        see :ref:`Qualisys to Kualisys conversion<qualisys_to_kualisys>`). Enforce the renaming by setting
+        this parameter on `True`.
     verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
 
@@ -570,8 +857,9 @@ def read_text_table(path, verbosity=1):
     -------
     list(list)
         The content of the text file, with each sub-list containing the elements of a row of the file.
-    dict() or None
-        The metadata of the recording, if contained in the text file; `None` otherwise.
+    dict
+        The metadata of the recording, if contained in the text file. This parameter will return an empty dictionary
+        if the file does not contain metadata.
     """
 
     try:
@@ -579,6 +867,7 @@ def read_text_table(path, verbosity=1):
     except ImportError:
         raise ModuleNotFoundException("chardet", "read a table from a text file.")
 
+    # Read the file with the proper encoding
     with open(path, "rb") as f:
         rawdata = f.read()
         encoding = chardet.detect(rawdata)['encoding']
@@ -589,54 +878,137 @@ def read_text_table(path, verbosity=1):
     # If the data is exported from QTM (Qualisys), convert the tsv to manageable data
     if path.split(".")[-1] == "tsv":
         if data[0].split("\t")[0] == "NO_OF_FRAMES":
-            return convert_data_from_qtm(data, verbosity)
+            return convert_data_from_qtm(data, standardize_labels, verbosity)
 
-    separator = get_filetype_separator(path.split(".")[-1])
+    if separator is None:
+        separator = get_filetype_separator(path.split(".")[-1])
 
     new_data = []
     metadata = {}
-    save_data = False
+    save_data = not read_metadata
+    save_data_next_line = False
+
     for line in data:
         elements = line.split(separator)
         if not save_data:
-            if elements[0] == "Timestamp":
+            if save_data_next_line:
                 save_data = True
+            elif elements[0] == keyword_data_start or (elements[0] == "" and keyword_data_start == "\n"):
+                if keyword_data_in_table:
+                    save_data = True
+                else:
+                    save_data_next_line = True
             else:
                 if len(elements) == 2:
                     metadata[elements[0]] = elements[1]
                 else:
                     metadata[elements[0]] = elements[1:]
 
-        if save_data:
+        if save_data and len(line) != 0:
             new_data.append(line.split(separator))
+
+    if convert_strings:
+        for i in range(len(new_data)):
+            for j in range(len(new_data[i])):
+                try:
+                    new_data[i][j] = literal_eval(new_data[i][j])
+                except ValueError:
+                    pass
+
+        for key in metadata.keys():
+            try:
+                metadata[key] = literal_eval(metadata[key])
+            except ValueError:
+                pass
+            except SyntaxError:
+                pass
 
     return new_data, metadata
 
 
-def read_xlsx(path):
+def read_xlsx(path, sheet=0, read_metadata=True, metadata_sheet=1, verbosity=1):
     """Loads and returns the content of a ``.xlsx`` (Excel) file.
 
     .. versionadded:: 2.0
+
+    Note
+    ----
+    If the Excel file is currently opened, Openpyxl will return a PermissionError. This function catches it and asks
+    the user to press the Enter key once the Excel file is closed. This allows to resume a long processing without
+    having to restart it from scratch.
 
     Parameters
     ----------
     path: str
         The path to an Excel file.
+    sheet: int|str, optional
+        The index of the Excel sheet (starts at 0, which is also the default value), or its name.
+    read_metadata: bool, optional
+        If `True`, tries to find metadata in the sheet indicated by `sheet_metadata`. If `False` (default), the
+        function returns only the first output.
+    metadata_sheet: int|str, optional
+        The index of the Excel sheet containing the metadata (default: 1), or its name. If no second sheet is present,
+        the function returns an empty dict (``{}``) as its second parameter.
+    verbosity: int, optional
+        Sets how much feedback the code will provide in the console output:
+
+        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+          current steps.
+        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+          may clutter the output and slow down the execution.
 
     Returns
     -------
     list(list)
         The content of the Excel file, with each element of the list being a row of the Excel file.
+    dict
+        The metadata of the recording, if contained in the Excel file; ``{}`` otherwise.
     """
     try:
         import openpyxl as op
     except ImportError:
         raise ModuleNotFoundException("openpyxl", "read an Excel file.")
-    workbook = op.load_workbook(path)
-    data = workbook[workbook.sheetnames[0]]
-    workbook.close()
+
+    data = None
+    metadata = None
+
+    opened = False
+    has_metadata = False
+    while not opened:
+        try:
+            workbook = op.load_workbook(path)
+            if len(workbook.sheetnames) > 1:
+                has_metadata = True
+
+            if type(sheet) is str:
+                data = workbook[sheet]
+            elif type(sheet) is int:
+                data = workbook[workbook.sheetnames[sheet]]
+            else:
+                raise Exception(f"The parameter sheet ({sheet}) should be either int or str (not {type(sheet)}).")
+
+            if has_metadata and read_metadata:
+                if verbosity > 0:
+                    print(f"Metadata found in sheet {workbook.sheetnames[metadata_sheet]}.")
+
+                if type(metadata_sheet) is str:
+                    metadata = workbook[metadata_sheet]
+                elif type(metadata_sheet) is int:
+                    metadata = workbook[workbook.sheetnames[metadata_sheet]]
+                else:
+                    raise Exception(f"The parameter metadata_sheet ({metadata_sheet}) should be either int or str " +
+                                    f"(not {type(metadata_sheet)}).")
+            workbook.close()
+            opened = True
+        except PermissionError:
+            print("The Excel file is currently opened.")
+            _ = input("Press Enter to try again.")
 
     # Get the headers (timestamp and joint labels) from the first row
+    if verbosity > 1:
+        print(f"Reading Excel data...")
+
     table = []
     for i in range(1, len(data["A"]) + 1):
         row = []
@@ -644,24 +1016,85 @@ def read_xlsx(path):
             row.append(data.cell(i, j).value)
         table.append(row)
 
-    return table
+    metadata_dict = {}
+    if has_metadata and read_metadata:
+        if verbosity > 1:
+            print(f"Reading Excel metadata...")
+        width = len(metadata["1"])
+        for i in range(1, len(metadata["A"]) + 1):
+            values = []
+            for j in range(2, width + 1):
+                value = metadata.cell(i, j).value
+                if value is not None:
+                    values.append(value)
+            if len(values) == 1:
+                values = values[0]
+            metadata_dict[metadata.cell(i, 1).value] = values
+
+    return table, metadata_dict
 
 
 def read_pandas_dataframe(path, verbosity=1):
+    """Reads a file, and turns it into a Pandas dataframe.
+
+    .. versionadded:: 2.0
+
+    Note
+    ----
+    If the Excel file is currently opened, pandas will return a PermissionError. This function catches it and asks
+    the user to press the Enter key once the Excel file is closed. This allows to resume a long processing without
+    having to restart it from scratch.
+
+    Parameters
+    ----------
+    path: str
+        The path to the file containing data to turn to a pandas dataframe.
+    verbosity: int, optional
+        Sets how much feedback the code will provide in the console output:
+
+        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+          current steps.
+        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+          may clutter the output and slow down the execution.
+
+    Returns
+    -------
+    `pandas.Dataframe <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html>`_
+        A pandas dataframe.
+    """
 
     if path.split(".")[-1] == "json":
+        if verbosity > 0:
+            print("Reading a dataframe contained in a JSON file...")
         return pd.read_json(path)
     elif path.split(".")[-1] == "csv":
-        return pd.read_csv(path, sep=SEPARATOR)
+        if verbosity > 0:
+            print("Reading a dataframe contained in a CSV file...")
+        return pd.read_csv(path)
     elif path.split(".")[-1] == "xlsx":
-        return pd.read_excel(path)
+        if verbosity > 0:
+            print("Reading a dataframe contained in an Excel file...")
+        while True:
+            try:
+                return pd.read_excel(path)
+            except PermissionError:
+                print("The Excel file is currently opened.")
+                _ = input("Press Enter to try again.")
+
     elif path.split(".")[-1] == "pkl":
+        if verbosity > 0:
+            print("Reading a dataframe contained in an Pickle file...")
         return pd.read_pickle(path)
+    elif path.split(".")[-1] == "gzip":
+        if verbosity > 0:
+            print("Reading a dataframe contained in an GZIP file...")
+        return pd.read_parquet(path)
     return None
 
 
 # === Conversion functions ===
-def convert_data_from_qtm(data, verbosity=1):
+def convert_data_from_qtm(data, standardize_labels="auto", verbosity=1):
     """Processes and converts the data from a ``.tsv`` file produced by QTM, by stripping the header data,
     standardizing the name of the joint labels, and converting the distance unit from mm to m. This function then
     returns the loaded table, along with a dictionary containing the metadata of the recording.
@@ -672,6 +1105,10 @@ def convert_data_from_qtm(data, verbosity=1):
     ----------
     data: list(str)
         The data from a ``.tsv`` QTM file with each line separated as the elements of a list.
+    standardize_labels: bool|str, optional
+        If set on ``"auto"`` (default), renames the labels if ``"HeadR"`` is detected in the joint labels
+        (see :ref:`Qualisys to Kualisys conversion<qualisys_to_kualisys>`). Enforce the renaming by setting
+        this parameter on `True`.
     verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
 
@@ -689,16 +1126,12 @@ def convert_data_from_qtm(data, verbosity=1):
         A dictionary containing the metadata from the recording contained in the file.
     """
     new_data = []
-    metadata = {}
+    metadata = {"ORIGIN": "Qualisys"}
     save_data = False
     save_metadata = True
 
     if verbosity > 0:
         print("\n\tConverting data from Qualisys...")
-    if verbosity == 1:
-        print("\t\tStandardizing joints labels...", end=" ")
-    elif verbosity > 1:
-        print("\t\tStandardizing joints labels...")
 
     joints_conversions = load_qualisys_joint_label_conversion()
 
@@ -710,29 +1143,55 @@ def convert_data_from_qtm(data, verbosity=1):
         if elements[0] == "MARKER_NAMES":
             save_metadata = False
             header = ["Timestamp"]
+
+            if standardize_labels == "auto" and set(elements[1:]).issubset(set(joints_conversions.keys())):
+                standardize_labels = True
+            elif standardize_labels is not True:
+                standardize_labels = False
+
+            if standardize_labels:
+                if verbosity == 1:
+                    print("\t\tStandardizing joints labels...", end=" ")
+                elif verbosity > 1:
+                    print("\t\tStandardizing joints labels...")
+
             for j in range(1, len(elements)):
 
-                # We remove the prefix by looking for a joint name in the label:
-                if elements[j] not in joints_conversions.keys():
-                    for label in joints_conversions.keys():
-                        if label in elements[j]:
-                            if verbosity > 1:
-                                print("\t\t\tChanging label name " + elements[j] + " to " +
-                                      joints_conversions[label] + ".")
-                            elements[j] = label
-                            break
+                if standardize_labels:
+                    # We remove the prefix by looking for a joint name in the label:
+                    if elements[j] not in joints_conversions.keys():
+                        for label in joints_conversions.keys():
+                            if label in elements[j]:
+                                if verbosity > 1:
+                                    print("\t\t\tChanging label name " + elements[j] + " to " +
+                                          joints_conversions[label] + ".")
+                                elements[j] = label
+                                break
 
-                header.append(joints_conversions[elements[j]] + "_X")
-                header.append(joints_conversions[elements[j]] + "_Y")
-                header.append(joints_conversions[elements[j]] + "_Z")
+                    header.append(joints_conversions[elements[j]] + "_X")
+                    header.append(joints_conversions[elements[j]] + "_Y")
+                    header.append(joints_conversions[elements[j]] + "_Z")
+
+                else:
+                    header.append(elements[j] + "_X")
+                    header.append(elements[j] + "_Y")
+                    header.append(elements[j] + "_Z")
+
             new_data.append(header)
 
-            if verbosity > 0:
-                print("\t\tLabels standardized.")
+            if standardize_labels:
+                if verbosity > 0:
+                    print("\t\tLabels standardized.")
 
         if save_metadata:
             if len(elements) == 2:
-                metadata[elements[0]] = elements[1]
+                try:
+                    metadata[elements[0]] = literal_eval(elements[1])
+                except ValueError:
+                    pass
+                except SyntaxError:
+                    metadata[elements[0]] = elements[1]
+
             else:
                 metadata[elements[0]] = elements[1:]
 
@@ -766,7 +1225,7 @@ def convert_data_from_qtm(data, verbosity=1):
 
 
 # === File saving functions ===
-def write_text_table(table, separator, path, encoding="utf-8", verbosity=1):
+def write_text_table(table, separator, path, metadata=None, separator_metadata=None, encoding="utf-8", verbosity=1):
     """Converts a table to a string, where elements on the same row are separated by a defined separator, and each row
     is separated by a line break.
 
@@ -780,6 +1239,10 @@ def write_text_table(table, separator, path, encoding="utf-8", verbosity=1):
         The character used to separate elements on the same row.
     path: str
         The complete path of the text file to save.
+    metadata: dict|None, optional
+        The metadata of the file, to write as the leading data in the text file.
+    separator_metadata: str|None, optional
+        If not `None` (default), defines the content of the line separating the metadata from the table.
     encoding: str, optional
         The encoding of the file to save. By default, the file is saved in UTF-8 encoding. This input can take any of
         the `official Python accepted formats <https://docs.python.org/3/library/codecs.html#standard-encodings>`_.
@@ -801,6 +1264,20 @@ def write_text_table(table, separator, path, encoding="utf-8", verbosity=1):
     text = ""
     perc = 10
 
+    if metadata is not None and len(metadata) > 0:
+        if verbosity > 1:
+            print("Writing metadata...", end=" ")
+        for key in metadata.keys():
+            text += str(key) + separator + str(metadata[key]) + "\n"
+        if verbosity > 1:
+            print("Done.")
+
+    if separator_metadata is not None:
+        if separator_metadata == "\n":
+            text += "\n"
+        else:
+            text += separator_metadata + "\n"
+
     for i in range(len(table)):
         perc = show_progression(verbosity, i, len(table), perc)
         for j in range(len(table[i])):
@@ -814,7 +1291,7 @@ def write_text_table(table, separator, path, encoding="utf-8", verbosity=1):
         f.write(text)
 
 
-def write_xlsx(table, path, verbosity=1):
+def write_xlsx(table, path, sheet_name=None, metadata=None, metadata_sheet_name=None, verbosity=1):
     """Saves a table in a ``.xlsx`` file.
 
     .. versionadded:: 2.0
@@ -825,6 +1302,15 @@ def write_xlsx(table, path, verbosity=1):
         A list where each sublist is a row of the table.
     path: str
         The complete path of where to store the Excel file.
+    sheet_name: str|None, optional
+        The name of the sheet containing the data. If `None`, a default name will be attributed to the sheet
+        (``"Sheet"``).
+    metadata: dict|None, optional
+        A dictionary containing metadata keys and values. These will be saved in a separate second sheet, with each
+        key/value pair on a different row.
+    metadata_sheet_name: str|None, optional
+        The name of the sheet containing the metadata. If `None`, a default name will be attributed to the sheet
+        (``"Sheet1"``).
     verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
 
@@ -839,20 +1325,50 @@ def write_xlsx(table, path, verbosity=1):
     except ImportError:
         raise ModuleNotFoundException("openpyxl", "save a file in .xlsx format.")
     workbook_out = op.Workbook()
-    sheet_out = workbook_out.active
+    sheet_data = workbook_out.active
+    if sheet_name is not None:
+        sheet_data.title = "Sheet"
+
+    if verbosity > 0:
+        print("Writing the data...", end=" ")
 
     perc = 10
     for i in range(len(table)):
         perc = show_progression(verbosity, i, len(table), perc)
         for j in range(len(table[i])):
-            sheet_out.cell(i + 1, j + 1, table[i][j])
+            sheet_data.cell(i + 1, j + 1, table[i][j])
+
+    if verbosity > 0:
+        print("Done.")
+
+    if metadata is not None:
+
+        if verbosity > 0:
+            print("Writing the metadata...")
+
+        sheet_metadata = workbook_out.create_sheet()
+        if metadata_sheet_name is not None:
+            sheet_metadata.title = metadata_sheet_name
+        i = 1
+        for key in metadata.keys():
+            sheet_metadata.cell(i, 1, key)
+            if type(metadata[key]) is list:
+                for j in range(len(metadata[key])):
+                    sheet_metadata.cell(i, j + 2, metadata[key][j])
+            else:
+                sheet_metadata.cell(i, 2, metadata[key])
+            i += 1
+
+        if verbosity > 0:
+            print("Done.")
+
     workbook_out.save(path)
     workbook_out.close()
 
 
 # === Calculation functions ===
 def resample_data(array, original_timestamps, resampling_frequency, window_size=1e7, overlap_ratio=0.5,
-                  mode="cubic", time_unit="s", verbosity=1):
+                  method="cubic", time_unit="s", verbosity=1):
     """Resamples an array to the `resampling_frequency` parameter. It first creates a new set of timestamps at the
     desired frequency, and then interpolates the original data to the new timestamps.
 
@@ -882,7 +1398,7 @@ def resample_data(array, original_timestamps, resampling_frequency, window_size=
         concatenated; this allows to discard any "edge" effect due to the windowing. If the parameter is set on `None`
         or 0, the windows will not overlap.
 
-    mode: str, optional
+    method: str, optional
         This parameter allows for various values:
 
         • ``"linear"`` performs a linear
@@ -896,14 +1412,14 @@ def resample_data(array, original_timestamps, resampling_frequency, window_size=
           Polynomial) via `scipy.interpolate.PchipInterpolator
           <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.PchipInterpolator.html>`_.
         • ``"akima"`` performs another type of monotonic cubic spline interpolation, using
-        `scipy.interpolate.Akima1DInterpolator
-        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Akima1DInterpolator.html>`_.
+          `scipy.interpolate.Akima1DInterpolator
+          <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Akima1DInterpolator.html>`_.
         • ``"take"`` keeps one out of n samples from the original array. While being the fastest computation, it will
           be prone to imprecision if the downsampling factor is not an integer divider of the original frequency.
         • ``"interp1d_XXX"`` uses the function `scipy.interpolate.interp1d
           <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`. The XXX part of the
           parameter can be replaced by ``"linear"``, ``"nearest"``, ``"nearest-up"``, ``"zero"``, "slinear"``,
-          ``"quadratic"``, ``"cubic"``”, ``"previous"``, and ``"next"`` (see the documentation of this function for
+          ``"quadratic"``, ``"cubic"``, ``"previous"``, and ``"next"`` (see the documentation of this function for
           specifics).
 
     time_unit: str, optional
@@ -932,6 +1448,14 @@ def resample_data(array, original_timestamps, resampling_frequency, window_size=
     This function allows both the **upsampling** and the **downsampling** of arrays. However, during any of
     these operations, the algorithm only **estimates** the real values of the samples. You should then consider
     the upsampling (and the downsampling, to a lesser extent) with care.
+
+    Example
+    -------
+    >>> array = np.linspace(1, 0, 11)
+    >>> original_timestamps = np.linspace(0, 2, 11)
+    >>> resampling_frequency = 4
+    >>> resample_data(array, original_timestamps, resampling_frequency, method="linear", verbosity=0)
+    ([1, 0.875, 0.75, 0.625, 0.5, 0.375, 0.25, 0.125, 0], [0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2])
     """
 
     if len(array) != len(original_timestamps):
@@ -939,7 +1463,7 @@ def resample_data(array, original_timestamps, resampling_frequency, window_size=
                         "the time points (" + str(len(original_timestamps)) + ").")
 
     if verbosity > 0:
-        print("\tResampling the array at " + str(resampling_frequency) + " Hz (mode: " + str(mode) + ")...")
+        print("\tResampling the array at " + str(resampling_frequency) + " Hz (mode: " + str(method) + ")...")
         if verbosity > 1:
             print("\t\tPerforming the resampling...")
         else:
@@ -991,7 +1515,7 @@ def resample_data(array, original_timestamps, resampling_frequency, window_size=
 
         resampled_window = resample_window(array, original_timestamps, resampled_timestamps, window_start_original,
                                            window_end_original, window_start_resampled, window_end_resampled,
-                                           mode, verbosity)
+                                           method, verbosity)
 
         if verbosity > 1:
             print("Done.\n\t\t\t\tThe resampled window contains " + str(np.size(resampled_window)) + " sample(s).")
@@ -1081,7 +1605,7 @@ def resample_window(array, original_timestamps, resampled_timestamps, index_star
         • ``"interp1d_XXX"`` uses the function `scipy.interpolate.interp1d
           <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`. The XXX part of the
           parameter can be replaced by ``"linear"``, ``"nearest"``, ``"nearest-up"``, ``"zero"``, "slinear"``,
-          ``"quadratic"``, ``"cubic"``”, ``"previous"``, and ``"next"`` (see the documentation of this function for
+          ``"quadratic"``, ``"cubic"``, ``"previous"``, and ``"next"`` (see the documentation of this function for
           specifics).
 
     verbosity: int, optional
@@ -1116,7 +1640,7 @@ def resample_window(array, original_timestamps, resampled_timestamps, index_star
         raise Exception("Only one sample is present in the current window. Please select a larger window size.")
 
     if method == "linear":
-        return np.interp(resampled_timestamps_window, array_window, original_timestamps_window)
+        return np.interp(resampled_timestamps_window, original_timestamps_window, array_window)
     elif method == "cubic":
         interp = CubicSpline(original_timestamps_window, array_window)
         return interp(resampled_timestamps_window)
@@ -1133,7 +1657,7 @@ def resample_window(array, original_timestamps, resampled_timestamps, index_star
         raise Exception("Invalid resampling method: " + str(method) + ".")
 
 
-def interpolate_data(data, time_points_data, time_points_interpolation, mode="linear"):
+def interpolate_data(data, time_points_data, time_points_interpolation, method="linear"):
     """Interpolates incomplete data to a linear array of values.
 
     .. versionadded:: 2.0
@@ -1164,14 +1688,14 @@ def interpolate_data(data, time_points_data, time_points_interpolation, mode="li
           Polynomial) via `scipy.interpolate.PchipInterpolator
           <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.PchipInterpolator.html>`_.
         • ``"akima"`` performs another type of monotonic cubic spline interpolation, using
-        `scipy.interpolate.Akima1DInterpolator
-        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Akima1DInterpolator.html>`_.
+          `scipy.interpolate.Akima1DInterpolator
+          <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Akima1DInterpolator.html>`_.
         • ``"take"`` keeps one out of n samples from the original array. While being the fastest computation, it will
           be prone to imprecision if the downsampling factor is not an integer divider of the original frequency.
         • ``"interp1d_XXX"`` uses the function `scipy.interpolate.interp1d
           <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`. The XXX part of the
           parameter can be replaced by ``"linear"``, ``"nearest"``, ``"nearest-up"``, ``"zero"``, "slinear"``,
-          ``"quadratic"``, ``"cubic"``”, ``"previous"``, and ``"next"`` (see the documentation of this function for
+          ``"quadratic"``, ``"cubic"``, ``"previous"``, and ``"next"`` (see the documentation of this function for
           specifics).
 
     Returns
@@ -1180,106 +1704,45 @@ def interpolate_data(data, time_points_data, time_points_interpolation, mode="li
         The interpolated values.
     numpy.ndarray(float)
         The interpolated time points (same as the parameter ``time_points_interpolation``).
+
+    Example
+    -------
+    >>> array = np.linspace(1, 0, 11)
+    >>> original_timestamps = np.linspace(0, 1, 11)
+    >>> interpolation_timestamps = np.linspace(0.05, 0.95, 10)
+    >>> interpolate_data(array, original_timestamps, interpolation_timestamps, "linear")
+    ([0.95 0.85 0.75 0.65 0.55 0.45 0.35 0.25 0.15 0.05], [0.05 0.15 0.25 0.35 0.45 0.55 0.65 0.75 0.85 0.95])
     """
 
     if len(data) != len(time_points_data):
         raise Exception("The length of the data array (" + str(len(data)) + ") is inconsistent with the length of " +
                         "the time points (" + str(len(time_points_data)) + ").")
 
-    try:
-        from numpy import array
-    except ImportError:
-        raise ModuleNotFoundException("numpy", "interpolate data.")
-
-    try:
-        from scipy import interpolate
-    except ImportError:
-        raise ModuleNotFoundException("numpy", "interpolate data.")
-
-    np_data = array(data)
-    np_time_points = array(time_points_data)
-    np_time_points_complete = array(time_points_interpolation)
+    np_data = np.array(data)
+    np_time_points = np.array(time_points_data)
+    np_time_points_complete = np.array(time_points_interpolation)
 
     #print(time_points_data)
 
-    if mode == "linear":
-        return np.interp(np_time_points_complete, np_data, np_time_points), np_time_points_complete
-    elif mode == "cubic":
+    if method == "linear":
+        return np.interp(np_time_points_complete, np_time_points, np_data), np_time_points_complete
+    elif method == "cubic":
         interp = CubicSpline(np_time_points, np_data)
         return interp(np_time_points_complete), np_time_points_complete
-    elif mode == "pchip":
+    elif method == "pchip":
         for t in range(1, len(time_points_data)):
             if time_points_data[t] <= time_points_data[t-1]:
                 print(t, t-1, time_points_data[t], time_points_data[t-1])
         interp = PchipInterpolator(np_time_points, np_data)
         return interp(np_time_points_complete), np_time_points_complete
-    elif mode == "akima":
+    elif method == "akima":
         interp = Akima1DInterpolator(np_time_points, np_data)
         return interp(np_time_points_complete), np_time_points_complete
-    elif mode.startswith("interp1d"):
-        interp = interp1d(np_time_points, np_data, kind=mode.split("_")[1])
+    elif method.startswith("interp1d"):
+        interp = interp1d(np_time_points, np_data, kind=method.split("_")[1])
         return interp(np_time_points_complete), np_time_points_complete
     else:
-        raise Exception("Invalid resampling method: " + str(mode) + ".")
-
-
-def cosine_filter(nb_samples, par_cell, f_vect, ws_vect):
-    """Creates and returns a filter used to get the envelope of an audio stream.
-
-    Parameters
-    ----------
-    nb_samples: int
-        The length of the filter. It should be equal to the amount of samples in the array to filter.
-    par_cell: list(str)
-        Array with "low", "high" or "notch".
-    f_vect: list(float)
-        Array with normalized frequencies (0 = 0 Hz; 1 = fsample/2).
-    ws_vect: list(float)
-        Array with normalized frequency width.
-
-    Returns
-    -------
-    np.ndarray(float)
-        Filter in the Fourier space
-    """
-
-    f_h = np.ones(nb_samples)
-
-    for i in range(len(f_vect)):
-        f = f_vect[i]
-        ws = ws_vect[i]
-        f_low = nb_samples * (f - ws / 2) / 2
-        f_high = nb_samples * (f + ws / 2) / 2
-        f_mult = np.zeros(nb_samples)
-
-        if par_cell[i] == "low":
-            f_mult[:int(f_low) + 1] = 1
-            f_mult[int(np.ceil(f_high)):int(np.ceil((nb_samples + 1) / 2))] = 0
-            f_mult[int(np.ceil(f_low)):int(f_high) + 1] = np.cos(
-                (np.arange(int(np.ceil(f_low)), int(f_high) + 1) - f_low - 1) / (f_high - f_low) * np.pi / 2) ** 2
-            f_mult[int(np.ceil((nb_samples + 1) / 2)):] = f_mult[int((nb_samples + 1) / 2) - 1:0:-1]
-
-        elif par_cell[i] == "high":
-            f_mult[:int(f_low) + 1] = 0
-            f_mult[int(np.ceil(f_high)):int(np.ceil((nb_samples + 1) / 2))] = 1
-            f_mult[int(np.ceil(f_low)):int(f_high) + 1] = np.sin(
-                (np.arange(int(np.ceil(f_low)), int(f_high) + 1) - f_low - 1) / (f_high - f_low) * np.pi / 2) ** 2
-            f_mult[int(np.ceil((nb_samples + 1) / 2)):] = f_mult[int((nb_samples + 1) / 2) - 1:0:-1]
-
-        elif par_cell[i] == "notch":
-            f_mult[:int(f_low) + 1] = 1
-            f_mult[int(np.ceil(f_high)):int(np.ceil((nb_samples + 1) / 2))] = 1
-            f_mult[int(np.ceil(f_low)):int(f_high) + 1] = np.cos(
-                (np.arange(int(np.ceil(f_low)), int(f_high) + 1) - f_low - 1) / (f_high - f_low) * np.pi) ** 2
-            f_mult[int(np.ceil((nb_samples + 1) / 2)):] = f_mult[int((nb_samples + 1) / 2) - 1:0:-1]
-
-        else:
-            raise ValueError("The filter must be low, high or notch")
-
-        f_h = f_h * f_mult
-
-    return f_h
-
+        raise Exception("Invalid resampling method: " + str(method) + ".")
 
 def pad(data, time_points_data, time_points_padding, padding_value=0, verbosity=1):
     """Given an array of values (``data``) and its corresponding ``time_points_data``, and a larger array
@@ -1297,8 +1760,9 @@ def pad(data, time_points_data, time_points_padding, padding_value=0, verbosity=
     time_points_padding: list(float) or numpy.ndarray(float)
         A list or an array of time points containing the values from ``time_points_data`` (or values equal up to the
         fifth decimal), with additional values at the beginning and/or at the end.
-    padding_value: int, numpy.nan or float
-        The value with which to pad the data (default: 0).
+    padding_value: int|numpy.nan|float|str
+        The value with which to pad the data (default: 0), or ``"edge"`` to copy the value present at the edges of the
+        data.
     verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
 
@@ -1314,11 +1778,28 @@ def pad(data, time_points_data, time_points_padding, padding_value=0, verbosity=
         The original data array, padded with zeros.
     list
         The array ``time_points_padding``, passed as parameter.
+
+    Example
+    -------
+    >>> data = [5, 4, 3, 2, 1]
+    >>> time_points_data = [1, 2, 3, 4, 5]
+    >>> time_points_padding = [0, 1, 2, 3, 4, 5, 6, 7]
+    >>> pad(data, time_points_data, time_points_padding, 0, verbosity=0)
+    ([0 5 4 3 2 1 0 0], [0, 1, 2, 3, 4, 5, 6, 7])
     """
 
-    if len(data) != len(time_points_data):
-        raise Exception("The length of the data array (" + str(len(data)) + ") is inconsistent with the length of " +
-                        "the time points (" + str(len(time_points_data)) + ").")
+    if type(data) == list:
+        data = np.array(data)
+
+    if type(time_points_data) == list:
+        time_points_data = np.array(time_points_data)
+
+    if type(time_points_padding) == list:
+        time_points_padding = np.array(time_points_padding)
+
+    if data.size != time_points_data.size:
+        raise Exception("The length of the data array (" + str(data.size) + ") is inconsistent with the length of " +
+                        "the time points (" + str(time_points_data.size) + ").")
 
     if time_points_data[0] < time_points_padding[0]:
         raise Exception("The first point of the time points padding array (" + str(time_points_padding[0]) + ") must " +
@@ -1328,40 +1809,20 @@ def pad(data, time_points_data, time_points_padding, padding_value=0, verbosity=
         raise Exception("The last point of the time points padding array (" + str(time_points_padding[-1]) + ") must " +
                         "be superior or equal to the last time point of the data (" + str(time_points_data[-1]) + ").")
 
-    try:
-        import numpy as np
-    except ImportError:
-        raise ModuleNotFoundException("numpy", "pad data.")
+    # Get how much to pad at the beginning and at the end
+    pad_start = np.argmin(np.abs(time_points_padding - time_points_data[0]))
+    pad_end = len(time_points_padding) - (pad_start + len(time_points_data))
 
-    padded_data = np.zeros(np.shape(time_points_padding), dtype=np.float64)
-    inconsistency = False
+    if not np.allclose(time_points_padding[pad_start:pad_start + len(time_points_data)], time_points_data):
+        raise Exception("The array time_points_padding must contain the timestamps of time_points_data.")
 
-    i = 0
-    while round(time_points_padding[i], 5) < round(time_points_data[0], 5):
-        padded_data[i] = padding_value
-        if verbosity > 1:
-            print("Padding · Iteration: " + str(i) + "/" + str(len(time_points_padding)) + " · Timestamp padding: " +
-                  str(time_points_padding[i]) + ".")
-        i += 1
+    if verbosity > 1:
+        print(f"Adding {pad_start} samples to the beginning and {pad_end} samples to the end.")
 
-    for j in range(len(time_points_data)):
-        if round(time_points_padding[i], 5) != round(time_points_data[j], 5) and not inconsistency:
-            print("Warning: the original time points and the time points used for the padding seem inconsistent with "
-                  "each other: " + str(round(time_points_padding[i], 5)) + " and " +
-                  str(round(time_points_data[j], 5)) + ".")
-            inconsistency = True
-        padded_data[i] = data[j]
-        if verbosity > 1:
-            print("Copying · Iteration: " + str(i) + "/" + str(len(time_points_padding)) + " · Timestamp padding: " +
-                  str(time_points_padding[i]) + " · Iteration original: " + str(j) + "/" + str(len(time_points_data)) +
-                  " · Original timestamp: " + str(time_points_data[j]) + ".")
-        i += 1
-    while i < len(time_points_padding):
-        padded_data[i] = padding_value
-        if verbosity > 1:
-            print("Padding · Iteration: " + str(i) + "/" + str(len(time_points_padding)) + " · Timestamp padding: " +
-                  str(time_points_padding[i]) + ".")
-        i += 1
+    if padding_value == "edge":
+        padded_data = np.pad(data, (pad_start, pad_end), "edge")
+    else:
+        padded_data = np.pad(data, (pad_start, pad_end), "constant", constant_values=padding_value)
 
     return padded_data, time_points_padding
 
@@ -1373,7 +1834,7 @@ def add_delay(timestamps, delay):
 
     Parameters
     ----------
-    timestamps: list(float)
+    timestamps: numpy.array|list(float)
         An array of timestamps.
     delay: float
         The delay, positive or negative to add to each timestamp.
@@ -1382,13 +1843,18 @@ def add_delay(timestamps, delay):
     -------
     list(float)
         An array of timestamps with the delay specified as parameter.
+
+    Example
+    -------
+    >>> timestamps = [1, 2, 3, 4, 5]
+    >>> add_delay(timestamps, 5)
+    [6, 7, 8, 9, 10]
     """
 
-    new_timestamps = []
-    for t in timestamps:
-        new_timestamps.append(t + delay)
+    if type(timestamps) is list:
+        timestamps = np.array(timestamps)
 
-    return new_timestamps
+    return timestamps + delay
 
 
 def calculate_distance(joint1, joint2, axis=None):
@@ -1404,7 +1870,7 @@ def calculate_distance(joint1, joint2, axis=None):
         The first Joint object.
     joint2: Joint
         The second Joint object.
-    axis: str or None, optional
+    axis: str|None, optional
         If specified, the returned distances travelled will be calculated on a single axis. If ``None`` (default),
         the distance travelled will be calculated based on the 3D coordinates.
 
@@ -1412,6 +1878,14 @@ def calculate_distance(joint1, joint2, axis=None):
     -------
     float
         The absolute distance, in meters, between the two joints.
+
+    Example
+    -------
+    >>> sequence_1 = Sequence("sequences/leela/sequence_1.json", verbosity=0)
+    >>> joint_1 = sequence_1.poses[0].joints["Head"]
+    >>> joint_2 = sequence_1.poses[1].joints["Head"]
+    >>> calculate_distance(joint_1, joint_2)
+    1.6885703516949238
     """
     if axis == "x":
         return abs(joint2.x - joint1.x)
@@ -1427,72 +1901,116 @@ def calculate_distance(joint1, joint2, axis=None):
     else:
         raise InvalidParameterValueException("axis", axis, ["x", "y", "z"])
 
-
-def calculate_velocity(pose1, pose2, joint_label):
-    """Given two poses and a joint label, returns the velocity of the joint, i.e. the distance travelled between the
-    two poses, divided by the time elapsed between the two poses.
-
-    .. versionadded:: 2.0
-
-    Parameters
-    ----------
-    pose1: Pose
-        The first Pose object, at the beginning of the movement.
-    pose2: Pose
-        The second Pose object, at the end of the movement.
-    joint_label: str
-        The label of the joint.
-
-    Returns
-    -------
-    float
-        The velocity of the joint between the two poses, in m/s.
-    """
-
-    # Get the distance travelled by a joint between two poses (meters)
-    dist = calculate_distance(pose1.joints[joint_label], pose2.joints[joint_label])
-
-    # Get the time elapsed between two poses (seconds)
-    delay = calculate_delay(pose1, pose2)
-
-    # Calculate the velocity (meters per seconds)
-    velocity = dist / delay
-
-    return velocity
-
-
-def calculate_acceleration(pose1, pose2, pose3, joint_label):
-    """Given three poses and a joint label, returns the acceleration of the joint, i.e. the difference of velocity
-    between pose 1 and pose 2, and pose 2 and pose 3, over the time elapsed between pose 2 and pose 3.
+def calculate_consecutive_distances(array):
+    """Given an array of values, calculates and returns the absolute distance travelled between each point and the
+    previous. The length of the returned array will be one element smaller than the original array.
 
     .. versionadded:: 2.0
 
     Parameters
     ----------
-    pose1: Pose
-        The first Pose object.
-    pose2: Pose
-        The second Pose object.
-    pose3: Pose
-        The third Pose object.
-    joint_label: str
-        The label of the joint.
+    array: list(float)|numpy.array
+        A list or array containing values.
 
     Returns
     -------
-    float
-        The velocity of the joint between the two poses, in m/s.
+    numpy.array
+        An array of absolute distances, with a length of n-1 elements compared to the array parameter.
+
+    Example
+    -------
+    >>> calculate_consecutive_distances([4, 8, 15, 16, 23, 42])
+    [4, 7, 1, 7, 19]
+    """
+    if type(array) is list:
+        array = np.array(array)
+
+    distance_vector = np.abs(array[1:] - array[:-1])
+    return distance_vector
+
+def calculate_euclidian_distances(x_array, y_array, z_array=None):
+    """
+    Given two or three arrays of values, returns an array of euclidian distances between consecutive values.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    x_array: list(float)|numpy.array
+        A list or array containing positions on the x-axis.
+    y_array: list(float)|numpy.array
+        A list or array containing positions on the y-axis.
+    z_array: list(float)|numpy.array|None
+        A list or array containing positions on the z-axis (optional).
+
+    Example
+    -------
+    >>> calculate_euclidian_distances([3, 4, 5], [5, 12, 13], [8, 15, 17])
+    [9.94987437 2.44948974]
+    """
+    distances_x = np.power(calculate_consecutive_distances(x_array), 2)
+    distances_y = np.power(calculate_consecutive_distances(y_array), 2)
+    if z_array is None:
+        return np.sqrt(distances_x + distances_y)
+    else:
+        distances_z = np.power(calculate_consecutive_distances(z_array), 2)
+        return np.sqrt(distances_x + distances_y + distances_z)
+
+def calculate_derivative(array, derivative="velocity", window_length=7, poly_order=None, freq=1):
     """
 
-    velocity1 = calculate_velocity(pose1, pose2, joint_label)
-    velocity2 = calculate_velocity(pose2, pose3, joint_label)
+    .. versionadded:: 2.0
 
-    acceleration = (velocity2 - velocity1) / calculate_delay(pose2, pose3)
+    Parameters
+    ----------
+    array: numpy.array|list
+        An array of numbers representing the distance travelled for each pair of timestamps.
 
-    return acceleration
+    derivative: str|int, optional
+        The derivative to calculate, as an integer or as a string, among:
+
+        • ``"velocity"``, ``"speed"``, or ``1`` (default)
+        • ``"acceleration"`` or ``2``
+        • ``"jerk"`` or ``3``
+        • ``"snap"``, ``"jounce"``, or ``4``
+        • ``"crackle"`` or ``5``
+        • ``"pop"`` or ``6``
+        • Though probably unnecessary, any higher derivative can be referred to by an integer.
+
+    window_length: int, optional
+        The length of the window for the Savitzky–Golay filter (default: 7). See
+        `scipy.signal.savgol_filter <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.savgol_filter.html>`_
+        for more info.
+
+    poly_order: int|None, optional
+        The order of the polynomial for the Savitzky–Golay filter. If set on None, the polynomial will be set to one
+        over the derivative rank. See
+        `scipy.signal.savgol_filter <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.savgol_filter.html>`_
+        for more info.
+
+    freq: int|float, optional
+        The frequency of the original data, in Hz (default: 1).
+    """
+
+    derivatives = {"velocity": 1, "speed": 1, "acceleration": 2, "jerk": 3, "jounce": 4, "snap": 4, "crackle": 5,
+                   "pop": 6}
+
+    if type(derivative) is str:
+
+        if derivative in derivatives.keys():
+            derivative = derivatives[derivative]
+        else:
+            raise InvalidParameterValueException("derivative", derivative, list(derivatives.keys()))
+
+    if poly_order is None:
+        poly_order = derivative + 1
+        if poly_order >= window_length:
+            poly_order = window_length - 1
+
+    return savgol_filter(array, window_length, poly_order, derivative, mode="interp") * np.power(freq, derivative)
 
 
-def calculate_delay(pose1, pose2):
+def calculate_delay(pose1, pose2, absolute=False):
     """Returns the delay between two poses, in seconds.
 
     .. versionadded:: 2.0
@@ -1503,6 +2021,8 @@ def calculate_delay(pose1, pose2):
         The first Pose object.
     pose2: Pose
         The second Pose object.
+    absolute: bool
+        If set on ``True``, returns a positive value no matter the order of the poses (default: ``False``).
 
     Returns
     -------
@@ -1511,12 +2031,26 @@ def calculate_delay(pose1, pose2):
 
     Note
     ----
-    The time returned by the function is **not** an absolute value. In other words, if ``pose1`` has a higher timestamp
-    than ``pose2``, the returned value will be negative.
+    By default, the time returned by the function is **not** an absolute value. In other words, if ``pose1`` has a
+    higher timestamp than ``pose2``, the returned value will be negative.
+
+    Example
+    -------
+    >>> sequence_1 = Sequence("C:/Users/Adrian/sequence_1.tsv")  # Sampled at 10 Hz, each pose lasts 0.1 s
+    >>> calculate_delay(sequence_1.poses[5], sequence_1.poses[6])
+    0.1
+    >>> calculate_delay(sequence_1.poses[6], sequence_1.poses[5])
+    -0.1
+    >>> calculate_delay(sequence_1.poses[6], sequence_1.poses[5], absolute=True)
+    0.1
     """
     time_a = pose1.get_relative_timestamp()
     time_b = pose2.get_relative_timestamp()
-    return time_b - time_a
+
+    if absolute:
+        return np.abs(time_b - time_a)
+    else:
+        return time_b - time_a
 
 
 def generate_random_joints(number_of_joints, x_scale=0.2, y_scale=0.3, z_scale=0.5):
@@ -1529,11 +2063,11 @@ def generate_random_joints(number_of_joints, x_scale=0.2, y_scale=0.3, z_scale=0
     ----------
     number_of_joints: int
         The number of random joints to generate.
-    x_scale: float
-        The absolute maximum value of the random uniform distribution on the x axis.
-    y_scale: float
-        The absolute maximum value of the random uniform distribution on the y axis.
-    z_scale: float
+    x_scale: int|float
+        The absolute maximum value of the random uniform distribution on the x-axis.
+    y_scale: int|float
+        The absolute maximum value of the random uniform distribution on the y-axis.
+    z_scale: int|float
         The absolute maximum value of the random uniform distribution on the z axis.
 
     Returns
@@ -1543,9 +2077,9 @@ def generate_random_joints(number_of_joints, x_scale=0.2, y_scale=0.3, z_scale=0
     """
     random_joints = []
     for i in range(number_of_joints):
-        x = random.uniform(-x_scale, x_scale)
-        y = random.uniform(-y_scale, y_scale)
-        z = random.uniform(-z_scale, z_scale)
+        x = np.random.uniform(-x_scale, x_scale)
+        y = np.random.uniform(-y_scale, y_scale)
+        z = np.random.uniform(-z_scale, z_scale)
         j = Joint(None, x, y, z)
         random_joints.append(j)
     return random_joints
@@ -1564,7 +2098,10 @@ def get_number_of_windows(array_length_or_array, window_size, overlap_ratio=0, a
     window_size: int
         The number of array elements in each window.
     overlap_ratio: int or float
-        The ratio of array elements overlapping between each window and the next.
+        The ratio of array elements overlapping between each window and the next. In the case where the overlap converts
+        to a non-integer amount of values, the closest upper integer is used (e.g., if the array is of length 10, the
+        window size of length 5 and the overlap ratio of 0.5, the amount of values in the overlap will not be 2.5 but
+        3).
     add_incomplete_window: bool
         If set on ``True``, the last window will be included even if its size is smaller than ``window_size``.
         Otherwise, it will be ignored.
@@ -1573,6 +2110,13 @@ def get_number_of_windows(array_length_or_array, window_size, overlap_ratio=0, a
     -------
     int
         The number of windows than can be created from the array.
+
+    Examples
+    --------
+    >>> get_number_of_windows(100, 10, 0, True)
+    10
+    >>>  get_number_of_windows(100, 10, 0.5, True)
+    19
     """
 
     if not isinstance(array_length_or_array, int):
@@ -1592,11 +2136,10 @@ def get_number_of_windows(array_length_or_array, window_size, overlap_ratio=0, a
 
     if add_incomplete_window and array_length + (overlap * (window_size - 1)) % window_size != 0:
         return int(np.ceil(number_of_windows))
-
     return int(number_of_windows)
 
 
-def get_window_length(array_length_or_array, number_of_windows, overlap_ratio):
+def get_window_length(array_length_or_array, number_of_windows, overlap_ratio, round_up=True):
     """Given an array to be split in a given overlapping number of windows, calculates the number of elements in each
     window.
 
@@ -1610,12 +2153,23 @@ def get_window_length(array_length_or_array, number_of_windows, overlap_ratio):
         The number of windows to split the array in.
     overlap_ratio: float
         The ratio of overlapping elements between each window.
+    round_up: bool, optional
+        Specifies if the result should be returned rounded up to the nearest integer (default) or not.
 
     Returns
     -------
-    int
+    int|float
         The number of elements in each window. Note: the last window may have fewer elements than the others if the
         number of windows does not divide the result of :math:`array_length + (number_of_windows - 1) × overlap`.
+
+    Examples
+    --------
+    >>> get_window_length(100, 10, 0)
+    10
+    >>> get_window_length(10, 8, 0.5)
+    3
+    >>> get_window_length(10, 8, 0.5, False)
+    2.22222222
     """
 
     if not isinstance(array_length_or_array, int):
@@ -1627,6 +2181,8 @@ def get_window_length(array_length_or_array, number_of_windows, overlap_ratio):
         raise Exception("The size of the overlap ratio (" + str(overlap_ratio) + ") must be superior or equal to 0, " +
                         "and strictly inferior to 1.")
 
+    if round_up:
+        return np.ceil(array_length / (number_of_windows + overlap_ratio - number_of_windows * overlap_ratio))
     return array_length / (number_of_windows + overlap_ratio - number_of_windows * overlap_ratio)
 
 
@@ -1651,6 +2207,12 @@ def divide_in_windows(array, window_size, overlap=0, add_incomplete_window=True)
     -------
     list(list(int or float))
         A list where each element is a window of size ``window_size``.
+
+    Example
+    -------
+    >>> array = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    >>> divide_in_windows(array, 5, 0)
+    [[1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14, 15], [16, 17, 18, 19, 20]]
     """
     if overlap >= window_size:
         raise Exception("The size of the overlap (" + str(overlap) + ") cannot be bigger than or equal to the size " +
@@ -1663,7 +2225,7 @@ def divide_in_windows(array, window_size, overlap=0, add_incomplete_window=True)
     windows = []
 
     while window_start + window_size <= len(array):
-        windows.append(array[window_start:window_start+window_size])
+        windows.append(array[window_start : window_start + window_size])
         window_start += window_size - overlap
 
     if add_incomplete_window:
@@ -1675,10 +2237,11 @@ def divide_in_windows(array, window_size, overlap=0, add_incomplete_window=True)
 
 # === Color functions ===
 def load_color_names():
-    """Returns a dictionary containing the 140 lower-case, whitespaces-stripped X11 and HTML/CSS colors as keys (plus 7
-    variations of grey/gray), and a tuple of their 256-level RGBA codes as values. The colors are contained in
-    ``res/color_codes.txt``. The color names follow the `140 HTML/CSS color names
-    <https://en.wikipedia.org/wiki/X11_color_names>`_).
+    """Returns a dictionary containing the accepted color names, and a tuple of their 256-level RGBA codes as values.
+    The colors are contained in ``res/color_codes.txt``. The color names follow the `140 HTML/CSS color names
+    <https://en.wikipedia.org/wiki/X11_color_names>`_), and also contain all the accepted colors from
+    `Matplotlib <https://matplotlib.org/stable/gallery/color/named_colors.html>`, with a few extra.
+    You can find more info about the accepted colors in :doc:`../appendix/color_schemes`.
 
     .. versionadded:: 2.0
 
@@ -1689,7 +2252,7 @@ def load_color_names():
     """
     colors_dict = {}
 
-    with open(os.path.join(MODULE_DIR, "res/color_codes.txt"), "r", encoding="utf-8") as f:
+    with open(op.join(MODULE_DIR, "res/color_codes.txt"), "r", encoding="utf-8") as f:
         content = f.read().split("\n")
 
     for line in content:
@@ -1711,7 +2274,7 @@ def load_color_schemes():
     """
     color_schemes = {}
     colors_dict = load_color_names()
-    with open(os.path.join(MODULE_DIR, "res/color_schemes.txt"), "r", encoding="utf-8") as f:
+    with open(op.join(MODULE_DIR, "res/color_schemes.txt"), "r", encoding="utf-8") as f:
         content = f.read().split("\n")
 
     for line in content:
@@ -1746,55 +2309,72 @@ def hex_color_to_rgb(color, include_alpha=None):
     ----------
     color: str
         The hexadecimal value of a color, with or without a leading number sign (``"#"``).
-    include_alpha: bool, optional
+    include_alpha: bool|None, optional
         If ``True``, returns the RGB color with an alpha value. If an alpha value is not present in the hexadecimal
-        value, the alpha channel will be set to 255. If set on ``None`` (default), the returned value will contain
-        and alpha value only if the input color contains one.
+        value, the alpha channel will be set to 255. If set on ``None`` (default), the returned value will
+        contain an alpha value, only if the input color contains one. If ``False``, the returned value will never
+        contain the alpha value.
 
     Returns
     -------
     tuple(int, int, int) or tuple(int, int, int, int)
         A RGB or RGBA value.
-    """
-    if color[0] == "#":
-        expected_length = 7
-    else:
-        expected_length = 6
 
-    if len(color) == expected_length:
+    Examples
+    --------
+    >>> hex_color_to_rgb("#c0ffee")
+    (192, 255, 238)
+    >>> hex_color_to_rgb("#f0ccac1a")
+    (240, 204, 172, 26)
+    """
+    if color[0] != "#":
+        color = "#" + color
+
+    if not set(color[1:].lower()).issubset(set("0123456789abcdef")):
+        raise Exception("Invalid color hexadecimal value: " + str(color))
+
+    if len(color) == 7:
         rgba_color = list(int(color[i:i + 2], 16) for i in (1, 3, 5))
         if include_alpha:
             rgba_color.append(255)
         rgba_color = tuple(rgba_color)
-    elif len(color) == expected_length + 2:
+    elif len(color) == 9:
         rgba_color = tuple(int(color[i:i + 2], 16) for i in (1, 3, 5, 7))
-        if not include_alpha:
+        if include_alpha is not None and not include_alpha:
             rgba_color = rgba_color[0:3]
     else:
-        raise Exception("Invalid color hexadecimal value: " + str(color))
+        raise Exception(f"Invalid color hexadecimal value: {str(color)}")
 
     return rgba_color
 
 
-def rgb_color_to_hex(color, include_alpha=False):
+def rgb_color_to_hex(color, include_alpha=None):
     """Converts a color from its RGB or RGBA value to its hexadecimal value.
 
     Parameters
     ----------
     color: tuple(int, int, int) or tuple(int, int, int, int)
         The RGB or RGBA value of a color.
-    include_alpha: bool, optional
+    include_alpha: bool|None, optional
         If ``True``, returns the hexadecimal color with an alpha value. If an alpha value is not present in the
-        RGB value, the alpha channel will be set to ff.
+        RGB value, the alpha channel will be set to ff. If ``False``, returns the hexadecimal color without an alpha
+        value. If ``None`` (default), returns the hexadecimal color if the RGB color contains an alpha value.
 
     Returns
     -------
     str
         A hexadecimal value, with a leading number sign (``"#"``).
+
+    Examples
+    --------
+    >>> rgb_color_to_hex((192, 255, 238))
+    "#c0ffee"
+    >>> rgb_color_to_hex((240, 204, 172, 26))
+    "#f0ccac1a"
     """
     for i in range(len(color)):
         if color[i] < 0 or color[i] > 255:
-            raise Exception("Invalid color index.")
+            raise Exception(f"Invalid color index: {color[i]}")
 
     if len(color) == 3:
         if include_alpha:
@@ -1803,7 +2383,7 @@ def rgb_color_to_hex(color, include_alpha=False):
             return '#%02x%02x%02x' % color
 
     elif len(color) == 4:
-        if include_alpha:
+        if include_alpha is None or include_alpha:
             return '#%02x%02x%02x%02x' % color
         else:
             color = color[0:3]
@@ -1813,67 +2393,7 @@ def rgb_color_to_hex(color, include_alpha=False):
         raise Exception("Invalid number of arguments in the color.")
 
 
-def convert_colors(color_scheme_or_colors, color_format="RGB", include_alpha=True):
-    """Converts a list of colors to the desired format.
-
-    .. versionadded:: 2.0
-
-    Parameters
-    ----------
-    color_scheme_or_colors: str or list(str)
-        This parameter can take a number of forms:
-
-        • **The name of a color scheme:** a string matching one of the color gradients available in
-          :doc:`../appendix/color_schemes`.
-        • **A list of colors:** a list containing colors, either using:
-
-            • Their `HTML/CSS names <https://en.wikipedia.org/wiki/X11_color_names>`_ (e.g. ``"red"`` or
-              ``"blanched almond"``),
-            • Their hexadecimal code, starting with a number sign (``#``, e.g. ``"#ffcc00"`` or ``"#c0ffee"``).
-            • Their RGB or RGBA tuples (e.g. ``(153, 204, 0)`` or ``(77, 77, 77, 255)``).
-
-          These different codes can be used concurrently, e.g. ``["red", (14, 18, 32), "#a1b2c3"]``.
-
-    color_format: str, optional
-        The format in which you want to convert the colors. This parameter can be ``"RGB"`` (default), ``"RGBA"`` or
-        ``"HEX"``.
-
-    include_alpha: bool, optional
-        If ``True``, returns the colors with an alpha value. If an alpha value is not present in the
-        original value, the alpha channel will be set to 255 (or ff).
-
-    Returns
-    -------
-    tuple(int, int, int) or tuple(int, int, int, int) or string
-        A RGB or RGBA value, or a hexadecimal string with a leading number sign.
-    """
-
-    if type(color_scheme_or_colors) is str:
-
-        color_schemes = load_color_schemes()
-
-        if color_scheme_or_colors in color_schemes.keys():
-            color_scheme_or_colors = color_schemes[color_scheme_or_colors]
-
-        else:
-            colors_dict = load_color_names()
-
-            if color_scheme_or_colors not in colors_dict.keys():
-                raise Exception("Invalid color scheme: " + str(color_scheme_or_colors) + ".")
-            else:
-                warnings.warn("The string entered is not a valid color scheme, but is a valid color name. The value of "
-                              "the color will be returned, but convert_color should be used instead of convert_colors.")
-
-            return colors_dict[color_scheme_or_colors]
-
-    converted_colors = []
-    for color in color_scheme_or_colors:
-        converted_colors.append(convert_color(color, color_format, include_alpha))
-
-    return converted_colors
-
-
-def convert_color(color, color_format="rgb", include_alpha=True):
+def convert_color(color, color_format="RGB", include_alpha=True):
     """Converts a color to the desired format.
 
     .. versionadded:: 2.0
@@ -1889,8 +2409,8 @@ def convert_color(color, color_format="rgb", include_alpha=True):
             • The RGB or RGBA tuple of a color (e.g. ``(153, 204, 0)`` or ``(77, 77, 77, 255)``).
 
     color_format: str, optional
-        The format in which you want to convert the color. This parameter can be ``"rgb"`` (default), ``"rgba"`` or
-        ``"hex"``.
+        The format in which you want to convert the color. This parameter can be ``"RGB"`` (default), ``"RGBA"`` or
+        ``"HEX"``.
 
     include_alpha: bool, optional
         If ``True``, returns the color with an alpha value. If an alpha value is not present in the original value,
@@ -1900,6 +2420,13 @@ def convert_color(color, color_format="rgb", include_alpha=True):
     -------
     list(tuple(int, int, int)) or list(tuple(int, int, int, int)) or list(string)
         A list of RGB or RGBA values, or hexadecimal strings with a leading number sign.
+
+    Examples
+    --------
+    >>> convert_color("red", "RGB")
+    (255, 0, 0, 255)
+    >>>  convert_color("red", "HEX", False)
+    "#ff0000"
     """
 
     # Color: tuple
@@ -1949,14 +2476,81 @@ def convert_color(color, color_format="rgb", include_alpha=True):
         raise Exception('Invalid parameter color_format: ' + str(color_format) + '. Should be "rgb", "rgba" or "hex".')
 
 
+def convert_colors(color_scheme_or_colors, color_format="RGB", include_alpha=True):
+    """Converts a list of colors to the desired format.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    color_scheme_or_colors: str or list(str)
+        This parameter can take a number of forms:
+
+        • **The name of a color scheme:** a string matching one of the color gradients available in
+          :doc:`../appendix/color_schemes`.
+        • **A list of colors:** a list containing colors, either using:
+
+            • Their `HTML/CSS names <https://en.wikipedia.org/wiki/X11_color_names>`_ (e.g. ``"red"`` or
+              ``"blanched almond"``),
+            • Their hexadecimal code, starting with a number sign (``#``, e.g. ``"#ffcc00"`` or ``"#c0ffee"``).
+            • Their RGB or RGBA tuples (e.g. ``(153, 204, 0)`` or ``(77, 77, 77, 255)``).
+
+          These different codes can be used concurrently, e.g. ``["red", (14, 18, 32), "#a1b2c3"]``.
+
+    color_format: str, optional
+        The format in which you want to convert the colors. This parameter can be ``"RGB"`` (default), ``"RGBA"`` or
+        ``"HEX"``.
+
+    include_alpha: bool, optional
+        If ``True``, returns the colors with an alpha value. If an alpha value is not present in the
+        original value, the alpha channel will be set to 255 (or ff).
+
+    Returns
+    -------
+    tuple(int, int, int) or tuple(int, int, int, int) or string
+        A RGB or RGBA value, or a hexadecimal string with a leading number sign.
+
+    Examples
+    --------
+    >>> colors = ["#ff0000", (255, 0, 0), "red", (255, 0, 0, 255)]
+    >>> convert_colors(colors, "RGB")
+    [(255, 0, 0, 255), (255, 0, 0, 255), (255, 0, 0, 255), (255, 0, 0, 255)]
+    >>>  convert_colors("default", "HEX", False)
+    ['#9acd32', '#ff0000']
+    """
+
+    if type(color_scheme_or_colors) is str:
+
+        color_schemes = load_color_schemes()
+
+        if color_scheme_or_colors in color_schemes.keys():
+            color_scheme_or_colors = color_schemes[color_scheme_or_colors]
+
+        else:
+            colors_dict = load_color_names()
+
+            if color_scheme_or_colors not in colors_dict.keys():
+                raise Exception("Invalid color scheme: " + str(color_scheme_or_colors) + ".")
+            else:
+                warnings.warn("The string entered is not a valid color scheme, but is a valid color name. The value of "
+                              "the color will be returned, but convert_color should be used instead of convert_colors.")
+
+            return colors_dict[color_scheme_or_colors]
+
+    converted_colors = []
+    for color in color_scheme_or_colors:
+        converted_colors.append(convert_color(color, color_format, include_alpha))
+
+    return converted_colors
+
 def calculate_color_points_on_gradient(color_scheme, no_points):
     """Given a color scheme and a number of points, creates a list of equidistant colors to create a gradient.
 
     Parameters
     ----------
-    color_scheme: str or list(tuple(int, int, int, int))
-        The name of a color scheme (see :doc:`../appendix/color_schemes`. for the available schemes), or a list of RGBA
-        color tuples.
+    color_scheme: str|list
+        The name of a color scheme (see :doc:`../appendix/color_schemes`. for the available schemes), or a list of
+        colors names, RGB or hexadecimal values.
     no_points: int
         The number of colors to get on the gradient.
 
@@ -1964,17 +2558,27 @@ def calculate_color_points_on_gradient(color_scheme, no_points):
     -------
     list(tuple(int, int, int, int))
         A list of colors in a progressive gradient following the colors of the color scheme.
+
+    Examples
+    --------
+    >>> color_scheme = ["red", "orange", "yellow"]
+    >>> calculate_color_points_on_gradient(color_scheme, 9)
+    [(255, 0, 0, 255), (255, 41, 0, 255), (255, 82, 0, 255), (255, 123, 0, 255), (255, 165, 0, 255),
+     (255, 187, 0, 255), (255, 210, 0, 255), (255, 232, 0, 255), (255, 255, 0, 255)]
+    >>> calculate_color_points_on_gradient("viridis", 7)
+    [(66, 1, 86, 255), (60, 58, 122, 255), (48, 106, 140, 255), (32, 146, 140, 255), (74, 183, 110, 255),
+     (148, 212, 83, 255), (252, 233, 59, 255)]
     """
     color_scheme = convert_colors(color_scheme, "rgb", True)
 
     colors = []
-    for i in range(no_points + 1):
-        colors.append(calculate_color_ratio(color_scheme, i / no_points))
+    for i in range(no_points):
+        colors.append(calculate_color_ratio(color_scheme, i / (no_points - 1)))
 
     return colors
 
 
-def calculate_color_ratio(colors, ratio, type_return="rgb", include_alpha=True):
+def calculate_color_ratio(colors, ratio, type_return="RGB", include_alpha=True):
     """Given a gradient of colors, returns a color located at a specific ratio on the gradient.
 
     .. versionadded:: 2.0
@@ -1999,24 +2603,29 @@ def calculate_color_ratio(colors, ratio, type_return="rgb", include_alpha=True):
     -------
     list(tuple(int, int, int)) or list(tuple(int, int, int, int)) or str
         A color in RGB, RGBA or hex form.
+
+    Example
+    -------
+    >>> calculate_color_ratio((0, 0, 0), (255, 255, 255), 0.5, "RGB", False)
+    (127, 127, 127)
     """
 
     if 0 < ratio < 1:
-        color_start = colors[int((ratio / (1 / (len(colors) - 1))))]
-        color_end = colors[int((ratio / (1 / (len(colors) - 1)))) + 1]
+        index_start = int((ratio / (1 / (len(colors) - 1))))
+        index_end = int((ratio / (1 / (len(colors) - 1)))) + 1
     elif ratio >= 1:
-        color_start = colors[-2]
-        color_end = colors[-1]
+        index_start = len(colors) - 2
+        index_end = len(colors) - 1
         ratio = 1
     else:
-        color_start = colors[0]
-        color_end = colors[1]
+        index_start = 0
+        index_end = 1
         ratio = 0
 
-    if int((ratio * (len(colors) - 1))) == 0 or ratio == 1:
-        new_ratio = ratio
-    else:
-        new_ratio = (ratio * (len(colors) - 1)) % int((ratio * (len(colors) - 1)))
+    color_start = colors[index_start]
+    color_end = colors[index_end]
+
+    new_ratio = (ratio - index_start / (len(colors) - 1)) * (len(colors) - 1)
 
     diff_r = color_end[0] - color_start[0]
     diff_g = color_end[1] - color_start[1]
@@ -2043,8 +2652,10 @@ def calculate_color_ratio(colors, ratio, type_return="rgb", include_alpha=True):
         return rgb_color_to_hex(color, include_alpha)
 
 
-def calculate_colors_by_values(dict_values, color_scheme="default", type_return="rgb", include_alpha=True):
-    """Returns a dictionary of colors on a gradient depending on the values of a dictionary. The extreme colors of the
+def calculate_colors_by_values(dict_values, color_scheme="default", min_value=None, max_value=None,
+                               type_return="RGB", include_alpha=True):
+    """Given a dictionary of values and a color scheme, returns a dictionary where each key is attributed to a color
+    from the scheme. The extreme colors of the
     color scheme will be attributed to the extreme values of the dictionary; all the intermediate values are
     attributed their corresponding intermediate color on the gradient.
 
@@ -2054,9 +2665,15 @@ def calculate_colors_by_values(dict_values, color_scheme="default", type_return=
     ----------
     dict_values: dict(str: float or int)
         A dictionary where keys (e.g., joint labels) are attributed to values (floats or integers).
-    color_scheme: str or list
+    color_scheme: str|list
         A color scheme or a list of colors that can be parsed by the function
         :func:`tool_functions.convert_colors_rgba`.
+    min_value: int|float, optional
+        The value that will be attributed to the first color of the scheme. If not specified (default), the minimum
+        value will be set on the minimum value of the dictionary ``dict_values``.
+    max_value: int|float, optional
+        The value that will be attributed to the last color of the scheme. If not specified (default), the maximum
+        value will be set on the maximum value of the dictionary ``dict_values``.
     type_return: str, optional
         The way the color should be returned. If set on ``"rgb"`` (default) or ``"rgba"``, the color will be returned
         as a tuple of integers. If set on ``"hex"``, the color will be returned as a string containing hexadecimal
@@ -2069,15 +2686,23 @@ def calculate_colors_by_values(dict_values, color_scheme="default", type_return=
     -------
     dict(str: tuple(int, int, int, int))
         A dictionary where each key is matched to an RGBA color.
+
+    Example
+    -------
+    >>> values = {"Head": 0.2, "Hand": 0.59}
+    >>> colors = calculate_colors_by_values(values, "celsius")
+    >>> colors["Head"]
+    (64, 224, 208, 255)
+    >>> colors["Hand"]
+    (255, 170, 0, 255)
     """
     keys_colors = {}
 
-    # Get the min and max quantities of movement
-    values = []
-    for j in dict_values.keys():
-        values.append(dict_values[j])
-    min_value = min(values)  # Determines min global velocity (green)
-    max_value = max(values)  # Determines max global velocity (red)
+    # Get the min and max quantities in the dictionary
+    if min_value is None:
+        min_value = min(list(dict_values.values()))
+    if max_value is None:
+        max_value = max(list(dict_values.values()))
 
     colors = convert_colors(color_scheme, "rgb", True)
 
@@ -2089,26 +2714,53 @@ def calculate_colors_by_values(dict_values, color_scheme="default", type_return=
     return keys_colors
 
 
-def generate_random_color():
-    """Generates a random color, and returns its RGBA value (with an alpha value of 255).
+def generate_random_color(random_alpha=False, color_format="RGB", include_alpha=True):
+    """Generates a random color, and returns its RGB or HEX value.
 
     .. versionadded:: 2.0
 
+    Parameters
+    ----------
+    random_alpha: bool
+        If set on `False` (default), returns a color with an alpha value set on 255. If set on `True`, randomizes the
+        alpha value in the color.
+    color_format: str
+        The format of the color to be returned: either ``"RGBA"`` (default), ``"RGB"``, or ``"HEX"``.
+    include_alpha: bool
+        If `True` (default), includes the alpha value in the returned color.
+
     Returns
     -------
-    tuple(int, int, int, int)
-        A tuple containing the RGBA values of a random color, with an alpha value of 255.
+    tuple(int, int, int, int)|tuple(int, int, int)|str
+        A tuple containing the RGB or RGBA values of a random color, or a string containing its hexadecimal value with
+        a leading ``#``.
+
+    Example
+    -------
+    >>> generate_random_color()
+    (255, 128, 64, 32)
     """
     r = random.randrange(0, 256)
     g = random.randrange(0, 256)
     b = random.randrange(0, 256)
-    a = 255
-    return r, g, b, a
+    if random_alpha:
+        a = random.randrange(0, 256)
+    else:
+        a = 255
+
+    if color_format.upper() == "RGB":
+        if include_alpha:
+            return r, g, b, a
+        else:
+            return r, g, b
+    else:
+        return convert_color((r, g, b, a), color_format, include_alpha)
 
 
 # === Audio functions ===
 def scale_audio(audio_array, max_value, use_abs_values=False, set_lowest_at_zero=False, verbosity=1):
-    """Scale an array of audio samples according to a maximum value.
+    """Scale an array of audio samples according to a maximum value. This function is used by the toolbox for display
+    purposes.
 
     .. versionadded::2.0
 
@@ -2138,42 +2790,42 @@ def scale_audio(audio_array, max_value, use_abs_values=False, set_lowest_at_zero
     list(float)
         An array of scaled audio samples.
     """
-    new_audio_array = []
+    audio_array = np.array(audio_array)
 
     if verbosity > 0:
         print("Scaling audio...")
 
-    perc = 10
+    if use_abs_values:
+        audio_array = np.abs(audio_array)
 
-    max_audio_array = max(audio_array)
-    min_audio_array = min(audio_array)
-    min_value_scaled = min_audio_array / max_audio_array * max_value
+    if set_lowest_at_zero:
+        audio_array -= np.min(audio_array)
 
-    for i in range(len(audio_array)):
-        perc = show_progression(verbosity, i, len(audio_array), perc)
-        value = audio_array[i] / max_audio_array * max_value
-        if use_abs_values:
-            value = abs(value)
-        if set_lowest_at_zero and min_audio_array > 0:
-            value = value - min_value_scaled
-        new_audio_array.append(value)
+    audio_array = audio_array / np.max(np.abs(audio_array)) * max_value
 
     if verbosity > 0:
         print("100% - Done.")
 
-    return new_audio_array
+    return audio_array
 
-
-def stereo_to_mono(audio_arrays, verbosity=1):
-    """Turns the sample data into mono by averaging the samples from the audio channels.
+def stereo_to_mono(audio_data, mono_channel=0, verbosity=1):
+    """Converts an audio array to mono.
 
     .. versionadded:: 2.0
 
     Parameters
     ----------
-    audio_arrays: numpy.ndarray
-        An array containing sub-lists with the sample values from all the channels as elements. Typically, the output
-        of `scipy.io.wavfile.read <https://docs.scipy.org/doc/scipy/reference/generated/scipy.io.wavfile.read.html>`_.
+    audio_data: `np.ndarray <https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html>`_ (1D or 2D)
+        The parameter data resulting from reading a WAV file with
+        `scipy.io.wavfile.read <https://docs.scipy.org/doc/scipy/reference/generated/scipy.io.wavfile.read.html>`_.
+
+    mono_channel: int|str, optional
+        Defines the method to use to convert multiple-channel WAV files to mono, By default, this parameter value is
+        ``0``: the channel with index 0 in the WAV file is used as the array, while all the other channels are
+        discarded. This value can be any of the channels indices (using ``1`` will preserve the channel with index
+        1, etc.). This parameter can also take the value ``"average"``: in that case, a new channel is created by
+        averaging the values of all the channels of the WAV file.
+
     verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
 
@@ -2185,75 +2837,160 @@ def stereo_to_mono(audio_arrays, verbosity=1):
 
     Returns
     -------
-    np.ndarray(np.intp)
-        An array containing the samples averaged across all channels.
+    np.array
+        A 1D numpy array containing the audio converted to mono.
     """
 
     if verbosity > 0:
         print("\n\tConverting audio samples from stereo to mono...", end=" ")
 
-    try:
-        import numpy as np
-    except ImportError:
-        raise ModuleNotFoundException("numpy", "turn stereo audio to mono.")
+    # If mono_channel is a channel number
+    if isinstance(mono_channel, int):
 
-    new_audio_array = np.mean(audio_arrays, 1, np.intp)
+        # If the channel number is negative or nonexistent
+        if mono_channel >= np.size(audio_data[1]) or mono_channel < 0:
+            if np.size(audio_data[1] == 0):
+                raise Exception(f"""The channel chosen for the parameter "mono_channel" ({mono_channel}) is not valid.
+                As the audio data is mono, the channel chosen should be 0.""")
+            else:
+                raise Exception(f"""The channel chosen for the parameter "mono_channel" ({mono_channel}) is not valid.
+                Please choose a channel between 0 and {np.size(audio_data[1]) - 1}.""")
 
-    if verbosity > 0:
-        print("100% - Done.")
+        # If the audio data is already mono
+        elif np.size(audio_data[1]) == 1:
+            mono_array = audio_data
+            if verbosity > 0:
+                print(f"\tThe audio data is already in mono, no conversion necessary.")
 
-    return new_audio_array
+        # If the audio data is not mono
+        else:
+            mono_array = audio_data[:, mono_channel]  # Turn to mono
+            if verbosity > 0:
+                print(f"\tFile converted to mono by keeping channel with index {mono_channel}. The original file"
+                      f" contains {np.size(audio_data[1])} channels.")
 
+    # If mono_channel is "average"
+    elif mono_channel == "average":
+        mono_array = np.mean(audio_data, 1)
 
-# === Joint labels functions ===
-def load_kinect_joint_labels():
-    """Loads the list of the 21 kinect joint labels from ``res/kinect_joint_labels.txt``.
+    # Any other case
+    else:
+        raise Exception(f"""The parameter "mono_channel" should be an integer (the channel index) or "average", not
+                        {mono_channel}.""")
+
+    return mono_array
+
+def remove_average(array):
+    """Removes the average of an array of values.
 
     .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    array: list|`np.ndarray <https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html>`_ (1D or 2D)
+        An array of values, for example from an audio file.
+    """
+
+    if type(array) is list:
+        array = np.array(array)
+
+    return array - np.mean(array)
+
+# === Joint labels functions ===
+def load_joint_labels(system="kinect", part="all", label_style="original"):
+    """Loads and returns a list of joint labels from a file.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ---------
+    system: str, optional
+        The system from which to load the joints. This parameter can be set on ``"kinect"`` (default) or
+        ``"qualisys"``/``"kualisys"`` to load a preset list of joints. It is also possible to pass a path to a file
+        containing joints on different lines.
+    part: str, optional
+        The part of the joints to load. This parameter can be set on ``"all"`` (default), ``"top"`` or ``"bottom"``.
+        If the parameter ``system`` is set on a path, this parameter is ignored.
+    label_style: str, optional
+        When used for loading Qualisys joints:
+            · If set on ``"original"`` (default), the returned joint labels are the original ones from the Qualisys
+              system.
+            · If set on ``"new"``, ``"replaced"``, ``"krajjat"`` or ``"kualisys"``, the returned joint labels are the
+              renamed Kualisys joint labels from the Krajjat toolbox. For more information, see
+              :doc:`../appendix/joint_labels`.
+
+        When used for paths, the function checks if each line contains two strings separated by a tab, and returns
+        the list of the first strings if set on ``"original"``, and the list of the second strings if set on ``"new"``
+        or ``"replaced"``.
+
+        This parameter is ignored if ``system`` is set on ``"krajjat"``.
 
     Returns
     -------
     list(str)
         The list of the Kinect joint labels.
     """
-    with open(os.path.join(MODULE_DIR, "res/kinect_joint_labels.txt"), "r", encoding="utf-8") as f:
-        joint_labels = f.read().split("\n")
-    return joint_labels
+    if system.lower() == "kinect":
+        with open(op.join(MODULE_DIR, "res/kinect_joint_labels.txt"), "r", encoding="utf-8") as f:
+            joint_labels = f.read().split("\n")
 
+        if part.lower() == "top":
+            joint_labels = joint_labels[:13]
+        elif part.lower() == "bottom":
+            joint_labels = joint_labels[13:]
+        elif part.lower() != "all":
+            raise InvalidParameterValueException("part", part, ["top", "bottom", "all"])
 
-def load_qualisys_joint_labels(label_style="original"):
-    """Loads the list of the 44 Qualisys joint labels from ``res/kualisys_joint_labels.txt``.
+        return joint_labels
 
-    .. versionadded:: 2.0
+    elif system.lower() in ["qualisys", "kualisys"]:
+        with open(op.join(MODULE_DIR, "res/kualisys_joint_labels.txt"), "r", encoding="utf-8") as f:
+            joint_labels = f.read().split("\n")
 
-    Parameters
-    ----------
-    label_style: str, optional
-        If set on ``"original"``, the returned joint labels are the original ones from the Qualisys system. If set
-        on ``"krajjat"`` or ``"kualisys"``, the returned joint labels are the renamed Kualisys joint labels from the
-        Krajjat toolbox. For more information, see :doc:`../appendix/joint_labels`.
+        if part.lower() == "top":
+            joint_labels = joint_labels[:28]
+        elif part.lower() == "bottom":
+            joint_labels = joint_labels[28:]
+        elif part.lower() != "all":
+            raise InvalidParameterValueException("part", part, ["top", "bottom", "all"])
 
-    Returns
-    -------
-    list(str)
-        The list of the Qualisys joint labels.
-    """
-    with open(os.path.join(MODULE_DIR, "res/kualisys_joint_labels.txt"), "r", encoding="utf-8") as f:
-        joint_labels = f.read().split("\n")
+        joint_labels_original = []
+        joint_labels_krajjat = []
 
-    joint_labels_original = []
-    joint_labels_krajjat = []
+        for line in joint_labels:
+            elements = line.split("\t")
+            joint_labels_original.append(elements[0])
+            joint_labels_krajjat.append(elements[1])
 
-    for line in joint_labels:
-        elements = line.split("\t")
-        joint_labels_original.append(elements[0])
-        joint_labels_krajjat.append(elements[1])
+        if label_style == "original":
+            return joint_labels_original
+        elif label_style in ["new", "replaced", "krajjat", "kualisys"]:
+            return joint_labels_krajjat
 
-    if label_style == "original":
-        return joint_labels_original
-    elif label_style == "replaced":
-        return joint_labels_krajjat
+    else:
+        if os.path.exists(system):
+            # noinspection PyArgumentList
+            with open(system, "r", encoding="utf-8") as f:
+                joint_labels = f.read().split("\n")
+        else:
+            raise InvalidPathException("system", "text file", "the file does not exist.")
 
+        if "\t" in joint_labels[0]:
+            joint_labels_original = []
+            joint_labels_new = []
+
+            for line in joint_labels:
+                elements = line.split("\t")
+                joint_labels_original.append(elements[0])
+                joint_labels_new.append(elements[1])
+
+            if label_style == "original":
+                return joint_labels_original
+            elif label_style in ["new", "replaced", "krajjat", "kualisys"]:
+                return joint_labels_new
+
+        else:
+            return joint_labels
 
 def load_qualisys_joint_label_conversion():
     """Returns a dictionary containing the original Qualisys joint labels as keys, and the renamed Kualisys joints
@@ -2267,9 +3004,8 @@ def load_qualisys_joint_label_conversion():
     dict(str: str)
         A dictionary with the original Qualisys joint labels as keys, and the Kualisys renamed joint labels as values.
     """
-    import os
 
-    with open(os.path.join(MODULE_DIR, "res/kualisys_joint_labels.txt"), "r", encoding="utf-8") as f:
+    with open(op.join(MODULE_DIR, "res/kualisys_joint_labels.txt"), "r", encoding="utf-8") as f:
         content = f.read().split("\n")
 
     joints_conversions = {}
@@ -2281,50 +3017,58 @@ def load_qualisys_joint_label_conversion():
     return joints_conversions
 
 
-def load_joint_labels(path):
-    """Returns a list of joint labels from a path.
-
-    .. versionadded:: 2.0
-
-    Parameters
-    ----------
-    path: str
-        The path to a file containing a joint label on each line.
-
-    Returns
-    -------
-    list(str)
-        A list containing joint labels.
-    """
-
-    with open(os.path.join(MODULE_DIR, "res", path), "r", encoding="utf-8") as f:
-        content = f.read().split("\n")
-    return content
-
-
-def load_joints_connections(path):
+def load_joint_connections(system="kinect", part="all"):
     """Returns a list of joint pairs between which a line can be traced to form a skeleton.
 
     .. versionadded:: 2.0
 
     Parameters
     ----------
-    path: str
-        The path to a file containing joint label pairs separated by a tabulation on each line.
+    system: str, optional
+        The system from which to load the joints. This parameter can be set on ``"kinect"`` (default) or
+        ``"qualisys"``/``"kualisys"`` to load a preset list of joints. It is also possible to pass a path to a file
+        containing joints on different lines.
+    part: str, optional
+        The part of the joints to load. This parameter can be set on ``"all"`` (default), ``"top"`` or ``"bottom"``.
+        If the parameter ``system`` is set on a path, this parameter is ignored.
 
     Returns
     -------
     list(list(str))
         A list of sub-lists, each containing two elements (two joint labels).
     """
-    with open(os.path.join(MODULE_DIR, "res", path), "r", encoding="utf-8") as f:
-        content = f.read().split("\n")
-    connections = []
+    if system.lower() == "kinect":
+        with open(op.join(MODULE_DIR, "res/kinect_skeleton_connections.txt"), "r", encoding="utf-8") as f:
+            joint_connections = f.read().split("\n")
 
-    for line in content:
-        connections.append(line.split("\t"))
+        if part.lower() == "top":
+            joint_connections = joint_connections[:12]
+        elif part.lower() == "bottom":
+            joint_connections = joint_connections[12:]
+        elif part.lower() != "all":
+            raise InvalidParameterValueException("part", part, ["top", "bottom", "all"])
 
-    return connections
+    elif system.lower() in ["qualisys", "kualisys"]:
+        with open(op.join(MODULE_DIR, "res/kualisys_skeleton_connections.txt"), "r", encoding="utf-8") as f:
+            joint_connections = f.read().split("\n")
+
+        if part.lower() == "top":
+            joint_connections = joint_connections[:43]
+        elif part.lower() == "bottom":
+            joint_connections = joint_connections[43:]
+        elif part.lower() != "all":
+            raise InvalidParameterValueException("part", part, ["top", "bottom", "all"])
+
+    else:
+        if os.path.exists(system):
+            # noinspection PyArgumentList
+            with open(system, "r", encoding="utf-8") as f:
+                joint_connections = f.read().split("\n")
+        else:
+            raise InvalidPathException("system", "text file", "the file does not exist.")
+
+    joint_connections = [tuple(joints.split("\t")) for joints in joint_connections]
+    return joint_connections
 
 
 def load_qualisys_to_kinect():
@@ -2339,13 +3083,13 @@ def load_qualisys_to_kinect():
     dict(str: list(str))
         A dictionary of Kinect joint labels as keys, and a series of Kualisys joint labels as values.
     """
-    with open(os.path.join(MODULE_DIR, "res", "kualisys_to_kinect.txt"), "r", encoding="utf-8") as f:
+    with open(op.join(MODULE_DIR, "res", "kualisys_to_kinect.txt"), "r", encoding="utf-8") as f:
         content = f.read().split("\n")
     connections = {}
 
     for line in content:
         elements = line.split("\t")
-        connections[elements[0]] = elements[1:]
+        connections[elements[0]] = tuple(elements[1:])
 
     return connections
 
@@ -2359,7 +3103,7 @@ def load_joints_subplot_layout(joint_layout):
     Parameters
     ----------
     joint_layout: str
-        The layout to load, either ``"kinect"`` or ``"qualisys"``.
+        The layout to load, either ``"kinect"`` or ``"kualisys"``/``"qualisys"``.
 
     Returns
     -------
@@ -2368,10 +3112,10 @@ def load_joints_subplot_layout(joint_layout):
     """
 
     if joint_layout.lower() == "kinect":
-        with open(os.path.join(MODULE_DIR, "res", "kinect_joints_subplot_layout.txt")) as f:
+        with open(op.join(MODULE_DIR, "res", "kinect_joints_subplot_layout.txt")) as f:
             content = f.read().split("\n")
     elif joint_layout.lower() in ["qualisys", "kualisys"]:
-        with open(os.path.join(MODULE_DIR, "res", "kualisys_joints_subplot_layout.txt")) as f:
+        with open(op.join(MODULE_DIR, "res", "kualisys_joints_subplot_layout.txt")) as f:
             content = f.read().split("\n")
     else:
         raise Exception("Wrong layout argument: should be 'kinect' or 'qualisys'.")
@@ -2382,7 +3126,7 @@ def load_joints_subplot_layout(joint_layout):
         elements = line.split("\t")
         joints_positions[elements[0]] = int(elements[1])
 
-    return joints_positions, joint_layout
+    return joints_positions
 
 
 def load_joints_silhouette_layout(joint_layout):
@@ -2412,10 +3156,10 @@ def load_joints_silhouette_layout(joint_layout):
     """
 
     if joint_layout.lower() == "kinect":
-        with open(os.path.join(MODULE_DIR, "res", "kinect_joints_silhouette_layout.txt")) as f:
+        with open(op.join(MODULE_DIR, "res", "kinect_joints_silhouette_layout.txt")) as f:
             content = f.read().split("\n")
     elif joint_layout.lower() in ["qualisys", "kualisys"]:
-        with open(os.path.join(MODULE_DIR, "res", "kualisys_joints_silhouette_layout.txt")) as f:
+        with open(op.join(MODULE_DIR, "res", "kualisys_joints_silhouette_layout.txt")) as f:
             content = f.read().split("\n")
     else:
         try:
@@ -2435,13 +3179,13 @@ def load_joints_silhouette_layout(joint_layout):
     return joints_positions, joint_layout
 
 
-def load_steps_gui():
+def load_default_steps_gui():
     """Loads the steps for the modification of the parameters in the GUI of the graphic functions, from the file
-    ``res/steps_gui.txt``.
+    ``res/default_steps_gui.txt``.
 
     .. versionadded:: 2.0
     """
-    with open(os.path.join(MODULE_DIR, "res/steps_gui.txt"), "r", encoding="utf-8") as f:
+    with open(op.join(MODULE_DIR, "res/default_steps_gui.txt"), "r", encoding="utf-8") as f:
         lines = f.read().split("\n")
 
     steps = {}
@@ -2453,6 +3197,35 @@ def load_steps_gui():
 
 
 # === Time functions ===
+def convert_timestamp_to_seconds(timestamp, time_unit="s"):
+    """Converts a timestamp in the specified time unit to a timestamp in seconds.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    timestamp: int|float
+        A timestamp, in the unit specified by `time_unit`.
+    time_unit: str, optional
+        The time unit of the timestamp. This parameter can take the following values: "ns", "1ns", "10ns", "100ns",
+        "µs", "1µs", "10µs", "100µs", "ms", "1ms", "10ms", "100ms", "s", "sec", "1s", "min", "mn", "h", "hr", "d",
+        "day".
+
+    Returns
+    -------
+    float
+        The converted timestamp, in seconds.
+
+    Examples
+    --------
+    >>> convert_timestamp_to_seconds(5, "ms")
+    0.005
+    >>> convert_timestamp_to_seconds(1, "h")
+    3600
+    """
+    return timestamp / UNITS[time_unit.lower()]
+
+
 def format_time(time, time_unit="s", time_format="hh:mm:ss"):
     """Formats a given time in a given unit according to a time format.
 
@@ -2468,8 +3241,19 @@ def format_time(time, time_unit="s", time_format="hh:mm:ss"):
         "day".
     time_format: str, optional
         The format in which to return the time. Can be either "hh:mm:ss", "hh:mm:ss.ms", "hh:mm", "mm:ss" or "mm:ss.ms".
+
+    Examples
+    --------
+    >>> format_time(1000, "s", "hh:mm:ss")
+    "00:16:40"
+    >>> format_time(1000, "s", "hh:mm:ss.ms")
+    "00:16:40.000"
+    >>> format_time(1000, "s", "mm:ss")
+    "16:40"
+    >>> format_time(1000, "s", "mm:ss.ms")
+    "16:40.000"
     """
-    time = time / UNITS[time_unit]
+    time = convert_timestamp_to_seconds(time, time_unit)
     hour = int(time // 3600)
     minute = int((time // 60) % 60)
     second = int((time % 60) // 1)
@@ -2509,9 +3293,14 @@ def time_unit_to_datetime(time, time_unit="s"):
         The unit of the ``time`` parameter. This parameter can take the following values: "ns", "1ns", "10ns", "100ns",
         "µs", "1µs", "10µs", "100µs", "ms", "1ms", "10ms", "100ms", "s", "sec", "1s", "min", "mn", "h", "hr", "d",
         "day".
+
+    Example
+    -------
+    >>> time_unit_to_datetime(1000000, "ms")
+    datetime.datetime(1, 1, 1, 0, 16, 40)
     """
 
-    time = time / UNITS[time_unit]
+    time = convert_timestamp_to_seconds(time, time_unit)
     day = int(time // 86400)
     hour = int(time // 3600) % 24
     minute = int((time // 60) % 60)
@@ -2534,9 +3323,14 @@ def time_unit_to_timedelta(time, time_unit="s"):
         The unit of the ``time`` parameter. This parameter can take the following values: "ns", "1ns", "10ns", "100ns",
         "µs", "1µs", "10µs", "100µs", "ms", "1ms", "10ms", "100ms", "s", "sec", "1s", "min", "mn", "h", "hr", "d",
         "day".
+
+    Example
+    -------
+    >>> time_unit_to_timedelta(1000000, "ms")
+    datetime.timedelta(0, 1000, 0)
     """
 
-    time = time / UNITS[time_unit]
+    time = convert_timestamp_to_seconds(time, time_unit)
     day = int(time // 86400)
     second = int((time % 86400) // 1)
     microsecond = int((time % 1) * 1000000)
@@ -2586,46 +3380,6 @@ def show_progression(verbosity, current_iteration, goal, next_percentage, step=1
     return next_percentage
 
 
-def resample_images_to_frequency(images_paths, timestamps, frequency):
-    """Given a series of images with specific timestamps, returns a new series of images and timestamps, resampled at
-    a given frequency. For example, for images with timestamps at a rate of 20 Hz, and with a frequency set on 100 Hz,
-    each image path will be copied 5 times with 5 different timestamps in the output. This can be used to obtain a
-    video set at a defined framerate, regardless of the original frequency.
-
-    .. versionadded:: 2.0
-
-    Parameters
-    ----------
-    images_paths: list(str)
-        A list of images paths.
-    timestamps: list(float)
-        A list of timestamps for each image path.
-    frequency: int or float
-        The frequency at which to resample the images (images per second).
-
-    Returns
-    -------
-    list(str)
-        A list of images paths.
-    list(float)
-        A list of timestamps.
-    """
-    number_of_frames = math.ceil(timestamps[-1] * frequency) + 1
-    new_timestamps = []
-    new_images = []
-    t = 0
-    duration = 1 / frequency
-
-    for f in range(number_of_frames):
-        new_timestamps.append(t)
-        possible_times = [abs(i - t) for i in timestamps]
-        index_image = possible_times.index(min(possible_times))
-        new_images.append(images_paths[index_image])
-        t += duration
-
-    return new_images, new_timestamps
-
-
 def get_min_max_values_from_plot_dictionary(plot_dictionary, keys_to_exclude=None):
     """Returns the minimum and maximum values of all the graphs contained in a plot dictionary.
 
@@ -2645,35 +3399,33 @@ def get_min_max_values_from_plot_dictionary(plot_dictionary, keys_to_exclude=Non
     float
         The maximum value detected in all the series.
     """
-    min_value = 0
-    max_value = 0
+    min_value = None
+    max_value = None
 
     if keys_to_exclude is None:
         keys_to_exclude = []
 
     for key in plot_dictionary.keys():
         if key not in keys_to_exclude:
-            if plot_dictionary[key] is list:
-                for series in plot_dictionary[key]:
-                    local_min = min(series.y)
-                    local_max = max(series.y)
-                    if local_min < min_value:
-                        min_value = local_min
-                    if local_max > max_value:
-                        max_value = local_max
+            if type(plot_dictionary[key]) is list:
+                local_min = np.min(np.array(plot_dictionary[key]).flatten())
+                local_max = np.max(np.array(plot_dictionary[key]).flatten())
+                if min_value is None or local_min < min_value:
+                    min_value = local_min
+                if max_value is None or local_max > max_value:
+                    max_value = local_max
             elif type(plot_dictionary[key]) is Graph:
                 for plot in plot_dictionary[key].plots:
-                    local_min = min(plot.y)
-                    local_max = max(plot.y)
-                    if local_min < min_value:
+                    local_min = np.min(plot.y)
+                    local_max = np.max(plot.y)
+                    if min_value is None or local_min < min_value:
                         min_value = local_min
-                    if local_max > max_value:
+                    if max_value is None or local_max > max_value:
                         max_value = local_max
             else:
-                # print(plot_dictionary[key])
-                if plot_dictionary[key] < min_value:
+                if min_value is None or plot_dictionary[key] < min_value:
                     min_value = plot_dictionary[key]
-                if plot_dictionary[key] > max_value:
+                if max_value is None or plot_dictionary[key] > max_value:
                     max_value = plot_dictionary[key]
 
     return min_value, max_value

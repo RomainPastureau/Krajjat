@@ -100,7 +100,7 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
     if align:
         if verbosity > 0:
             print("Trying to align sequences...", end=" ")
-        timestamps = align_multiple_sequences(sequence_or_sequences)
+        timestamps = align_multiple_sequences(*sequence_or_sequences, verbosity=verbosity)
         if verbosity > 0:
             print(" - Done.")
     else:
@@ -138,47 +138,49 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
     timestamps = epoch_timestamps
 
     # Create empty lists for the arrays
-    values = {"x": [], "y": [], "z": [],  "distance": [], "velocity": [], "acceleration": []}
-    plot_timestamps = {"x": [], "y": [], "z": [],  "distance": [], "velocity": [], "acceleration": []}
+    values = {"x": [], "y": [], "z": [],  "distance": [], "velocity": [], "acceleration": [], "jerk": []}
+    plot_timestamps = {"x": [], "y": [], "z": [],  "distance": [], "velocity": [], "acceleration": [], "jerk": []}
 
     # For all poses
     for i in range(len(sequence_or_sequences)):
         sequence = sequence_or_sequences[i]
 
-        values["x"].append(sequence.get_joint_coordinate_as_list(joint_label, "x", timestamps[i][0], timestamps[i][-1]))
-        values["y"].append(sequence.get_joint_coordinate_as_list(joint_label, "y", timestamps[i][0], timestamps[i][-1]))
-        values["z"].append(sequence.get_joint_coordinate_as_list(joint_label, "z", timestamps[i][0], timestamps[i][-1]))
-        values["distance"].append(sequence.get_joint_distance_as_list(joint_label, None, timestamps[i][0],
-                                                                      timestamps[i][-1]))
-        values["velocity"].append(sequence.get_joint_velocity_as_list(joint_label, timestamps[i][0], timestamps[i][-1]))
-        values["acceleration"].append(sequence.get_joint_acceleration_as_list(joint_label, True, timestamps[i][0],
-                                                                              timestamps[i][-1]))
+        values["x"].append(sequence.get_joint_coordinate_as_array(joint_label, "x", timestamps[i][0], timestamps[i][-1]))
+        values["y"].append(sequence.get_joint_coordinate_as_array(joint_label, "y", timestamps[i][0], timestamps[i][-1]))
+        values["z"].append(sequence.get_joint_coordinate_as_array(joint_label, "z", timestamps[i][0], timestamps[i][-1]))
+        values["distance"].append(sequence.get_joint_distance_as_array(joint_label, None, timestamps[i][0],
+                                                                       timestamps[i][-1]))
+        values["velocity"].append(sequence.get_joint_metric_as_array(joint_label, "velocity", timestamps[i][0], timestamps[i][-1]))
+        values["acceleration"].append(sequence.get_joint_metric_as_array(joint_label, "acceleration", timestamps[i][0], timestamps[i][-1]))
+        values["jerk"].append(sequence.get_joint_metric_as_array(joint_label, "jerk", timestamps[i][0], timestamps[i][-1]))
+        # values["velocity"].append(sequence.get_joint_velocity_as_array(joint_label, timestamps[i][0], timestamps[i][-1]))
+        # values["acceleration"].append(sequence.get_joint_acceleration_as_array(joint_label, True, timestamps[i][0],
+        #                                                                        timestamps[i][-1]))
 
         for key in plot_timestamps.keys():
-            plot_timestamps[key].append(sequence.get_timestamps_for_metric(key, False, timestamps[i][0],
-                                                                           timestamps[i][-1]))
+            plot_timestamps[key].append(np.array(sequence.get_timestamps_for_metric(key, False, timestamps[i][0],
+                                                                                    timestamps[i][-1])))
 
         if domain == "frequency":
             for key in values.keys():
                 plot_timestamps[key][i], values[key][i] = signal.welch(np.array(values[key][i]),
-                                                                       sequence.get_framerate(), "flattop", 1024,
+                                                                       sequence.get_sampling_rate(), "flattop", 1024,
                                                                        scaling="spectrum")
-                print(plot_timestamps[key][i])
                 if x_end_to_define and x_end < plot_timestamps[key][i][-1]:
 
                     x_end = plot_timestamps[key][i][-1]
-                    print(x_end)
 
     if type(metrics) is str and metrics.lower() == "all":
-        metrics = ["x", "y", "z", "distance", "velocity", "acceleration"]
+        metrics = ["x", "y", "z", "distance", "velocity", "acceleration", "jerk"]
 
     if time_format and domain != "frequency":
         for key in plot_timestamps:
             for i in range(len(plot_timestamps[key])):
-                for j in range(len(plot_timestamps[key][i])):
-                    plot_timestamps[key][i][j] = time_unit_to_datetime(plot_timestamps[key][i][j])
-        x_start = time_unit_to_datetime(x_start)
-        x_end = time_unit_to_datetime(x_end)
+                plot_timestamps[key][i] = np.array(plot_timestamps[key][i] * 1000000, dtype="datetime64[us]")
+                # for j in range(len(plot_timestamps[key][i])):
+                #     plot_timestamps[key][i][j] = np.array(time_unit_to_datetime(plot_timestamps[key][i][j])
+        x_start = np.datetime64(int(x_start * 1000000), "us")
+        x_end = np.datetime64(int(x_end * 1000000), "us")
 
     sns.set()
     plt.rcParams["figure.figsize"] = (12, 9)
@@ -186,14 +188,15 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
     fig = plt.figure()
     if figure_background_color is not None:
         fig.patch.set_facecolor(convert_color(figure_background_color, "hex", False))
-    fig.subplots(6, 1)  # figsize=(12, 9))
+    fig.subplots(7, 1)  # figsize=(12, 9))
     fig.subplots_adjust(left=0.15, bottom=0.1, right=0.97, top=0.9, wspace=0.3, hspace=0.6)
 
     # Plot x, y, z, distance travelled and velocities
     parameters = {"rotation": "horizontal", "horizontalalignment": "right", "verticalalignment": "center",
                   "font": {"weight": "bold"}}
 
-    labels_units = {"x": "m", "y": "m", "z": "m", "distance": "m", "velocity": "m/s", "acceleration": "m/s²"}
+    labels_units = {"x": "m", "y": "m", "z": "m", "distance": "m", "velocity": "m/s", "acceleration": "m/s²",
+                    "jerk": "m/s³"}
 
     # Get colors
     colors = []
@@ -205,17 +208,72 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
     else:
         colors = [None]
 
+    # Formatting functions for the x-axis (MM:SS and HH:MM:SS)
+    def get_label(value, include_hour=True, include_us=True):
+        """Returns a label value depending on the selected parameters."""
+
+        neg = False
+        # If negative, put positive
+        if value < 0:
+            neg = True
+            value = abs(value)
+
+        # If zero, set zero
+        elif value == 0:
+            if include_hour:
+                return "00:00:00"
+            else:
+                return "00:00"
+
+        # Turn to timedelta
+        td_value = mdates.num2timedelta(value)
+
+        seconds = td_value.total_seconds()
+        hh = str(int(seconds // 3600)).zfill(2)
+        mm = str(int((seconds // 60) % 60)).zfill(2)
+        ss = str(int(seconds % 60)).zfill(2)
+
+        us = str(int((seconds % 1) * 1000000)).rstrip("0")
+
+        label = ""
+        if neg:
+            label += "-"
+        if include_hour:
+            label += hh + ":"
+        label += mm + ":" + ss
+        if include_us and us != "":
+            label += "." + us
+
+        return label
+
+    def get_label_hh_mm_ss_no_ms(value, pos=None):
+        """Returns a label value as HH:MM:SS, without any ms value."""
+        return get_label(value, True, False)
+
+    def get_label_hh_mm_ss(value, pos=None):
+        """Returns a label value as HH:MM:SS.ms, without any trailing zero."""
+        return get_label(value, True, True)
+
+    def set_label_time_figure(ax):
+        """Sets the time formatted labels on the x axes."""
+        formatter = mdates.AutoDateFormatter(ax.xaxis.get_major_locator())
+        formatter.scaled[1 / mdates.MUSECONDS_PER_DAY] = get_label_hh_mm_ss
+        formatter.scaled[1 / mdates.SEC_PER_DAY] = get_label_hh_mm_ss
+        formatter.scaled[1 / mdates.MINUTES_PER_DAY] = get_label_hh_mm_ss_no_ms
+        formatter.scaled[1 / mdates.HOURS_PER_DAY] = get_label_hh_mm_ss_no_ms
+        formatter.scaled[1] = get_label_hh_mm_ss_no_ms
+        formatter.scaled[mdates.DAYS_PER_MONTH] = get_label_hh_mm_ss_no_ms
+        formatter.scaled[mdates.DAYS_PER_YEAR] = get_label_hh_mm_ss_no_ms
+        ax.xaxis.set_major_formatter(formatter)
+        return ax
+
     for i in range(len(metrics)):
         ax = plt.subplot(len(metrics), 1, i + 1)
         if graph_background_color is not None:
             ax.set_facecolor(convert_color(graph_background_color, "hex", False))
+            ax = set_label_time_figure(ax)
 
-        if time_format and domain != "frequency":
-            if (x_end - x_start).seconds >= 3600:
-                formatter = mdates.AutoDateFormatter(mdates.AutoDateLocator(), defaultfmt='%H:%M:%S')
-            else:
-                formatter = mdates.AutoDateFormatter(mdates.AutoDateLocator(), defaultfmt='%M:%S')
-            plt.gcf().axes[i].xaxis.set_major_formatter(formatter)
+            # plt.gcf().axes[i].xaxis.set_major_formatter(formatter)
             if (x_end - x_start).seconds >= 3600:
                 plt.xlabel("Time (hh:mm:ss.ms)")
             else:
@@ -358,7 +416,7 @@ def joints_movement_plotter(sequence, time_series="velocity", domain="time", aud
         max_value_whole_sequence = 0
         for key in joints_time_series.keys():
             timestamps, joints_time_series[key] = signal.welch(np.array(joints_time_series[key]),
-                                                               sequence.get_framerate(), "flattop", 1024,
+                                                               sequence.get_sampling_rate(), "flattop", 1024,
                                                                scaling="spectrum")
             if np.max(joints_time_series[key]) > max_value_whole_sequence:
                 max_value_whole_sequence = np.max(joints_time_series[key])
@@ -445,7 +503,7 @@ def framerate_plotter(sequence_or_sequences, line_width=1.0, line_color="#000000
     sns.set()
     plt.rcParams["figure.figsize"] = (12, 6)
     plt.subplots_adjust(left=0.03, bottom=0.03, right=0.97, top=0.9, wspace=0.3, hspace=0.7)
-    labels = get_difference_paths(get_objects_names(sequence_or_sequences))
+    labels = get_difference_paths(*get_objects_names(sequence_or_sequences))
     # print(labels)
     for i in range(len(labels)):
         if len(labels[i]) == 1:
@@ -463,8 +521,9 @@ def framerate_plotter(sequence_or_sequences, line_width=1.0, line_color="#000000
     for seq in range(len(sequence_or_sequences)):
 
         sequence = sequence_or_sequences[seq]
-        framerates, timestamps = sequence.get_framerates()
-        average = sequence.get_average_framerate()
+        framerates = sequence.get_sampling_rates()
+        timestamps = sequence.get_timestamps()[1:]
+        average = sequence.get_average_sampling_rate()
         averages = [average for _ in range(len(framerates))]
 
         framerates_list.append(framerates)
@@ -593,7 +652,7 @@ def audio_plotter(audio, threshold_low_pass_envelope=10, number_of_formants=3):
 
 
 def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale=None, max_scale=None, show_scale=False,
-                     title_scale=None, color_scheme="default", title_audio="Audio", full_screen=False, show_graph=True,
+                     title_scale=None, x_lim=None, color_scheme="default", title_audio="Audio", full_screen=False, show_graph=True,
                      path_saving=None):
     """Creates multiple sub-plots placed so that each joint is roughly placed where it is located on the body. The
     values of each subplot are taken from the parameter ``plot_dictionary``, and the positions from the layout
@@ -634,6 +693,9 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
     title_scale: str or None, optional
         Defines a title to give to the scale, if ``show_scale`` is set on ``True``.
 
+    x_lim: list(float, float)|None, optional
+        If set, defines the lower and upper limits of the x-axis of the sub-graphs (default: None).
+
     color_scheme: str or list, optional
         The color scheme to use for the color scale. This color scheme should be coherent with the colors defined in
         the ``plot_dictionary``.
@@ -661,7 +723,7 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
             joint_layout = "qualisys"
         else:
             joint_layout = "kinect"
-    joints_positions, joint_layout = load_joints_subplot_layout(joint_layout)
+    joints_positions = load_joints_subplot_layout(joint_layout)
 
     # Figure parameters
     sns.set(font_scale=0.8)
@@ -685,6 +747,10 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
 
     # Get min and max values
     min_value, max_value = get_min_max_values_from_plot_dictionary(plot_dictionary, keys_to_exclude=["Audio"])
+    if min_scale is not None:
+        min_value = min_scale
+    if max_scale is not None:
+        max_value = max_scale
     if max_scale == "auto":
         max_scale = max_value
 
@@ -696,6 +762,8 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
             plt.title(key)
         else:
             plt.title(title_audio)
+        if x_lim is not None:
+            plt.xlim(x_lim)
         for subplot in plot_dictionary[key].plots:
             plt.plot(subplot.x, subplot.y, linewidth=subplot.line_width, color=subplot.color, label=subplot.label)
             if subplot.sd is not None:
@@ -733,6 +801,7 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
     fig.legend(handles, labels, loc='upper right')
 
     if path_saving is not None:
+        os.makedirs(os.path.split(path_saving)[0], exist_ok=True)
         plt.savefig(path_saving)
 
     if show_graph:

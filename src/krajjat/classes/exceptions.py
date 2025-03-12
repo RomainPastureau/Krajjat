@@ -1,6 +1,5 @@
 """Exceptions classes for handling error and displaying messages."""
 
-
 class InvalidPathException(Exception):
     """Exception raised when a path provided does not point towards a valid Sequence or Audio. This error can be
     raised:
@@ -27,7 +26,19 @@ class InvalidPathException(Exception):
         self.path = path
         self.file_or_folder = object_type
         self.reason = reason
-        self.message = "The path " + self.path + " does not point to a valid " + object_type + ": " + reason
+        self.message = f"The path {self.path} does not point to a valid {object_type}: {reason}."
+
+
+class EmptyInstanceException(Exception):
+    """Exception raised when the instance of a Sequence, Audio or AudioDerivative does not have any pose.
+
+    .. versionadded:: 2.0
+    """
+    def __init__(self, kind):
+        if kind == "Sequence":
+            self.message = "The Sequence does not have any pose."
+        else:
+            self.message = f"The {kind} does not have any sample."
         super().__init__(self.message)
 
 
@@ -82,7 +93,7 @@ class ImpossibleTimeTravelException(Exception):
         self.number_of_timestamps = number_of_timestamps
         self.object_type = object_type
         self.message = "The timestamps aren't in chronological order: you can't travel back in time (yet). " + \
-                       "Timestamp for " + str(object_type) + str(index1 + 1) + "/" + str(number_of_timestamps) + \
+                       "Timestamp for " + str(object_type) + " " + str(index1 + 1) + "/" + str(number_of_timestamps) + \
                        " is " + str(timestamp1) + " while the timestamp for pose " + \
                        str(index2 + 1) + " is " + str(timestamp2) + \
                        " (difference of " + str(timestamp1 - timestamp2) + ")."
@@ -90,7 +101,7 @@ class ImpossibleTimeTravelException(Exception):
 
 
 class InvalidJointLabelException(Exception):
-    """Exception raised when the provided joint name does not exist in the Sequence.
+    """Exception raised when the provided joint name does not exist in the Sequence or the Pose.
 
     .. versionadded:: 2.0
 
@@ -181,16 +192,107 @@ class InvalidParameterValueException(Exception):
                 self.message += "or " + str(expected_values[-1]) + "."
 
 
-class JointLabelNotFoundException(Exception):
-    """Exception raised when a joint label was not found in a sequence.
+class JointLabelAlreadyExistsException(Exception):
+    """Exception raised when tying to add a joint with a label that already exists in a Pose object.
 
     .. versionadded:: 2.0
 
     Parameters
     ----------
     joint_label: str
-        The joint label that was not found in the sequence.
+        The joint label that already exists in the Pose object.
     """
 
     def __init__(self, joint_label):
-        self.message = f"The joint label {joint_label} could not be found in the sequence."
+        self.message = f"A joint labeled {joint_label} already exists in the Pose object."
+
+class PoseAlreadyExistsException(Exception):
+    """Exception raised when tying to add a pose with a timestamp that already exists in a Sequence object.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    sequence_name: str
+        The name of the target Sequence object.
+    timestamp: float
+        The timestamp of the pose that already exists in the Sequence object.
+    """
+
+    def __init__(self, sequence_name, timestamp):
+        self.message = f"A pose with timestamp {timestamp} already exists in the Sequence {sequence_name}."
+
+class NotASubPathException(Exception):
+    """Exception raised when a path is not a parent of another.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    path1: str
+        The alleged parent path
+    path2: str
+        The alleged child path
+    """
+
+    def __init__(self, path1, path2):
+        self.message = f"{path1} is not a parent of {path2}."
+
+class DifferentSequencesLengthsException(Exception):
+    """Exception raised when two sequences have a different number of poses.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    sequence1: Sequence
+        A Sequence instance.
+    sequence2: Sequence
+        Another Sequence instance
+
+    """
+    def __init__(self, sequence1, sequence2):
+        self.message = f"The two sequences have different amount of poses ({sequence1.get_number_of_poses()} and " +\
+                       f"{sequence2.get_number_of_poses()})."
+
+class MissingRecordingDateException(Exception):
+    """Exception raised when a Sequence is missing a recording date.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    sequence: Sequence
+        A Sequence instance.
+    """
+    def __init__(self, sequence):
+        self.message = f"The sequence {sequence.name} does not have a recording date."
+
+class NoExistingJointListPresetException(Exception):
+    """Exception raised when no existing joint list preset is found for a certain system.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    variable_name: str
+        The name of the variable to calculate.
+    system: str
+        The recording system of the Sequence instance.
+    """
+    def __init__(self, variable_name, system):
+        self.message = (f"There is no preset to calculate {variable_name} for the system used ({system}). "
+                        f"Please specify a list of joints to use.")
+
+class VariableSamplingRateException(Exception):
+    """Exception raised when performing an operation that does not support a variable sampling rate.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    sequence_name: str
+        The name of the sequence.
+    """
+    def __init__(self, sequence_name):
+        self.message = f"The sequence {sequence_name} has a variable sampling rate."

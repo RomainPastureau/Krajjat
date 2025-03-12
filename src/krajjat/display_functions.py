@@ -1,4 +1,5 @@
 """Functions to display and compare sequences graphically."""
+from krajjat.classes.sequence import Sequence
 from krajjat.tool_functions import *
 from krajjat.classes.graphic_classes import *
 import shutil
@@ -46,7 +47,7 @@ def common_displayer(sequence1, sequence2=None, path_audio=None, path_video=None
         sequence(s) (``"side"``)  This parameter is ignored if no video is provided.
 
     timestamp_video_start: int or None, optional
-        If specified, indicated what timestamp of the video (in seconds) matches the start of the sequence.
+        If specified, indicates what timestamp of the video (in seconds) matches the start of the sequence.
 
     resolution: tuple(int, int) or float or None, optional
         The resolution of the Pygame window that will display the Sequence instance(s). This parameter can be:
@@ -90,6 +91,11 @@ def common_displayer(sequence1, sequence2=None, path_audio=None, path_video=None
 
     **kwargs: dict, optional
         A dictionary of optional arguments. See :ref:`keyword_arguments_display_functions`.
+
+    Example
+    -------
+    >>> sequence_1 = Sequence("sequences/Nibbler/sequence_1.tsv")
+    >>> common_displayer(sequence_1, path_audio="sequences/Nibbler/sequence_1.wav", path_video="sequences/Nibbler/sequence_1.mp4")
     """
 
     pygame.init()
@@ -158,7 +164,7 @@ def common_displayer(sequence1, sequence2=None, path_audio=None, path_video=None
     move_animation = None
     modifiers = {K_LCTRL: False, K_RCTRL: False, K_LALT: False, K_RALT: False, K_LSHIFT: False, K_RSHIFT: False,
                  K_a: False, K_b: False}
-    steps = load_steps_gui()
+    steps = load_default_steps_gui()
 
     # Load the video
     video = None
@@ -187,6 +193,7 @@ def common_displayer(sequence1, sequence2=None, path_audio=None, path_video=None
                        rate=wavefile.getframerate(), output=True)
 
     timer = Timer(kwargs.get("speed", 1.0))
+    timer.set_timer(sequence1.poses[start_pose].relative_timestamp * 1000)
     if manual:
         timer.pause()
     last_recorded_second = 0
@@ -428,6 +435,11 @@ def sequence_reader(sequence, path_audio=None, path_video=None, position_video="
 
     **kwargs: dict, optional
         A dictionary of optional arguments. See :ref:`keyword_arguments_display_functions`.
+
+    Example
+    -------
+    >>> sequence_1 = Sequence("sequences/Snowball IV/sequence_1.tsv")
+    >>> sequence_reader(sequence_1, path_audio="sequences/Snowball IV/sequence_1.wav", path_video="sequences/Snowball IV/sequence_1.mp4")
     """
 
     common_displayer(sequence, path_audio=path_audio, path_video=path_video, position_video=position_video,
@@ -510,6 +522,12 @@ def sequence_comparer(sequence1, sequence2, path_audio=None, path_video=None, po
 
     **kwargs: dict, optional
         A dictionary of optional arguments. See :ref:`keyword_arguments_display_functions`.
+
+    Example
+    -------
+    >>> sequence_1 = Sequence("sequences/Wile E. Coyote/sequence_1.tsv")
+    >>> sequence_1_cj = sequence_1.correct_jitter(1, 3)
+    >>> sequence_reader(sequence_1, sequence_1_cj, path_audio="sequences/Snowball IV/sequence_1.wav", path_video="sequences/Snowball IV/sequence_1.mp4")
     """
 
     common_displayer(sequence1, sequence2, path_audio=path_audio, path_video=path_video,
@@ -567,6 +585,11 @@ def pose_reader(sequence, start_pose=0, resolution=0.5, height_window_in_meters=
 
     **kwargs: dict, optional
         A dictionary of optional arguments. See :ref:`keyword_arguments_display_functions`.
+
+    Example
+    -------
+    >>> sequence_1 = Sequence("sequences/Bernard/sequence_1.tsv")
+    >>> pose_reader(sequence_1, 42, color_joint="yellow")
     """
 
     common_displayer(sequence, start_pose=start_pose, resolution=resolution,
@@ -762,7 +785,7 @@ def _process_events(animation, window_area, modif_this, modif_other, seq_num, ma
 def save_video_sequence(sequence1, path_output, fps=25, sequence2=None, path_audio=None, path_video=None,
                         position_sequences="side", position_video="superimposed", timestamp_video_start=0,
                         resolution=(1920, 1080), height_window_in_meters=3.0, frame_selection="lower", image_type="PNG",
-                        quality=5, verbosity=1, **kwargs):
+                        quality=5, x_axis="x", y_axis="y", verbosity=1, **kwargs):
     """Creates a video from a sequence and saves it on the disk. The function generates images using Pygame, following
     all the arguments in parameters. Each image is then saved in a temporary folder. Using ffmpeg, a video is
     created, using the mpeg4 encoding.
@@ -776,7 +799,7 @@ def save_video_sequence(sequence1, path_output, fps=25, sequence2=None, path_aud
 
     path_output: str
         The full path to the video file where to save the video, including the extension of the file (e.g.
-        ``"C:/Recordings/Leorio/Session7/video_003.mp4"``.
+        ``"C:/Recordings/Leorio/Session7/video_003.mp4"``).
 
         .. warning::
             Using ffmpeg, theoretically all output formats are supported; however, the output file generation was
@@ -839,6 +862,12 @@ def save_video_sequence(sequence1, path_output, fps=25, sequence2=None, path_aud
         number induces a better quality, but a larger file size. For more details,
         `see FFmpeg resources <https://trac.ffmpeg.org/wiki/Encode/MPEG-4>`_.
 
+    x_axis: str, optional
+        Sets which axis should be matched to the x display axis (default `"x"`, can be `"y"` or `"z"` too).
+
+    y_axis: str, optional
+        Sets which axis should be matched to the y display axis (default `"y"`, can be `"x"` or `"z"` too).
+
     verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
 
@@ -850,6 +879,11 @@ def save_video_sequence(sequence1, path_output, fps=25, sequence2=None, path_aud
 
     **kwargs: dict, optional
         A dictionary of optional arguments. See :ref:`keyword_arguments_display_functions`.
+
+    Example
+    -------
+    >>> sequence_1 = Sequence("sequences/Bear/sequence_1.tsv")
+    >>> pose_reader(sequence_1, "videos/Bear/sequence_1_with_skeleton.mp4", path_audio="sequences/Bear/audio_1.wav", path_video="videos/Bear/sequence_1.mp4", zoom_level=1.4, shift=(-195, -107))
     """
 
     from subprocess import Popen, PIPE
@@ -901,15 +935,15 @@ def save_video_sequence(sequence1, path_output, fps=25, sequence2=None, path_aud
                                    window_areas_elements[1], height_window_in_meters)]
 
     # Generates a graphic sequence from the sequence
-    animation1 = GraphicSequence(sequence1, window_areas[0], 0, verbosity,
+    animation1 = GraphicSequence(sequence1, window_areas[0], 0, x_axis, y_axis, verbosity,
                                  **kwargs_parser(kwargs, "_seq1"))
     animation2 = None
     if sequence2 is not None:
         if window_areas[0].contains("sequence2"):
-            animation2 = GraphicSequence(sequence2, window_areas[0], 0, verbosity,
+            animation2 = GraphicSequence(sequence2, window_areas[0], 0, x_axis, y_axis, verbosity,
                                          **kwargs_parser(kwargs, "_seq2"))
         else:
-            animation2 = GraphicSequence(sequence2, window_areas[1], 0, verbosity,
+            animation2 = GraphicSequence(sequence2, window_areas[1], 0, x_axis, y_axis, verbosity,
                                          **kwargs_parser(kwargs, "_seq2"))
 
     directory_output = "/".join(path_output.split("/")[:-1])

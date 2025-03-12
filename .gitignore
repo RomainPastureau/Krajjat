@@ -11,3 +11,5 @@
 /.idea/
 /src/krajjat/lib/__pycache__/
 /docs/build/doctrees/
+/lund_processing/
+/src/krajjat/unused/

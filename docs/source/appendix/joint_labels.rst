@@ -7,6 +7,8 @@ The Kinect v2 system tracks a skeleton using the following 21 joints:
 
 .. image:: /img/kinect_joint_labels.png
 
+.. _qualisys_to_kualisys:
+
 Qualisys and Kualisys joint labels
 ----------------------------------
 The standard setup for the Qualisys system uses 44 joint labels. Joints with transparency are located in the back of

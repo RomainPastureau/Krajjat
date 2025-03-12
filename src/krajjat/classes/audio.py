@@ -3,18 +3,17 @@ This class allows to perform a variety of transformations of the audio stream, s
 formants of the speech.
 """
 from collections import OrderedDict
-import datetime as dt
 
-from scipy import signal
+from find_delay import find_delay, find_delays
+from scipy.signal import butter, lfilter, hilbert
+from scipy.io import wavfile, loadmat, savemat
+from parselmouth import Sound
 
-from krajjat.plot_functions import _plot_figure_find_excerpt
-from krajjat.tool_functions import *
-from krajjat.classes.exceptions import *
 from krajjat.classes.audio_derivatives import *
-from scipy.signal import butter, lfilter
+from krajjat.classes.timeseries import TimeSeries
 
 
-class Audio(object):
+class Audio(AudioDerivative):
     """Default class for audio clips matching a Sequence, typically the voice of the subject of the motion
     capture. This class allows to perform a variety of transformations of the audio stream, such as getting the
     envelope, pitch and formants of the speech.
@@ -54,7 +53,7 @@ class Audio(object):
     ----------
     samples: np.ndarray(int)
         A list containing the audio samples, in chronological order.
-    timestamps: list(float)
+    timestamps: np.ndarray(float)
         A list containing the timestamps matching each audio sample. Consequently, :attr:`samples` and
         :attr:`timestamps` should have the same length.
     frequency: int or float
@@ -73,35 +72,19 @@ class Audio(object):
         List of files contained in the path. The list will be of size 1 if the path points to a single file.
     kind: str
         A parameter that is set on ``"Audio"``, to differentiate it from the different types of AudioDerivative.
+
+    Examples
+    --------
+    >>> seq1 = Audio("sequences/Chris/seq_001.tsv")
+    >>> seq2 = Audio("sequences/Will/seq_001.xlsx", name="Will_001")
+    >>> seq3 = Audio(name="Jonny_001")
+    >>> from scipy.io import wavfile
+    >>> freq, samples = wavfile.read("sequences/Guy/seq_001.wav")
+    >>> seq4 = Audio(samples, freq, name="Guy_001", condition="English", time_unit="ms", system="Kinect", verbosity=0)
     """
 
     def __init__(self, path_or_samples, frequency=None, name=None, condition=None, verbosity=1):
-        self.samples = np.ndarray([])
-        self.timestamps = []
-        self.frequency = None
-        self.name = None  # Placeholder for the name of the sequence
-        self.condition = condition
-        self.metadata = {}
-        self.path = None
-        self.files = None
-        self.kind = "Audio"
-
-        if type(path_or_samples) is str:
-            self._load_from_path(path_or_samples, verbosity)
-        elif isinstance(path_or_samples, (list, np.ndarray)):
-            self._load_from_samples(path_or_samples, frequency, verbosity)
-        else:
-            raise Exception("Invalid type for the argument path_or_samples: should be str or list.")
-
-        self._define_name_init(name, verbosity)
-
-        # self.max_sample = max(self.samples)
-        # self.min_sample = min(self.samples)
-        #
-        # self.envelope = None
-        # self.max_sample_envelope = None
-        # self.min_sample_envelope = None
-        # self.get_envelope()
+        super().__init__("Audio", path_or_samples, name, condition, verbosity)
 
     # === Setter functions ===
     def set_name(self, name):
@@ -120,8 +103,7 @@ class Audio(object):
         >>> aud = Audio("C:/Users/Walter/Sequences/audio.wav")
         >>> aud.set_name("Audio 28980")
         """
-
-        self.name = name
+        super().set_name(name)
 
     def set_condition(self, condition):
         """Sets the :py:attr:`condition` attribute of the Audio instance. This attribute can be used to save the
@@ -141,64 +123,16 @@ class Audio(object):
         >>> aud2 = Audio("C:/Users/Dwight/Sequences/Spanish/seq.wav")
         >>> aud2.set_condition("Spanish")
         """
-        self.condition = condition
+        super().set_condition(condition)
 
     # === Loading functions ===
-    def _define_name_init(self, name, verbosity=1):
-        """Sets the name attribute for an instance of the Audio class, using the name provided during the
-        initialization, or the path. If no ``name`` is provided, the function will create the name based on the
-        :attr:`path` attribute, by defining the name as the last element of the path hierarchy (last subfolder, or file
-        name). For example, if ``path`` is ``"C:/Users/Bender/Documents/Recording001/"``, the function will define the
-        name on ``"Recording001"``. If both ``name`` and ``path`` are set on ``None``, the sequence name will be defined
-        as ``"Unnamed audio"``.
-
-        .. versionadded:: 2.0
-
-        Parameters
-        ----------
-        name: str
-            The name passed as parameter in :meth:`Audio.__init__()`
-        verbosity: int, optional
-            Sets how much feedback the code will provide in the console output:
-
-            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
-            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
-              current steps.
-            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
-              may clutter the output and slow down the execution.
-        """
-
-        if name is not None:
-            self.name = name
-            if verbosity > 1:
-                print("The provided name " + str(name) + " will be attributed to the audio.")
-
-        elif self.path is not None:
-            if len(self.path.split("/")) >= 1:
-                self.name = self.path.split("/")[-1]
-            else:
-                self.name = str(self.path)
-            if verbosity > 1:
-                print(
-                    "No name was provided. Instead, the name " + str(self.name) + " was attributed by extracting it " +
-                    "from the provided path.")
-
-        else:
-            self.name = "Unnamed audio"
-            if verbosity > 1:
-                print("No name nor path was provided. The placeholder name " + str(
-                    self.name) + " was attributed to the " +
-                      "audio.")
-
-    def _load_from_path(self, path, verbosity=1):
+    def _load_from_path(self, verbosity=1):
         """Loads the audio data from the :attr:`path` provided during the initialization.
 
         .. versionadded:: 2.0
 
         Parameters
         ----------
-        path: str
-            Path to the audio file passed as a parameter upon creation.
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
 
@@ -208,26 +142,7 @@ class Audio(object):
             • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
               may clutter the output and slow down the execution.
         """
-
-        if verbosity > 1:
-            print("Parameter path_or_samples detected as being a path.")
-
-        self.path = path
-
-        # If it's a folder, we fetch all the files
-        if not os.path.exists(self.path):
-            if "." in self.path.split("/")[-1]:
-                raise InvalidPathException(self.path, "audio clip", "The file doesn't exist.")
-            else:
-                raise InvalidPathException(self.path, "audio clip", "The folder doesn't exist.")
-
-        # If it's a folder, we fetch all the files
-        if os.path.isdir(self.path):
-            self._fetch_files_from_folder(verbosity)  # Fetches all the files
-        self._load_samples(verbosity)  # Loads the files into poses
-
-        if len(self.samples) == 0:
-            raise EmptyAudioException()
+        super()._load_from_path(verbosity)
 
     def _load_from_samples(self, samples, frequency, verbosity=1):
         """Loads the audio data when samples and frequency have been provided upon initialisation.
@@ -261,108 +176,9 @@ class Audio(object):
         if frequency is not None:
             self.frequency = frequency
         else:
-            raise Exception("If samples are provided, frequency cannot be None. Please provide a value for " +
-                            "frequency.")
+            raise Exception("If samples are provided, frequency cannot be None. Please provide a value for frequency.")
 
         self._calculate_timestamps()
-
-    def _fetch_files_from_folder(self, verbosity=1):
-        """Finds all the files ending with the accepted extensions (``.csv``, ``.json``, ``.tsv``, ``.txt``, or
-        ``.xlsx``) in the folder defined by path, and orders the files according to their name.
-
-        .. versionadded:: 2.0
-
-        Note
-        ----
-        This functions ignores the elements of the directory defined by :attr:`path` if:
-            •	They don’t have an extension
-            •	They are a folder
-            •	Their extension is not one of the accepted ones (``.csv``, ``.json``, ``.tsv``, ``.txt``, or
-                ``.xlsx``)
-            •	The file name does not contain an underscore (``_``)
-
-        If a file has a valid extension, the function tries to detect an underscore (``_``) in the name. The file
-        names should be ``xxxxxx_0.ext``, where ``xxxxxx`` can be any series of characters, ``0`` must be the index of
-        the sample (with or without leading zeros), and ``ext`` must be an accepted extension (``.csv``, ``.json``,
-        ``.tsv``, ``.txt``, or ``.xlsx``). The first pose of the sequence must have the index 0. If the file does not
-        have an underscore in the name, it is ignored. The indices must be coherent with the chronological order of the
-        timestamps.
-
-        The function uses the number after the underscore to order the samples. This is due to differences in how file
-        systems handle numbers without leading zeros: some place ``sample_11.json`` alphabetically before
-        ``sample_2.json`` (1 comes before 2), while some other systems place it after as 11 is greater than 2. In order
-        to avoid these, the function converts the number after the underscore into an integer to place it properly
-        according to its index.
-
-        Parameters
-        ----------
-        verbosity: int, optional
-            Sets how much feedback the code will provide in the console output:
-
-            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
-            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
-              current steps.
-            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
-              may clutter the output and slow down the execution.
-        """
-        if verbosity > 0:
-            print("Fetching sample files...", end=" ")
-
-        file_list = os.listdir(self.path)  # List all the files in the folder
-        self.files = ["" for _ in range(len(file_list))]  # Create an empty list the length of the files
-
-        extensions_found = []  # Save the valid extensions found in the folder
-
-        # Here, we find all the files that are either .json or .meta in the folder.
-        for f in file_list:
-
-            # If a file has an accepted extension, we get its index from its name to order it correctly in the list.
-            # This is necessary as some file systems will order sample_2.json after sample_11.json because,
-            # alphabetically, "1" is before "2".
-
-            # We check if the element has a dot, i.e. if it is a file. If not, it is a folder, and we ignore it.
-            if "." in f:
-
-                extension = f.split(".")[-1]  # We get the file extension
-                if extension in ["json", "csv", "tsv", "txt", "xlsx"]:
-
-                    if verbosity > 1:
-                        print("\tAdding file: " + str(f))
-
-                    if "_" in f:
-                        self.files[int(f.split(".")[0].split("_")[1])] = f
-                        if extension not in extensions_found:
-                            extensions_found.append(extension)
-                    else:
-                        if verbosity > 1:
-                            print("""\tIgnoring file (no "_" detected in the name): """ + str(f))
-
-                    if len(extensions_found) > 1:
-                        raise InvalidPathException(self.path, "audio clip",
-                                                   "More than one of the accepted extensions has been found in the " +
-                                                   "provided folder: " + str(extensions_found[0]) + " and " +
-                                                   str(extensions_found[1]))
-
-                else:
-                    if verbosity > 1:
-                        print("\tIgnoring file (not an accepted filetype): " + str(f))
-
-            else:
-                if verbosity > 1:
-                    print("\tIgnoring folder: " + str(f))
-
-        # If files that weren't of the accepted extension are in the folder, then "self.files" is larger than
-        # the number of samples. The list is thus ending by a series of empty strings that we trim.
-        if "" in self.files:
-            limit = self.files.index("")
-            self.files = self.files[0:limit]
-
-        for i in range(len(self.files)):
-            if self.files[i] == "":
-                raise InvalidPathException(self.path, "audio clip", "At least one of the files is missing (index " +
-                                           str(i) + ").")
-
-        print(str(len(self.files)) + " sample file(s) found.")
 
     def _load_samples(self, verbosity=1):
         """Loads the single sample files or the global file containing all the samples. Depending on the input, this
@@ -383,26 +199,28 @@ class Audio(object):
 
         """
 
-        if verbosity > 0:
-            print("Opening audio from " + self.path + "...", end=" ")
-
+        if verbosity == 1:
+            print(f"Opening audio from {self.path}...", end=" ")
+        elif verbosity > 1:
+            print(f"Opening audio from {self.path}...")
         perc = 10  # Used for the progression percentage
 
         # If the path is a folder, we load every single file
         if os.path.isdir(self.path):
 
             self.samples = np.zeros((len(self.files),))
+            self.timestamps = np.zeros((len(self.files),))
 
             for i in range(len(self.files)):
 
                 if verbosity > 1:
-                    print("Loading file " + str(i) + " of " + str(len(self.files)) + ":" + self.path + "...", end=" ")
+                    print(f"Loading file {i + 1} of {len(self.files)}: {self.files[i]}...", end=" ")
 
                 # Show percentage if verbosity
                 perc = show_progression(verbosity, i, len(self.files), perc)
 
                 # Loads a file containing one timestamp and one sample
-                self._load_single_sample_file(self.path + "/" + self.files[i], i)
+                self._load_single_sample_file(i, op.join(self.path, self.files[i]), verbosity)
 
                 if verbosity > 1:
                     print("OK.")
@@ -416,7 +234,7 @@ class Audio(object):
         else:
             self._load_audio_file(verbosity)
 
-    def _load_single_sample_file(self, path, i):
+    def _load_single_sample_file(self, sample_index, path, verbosity):
         """Loads the content of a single sample file into the Audio object. Depending on the file type, this function
         handles the content differently (see :ref:`Audio formats <wav_example>`).
 
@@ -424,52 +242,10 @@ class Audio(object):
 
         Parameters
         ----------
+        sample_index: int
+            The index of the sample to load.
         path: str
             The path of a file containing a single sample and timestamp.
-        i: int
-            The index of the sample to load.
-        """
-
-        # JSON file
-        if path.split(".")[-1] == "json":
-            data = read_json(path)
-            self.samples[i] = data["Sample"]
-            self.timestamps.append(data["Timestamp"])
-
-        # Excel file
-        elif path.split(".")[-1] == "xlsx":
-            import openpyxl as op
-            workbook = op.load_workbook(path)
-            sheet = workbook[workbook.sheetnames[0]]
-
-            self.timestamps.append(float(sheet.cell(2, 1).value))
-            self.samples[i] = float(sheet.cell(2, 2).value)
-
-        # Text file
-        elif path.split(".")[-1] in ["txt", "csv", "tsv"]:
-
-            separator = get_filetype_separator(path.split(".")[-1])
-
-            # Open the file and read the data
-            data, self.metadata = read_text_table(path)
-
-            for s in range(1, len(data)):
-                d = data[s].split(separator)
-                self.timestamps.append(float(d[0][s]))
-                self.samples[i] = int(d[1][s])
-
-        else:
-            raise InvalidPathException(self.path, "audio clip", "Invalid file extension: " + path.split(".")[-1] + ".")
-
-    def _load_audio_file(self, verbosity=1):
-        """Loads the content of a file containing all the samples of the audio stream.
-        Depending on the file type, this function handles the content differently (see
-        :ref:`Audio formats <wav_example>`).
-
-        .. versionadded:: 2.0
-
-        Parameters
-        ----------
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
 
@@ -478,24 +254,49 @@ class Audio(object):
               current steps.
             • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
               may clutter the output and slow down the execution.
-
         """
 
-        self.name = self.path
+        file_extension = op.splitext(path)[-1]
 
-        if self.path.split(".")[-1] == "wav":
-            self._read_wav(verbosity)
-        elif self.path.split(".")[-1] in ["xlsx", "json", "csv", "txt"]:
-            self._read_text_file(verbosity)
+        # JSON file
+        if file_extension == ".json":
+            data = read_json(path)
+            if sample_index == 0:
+                self._load_json_metadata(data, verbosity)
+            self.samples[sample_index] = data["Sample"]
+            self.timestamps[sample_index] = data["Timestamp"]
+
+        # Excel file
+        elif file_extension == ".xlsx":
+            data = read_xlsx(path, verbosity=verbosity)
+            self.samples[sample_index] = float(data[1][1])
+            self.timestamps[sample_index] = float(data[1][0])
+
+        # Pickle file
+        elif file_extension == ".pkl":
+            with open(path, "rb") as f:
+                content = pickle.load(f)
+            self.samples[sample_index] = content["Sample"]
+            self.timestamps[sample_index] = content["Timestamp"]
+
+        # Text file
         else:
-            raise InvalidPathException(self.path, "audio clip", "Invalid file extension: " + self.path.split(".")[-1] +
-                                       ".")
+            if os.path.splitext(self.path)[-1] not in [".csv", ".tsv", ".txt"]:
+                if verbosity > 0:
+                    print(f"Loading from non-standard extension {os.path.splitext(self.path)[-1]} as text...")
 
-    def _read_wav(self, verbosity=1):
-        """Opens a ``.wav`` file using `scipy.io.wavfile.read
-        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.io.wavfile.read.html>`_, and loads the attributes
-        :attr:`samples` and :attr:`frequency`. If the wav file has more than one channel, it is converted to mono by
-        averaging the values from all the samples via :func:`tool_functions.stereo_to_mono`.
+            separator = get_filetype_separator(file_extension[-1])
+
+            # Open the file and read the data
+            data, metadata = read_text_table(path)
+            if sample_index == 0:
+                self.metadata.update(metadata)
+            self.samples[sample_index] = float(data[1][1])
+            self.timestamps[sample_index] = float(data[1][0])
+
+    def _load_audio_file(self, verbosity=1):
+        """Loads the content of a file containing all the samples of the audio stream. Depending on the file type, this
+        function handles the content differently (see :ref:`Audio formats <wav_example>`).
 
         .. versionadded:: 2.0
 
@@ -515,40 +316,98 @@ class Audio(object):
         if verbosity > 0:
             print("\n\tOpening the audio...", end=" ")
 
-        try:
-            from scipy.io import wavfile
-        except ImportError:
-            raise ModuleNotFoundException("scipy", "open a file in .wav format.")
+        file_extension = op.splitext(self.path)[-1]
 
-        try:
-            import numpy as np
-        except ImportError:
-            raise ModuleNotFoundException("numpy", "open a file in .wav format.")
+        if file_extension == ".wav":
+            audio_data = wavfile.read(self.path)
+            self.frequency = audio_data[0]
 
-        audio_data = wavfile.read(self.path)
-        self.frequency = audio_data[0]
+            # Turn stereo to mono if the file is stereo
+            if len(np.shape(audio_data[1])) != 1:
+                self.samples = stereo_to_mono(audio_data[1], verbosity=verbosity)
+            else:
+                self.samples = audio_data[1]
 
-        # Turn stereo to mono if the file is stereo
-        if len(np.shape(audio_data[1])) != 1:
-            self.samples = stereo_to_mono(audio_data[1], verbosity)
+            # Metadata
+            with taglib.File(self.path) as file:
+                for tag in file.tags:
+                    self.metadata[tag] = file.tags[tag]
+
+            self._calculate_timestamps()
+
+        elif file_extension == ".json":
+            data = read_json(self.path)
+
+            if len(data) == 0:
+                raise EmptyAudioException()
+
+            self._load_json_metadata(data, verbosity)
+            self.samples = np.array(data["Sample"])
+            self.frequency = data["Frequency"]
+            self._calculate_timestamps()
+
+        # Pickle file
+        elif file_extension == ".pkl":
+            with open(self.path, "rb") as f:
+                audio = pickle.load(f)
+            for attr in audio.__dict__:
+                self.__setattr__(attr, audio.__dict__[attr])
+
+        # Mat file
+        elif file_extension == ".mat":
+            with open(self.path, "rb") as f:
+                data = loadmat(f, simplify_cells=True)
+
+            for key in data["data"]:
+                if key == "Sample":
+                    self.samples = pd.DataFrame(data["data"]["Sample"]).values.flatten()
+
+                elif key == "Timestamp":
+                    self.timestamps = pd.DataFrame(data["data"]["Timestamp"]).values.flatten()
+
+                elif key == "Frequency":
+                    self.frequency = data["data"]["Frequency"]
+
+                else:
+                    self.metadata[key] = data["data"][key]
+
+            self._calculate_frequency()
+
         else:
-            self.samples = audio_data[1]
+            if file_extension not in [".csv", ".xlsx", ".tsv", ".txt"]:
+                if verbosity > 0:
+                    print(f"Loading from non-standard extension {file_extension} as text...")
 
-        self._calculate_timestamps()
+            if self.path.split(".")[-1] == "xlsx":
+                data, metadata = read_xlsx(self.path, verbosity=verbosity)
+                self.metadata.update(metadata)
 
-        if verbosity > 0:
-            print("Audio loaded.\n")
+            else:
+                data, metadata = read_text_table(self.path)
+                self.metadata.update(metadata)
 
-    def _read_text_file(self, verbosity=1):
-        """Opens a file containing the samples in ``.json``, ``.xlsx``, ``.csv``, ``.tsv`` or ``.txt`` file containing
-        the timestamps and samples of the audio and loads the attributes :attr:`samples`, :attr:`timestamps`, and
-        :attr:`frequency`. Depending on the file type, this function handles the content differently (see
-        :ref:`Audio formats <wav_example>`).
+            if "Frequency" in self.metadata:
+                self.frequency = self.metadata["Frequency"]
+                del self.metadata["Frequency"]
+
+            self.samples = np.array([data[i][1] for i in range(1, len(data))])
+            self.timestamps = np.array([data[i][0] for i in range(1, len(data))])
+
+            self._calculate_frequency()
+
+        if verbosity:
+            print("100% - Done.")
+
+    def _load_json_metadata(self, data, verbosity=1):
+        """Loads the data from the file apart from the samples, and saves it in the attribute :attr:`metadata`.
 
         .. versionadded:: 2.0
 
         Parameters
         ----------
+        data: dict
+            The data from the file containing the full audio, or containing the first sample of the audio clip.
+
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
 
@@ -557,65 +416,25 @@ class Audio(object):
               current steps.
             • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
               may clutter the output and slow down the execution.
-
         """
 
-        if verbosity > 0:
-            print("Opening the audio...", end=" ")
+        if verbosity > 1:
+            print("Trying to find metadata...", end=" ")
 
-        if self.path.split(".")[-1] == "json":
-            data = read_json(self.path)
-            self.samples = data["Sample"]
-            self.timestamp = data["Timestamp"]
-            self._calculate_frequency()
+        for key in data:
+            if key not in ["Sample", "Timestamp", "Frequency"]:
+                self.metadata[key] = data[key]
 
-        elif self.path.split(".")[-1] == "xlsx":
-            import openpyxl as op
-            workbook = op.load_workbook(self.path)
-            sheet = workbook[workbook.sheetnames[0]]
+        if verbosity > 1:
+            if len(self.metadata) == 0:
+                print("Found no metadata entries.")
+            elif len(self.metadata) == 1:
+                print("Found 1 metadata entry.")
+            else:
+                print("Found " + str(len(self.metadata)) + " metadata entries.")
 
-            joints_labels = []
-            for cell in sheet["1"]:
-                joints_labels.append(str(cell.value))
-
-            # For each pose
-            for s in range(2, len(sheet["A"]) + 1):
-
-                if verbosity > 1:
-                    print("Loading sample " + str(s) + " of " + str(len(sheet["A"])) + "...", end=" ")
-
-                self.timestamps.append(float(sheet.cell(s, 1).value))
-                self.samples.append(int(sheet.cell(s, 2).value))
-
-                if verbosity > 1:
-                    print("OK.")
-
-            self._calculate_frequency()
-
-        elif self.path.split(".")[-1] in ["csv", "txt", "tsv"]:
-
-            separator = get_filetype_separator(self.path.split(".")[-1])
-
-            # Open the file and read the data
-            data, self.metadata = read_text_table(self.path)
-
-            for s in range(1, len(data)):
-
-                d = data[s].split(separator)
-
-                if verbosity > 1:
-                    print("Loading sample " + str(s) + " of " + str(len(data) - 1) + "...", end=" ")
-
-                self.timestamps.append(float(d[0][s]))
-                self.samples.append(int(d[1][s]))
-
-                self._calculate_frequency()
-
-                if verbosity > 1:
-                    print("OK.")
-
-        if verbosity:
-            print("100% - Done.")
+            for key in self.metadata:
+                print("\t" + str(key) + ": " + str(self.metadata[key]))
 
     def _calculate_frequency(self):
         """Determines the frequency (number of samples per second) of the audio by calculating the time elapsed between
@@ -624,7 +443,7 @@ class Audio(object):
 
         .. versionadded:: 2.0
         """
-        self.frequency = 1 / (self.timestamps[1] - self.timestamps[0])
+        self.frequency = 1 / ((self.timestamps[-1] - self.timestamps[0]) / (len(self.timestamps) - 1))
 
     def _calculate_timestamps(self):
         """Calculates the timestamps of the audio samples from the frequency and the number of samples. This function
@@ -633,7 +452,7 @@ class Audio(object):
 
         .. versionadded:: 2.0
         """
-        self.timestamps = [i / self.frequency for i in range(len(self.samples))]
+        self.timestamps = np.arange(0, len(self.samples)) / self.frequency
 
     # === Getter functions ===
     def get_path(self):
@@ -645,6 +464,12 @@ class Audio(object):
         -------
         str
             The path of the Audio instance.
+
+        Example
+        -------
+        >>> audio = Audio("Recordings/Giacchino/01.wav")
+        >>> audio.get_path()
+        Recordings/Giacchino/01.wav
         """
         return self.path
 
@@ -657,6 +482,12 @@ class Audio(object):
         -------
         str
             The name of the Audio instance.
+
+        Example
+        -------
+        >>> audio = Audio("Recordings/Williams/recording_02.wav")
+        >>> audio.get_path()
+        recording_02
         """
         return self.name
 
@@ -669,6 +500,15 @@ class Audio(object):
         -------
         str
             The experimental condition in which the recording of the audio clip was performed.
+
+        Examples
+        --------
+        >>> audio = Audio("Recordings/Zimmer/recording_03.wav")
+        >>> audio.get_condition()
+        None
+        >>> audio = Audio("Recordings/Djawadi/recording_04.wav", condition="Basque")
+        >>> audio.get_condition()
+        Basque
         """
         return self.condition
 
@@ -679,8 +519,14 @@ class Audio(object):
 
         Returns
         -------
-        list(int)
+        np.ndarray(int|float)
             The samples of the Audio instance.
+
+        Examples
+        --------
+        >>> audio = Audio("Recordings/Elfman/recording_05.wav")
+        >>> audio.get_samples()
+        array([0, 1, 3, 6, 2, 7, 13, 20, 12, 21, 11, 22, 10, 23])
         """
         return self.samples
 
@@ -698,6 +544,12 @@ class Audio(object):
         -------
         int
             A sample from the sequence.
+
+        Examples
+        --------
+        >>> audio = Audio("Recordings/Morricone/recording_06.wav")
+        >>> audio.get_sample(42)
+        7418880
         """
         if len(self.samples) == 0:
             raise Exception("The Audio does not have any sample.")
@@ -715,6 +567,12 @@ class Audio(object):
         -------
         int
             The amount of samples in the audio clip.
+
+        Example
+        -------
+        >>> audio = Audio("Recordings/Richter/recording_07.wav")
+        >>> audio.get_number_of_samples()
+        22050
         """
         return len(self.samples)
 
@@ -725,8 +583,15 @@ class Audio(object):
 
         Returns
         -------
-        list(float)
+        np.ndarray(int|float)
             List of the timestamps of all the samples of the audio clip, in seconds.
+
+        Example
+        -------
+        >>> audio = Audio("Recordings/Shapiro/recording_08.wav")
+        >>> audio.get_timestamps()
+        array([0.00000000e+00 2.26757370e-05 4.53514739e-05 6.80272109e-05
+               9.07029478e-05 1.13378685e-04 1.36054422e-04 1.58730159e-04])
         """
         return self.timestamps
 
@@ -739,6 +604,12 @@ class Audio(object):
         -------
         float
             The duration of the audio clip, in seconds.
+
+        Example
+        -------
+        >>> audio = Audio("Recordings/Desplat/recording_09.wav")
+        >>> audio.get_duration()
+        42.48151
         """
         return self.timestamps[-1]
 
@@ -751,13 +622,29 @@ class Audio(object):
         -------
         int or float
             The frequency of the audio clip, in hertz.
+
+        Example
+        -------
+        >>> audio = Audio("Recordings/MacQuayle/recording_10.wav")
+        >>> audio.get_frequency()
+        44100
         """
         return self.frequency
 
-    def get_info(self):
-        """Returns a dictionary containing data from the Audio clip.
+    def get_info(self, return_type="dict", include_path=True):
+        """Returns information regarding the Audio clip.
 
         .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        return_type: bool, optional
+            If set on ``"dict"`` (default), the info is returned as an OrderedDict. If set on ``"table"``, the info
+            is returned as a two-dimensional list, ready to be exported as a table. If set on ``"str"``, a printable
+            string is returned.
+
+        include_path: bool, optional
+            If set on ``True``, the path of the audio clip is included in the returned info (default).
 
         Returns
         -------
@@ -766,19 +653,37 @@ class Audio(object):
 
                 • ``"Name"``: The :attr:`name` attribute of the audio clip.
                 • ``"Path"``: The :attr:`path` attribute of the audio clip.
-                • ``"Condition"``: The :attr:`condition` attribute of the audio clip.
+                • ``"Condition"``: The :attr:`condition` attribute of the audio clip (if set).
                 • ``"Frequency"``: Output of :meth:`Audio.get_frequency`.
                 • ``"Number of samples"``: Output of :meth:`Audio.get_number_of_samples`.
                 • ``"Duration"``: Output of :meth:`Audio.get_duration`.
+
+        Example
+        -------
+        >>> audio = Audio("Recordings/Reznor/recording_11.wav", include_path=False)
+        >>> audio.get_info()
+        Name: recording_11 · Duration: 0.5 · Frequency: 44100 · Number of samples: 22150
         """
 
         stats = OrderedDict()
         stats["Name"] = self.name
-        stats["Path"] = self.path
-        stats["Condition"] = self.condition
+        if include_path:
+            stats["Path"] = self.path
+        if self.condition is not None:
+            stats["Condition"] = self.condition
+        stats["Duration"] = self.get_duration()
         stats["Frequency"] = self.frequency
         stats["Number of samples"] = self.get_number_of_samples()
-        stats["Duration"] = self.get_duration()
+
+        if return_type.lower() in ["list", "table"]:
+            table = [[], []]
+            for key in stats.keys():
+                table[0].append(key)
+                table[1].append(stats[key])
+            return table
+
+        elif return_type.lower() == "str":
+            return " · ".join([f"{key}: {stats[key]}" for key in stats.keys()])
 
         return stats
 
@@ -827,22 +732,17 @@ class Audio(object):
         -------
         np.array
             The envelope of the original array.
+
+        Example
+        -------
+        >>> audio = Audio("Recordings/Ross/recording_12.wav")
+        >>> envelope = audio.get_envelope(filter_over=50)
         """
 
         if verbosity > 0:
             print("Creating an Envelope object...")
 
-        try:
-            from scipy.signal import hilbert
-        except ImportError:
-            raise ModuleNotFoundException("scipy", "extracting the envelope of an audio file.")
-
-        try:
-            import numpy as np
-        except ImportError:
-            raise ModuleNotFoundException("numpy", "extracting the envelope of an audio file.")
-
-        if window_size == 0 or window_size > len(self.samples) or window_size is None:
+        if window_size == 0 or window_size is None:
             window_size = len(self.samples)
 
         if overlap_ratio is None:
@@ -911,7 +811,13 @@ class Audio(object):
         elif verbosity > 1:
             print("Done.")
 
-        envelope = Envelope(envelope_samples, self.timestamps, self.frequency, name, self.condition)
+        envelope = Envelope(envelope_samples, self.frequency, name, self.condition, verbosity=verbosity)
+
+        envelope._set_attributes_from_other_object(self)
+        envelope.metadata["processing_steps"].append({"processing_type": "get_envelope",
+                                                      "original_audio": self.name, "original_path": self.path,
+                                                      "window_size": window_size, "overlap_ratio": overlap_ratio,
+                                                      "filter_below": filter_below, "filter_over": filter_over})
 
         # Filtering
         if filter_below is not None or filter_over is not None:
@@ -920,7 +826,7 @@ class Audio(object):
         return envelope
 
     # noinspection PyArgumentList
-    def get_pitch(self, filter_below=None, filter_over=None, name=None, method="parselmouth", zeros_as_nan=False,
+    def get_pitch(self, method="parselmouth", filter_below=None, filter_over=None, name=None, zeros_as_nan=False,
                   verbosity=1):
         """Calculates the pitch of the voice in the audio clip, and returns a Pitch object.
 
@@ -928,6 +834,10 @@ class Audio(object):
 
         Parameters
         ----------
+        method: str, optional
+            Defines the pitch tracking method used. If set on ``"parselmouth"`` (default), the to_pitch method from
+            Parselmouth will be used to get the pitch. If set on `"crepe"`, the CREPE Python module will be used.
+
         filter_below: int, float or None, optional
             If not ``None`` nor 0, this value will be provided as the lowest frequency of the band-pass filter.
 
@@ -942,10 +852,6 @@ class Audio(object):
             If set on True, the values where the pitch is equal to 0 will be replaced by
             `numpy.nan <https://numpy.org/doc/stable/reference/constants.html#numpy.nan>`_ objects.
 
-        method: str, optional
-            Defines the pitch tracking method used. If set on `"parselmouth` (default), the to_pitch method from
-            Parselmouth will be used to get the pitch. If set on `"crepe"`, the CREPE Python module will be used.
-
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
 
@@ -959,27 +865,20 @@ class Audio(object):
         -------
         Pitch
             The pitch of the voice in the audio clip.
+
+        Example
+        -------
+        >>> audio = Audio("Recordings/Silvestri/recording_13.wav")
+        >>> pitch = audio.get_pitch(filter_over=50)
         """
         if verbosity > 0:
             print("Creating a Pitch object...")
 
-        if method == "parselmouth":
-            try:
-                from parselmouth import Sound
-            except ImportError:
-                raise ModuleNotFoundException("parselmouth", "get the pitch of an audio clip.")
-        elif method == "crepe":
+        if method == "crepe":
             try:
                 import crepe
             except ImportError:
                 raise ModuleNotFoundException("crepe", "get the pitch of an audio clip.")
-        else:
-            raise Exception("""The parameter "method" can only be set on "parselmouth" or "crepe".""")
-
-        try:
-            import numpy as np
-        except ImportError:
-            raise ModuleNotFoundException("numpy", "get the pitch of an audio clip.")
 
         samples = np.array(self.samples, dtype=np.float64)
 
@@ -999,26 +898,35 @@ class Audio(object):
                 print("Done.")
                 print("\tGetting the pitch...", end=" ")
 
-            pitch = parselmouth_sound.to_pitch(time_step=1 / self.frequency)
+            parselmouth_pitch = parselmouth_sound.to_pitch(time_step=1 / self.frequency)
 
             if verbosity > 0:
                 print("Done.")
                 print("\tPadding the data...", end=" ")
 
-            pitch, timestamps = pad(pitch.selected_array["frequency"], pitch.xs(), self.timestamps)
+            original_data_length = len(parselmouth_pitch.xs())
+            samples, timestamps = pad(parselmouth_pitch.selected_array["frequency"], parselmouth_pitch.xs(),
+                                      self.timestamps, verbosity=verbosity)
 
             if zeros_as_nan:
-                pitch[pitch == 0] = np.nan
+                samples[samples == 0] = np.nan
 
             if verbosity > 0:
-                print("Done.")
+                print(f"The calculated pitch contained {original_data_length} samples. Padding the data added "
+                      f"{len(samples) - original_data_length} samples, to reach {len(samples)} samples.")
 
-            pitch = Pitch(pitch, self.timestamps, self.frequency, self.name, self.condition)
+            pitch = Pitch(samples, self.frequency, self.name, self.condition, verbosity=verbosity)
 
         else:
-            time, frequency, confidence, activation = crepe.predict(samples, self.frequency, viterbi=True)
+            _, frequency, confidence, activation = crepe.predict(samples, self.frequency, viterbi=True)
 
-            pitch = Pitch(frequency, time, self.frequency, self.name, self.condition)
+            pitch = Pitch(frequency, self.frequency, self.name, self.condition, verbosity=verbosity)
+
+        pitch._set_attributes_from_other_object(self)
+        pitch.metadata["processing_steps"].append({"processing_type": "get_pitch",
+                                                   "original_audio": self.name, "original_path": self.path,
+                                                   "method": method, "zeros_as_nan": zeros_as_nan,
+                                                   "filter_below": filter_below, "filter_over": filter_over})
 
         if filter_below is not None or filter_over is not None:
             pitch = pitch.filter_frequencies(filter_below, filter_over, name, verbosity)
@@ -1026,7 +934,7 @@ class Audio(object):
         return pitch
 
     # noinspection PyArgumentList
-    def get_intensity(self, filter_below=None, filter_over=None, name=None, verbosity=1):
+    def get_intensity(self, filter_below=None, filter_over=None, name=None, zeros_as_nan=False, verbosity=1):
         """Calculates the intensity of the voice in the audio clip, and returns an Intensity object. The function can
         also optionally perform a band-pass filtering and a resampling, if the corresponding parameters are provided.
 
@@ -1044,6 +952,10 @@ class Audio(object):
             Defines the name of the intensity. If set on ``None``, the name will be the same as the original Audio
             instance, with the suffix ``"(INT)"``.
 
+        zeros_as_nan: bool, optional
+            If set on True, the values where the intensity is equal to 0 will be replaced by
+            `numpy.nan <https://numpy.org/doc/stable/reference/constants.html#numpy.nan>`_ objects.
+
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
 
@@ -1057,19 +969,14 @@ class Audio(object):
         -------
         Intensity
             The intensity of the voice in the audio clip.
+
+        Example
+        -------
+        >>> audio = Audio("Recordings/Horner/recording_14.wav")
+        >>> intensity = audio.get_intensity(filter_over=50)
         """
         if verbosity > 0:
             print("Creating an Intensity object...")
-
-        try:
-            from parselmouth import Sound
-        except ImportError:
-            raise ModuleNotFoundException("parselmouth", "get the intensity of an audio clip")
-
-        try:
-            import numpy as np
-        except ImportError:
-            raise ModuleNotFoundException("numpy", "get the intensity of an audio clip.")
 
         samples = np.array(self.samples, dtype=np.float64)
 
@@ -1085,19 +992,30 @@ class Audio(object):
             print("Done.")
             print("\tGetting the intensity...", end=" ")
 
-        intensity = parselmouth_sound.to_intensity(time_step=1 / self.frequency)
-        intensity_timestamps = add_delay(intensity.xs(), -intensity.xs()[0] % (1 / self.frequency))
+        parselmouth_intensity = parselmouth_sound.to_intensity(time_step=1 / self.frequency)
+
+        intensity_timestamps = add_delay(parselmouth_intensity.xs(), -parselmouth_intensity.xs()[0] % (1 / self.frequency))
 
         if verbosity > 0:
             print("Done.")
             print("\tPadding the data...", end=" ")
 
-        samples, timestamps = pad(intensity.values.T, intensity_timestamps, self.timestamps)
+        samples, timestamps = pad(parselmouth_intensity.values[0], intensity_timestamps, self.timestamps,
+                                  verbosity=verbosity)
+
+        if zeros_as_nan:
+            samples[samples == 0] = np.nan
 
         if verbosity > 0:
             print("Done.")
 
-        intensity = Intensity(samples, timestamps, self.frequency, name, self.condition)
+        intensity = Intensity(samples, self.frequency, name, self.condition, verbosity=verbosity)
+        intensity._set_attributes_from_other_object(self)
+
+        intensity.metadata["processing_steps"].append({"processing_type": "get_intensity",
+                                                       "original_audio": self.name, "original_path": self.path,
+                                                       "zeros_as_nan": zeros_as_nan,
+                                                       "filter_below": filter_below, "filter_over": filter_over})
 
         if filter_below is not None or filter_over is not None:
             intensity = intensity.filter_frequencies(filter_below, filter_over, name, verbosity)
@@ -1105,13 +1023,17 @@ class Audio(object):
         return intensity
 
     # noinspection PyArgumentList
-    def get_formant(self, filter_below=None, filter_over=None, name=None, formant_number=1, verbosity=1):
+    def get_formant(self, formant_number=1, filter_below=None, filter_over=None, name=None, zeros_as_nan=False,
+                    verbosity=1):
         """Calculates the formants of the voice in the audio clip, and returns a Formant object.
 
         .. versionadded:: 2.0
 
         Parameters
         ----------
+        formant_number: int, optional.
+            One of the formants of the voice in the audio clip (1 (default), 2, 3, 4 or 5).
+
         filter_below: int, float or None, optional
             If not ``None`` nor 0, this value will be provided as the lowest frequency of the band-pass filter.
 
@@ -1122,8 +1044,9 @@ class Audio(object):
             Defines the name of the intensity. If set on ``None``, the name will be the same as the original Audio
             instance, with the suffix ``"(Fn)"``, with n being the formant number.
 
-        formant_number: int, optional.
-            One of the formants of the voice in the audio clip (1 (default), 2, 3, 4 or 5).
+        zeros_as_nan: bool, optional
+            If set on True, the values where the pitch is equal to 0 will be replaced by
+            `numpy.nan <https://numpy.org/doc/stable/reference/constants.html#numpy.nan>`_ objects.
 
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
@@ -1138,22 +1061,17 @@ class Audio(object):
         -------
         Formant
             The value of a formant of the voice in the audio clip.
+
+        Example
+        -------
+        >>> audio = Audio("Recordings/Beck/recording_15.wav")
+        >>> formant = audio.get_formant(formant_number=1, filter_over=50)
         """
         if verbosity > 0:
             print("Creating a Formant object...")
 
-        try:
-            from parselmouth import Sound
-        except ImportError:
-            raise ModuleNotFoundException("parselmouth", "get one of the formants of an audio clip.")
-
         if verbosity > 0:
             print("\tTurning the audio into a parselmouth object...", end=" ")
-
-        try:
-            import numpy as np
-        except ImportError:
-            raise ModuleNotFoundException("numpy", "get the formants of an audio clip.")
 
         samples = np.array(self.samples, dtype=np.float64)
         parselmouth_sound = Sound(np.ndarray(np.shape(samples), dtype=np.float64, buffer=samples), self.frequency)
@@ -1163,32 +1081,165 @@ class Audio(object):
             print("\tGetting the formant...", end=" ")
 
         if name is None:
-            name = self.name + " (" + str(formant_number) + ")"
+            name = self.name + " (F" + str(formant_number) + ")"
 
-        formant = parselmouth_sound.to_formant_burg(time_step=1 / self.frequency)
-        formant_timestamps = add_delay(formant.xs(), -1 / (2 * self.frequency))
+        parselmouth_formant = parselmouth_sound.to_formant_burg(time_step=1 / self.frequency)
+        formant_timestamps = parselmouth_formant.xs()
 
         if verbosity > 0:
             print("Done.")
             print("\tPadding the data...", end=" ")
 
-        number_of_points = formant.get_number_of_frames()
+        number_of_points = parselmouth_formant.get_number_of_frames()
         f = np.zeros(number_of_points)
         for i in range(1, number_of_points + 1):
-            t = formant.get_time_from_frame_number(i)
-            f[i-1] = formant.get_value_at_time(formant_number=formant_number, time=t)
+            t = parselmouth_formant.get_time_from_frame_number(i)
+            f[i-1] = parselmouth_formant.get_value_at_time(formant_number=formant_number, time=t)
         f, timestamps = pad(f, formant_timestamps, self.timestamps)
 
         if verbosity > 0:
             print("Done.")
 
-        formant = Formant(f, timestamps, self.frequency, formant_number, name, self.condition)
+        formant = Formant(f, self.frequency, formant_number, name, self.condition, verbosity=verbosity)
+        formant._set_attributes_from_other_object(self)
+
+        formant.metadata["processing_steps"].append({"processing_type": "get_formant",
+                                                     "original_audio": self.name, "original_path": self.path,
+                                                     "formant_number": formant_number, "zeros_as_nan": zeros_as_nan,
+                                                     "filter_below": filter_below, "filter_over": filter_over})
 
         if filter_below is not None or filter_over is not None:
             formant = formant.filter_frequencies(filter_below, filter_over, name, verbosity)
 
         return formant
 
+    def get_derivative(self, derivative, filter_below=None, filter_over=None, resampling_frequency=None,
+                       resampling_mode="pchip", res_window_size=1e7, res_overlap_ratio=0.5, timestamp_start=None,
+                       timestamp_end=None, name=None, verbosity=1, **kwargs):
+
+        """Computes and returns the requested AudioDerivative.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ---------
+        derivative: str
+            The time series to be returned, among:
+
+            • ``"audio"``, for the original sample values.
+            • ``"envelope"``
+            • ``"pitch"``
+            • ``"f1"``, ``"f2"``, ``"f3"``, ``"f4"``, ``"f5"`` for the values of the corresponding formant.
+            • ``"intensity"`
+
+        filter_below: int, float or None, optional
+            If not ``None`` nor 0, this value will be provided as the lowest frequency of the band-pass filter.
+
+        filter_over: int, float or None, optional
+            If not ``None`` nor 0, this value will be provided as the highest frequency of the band-pass filter.`
+
+        resampling_frequency: float
+            The frequency, in hertz, at which you want to resample the audio clip. A frequency of 4 will return samples
+            at 0.25 s intervals.
+
+        resampling_mode: str, optional
+            This parameter allows for all the values accepted for the ``kind`` parameter in the function
+            :func:`scipy.interpolate.interp1d`: ``"linear"``, ``"nearest"``, ``"nearest-up"``, ``"zero"``,
+            ``"slinear"``, ``"quadratic"``, ``"cubic"``, ``"previous"``, and ``"next"``. See the `documentation
+            for this Python module
+            <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`_ for more.
+            This parameter also allows another special value, ``"take"``, which keeps one out of :math:`n` samples,
+            where :math:`n` is equal to the original frequency divided by the resampling frequency. This allows for
+            faster computation. Note that this function will return a warning if the resampling frequency is not an
+            integer divider of the original frequency.
+
+        res_window_size: int, optional
+            The size of the windows in which to cut the audio samples to perform the resampling. Cutting long arrays
+            in windows allows to speed up the computation. If this parameter is set on `None`, the window size will be
+            set on the number of samples. A good value for this parameter is generally 10 million (1e7). If this
+            parameter is set on 0, on None or on a number of samples bigger than the amount of samples in the Audio
+            instance, the window size is set on the length of the samples.
+
+        res_overlap_ratio: float, optional
+            The ratio of samples overlapping between each window. If this parameter is not `None`, each window will
+            overlap with the previous (and, logically, the next) for an amount of samples equal to the number of samples
+            in a window times the overlap ratio. Then, only the central values of each window will be preserved and
+            concatenated; this allows to discard any "edge" effect due to the windowing. If the parameter is set on
+            `None` or 0, the windows will not overlap. By default, this parameter is set on 0.5, meaning that each
+            window will overlap for half of their values with the previous, and half of their values with the next.
+
+        timestamp_start: float or None, optional
+            If provided, the return values having a timestamp below the one provided will be ignored from the
+            output.
+
+        timestamp_end: float or None, optional
+            If provided, the return values having a timestamp above the one provided will be ignored from the
+            output.
+
+        name: str or None, optional
+            Defines the name of the output audio derivative. If set on ``None``, the name will be the same as the input
+            audio clip, with suffixes matching the applied procedure (``"(ENV)"`` for envelope, ``"(PIT)"`` for pitch,
+            ``"(INT)"`` for intensity, ``"(Fn)"`` for formant (with the n matching the requested formant), ``"+RS"``
+            if a resampling was performed, ``"+TR"`` if a trimming was performed).
+
+        verbosity: int, optional
+            Sets how much feedback the code will provide in the console output:
+
+            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+              current steps.
+            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+              may clutter the output and slow down the execution.
+
+        **kwargs: dict
+            Any of the parameters needed for the specific sub-functions: :meth:`Audio.get_envelope`,
+            :meth:`Audio.get_pitch`, :meth:`Audio.get_intensity`, and :meth:`Audio.get_formant`.
+
+        Returns
+        -------
+        AudioDerivative
+            The requested AudioDerivative instance.
+
+        Examples
+        --------
+        >>> audio = Audio("Recordings/Kondo/recording_16.wav")
+        >>> envelope = audio.get_derivative("envelope", filter_over=50)
+        >>> pitch = audio.get_derivative("pitch", filter_over=50, zeros_as_nan=True)
+        >>> intensity = audio.get_derivative("intensity", filter_over=50, name="Kondo_intensity")
+        >>> f1 = audio.get_derivative("formant", formant_number=1, filter_over=50)
+        >>> f2 = audio.get_derivative("f2", filter_over=50)
+        """
+
+        if derivative == "audio":
+            audio_derivative = self.filter_frequencies(filter_below, filter_over, name, verbosity)
+        elif derivative == "envelope":
+            audio_derivative = self.get_envelope(filter_below=filter_below, filter_over=filter_over, name=name,
+                                                 verbosity=verbosity, **kwargs)
+        elif derivative == "pitch":
+            audio_derivative = self.get_pitch(filter_below=filter_below, filter_over=filter_over, name=name,
+                                              verbosity=verbosity, **kwargs)
+        elif derivative == "intensity":
+            audio_derivative = self.get_intensity(filter_below=filter_below, filter_over=filter_over, name=name,
+                                                  verbosity=verbosity, **kwargs)
+        elif derivative in ["formant", "f1", "f2", "f3", "f4", "f5"]:
+            if derivative != "formant" and "formant_number" not in kwargs:
+                kwargs["formant_number"] = int(derivative[1])
+            audio_derivative = self.get_formant(filter_below=filter_below, filter_over=filter_over, name=name,
+                                                verbosity=verbosity, **kwargs)
+        else:
+            raise InvalidParameterValueException("derivative", derivative,
+                                                 ["audio", "envelope", "pitch", "intensity", "formant"])
+
+        if resampling_frequency is not None:
+            audio_derivative = audio_derivative.resample(resampling_frequency, resampling_mode, res_window_size,
+                                                         res_overlap_ratio, name, verbosity)
+
+        if timestamp_start is not None or timestamp_end is not None:
+            audio_derivative = audio_derivative.trim(timestamp_start, timestamp_end, name, verbosity)
+
+        return audio_derivative
+
+    # noinspection PyTupleAssignmentBalance
     def filter_frequencies(self, filter_below=None, filter_over=None, name=None, verbosity=1):
         """Applies a low-pass, high-pass or band-pass filter to the data in the attribute :attr:`samples`.
 
@@ -1223,6 +1274,11 @@ class Audio(object):
         -------
         Audio
             The Audio instance, with filtered values.
+
+        Example
+        -------
+        >>> audio = Audio("Recordings/Shore/recording_17.wav")
+        >>> audio_ff = audio.filter_frequencies(filter_below=10, filter_over=50)
         """
 
         # Band-pass filter
@@ -1254,12 +1310,16 @@ class Audio(object):
             print("Done.")
 
         if name is None:
-            name = self.name
+            name = self.name + " +FF"
 
-        new_audio = Audio(new_samples, self.timestamps, self.frequency, name, verbosity=0)
+        new_audio = Audio(new_samples, self.frequency, name, verbosity=0)
+        new_audio._set_attributes_from_other_audio(self)
+
+        new_audio.metadata["processing_steps"].append({"processing_type": "filter_frequencies",
+                                                       "filter_below": filter_below, "filter_over": filter_over})
         return new_audio
 
-    def resample(self, frequency, mode="cubic", window_size=1e7, overlap_ratio=0.5, name=None, verbosity=1):
+    def resample(self, frequency, method="cubic", window_size=1e7, overlap_ratio=0.5, name=None, verbosity=1):
         """Resamples an audio clip to the `frequency` parameter. It first creates a new set of timestamps at the
         desired frequency, and then interpolates the original data to the new timestamps.
 
@@ -1271,10 +1331,10 @@ class Audio(object):
             The frequency, in hertz, at which you want to resample the audio clip. A frequency of 4 will return samples
             at 0.25 s intervals.
 
-        mode: str, optional
+        method: str, optional
             This parameter allows for all the values accepted for the ``kind`` parameter in the function
             :func:`scipy.interpolate.interp1d`: ``"linear"``, ``"nearest"``, ``"nearest-up"``, ``"zero"``,
-            ``"slinear"``, ``"quadratic"``, ``"cubic"``”, ``"previous"``, and ``"next"``. See the `documentation
+            ``"slinear"``, ``"quadratic"``, ``"cubic"``, ``"previous"``, and ``"next"``. See the `documentation
             for this Python module
             <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`_ for more.
             This parameter also allows another special value, ``"take"``, which keeps one out of :math:`n` samples,
@@ -1299,7 +1359,7 @@ class Audio(object):
 
         name: str or None, optional
             Defines the name of the output audio clip. If set on ``None``, the name will be the same as the input
-            audio clip, with the suffix ``"+RS"``.
+            audio clip, with the suffix ``"+RS n"`` with n being the value of `frequency`.
 
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
@@ -1321,38 +1381,33 @@ class Audio(object):
         these operations, the algorithm only **estimates** the real values of the samples. You should then consider
         the upsampling (and the downsampling, to a lesser extent) with care.
         You can control the frequency of the original audio clip with :meth:`Audio.get_frequency()`.
+
+        Example
+        -------
+        >>> audio = Audio("Recordings/Raine/recording_18.wav")
+        >>> audio_resampled = audio.resample(2000, "cubic")
         """
 
         if verbosity > 0:
-            print("Resampling the audio clip at " + str(frequency) + " Hz (mode: " + str(mode) + ")...")
+            print("Resampling the audio clip at " + str(frequency) + " Hz (mode: " + str(method) + ")...")
             print("\tOriginal frequency: " + str(round(self.get_frequency(), 2)))
 
         if verbosity > 0:
             print("\tPerforming the resampling...", end=" ")
 
-        if window_size == 0 or window_size > len(self.samples) or window_size is None:
+        if window_size == 0 or window_size is None:
             window_size = len(self.samples)
 
         if overlap_ratio is None:
             overlap_ratio = 0
 
-        if mode == "take":
-            if frequency > self.frequency:
-                raise Exception("""The mode "take" does not allow for upsampling of the data. Please input a resampling
-                frequency inferior to the original (""" + str(self.frequency) + ").")
-            factor_resampling = self.frequency / frequency
-            if factor_resampling != int(factor_resampling):
-                raise Warning("""The downsampling factor is not an integer, meaning that the downsampling may not be
-                accurate. To ensure an accurate resampling with the "take" mode, use a resampling frequency that is
-                an integer divider of the original frequency.""")
-            indices = np.arange(0, len(self.samples), factor_resampling, dtype=int)
-            resampled_audio_array = np.take(self.samples, indices)
+        resampled_audio_array, resampled_audio_times = resample_data(self.samples, self.timestamps, frequency,
+                                                                     window_size, overlap_ratio, method,
+                                                                     verbosity=verbosity)
+        resampled_audio_array = list(resampled_audio_array)
 
-        else:
-            resampled_audio_array, resampled_audio_times = resample_data(self.samples, self.timestamps, frequency,
-                                                                         window_size, overlap_ratio, mode,
-                                                                         verbosity=verbosity)
-            resampled_audio_array = list(resampled_audio_array)
+        if name is None:
+            name = self.name + " +RS " + str(frequency)
 
         new_audio = Audio(resampled_audio_array, frequency, name, verbosity=verbosity)
         new_audio.path = self.path
@@ -1362,56 +1417,16 @@ class Audio(object):
             print("\tOriginal audio had " + str(len(self.samples)) + " samples.")
             print("\tNew audio has " + str(len(new_audio.samples)) + " samples.\n")
 
+        new_audio._set_attributes_from_other_audio(self)
+        new_audio.metadata["processing_steps"].append({"processing_type": "resample",
+                                                       "frequency": frequency,
+                                                       "method": method,
+                                                       "window_size": window_size,
+                                                       "overlap_ratio": overlap_ratio})
+
         return new_audio
 
-    def filter_and_resample(self, filter_below, filter_over, resampling_frequency, resampling_mode="cubic",
-                            verbosity=1):
-        """Returns the samples contained in :attr:`samples`, after applying a band-pass filter and a resampling if
-        parameters are provided.
-
-        .. versionadded:: 2.0
-
-        Parameters
-        ----------
-        filter_below: int, float or None, optional
-            If not ``None`` nor 0, this value will be provided as the lowest frequency of the band-pass filter.
-
-        filter_over: int, float or None, optional
-            If not ``None`` nor 0, this value will be provided as the highest frequency of the band-pass filter.
-
-        resampling_frequency: int, float or None, optional
-            If not ``None``, the pitch will be resampled at the provided frequency before being returned.
-
-        resampling_mode: str, optional
-            This parameter also allows for all the values accepted for the ``kind`` parameter in the function
-            :func:`scipy.interpolate.interp1d`: ``"linear"``, ``"nearest"``, ``"nearest-up"``, ``"zero"``,
-            ``"slinear"``, ``"quadratic"``, ``"cubic"``”, ``"previous"``, and ``"next"``. See the `documentation
-            for this Python module
-            <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`_ for more.
-
-        verbosity: int, optional
-            Sets how much feedback the code will provide in the console output:
-
-            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
-            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
-              current steps.
-            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
-              may clutter the output and slow down the execution.
-
-        Returns
-        -------
-        Audio
-            The filtered and resampled Audio instance.
-        """
-        audio = self
-        if filter_below is not None or filter_over is not None:
-            audio = audio.filter_frequencies(filter_below, filter_over, verbosity=verbosity)
-        if resampling_frequency is not None:
-            audio = audio.resample(resampling_frequency, resampling_mode, verbosity=verbosity)
-
-        return audio
-
-    def trim(self, start=None, end=None, name=None, verbosity=1, add_tabs=0):
+    def trim(self, start=None, end=None, name=None, error_if_out_of_bounds=False, verbosity=1, add_tabs=0):
         """Trims an audio clip according to a starting and an ending timestamps. Timestamps must be provided in seconds.
 
         .. versionadded:: 2.0
@@ -1419,16 +1434,21 @@ class Audio(object):
         Parameters
         ----------
         start: int or None, optional
-            The timestamp after which the samples will be preserved. If set on ``None``, the beginning of the audio clip
-            will be set as the timestamp of the first sample.
+            The timestamp after which the samples will be preserved (inclusive). If set on ``None``, or if set on a
+            value lower than the first timestamp, the beginning of the audio will be set as the timestamp of the
+            first sample.
 
         end: int or None, optional
-            The timestamp before which the samples will be preserved. If set on ``None``, the end of the audio clip will
-            be set as the timestamp of the last sample.
+            The timestamp before which the samples will be preserved (inclusive). If set on ``None``, or if set on a
+            value higher than the last timestamp, the end of the audio will be set as the timestamp of the last sample.
 
         name: str or None, optional
-            Defines the name of the output Audio instance. If set on ``None``, the name will be the same as the original
-            Audio instance, with the suffix ``"+TR"``.
+            Defines the name of the output audio clip. If set on ``None``, the name will be the same as the input
+            audio clip, with the suffix ``"+TR"``.
+
+        error_if_out_of_bounds: bool, optional
+            Defines if to return an error if the timestamps are out of bounds. If set on ``True``, the function will
+            raise an Exception if `start` is below 0, or if `end` is above the length of the audio.
 
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
@@ -1448,10 +1468,17 @@ class Audio(object):
         -------
         Audio
             A new Audio instance containing a subset of the samples of the original.
+
+        Example
+        -------
+        >>> audio = Audio("Recordings/Holt/recording_19.wav")
+        >>> audio_trimmed = audio.trim(10, 15)
         """
 
         start_index = None
         end_index = None
+
+        tabs = add_tabs * "\t"
 
         if start is None:
             start = self.timestamps[0]
@@ -1462,42 +1489,64 @@ class Audio(object):
 
         if end < start:
             raise Exception("End timestamp should be inferior to beginning timestamp.")
-        elif start < self.timestamps[0]:
-            raise Exception("Starting timestamp (" + str(start) + ") lower than the first timestamp of the Audio " +
-                            "instance (" + str(self.timestamps[0]) + ").")
-        elif start < 0:
-            raise Exception("Starting timestamp (" + str(start) + ") must be equal to or higher than 0.")
-        elif end > self.timestamps[-1]:
-            raise Exception("Ending timestamp (" + str(end) + ") exceeds last timestamp of the Audio instance (" +
-                            str(self.timestamps[-1]) + ").")
+
+        if error_if_out_of_bounds:
+            if not 0 <= start <= self.get_duration():
+                raise Exception(f"The start timestamp should be between 0 and {self.get_duration()}.")
+            elif not 0 <= end <= self.get_duration():
+                raise Exception(f"The end timestamp should be between 0 and {self.get_duration()}.")
+
+        if verbosity > 0:
+            print(tabs + "Trimming the audio:")
+            print(tabs + "\tStarting timestamp: " + str(start) + " seconds")
+            print(tabs + "\tEnding timestamp: " + str(end) + " seconds")
+            print(tabs + "\tOriginal duration: " + str(self.get_duration()) + " seconds")
+            print(tabs + "\tDuration after trimming: " + str(end - start) + " seconds")
+        if verbosity == 1:
+            print(tabs + "Starting the trimming...", end=" ")
 
         if name is None:
             name = self.name + " +TR"
 
         if start_index is None:
             start_index = int(np.floor(start * self.frequency))
-            if self.timestamps[start_index] <= start:
-                start_index += 1
+            if start_index < 0:
+                start_index = 0
 
         if verbosity > 1:
-            print("Closest (above) starting timestamp from " + str(start) + ": " + str(self.timestamps[start_index]))
+            print(tabs + f"Closest (above) starting timestamp from {start}: {self.timestamps[start_index]}")
 
         if end_index is None:
             end_index = int(np.ceil(end * self.frequency))
-        if self.timestamps[end_index] >= end:
-            end_index -= 1
+        if end_index > len(self.timestamps) - 1:
+            end_index = len(self.timestamps) - 1
 
         if verbosity > 1:
-            print("Closest (below) starting timestamp from " + str(end) + ": " + str(self.timestamps[end_index]))
+            print(tabs + f"Closest (below) starting timestamp from {end}: {self.timestamps[end_index]}")
 
         new_audio = Audio(self.samples[start_index:end_index + 1], self.frequency, name, self.condition, verbosity)
+        new_audio._set_attributes_from_other_audio(self)
 
+        new_audio.metadata["processing_steps"].append({"processing_type": "trim",
+                                                       "start": start,
+                                                       "end": end})
         return new_audio
 
-    def find_excerpt(self, other, window_size_env=1e6, overlap_ratio_env=0.5, filter_below=None, filter_over=50,
-                     resampling_rate=1000, window_size_res=1e7, overlap_ratio_res=0.5, resampling_mode="cubic",
-                     return_delay_format="s", return_correlation_value=False, threshold=0.9, plot_figure=False,
-                     plot_intermediate_steps=False, path_figure=None, verbosity=1):
+    def _set_attributes_from_other_audio(self, other):
+        """Sets the attributes `condition`, `path` and `metadata` of the Audio from another instance.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        other: Audio
+            Another Audio instance, from which to copy some of the parameters.
+        """
+        self.path = other.path
+        self.condition = other.condition
+        self.metadata = copy.deepcopy(other.metadata)
+
+    def find_excerpt(self, other, **kwargs):
         """This function tries to find the timestamp at which an excerpt of the current Audio instance begins.
         The computation is performed through cross-correlation, by first turning the audio clips into filtered envelopes
         and downsampling them to accelerate the processing. The function returns the timestamp or the index of the
@@ -1512,119 +1561,9 @@ class Audio(object):
             the current Audio instance. The amplitude, frequency or values do not have to match exactly the ones from
             the current Audio instance.
 
-        window_size_env: int or None, optional
-            The size of the windows in which to cut the audio clips to calculate the envelope. Cutting the audio clips
-            in windows allows, in the case where they are long, to speed up the computation. If this parameter is set on
-            `None`, the window size will be set on the number of samples. A good value for this parameter is generally
-            1 million.
-
-        overlap_ratio_env: float or None, optional
-            The ratio of samples overlapping between each window. If this parameter is not `None`, each window will
-            overlap with the previous (and, logically, the next) for an amount of samples equal to the number of samples
-            in a window times the overlap ratio. Then, only the central values of each window will be preserved and
-            concatenated; this allows to discard any "edge" effect due to the windowing. If the parameter is set on
-            `None` or 0, the windows will not overlap. By default, this parameter is set on 0.5, meaning that each
-            window will overlap for half of their values with the previous, and half of their values with the next.
-
-        filter_below: int or None, optional
-            If set, a high-pass filter will be applied on the envelopes before performing the cross-correlation
-            (default: 0 Hz).
-
-        filter_over: int or None, optional
-            If set, a low-pass filter will be applied on the envelopes before performing the cross-correlation (default:
-            50 Hz).
-
-        resampling_rate: int or None, optional
-            The sampling rate at which to downsample the envelopes for the cross-correlation. A larger value will
-            result in longer computation times. Setting the parameter on `None` will not downsample the envelopes, which
-            will result in an error if the two audio clips do not have the same sampling rate. If this parameter is
-            `None`, the next parameters related to resampling will be ignored. A recommended value for this parameter is
-            1000, as it will speed up the computation of the cross-correlation while still giving a millisecond-
-            precision delay.
-
-        window_size_res: int or None, optional
-            The size of the windows in which to cut the envelopes. Cutting the envelope in windows allows, in the case
-            where audio clips are long, to speed up the computation. If this parameter is set on `None`, the window size
-            will be set on the number of samples. A good value for this parameter is generally 10 million (1e7).
-
-        overlap_ratio_res: float or None, optional
-            The ratio of samples overlapping between each window. If this parameter is not `None`, each window will
-            overlap with the previous (and, logically, the next) for an amount of samples equal to the number of samples
-            in a window times the overlap ratio. Then, only the central values of each window will be preserved and
-            concatenated; this allows to discard any "edge" effect due to the windowing. If the parameter is set on
-            `None` or 0, the windows will not overlap. By default, this parameter is set on 0.5, meaning that each
-            window will overlap for half of their values with the previous, and half of their values with the next.
-
-        resampling_mode: str, optional
-            This parameter allows for various values:
-
-            • ``"linear"`` performs a linear
-              `numpy.interp <https://numpy.org/devdocs/reference/generated/numpy.interp.html>`_ interpolation. This
-              method, though simple, may not be very precise for upsampling naturalistic stimuli.
-            • ``"cubic"`` performs a cubic interpolation via `scipy.interpolate.CubicSpline
-              <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.CubicSpline.html>`_. This method,
-              while smoother than the linear interpolation, may lead to unwanted oscillations nearby strong variations
-              in the data.
-            • ``"pchip"`` performs a monotonic cubic spline interpolation (Piecewise Cubic Hermite Interpolating
-              Polynomial) via `scipy.interpolate.PchipInterpolator
-              <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.PchipInterpolator.html>`_.
-            • ``"akima"`` performs another type of monotonic cubic spline interpolation, using
-              `scipy.interpolate.Akima1DInterpolator
-              <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Akima1DInterpolator.html>`_.
-            • ``"take"`` keeps one out of n samples from the original array. While being the fastest computation, it
-              will be prone to imprecision if the downsampling factor is not an integer divider of the original
-              frequency.
-            • ``"interp1d_XXX"`` uses the function `scipy.interpolate.interp1d
-              <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`. The XXX part of
-              the parameter can be replaced by ``"linear"``, ``"nearest"``, ``"nearest-up"``, ``"zero"``, "slinear"``,
-              ``"quadratic"``, ``"cubic"``”, ``"previous"``, and ``"next"`` (see the documentation of this function for
-              specifics).
-
-        threshold: float, optional
-            The threshold of the minimum correlation value between the two audio clips to accept a delay
-            as a solution. If multiple delays are over threshold, the delay with the maximum correlation
-            value will be returned. This value should be between 0 and 1; if the maximum found value is below the
-            threshold, the function will return `None` instead of a timestamp.
-
-        return_delay_format: str, optional
-            This parameter can be either ``"index"``, ``"ms"``, ``"s"``, or ``"timedelta"``, and returns a marker of
-            where the excerpt begins in the current Audio instance according to the highest cross-correlation value:
-
-                • If ``"index"`` (default), the function will return the sample index from the current Audio instance.
-                • If ``"ms"``, the function will return the timestamp from the current Audio instance, in milliseconds.
-                • If ``"s"``, the function will return the timestamp from the current Audio instance, in seconds.
-                • If ``"timedelta"``, the function will return the timestamp from the current Audio instance, as a
-                  `datetime.timedelta <https://docs.python.org/3/library/datetime.html#timedelta-objects>`_ object.
-
-        return_correlation_value: bool, optional
-            If `True`, the function returns a second value: the correlation value at the returned delay.
-            This value will be None if it is below the specified threshold. By default, this parameter is set on
-            `False`.
-
-        plot_figure: bool, optional
-            If set on `True`, plots a graph showing the result of the cross-correlation using Matplotlib. Note that
-            plotting the figure causes an interruption of the code execution.
-
-        plot_intermediate_steps: bool, optional
-            If set on `True`, plots the original audio clips, the envelopes and the resampled arrays (if
-            calculated) besides the cross-correlation.
-
-        path_figure: str or None, optional
-            If set, saves the figure at the given path.
-
-        threshold: float, optional
-            The threshold of the maximum correlation value between the two audio clips, relative to the maximum
-            correlation value between the excerpt and itself. This value should be between 0 and 1; if the maximum
-            found value is below the threshold, the function will return `None` instead of a timestamp.
-
-        verbosity: int, optional
-            Sets how much feedback the code will provide in the console output:
-
-            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
-            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
-              current steps.
-            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
-              may clutter the output and slow down the execution.
+        **kwargs: dict
+            Any of the parameters needed for the function
+            `find_delay <https://find-delay.readthedocs.io/en/latest/find_delay.html>`_.
 
         Returns
         -------
@@ -1634,110 +1573,17 @@ class Audio(object):
         float or None, optional
             Optionally, if ``return_correlation_value`` is `True`, the correlation value at the corresponding
             index/timestamp.
+
+        Example
+        -------
+        >>> audio = Audio("Recordings/Davis/recording_20.wav")
+        >>> audio_excerpt = audio.trim(12, 15)
+        >>> audio.find_excerpt(audio_excerpt, return_delay_format="s")
+        12
         """
+        return find_delay(self.samples, other.samples, self.frequency, other.frequency, **kwargs)
 
-        # Introduction
-        if verbosity > 0:
-            print("Trying to find when " + str(other.name) + " starts in " + str(self.name) + ".")
-            print("\t" + str(self.name) + " contains " + str(len(self.samples)) + " samples, at a rate of " +
-                  str(self.frequency) + " Hz.")
-            print("\t" + str(other.name) + " contains " + str(len(other.samples)) + " samples, at a rate of " +
-                  str(other.frequency) + " Hz.")
-
-        # Envelopes
-        if verbosity > 0:
-            print("Getting the envelope from the first Audio instance...")
-        envelope1 = self.get_envelope(window_size_env, overlap_ratio_env, filter_below, filter_over, verbosity)
-        if verbosity > 0:
-            print("Getting the envelope from the second Audio instance...")
-        envelope2 = other.get_envelope(window_size_env, overlap_ratio_env, filter_below, filter_over, verbosity)
-        if verbosity > 0:
-            print("Envelopes calculated.\n")
-
-        # Resampling
-        if resampling_rate is not None:
-            rate = resampling_rate
-            if verbosity > 0:
-                print("\tResampling the first envelope...")
-            y1 = envelope1.resample(resampling_rate, window_size_res, overlap_ratio_res, resampling_mode, verbosity)
-            if verbosity > 0:
-                print("\tResampling the second envelope...")
-            y2 = envelope2.resample(resampling_rate, window_size_res, overlap_ratio_res, resampling_mode, verbosity)
-            if verbosity > 0:
-                print("\tResampling done.")
-        else:
-            rate = self.frequency
-            if self.frequency != other.frequency:
-                raise Exception("The rate of the two Audio instances you are trying to correlate are different (" +
-                                str(self.frequency) + " and " + str(other.frequency) + "). You must indicate a " +
-                                "resampling rate to perform the cross-correlation.")
-            y1 = envelope1
-            y2 = envelope2
-
-        # Cross-correlation
-        if verbosity > 0:
-            print("\tComputing the correlation...")
-        y2_normalized = (y2.samples - y2.samples.mean()) / y2.samples.std() / np.sqrt(y2.samples.size)
-        y1_m = signal.correlate(y1.samples, np.ones(y2.samples.size), 'valid') ** 2 / y2_normalized.size
-        y1_m2 = signal.correlate(y1.samples ** 2, np.ones(y2.samples.size), "valid")
-        cross_correlation = signal.correlate(y1.samples, y2_normalized, "valid") / np.sqrt(y1_m2 - y1_m)
-        max_correlation_value = np.max(cross_correlation)
-
-        index_max_correlation = np.argmax(cross_correlation)
-        index = int(round(index_max_correlation * self.frequency / rate, 0))
-        delay_in_seconds = index_max_correlation / rate
-        t = dt.timedelta(days=delay_in_seconds // 86400, seconds=int(delay_in_seconds % 86400),
-                         microseconds=(delay_in_seconds % 1) * 1000000)
-
-        if verbosity > 0:
-            print("Done.")
-
-            if max_correlation_value >= threshold:
-                print("\tMaximum correlation (" + str(round(max_correlation_value, 3)) + ") found at sample " +
-                      str(index) + " (timestamp " + str(t) + ").")
-
-            else:
-                print("\tNo correlation over threshold found (max correlation: " +
-                      str(round(max_correlation_value, 3)) + ") found at sample " + str(index) +
-                      " (timestamp " + str(t) + ").")
-
-        # Return values: None if below threshold
-        if return_delay_format == "index":
-            return_value = index
-        elif return_delay_format == "ms":
-            return_value = delay_in_seconds * 1000
-        elif return_delay_format == "s":
-            return_value = delay_in_seconds
-        elif return_delay_format == "timedelta":
-            return_value = t
-        else:
-            raise Exception(
-                "Wrong value for the parameter return_delay_format: " + str(return_delay_format) + ". The " +
-                'value should be either "index", "ms", "s" or "timedelta".')
-
-        # Plot and/or save the figure
-        if plot_figure or path_figure is not None:
-            _plot_figure_find_excerpt(self, other, envelope1, envelope2, y1, y2, window_size_env,
-                                      overlap_ratio_env, filter_below, filter_over, resampling_rate,
-                                      window_size_res, overlap_ratio_res, cross_correlation, threshold,
-                                      return_delay_format, return_value, plot_figure, path_figure, None,
-                                      plot_intermediate_steps, verbosity)
-
-        if max_correlation_value >= threshold:
-            if return_correlation_value:
-                return return_value, max_correlation_value
-            else:
-                return return_value
-        else:
-            if return_correlation_value:
-                return None, None
-            else:
-                return None
-
-    def find_excerpts(self, excerpts, window_size_env=1e6, overlap_ratio_env=0.5, filter_below=None, filter_over=50,
-                     resampling_rate=1000, window_size_res=1e7, overlap_ratio_res=0.5, resampling_mode="cubic",
-                     return_delay_format="s", return_correlation_values=False, threshold=0.9, plot_figure=False,
-                     plot_intermediate_steps=False, path_figures=None, name_figures="figure", verbosity=1):
+    def find_excerpts(self, excerpts, **kwargs):
         """This function tries to find the timestamp at which multiple excerpts of the current Audio instance begin.
         The computation is performed through cross-correlation, by first turning the audio clips into downsampled and
         filtered envelopes to accelerate the processing. For each excerpt, the function returns the timestamp of the
@@ -1752,265 +1598,34 @@ class Audio(object):
             excerpts from current Audio instance. The amplitude, frequency or values do not have to match exactly the
             ones from the current Audio instance.
 
-        window_size_env: int or None, optional
-            The size of the windows in which to cut the audio clips to calculate the envelope. Cutting the audio clips
-            in windows allows, in the case where they are long, to speed up the computation. If this parameter is set on
-            `None`, the window size will be set on the number of samples. A good value for this parameter is generally 1
-            million.
-
-        overlap_ratio_env: float or None, optional
-            The ratio of samples overlapping between each window. If this parameter is not `None`, each window will
-            overlap with the previous (and, logically, the next) for an amount of samples equal to the number of samples
-            in a window times the overlap ratio. Then, only the central values of each window will be preserved and
-            concatenated; this allows to discard any "edge" effect due to the windowing. If the parameter is set on
-            `None` or 0, the windows will not overlap. By default, this parameter is set on 0.5, meaning that each
-            window will overlap for half of their values with the previous, and half of their values with the next.
-
-        filter_below: int or None, optional
-            If set, a high-pass filter will be applied on the envelopes before performing the cross-correlation
-            (default: 0 Hz).
-
-        filter_over: int or None, optional
-            If set, a low-pass filter will be applied on the envelopes before performing the cross-correlation (default:
-            50 Hz).
-
-        resampling_rate: int or None, optional
-            The sampling rate at which to downsample the envelopes for the cross-correlation. A larger value will
-            result in longer computation times. Setting the parameter on `None` will not downsample the envelopes, which
-            will result in an error if the two audio clips do not have the same sampling rate. If this parameter is
-            `None`, the next parameters related to resampling will be ignored. A recommended value for this parameter is
-            1000, as it will speed up the computation of the cross-correlation while still giving a millisecond-
-            precision delay.
-
-        window_size_res: int or None, optional
-            The size of the windows in which to cut the envelopes. Cutting the envelope in windows allows, in the case
-            where audio clips are long, to speed up the computation. If this parameter is set on `None`, the window size
-            will be set on the number of samples. A good value for this parameter is generally 10 million (1e7).
-
-        overlap_ratio_res: float or None, optional
-            The ratio of samples overlapping between each window. If this parameter is not `None`, each window will
-            overlap with the previous (and, logically, the next) for an amount of samples equal to the number of samples
-            in a window times the overlap ratio. Then, only the central values of each window will be preserved and
-            concatenated; this allows to discard any "edge" effect due to the windowing. If the parameter is set on
-            `None` or 0, the windows will not overlap. By default, this parameter is set on 0.5, meaning that each
-            window will overlap for half of their values with the previous, and half of their values with the next.
-
-        resampling_mode: str, optional
-            This parameter allows for various values:
-
-            • ``"linear"`` performs a linear
-              `numpy.interp <https://numpy.org/devdocs/reference/generated/numpy.interp.html>`_ interpolation. This
-              method, though simple, may not be very precise for upsampling naturalistic stimuli.
-            • ``"cubic"`` performs a cubic interpolation via `scipy.interpolate.CubicSpline
-              <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.CubicSpline.html>`_. This method,
-              while smoother than the linear interpolation, may lead to unwanted oscillations nearby strong variations
-              in the data.
-            • ``"pchip"`` performs a monotonic cubic spline interpolation (Piecewise Cubic Hermite Interpolating
-              Polynomial) via `scipy.interpolate.PchipInterpolator
-              <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.PchipInterpolator.html>`_.
-            • ``"akima"`` performs another type of monotonic cubic spline interpolation, using
-              `scipy.interpolate.Akima1DInterpolator
-              <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Akima1DInterpolator.html>`_.
-            • ``"take"`` keeps one out of n samples from the original array. While being the fastest computation, it
-              will be prone to imprecision if the downsampling factor is not an integer divider of the original
-              frequency.
-            • ``"interp1d_XXX"`` uses the function `scipy.interpolate.interp1d
-              <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html>`. The XXX part of
-              the parameter can be replaced by ``"linear"``, ``"nearest"``, ``"nearest-up"``, ``"zero"``, "slinear"``,
-              ``"quadratic"``, ``"cubic"``”, ``"previous"``, and ``"next"`` (see the documentation of this function for
-              specifics).
-
-        threshold: float, optional
-            The threshold of the minimum correlation value between the audio clips to accept a delay as
-            a solution. If multiple delays are over threshold, the delay with the maximum correlation
-            value will be returned. This value should be between 0 and 1; if the maximum found value is below the
-            threshold, the function will return `None` instead of a timestamp.
-
-        return_delay_format: str, optional
-            This parameter can be either ``"index"``, ``"ms"``, ``"s"``, or ``"timedelta"``, and returns a marker of
-            where the excerpt begins in the current Audio instance according to the highest cross-correlation value:
-
-                • If ``"index"`` (default), the function will return the sample index from the current Audio instance.
-                • If ``"ms"``, the function will return the timestamp from the current Audio instance, in milliseconds.
-                • If ``"s"``, the function will return the timestamp from the current Audio instance, in seconds.
-                • If ``"timedelta"``, the function will return the timestamp from the current Audio instance, as a
-                  `datetime.timedelta <https://docs.python.org/3/library/datetime.html#timedelta-objects>`_ object.
-
-        return_correlation_values: bool, optional
-            If `True`, the function returns a second value: the correlation value at the returned delay.
-            This value will be None if it is below the specified threshold. By default, this parameter is set on
-            `False`.
-
-        plot_figure: bool, optional
-            If set on `True`, plots a graph showing the result of the cross-correlation using Matplotlib. Note that
-            plotting the figure causes an interruption of the code execution.
-
-        plot_intermediate_steps: bool, optional
-            If set on `True`, plots the original audio clips, the envelopes and the resampled arrays (if
-            calculated) besides the cross-correlation.
-
-        path_figures: str or None, optional
-            If set, saves the figure at the given directory.
-
-        name_figures: str, optional
-            The name to give to each figure in the directory set by `path_figures`. The figures will be found in
-            `path_figures/name_figures_n.png`, where n is the index of the excerpt in `excerpts`, starting at 0.
-
-        threshold: float, optional
-            The threshold of the maximum correlation value between the audio clips, relative to the maximum
-            correlation value between the excerpt and itself. This value should be between 0 and 1; if the maximum
-            found value is below the threshold, the function will return `None` instead of a timestamp.
-
-        verbosity: int, optional
-            Sets how much feedback the code will provide in the console output:
-
-            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
-            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
-              current steps.
-            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
-              may clutter the output and slow down the execution.
+        **kwargs: dict
+            Any of the parameters needed for the function
+            `find_delay <https://find-delay.readthedocs.io/en/latest/find_delays.html>`_.
 
         Returns
         -------
-        list(float or None)
-            The timestamps of the current Audio instance at which each excerpt can be found, or `None` if the excerpt is
-            not contained in the current Audio instance.
+        int|float|timedelta|None
+            The sample index, timestamp or timedelta of array1 at which array2 can be found (defined by the parameter
+            return_delay_format), or None if array1 is not contained in array2.
+
+        float|None, optional
+            Optionally, if return_correlation_value is True, the correlation value at the corresponding index/timestamp.
+
+        Example
+        -------
+        >>> audio = Audio("Recordings/Beal/recording_21.wav")
+        >>> audio_excerpt_1 = audio.trim(12, 15)
+        >>> audio_excerpt_2 = audio.trim(15, 18)
+        >>> audio_excerpt_3 = audio.trim(18, 21)
+        >>> audio.find_excerpt([audio_excerpt_1, audio_excerpt_2, audio_excerpt_3], return_delay_format="s")
+        [12, 15, 18]
         """
-
-        delays = []
-        correlation_values = []
-
-        # Introduction
-        if verbosity > 0:
-            print("Trying to find when the excerpts starts in the array.")
-            print("\t" + str(self.name) + " contains " + str(len(self.samples)) + " samples, at a rate of " +
-                  str(self.frequency) + " Hz.")
-            print("\t" + str(len(excerpts)) + " excerpts to find.")
-
-        # Envelope
-        if verbosity > 0:
-            print("Getting the envelope from the first Audio instance...")
-        envelope1 = self.get_envelope(window_size_env, overlap_ratio_env, filter_below, filter_over, verbosity)
-        if verbosity > 0:
-            print("Envelope calculated.\n")
-
-        # Resampling
-        if resampling_rate is not None:
-            rate = resampling_rate
-            if verbosity > 0:
-                print("\tResampling the first envelope...")
-            y1 = envelope1.resample(resampling_rate, window_size_res, overlap_ratio_res, resampling_mode, verbosity)
-            if verbosity > 0:
-                print("\tResampling done.")
-        else:
-            rate = self.frequency
-            y1 = envelope1
-
-        # Main loop
-        for i in range(len(excerpts)):
-
-            # Introduction
-            if verbosity > 0:
-                print("\nExcerpt " + str(i + 1) + "/" + str(len(excerpts)))
-
-            excerpt = excerpts[i]
-            if verbosity > 0:
-                print("\t" + str(excerpt.name) + " contains " + str(len(excerpt.samples)) + " samples, at a rate of " +
-                      str(excerpt.frequency) + " Hz.")
-
-            # Envelope
-            if verbosity > 0:
-                print("Getting the envelope from the second Audio instance...")
-            envelope2 = excerpt.get_envelope(window_size_env, overlap_ratio_env, filter_below, filter_over, verbosity)
-            if verbosity > 0:
-                print("Envelopes calculated.\n")
-
-            # Resampling
-            if resampling_rate is not None:
-                if verbosity > 0:
-                    print("\tResampling the second envelope...")
-                y2 = envelope2.resample(resampling_rate, window_size_res, overlap_ratio_res, resampling_mode, verbosity)
-                if verbosity > 0:
-                    print("\tResampling done.")
-            else:
-                rate = self.frequency
-                if self.frequency != excerpt.frequency:
-                    raise Exception("The rate of the two Audio instances you are trying to correlate are different (" +
-                                    str(self.frequency) + " and " + str(excerpt.frequency) + "). You must indicate a " +
-                                    "resampling rate to perform the cross-correlation.")
-                y2 = envelope2
-
-            # Cross-correlation
-            if verbosity > 0:
-                print("\tComputing the correlation...")
-            y2_normalized = (y2.samples - y2.samples.mean()) / y2.samples.std() / np.sqrt(y2.samples.size)
-            y1_m = signal.correlate(y1.samples, np.ones(y2.samples.size), 'valid') ** 2 / y2_normalized.size
-            y1_m2 = signal.correlate(y1.samples ** 2, np.ones(y2.samples.size), "valid")
-            cross_correlation = signal.correlate(y1.samples, y2_normalized, "valid") / np.sqrt(y1_m2 - y1_m)
-            max_correlation_value = np.max(cross_correlation)
-
-            index_max_correlation = np.argmax(cross_correlation)
-            index = int(round(index_max_correlation * self.frequency / rate, 0))
-            delay_in_seconds = index_max_correlation / rate
-            t = dt.timedelta(days=delay_in_seconds // 86400, seconds=int(delay_in_seconds % 86400),
-                             microseconds=(delay_in_seconds % 1) * 1000000)
-
-            if verbosity > 0:
-                print("Done.")
-
-                if max_correlation_value >= threshold:
-                    print("\tMaximum correlation (" + str(round(max_correlation_value, 3)) + ") found at sample " +
-                          str(index) + " (timestamp " + str(t) + ").")
-
-                else:
-                    print("\tNo correlation over threshold found (max correlation: " +
-                          str(round(max_correlation_value, 3)) + ") found at sample " + str(index) + " (timestamp " +
-                          str(t) + ").")
-
-            # Return values: None if below threshold
-            if return_delay_format == "index":
-                return_value = index
-            elif return_delay_format == "ms":
-                return_value = delay_in_seconds * 1000
-            elif return_delay_format == "s":
-                return_value = delay_in_seconds
-            elif return_delay_format == "timedelta":
-                return_value = t
-            else:
-                raise Exception("Wrong value for the parameter return_delay_format: " + str(return_delay_format) +
-                                '. The value should be either "index", "ms", "s" or "timedelta".')
-
-            # Plot and/or save the figure
-            if plot_figure or path_figures is not None:
-                _plot_figure_find_excerpt(self, excerpt, envelope1, envelope2, y1, y2, window_size_env,
-                                          overlap_ratio_env, filter_below, filter_over, resampling_rate,
-                                          window_size_res, overlap_ratio_res, cross_correlation, threshold,
-                                          return_delay_format, return_value, plot_figure, path_figures, name_figures,
-                                          plot_intermediate_steps, verbosity)
-
-            if max_correlation_value >= threshold:
-                if return_correlation_values:
-                    delays.append(return_value)
-                    correlation_values.append(max_correlation_value)
-                else:
-                    delays.append(return_value)
-
-            else:
-
-                if return_correlation_values:
-                    delays.append(None)
-                    correlation_values.append(None)
-                else:
-                    delays.append(None)
-
-        if return_correlation_values:
-            return delays, correlation_values
-        else:
-            return delays
+        return find_delays(self.samples, [other.samples for other in excerpts],
+                           self.frequency, [other.frequency for other in excerpts], **kwargs)
 
     # === Conversion functions ===
 
-    def convert_to_table(self):
+    def to_table(self):
         """Returns a list of lists where each sublist contains a timestamp and a sample. The first sublist contains the
         headers of the table. The output then resembles the table found in :ref:`Tabled formats <table_example>`.
 
@@ -2021,8 +1636,17 @@ class Audio(object):
         list(list)
             A list of lists that can be interpreted as a table, containing headers, and with the timestamps and the
             coordinates of the joints from the sequence on each row.
-        """
 
+        Example
+        -------
+        >>> audio = Audio("Recordings/Elfman/recording_22.wav")
+        >>> table = audio.to_table()
+        >>> table[0:3]
+        [["Timestamp", "Sample"],
+         [0, 0.4815],
+         [0.001, 0.1623],
+         [0.002, 0.42]]
+        """
         table = [["Timestamp", "Sample"]]
 
         # For each pose
@@ -2031,68 +1655,98 @@ class Audio(object):
 
         return table
 
-    def convert_to_json(self):
+    def to_json(self, include_metadata=True):
         """Returns a list ready to be exported in JSON. The returned JSON data is a dictionary with two keys:
         "Sample" is the key to the list of samples, while "Frequency" is the key to the sampling frequency of
         the audio clip.
 
         .. versionadded:: 2.0
 
+        Parameters
+        ----------
+        include_metadata: bool, optional
+            Whether to include the metadata in the file (default: `True`).
+
         Returns
         -------
         dict
             A dictionary containing the data of the audio clip, ready to be exported in JSON.
+
+        Example
+        -------
+        >>> audio = Audio("Recordings/Newton-Howard/recording_23.wav")
+        >>> json_data = audio.to_json()
+        >>> json_data
+        {"Timestamp": [0, 0.001, 0.002, 0.003], "Sample": [0, 0.4815, 0.1623, 0.42], "Frequency": 1000.0,
+        "processing_steps": []}
         """
 
-        data = {"Sample": self.samples, "Frequency": self.frequency}
+        if include_metadata:
+            data = self.metadata.copy()
+            for key in data:
+                if type(data[key]) == datetime:
+                    data[key] = str(data[key])
+        else:
+            data = {}
+
+        data["Sample"] = self.samples.tolist()
+        data["Timestamp"] = self.timestamps.tolist()
+        data["Frequency"] = self.frequency
+
         return data
 
-    # === Print functions ===
-    def print_details(self, include_name=True, include_condition=True, include_frequency=True,
-                      include_number_of_samples=True, include_duration=True, add_tabs=0):
-        """Prints a series of details about the audio clip.
+    def to_dict(self, include_frequency=True):
+        """Returns a dictionary containing the data of the audio clip.
 
         .. versionadded:: 2.0
 
         Parameters
         ----------
-        include_name: bool, optional
-            If set on ``True`` (default), adds the attribute :attr:`name` to the printed string.
-        include_condition: bool, optional
-            If set on ``True`` (default), adds the attribute :attr:`condition` to the printed string.
         include_frequency: bool, optional
-            If set on ``True`` (default), adds the attribute :attr:`frequency` to the printed string.
-        include_number_of_samples: bool, optional
-            If set on ``True`` (default), adds the length of the attribute :attr:`samples` to the printed string.
-        include_duration: bool, optional
-            If set on ``True`` (default), adds the duration of the Sequence to the printed string.
-        add_tabs: int, optional
-            Adds the specified amount of tabulations to the verbosity outputs. This parameter may be used by other
-            functions to encapsulate the verbosity outputs by indenting them. In a normal use, it shouldn't be set
-            by the user.
+            If set on `True`, includes the frequency of the audio clip in the output dictionary.
+
+        Returns
+        -------
+        dict
+            A dataframe containing the timestamps and samples of the audio clip.
+
+            Example
+        -------
+        >>> audio = Audio("Recordings/Young/recording_24.wav")
+        >>> dict_data = audio.to_dict()
+        >>> dict_data
+        {"Timestamp": [0, 0.001, 0.002, 0.003], "Sample": [0, 0.4815, 0.1623, 0.42], "Frequency": 1000.0}
         """
-        t = add_tabs * "\t"
-
-        string = t + "Audio clip · "
-        if include_name:
-            string += "Name: " + str(self.name) + " · "
-        if include_condition:
-            string += "Condition: " + str(self.condition) + " · "
+        data_dict = {"Timestamp": self.timestamps, "Sample": self.samples}
         if include_frequency:
-            string += "Frequency: " + str(self.frequency) + " Hz · "
-        if include_number_of_samples:
-            string += "Number of samples: " + str(self.get_number_of_samples()) + " · "
-        if include_duration:
-            t = self.get_duration()
-            string += "Duration: " + str(time_unit_to_timedelta(t)) + " · "
-        if len(string) > 3:
-            string = string[:-3]
+            data_dict["Frequency"] = self.frequency
+        return data_dict
 
-        print(string)
+    def to_dataframe(self):
+        """Returns a Pandas dataframe containing the data of the audio clip.
+
+        .. versionadded:: 2.0
+
+        Returns
+        -------
+        Pandas.dataframe
+            A dataframe containing the timestamps and samples of the audio clip.
+
+        Example
+        -------
+        >>> audio = Audio("Recordings/Arnold/recording_25.tsv")
+        >>> audio.to_dataframe()
+            Timestamp   Sample
+        0      0.000      4815
+        1      0.001      1623
+        2      0.002        42
+        """
+        data_dict = self.to_dict(False)
+        return pd.DataFrame(data_dict)
 
     # === Saving functions ===
-
-    def save(self, folder_out, name=None, file_format="xlsx", individual=False, verbosity=1):
+    def save(self, folder_out, name=None, file_format="json", encoding="utf-8", individual=False,
+             include_metadata=True, verbosity=1):
         """Saves an audio clip in a file or a folder. The function saves the sequence under
         ``folder_out/name.file_format``. All the non-existent subfolders present in the ``folder_out`` path will be
         created by the function. The function also updates the :attr:`path` attribute of the Audio clip.
@@ -2131,6 +1785,11 @@ class Audio(object):
                 recognize these files upon opening. The support for ``.mat`` and custom extensions as input may come in
                 a future release, but for now these are just offered as output options.
 
+        encoding: str, optional
+            The encoding of the file to save (not applicable for WAV files). By default, the file is saved in UTF-8
+            encoding. This input can take any of the
+            official Python accepted formats <https://docs.python.org/3/library/codecs.html#standard-encodings>`_.
+
         individual: bool, optional
             If set on ``False`` (default), the function will save the audio clip in a unique file.
             If set on ``True``, the function will save each sample of the audio clip in an individual file, appending an
@@ -2142,6 +1801,19 @@ class Audio(object):
                 audio files has only been implemented to follow the same logic as for the Sequence files, and should be
                 avoided.
 
+        include_metadata: bool, optional
+            Whether to include the metadata in the file (default: `True`). This parameter does not apply to individually
+            saved files.
+
+                • For ``json`` files, the metadata is saved at the top level. Metadata keys will be saved next to the
+                  ``"Poses"`` key.
+                • For ``mat`` files, the metadata is saved at the top level of the structure.
+                • For ``xlsx```files, the metadata is saved in a second sheet.
+                • For ``pkl`` files, the metadata will always be saved as the object is saved as-is - this parameter
+                  is thus ignored.
+                • For ``wav`` files, the metadata is saved as tags in the file.
+                • For all the other formats, the metadata is saved at the beginning of the file.
+
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
 
@@ -2150,18 +1822,23 @@ class Audio(object):
               current steps.
             • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
               may clutter the output and slow down the execution.
+
+        Examples
+        --------
+        >>> audio = Audio("Recordings/Bach/recording_26.wav")
+        >>> audio.save("Recordings/Bach/recording_26.tsv")
+        >>> audio.save("Recordings/Bach/recording_26.mat", include_metadata=False)
         """
 
         if folder_out == "":
             folder_out = os.getcwd()
 
         if not individual:
-            subfolders = folder_out.split("/")
+            subfolders = op.normpath(folder_out).split(os.sep)
             if len(subfolders) != 0:
                 if "." in subfolders[-1]:
-                    folder_out = "/".join(subfolders[:-1])
-                    name = ".".join(subfolders[-1].split(".")[:-1])
-                    file_format = subfolders[-1].split(".")[-1]
+                    folder_out = op.split(folder_out)[0]
+                    name, file_format = op.splitext(subfolders[-1])
 
         # Automatic creation of all the folders of the path if they don't exist
         os.makedirs(folder_out, exist_ok=True)
@@ -2172,40 +1849,45 @@ class Audio(object):
             name = "out"
 
         file_format = file_format.strip(".")  # We remove the dot in the format
-        if file_format == "xls":
+        if file_format in ["xl", "xls", "excel"]:
             file_format = "xlsx"
 
         if verbosity > 0:
             if individual:
-                print("Saving " + file_format.upper() + " individual files...")
+                print(f"Saving {file_format.upper()} individual files...")
             else:
-                print("Saving " + file_format.upper() + " global file: " + folder_out.strip("/") + "/" + name + "." +
-                      file_format + "...")
+                folder_without_slash = folder_out.strip('/')
+                print(f"Saving {file_format.upper()} global file: {folder_without_slash}/{name}.{file_format}...")
 
         if file_format == "json":
-            self._save_json(folder_out, name, individual, verbosity)
+            self.save_json(folder_out, name, individual, include_metadata, encoding, verbosity)
 
         elif file_format == "mat":
-            self._save_mat(folder_out, name, individual, verbosity)
+            self.save_mat(folder_out, name, individual, include_metadata, verbosity)
 
         elif file_format == "xlsx":
-            self._save_xlsx(folder_out, name, individual, verbosity)
+            self.save_excel(folder_out, name, individual, include_metadata=include_metadata,
+                            verbosity=verbosity)
+
+        elif file_format in ["pickle", "pkl"]:
+            self.save_pickle(folder_out, name, individual, verbosity)
 
         elif file_format == "wav":
-            self._save_wav(folder_out, name)
+            self.save_wav(folder_out, name, include_metadata, verbosity)
 
         else:
-            self._save_txt(folder_out, name, file_format, individual, verbosity)
+            self.save_txt(folder_out, name, file_format, encoding, individual, include_metadata, verbosity)
 
         if individual:
-            self.path = folder_out + name
+            self.path = op.join(folder_out, name)
         else:
-            self.path = folder_out + name + file_format
+            self.path = op.join(folder_out, name + "." + file_format)
 
         if verbosity > 0:
             print("100% - Done.")
 
-    def _save_json(self, folder_out, name=None, individual=False, verbosity=1):
+    def save_json(self, folder_out, name=None, individual=False, include_metadata=True, encoding="utf-8",
+                  verbosity=1):
         """Saves an audio clip as a json file or files. This function is called by the :meth:`Audio.save`
         method, and saves the Audio instance as ``folder_out/name.file_format``.
 
@@ -2231,6 +1913,15 @@ class Audio(object):
                 audio files has only been implemented to follow the same logic as for the Sequence files, and should be
                 avoided.
 
+        include_metadata: bool, optional
+            Whether to include the metadata in the file (default: `True`).
+
+        encoding: str, optional
+            The encoding of the file to save. By default, the file is saved in UTF-8 encoding. This input can take any
+            of the
+            `official Python accepted formats <https://docs.python.org/3/library/codecs.html#standard-encodings>`_.
+
+
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
 
@@ -2239,27 +1930,54 @@ class Audio(object):
               current steps.
             • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
               may clutter the output and slow down the execution.
+
+        Example
+        -------
+        >>> audio = Audio("Recordings/Beethoven/recording_27.wav")
+        >>> audio.save_json("Recordings/Beethoven/recording_27.json")
         """
 
         perc = 10  # Used for the progression percentage
 
-        # Save the data
+        path_out = None
+        subfolders = op.normpath(folder_out).split(os.sep)
+        if len(subfolders) != 0 and not individual:
+            if subfolders[-1].endswith(".json"):
+                path_out = folder_out
+            else:
+                if name is None:
+                    name = "out"
+                if name.endswith(".json"):
+                    path_out = op.join(folder_out, name)
+                else:
+                    path_out = op.join(folder_out, f"{name}.json")
+
+        data = self.to_json(include_metadata)
+
         if not individual:
-            data = self.convert_to_json()
-            if name is None:
-                name = "out"
-            with open(folder_out + "/" + name + ".json", 'w', encoding="utf-16-le") as f:
+            with open(path_out, 'w', encoding=encoding) as f:
                 json.dump(data, f)
         else:
             if name is None:
                 name = "pose"
             for s in range(len(self.samples)):
                 perc = show_progression(verbosity, s, len(self.samples), perc)
-                with open(folder_out + "/" + name + "_" + str(s) + ".json", 'w', encoding="utf-16-le") as f:
-                    d = {"Sample": self.samples[s], "Timestamp": self.timestamps[s]}
-                    json.dump(d, f)
+                with open(op.join(folder_out, f"{name}_{s}.json"), 'w', encoding="utf-16-le") as f:
+                    json.dump(data["Poses"][s], f)
 
-    def _save_mat(self, folder_out, name=None, individual=False, verbosity=1):
+        # Save the data
+        if not individual:
+            with open(path_out, 'w', encoding=encoding) as f:
+                json.dump(data, f)
+        else:
+            if name is None:
+                name = "sample"
+            for s in range(len(self.samples)):
+                perc = show_progression(verbosity, s, len(self.samples), perc)
+                with open(op.join(folder_out, f"{name}_{s}.json"), 'w', encoding=encoding) as f:
+                    json.dump({"Sample": self.samples[s], "Timestamp": self.timestamps[s]}, f)
+
+    def save_mat(self, folder_out, name=None, individual=False, include_metadata=True, verbosity=1):
         """Saves an audio clip as a Matlab .mat file or files. This function is called by the :meth:`Audio.save`
         method, and saves the Audio instance as ``folder_out/name.file_format``.
 
@@ -2289,6 +2007,9 @@ class Audio(object):
                 audio files has only been implemented to follow the same logic as for the Sequence files, and should be
                 avoided.
 
+        include_metadata: bool, optional
+            Whether to include the metadata in the file (default: `True`).
+
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
 
@@ -2297,30 +2018,45 @@ class Audio(object):
               current steps.
             • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
               may clutter the output and slow down the execution.
+
+        Example
+        -------
+        >>> audio = Audio("Recordings/Shostakovich/recording_28.wav")
+        >>> audio.save_mat("Recordings/Shostakovich/recording_28.mat")
         """
 
         perc = 10  # Used for the progression percentage
 
-        try:
-            from scipy.io import savemat
-        except ImportError:
-            raise ModuleNotFoundException("scipy", "save a file in .mat format.")
+        path_out = None
+        subfolders = op.normpath(folder_out).split(os.sep)
+        if len(subfolders) != 0 and not individual:
+            if subfolders[-1].endswith(".mat"):
+                path_out = folder_out
+            else:
+                if name is None:
+                    name = "out"
+                if name.endswith(".mat"):
+                    path_out = op.join(folder_out, name)
+                else:
+                    path_out = op.join(folder_out, f"{name}.mat")
 
         # Save the data
         if not individual:
-            if name is None:
-                name = "out"
-            data = self.convert_to_json()
-            savemat(folder_out + "/" + name + ".mat", {"data": data})
+            data_json = self.to_json(include_metadata)
+            for key in data_json:
+                if data_json[key] is None:
+                    data_json[key] = np.nan
+            savemat(path_out, {"data": data_json})
         else:
             for s in range(len(self.samples)):
                 if name is None:
                     name = "sample"
+                data = {"sample": self.samples[s], "timestamp": self.timestamps[s]}
                 perc = show_progression(verbosity, s, len(self.samples), perc)
-                savemat(folder_out + "/" + name + "_" + str(s) + ".mat",
-                        {"data": [["Timestamp", "Sample"], [self.timestamps[s], self.samples[s]]]})
+                savemat(op.join(folder_out, f"{name}_{s}.mat"), {"data": data})
 
-    def _save_xlsx(self, folder_out, name=None, individual=False, verbosity=1):
+    def save_excel(self, folder_out, name=None, individual=False, sheet_name="Data", include_metadata=True,
+                   metadata_sheet_name="Metadata", verbosity=1):
         """Saves an audio clip as an Excel .xlsx file or files. This function is called by the :meth:`Audio.save`
         method, and saves the Audio instance as ``folder_out/name.file_format``.
 
@@ -2350,6 +2086,18 @@ class Audio(object):
                 audio files has only been implemented to follow the same logic as for the Sequence files, and should be
                 avoided.
 
+        sheet_name: str|None, optional
+            The name of the sheet containing the data. If `None`, a default name will be attributed to the sheet
+            (``"Sheet"``).
+
+        include_metadata: bool, optional
+            Whether to include the metadata in the Excel file (default: `True`). The metadata is saved in a separate
+            sheet in the same Excel file.
+
+        metadata_sheet_name: str|None, optional
+            The name of the sheet containing the metadata. If `None`, a default name will be attributed to the sheet
+            (``"Metadata"``).
+
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
 
@@ -2358,27 +2106,111 @@ class Audio(object):
               current steps.
             • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
               may clutter the output and slow down the execution.
+
+        Example
+        -------
+        >>> audio = Audio("Recordings/Chopin/recording_29.wav")
+        >>> audio.save_excel("Recordings/Chopin/recording_29.xlsx")
         """
 
         perc = 10  # Used for the progression percentage
 
-        data = self.convert_to_table()
+        path_out = None
+        subfolders = op.normpath(folder_out).split(os.sep)
+        if len(subfolders) != 0 and not individual:
+            if subfolders[-1].endswith(".xlsx") or subfolders[-1].endswith(".xls"):
+                path_out = folder_out
+            else:
+                if name is None:
+                    name = "out"
+                if name.endswith(".xlsx") or name.endswith(".xls"):
+                    path_out = op.join(folder_out, name)
+                else:
+                    path_out = op.join(folder_out, f"{name}.xlsx")
+
+        data = self.to_table()
 
         # Save the data
         if not individual:
-            if name is None:
-                name = "out"
-            write_xlsx(data, folder_out + "/" + name + ".xlsx", verbosity)
+            if include_metadata:
+                metadata = self.metadata
+            else:
+                metadata = None
+            write_xlsx(data, path_out, sheet_name, metadata, metadata_sheet_name, verbosity)
 
         else:
             for s in range(len(self.samples)):
                 if name is None:
-                    name = "sample"
-                d = [data[0], data[s + 1]]
+                    name = "pose"
+                data = [data[0], data[s + 1]]
                 perc = show_progression(verbosity, s, len(self.samples), perc)
-                write_xlsx(d, folder_out + "/" + name + "_" + str(s) + ".xlsx", False)
+                write_xlsx(data, op.join(folder_out, f"{name}_{s}.xlsx"), sheet_name, verbosity=0)
 
-    def _save_wav(self, folder_out, name=None):
+    def save_pickle(self, folder_out, name=None, individual=False, verbosity=1):
+        """Saves an audio clip by pickling it. This allows to reopen the audio clip as an Audio object.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        folder_out: str
+            The path to the folder where to save the file or files, or the complete path to the file.
+            If one or more subfolders of the path do not exist, the function will create them.
+
+        name: str or None, optional
+            Defines the name of the file or files where to save the audio. If set on ``None``, the name will be set
+            on ``"out"`` if individual is ``False``, or on ``"sample"`` if individual is ``True``. This parameter is
+            ignored if ``folder_out`` already contains the name of the file.
+
+        individual: bool, optional
+            If set on ``False`` (default), the function will save the audio clip in a unique file.
+            If set on ``True``, the function will save each sample of the audio clip in an individual file, appending an
+            underscore and the index of the sample (starting at 0) after the name.
+
+        verbosity: int, optional
+            Sets how much feedback the code will provide in the console output:
+
+            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+              current steps.
+            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+              may clutter the output and slow down the execution.
+
+        Example
+        -------
+        >>> audio = Audio("Recordings/Saint-Saëns/recording_30.wav")
+        >>> audio.save_pickle("Recordings/Saint-Saëns/recording_30.pkl")
+        """
+
+        perc = 10  # Used for the progression percentage
+
+        path_out = None
+        subfolders = op.normpath(folder_out).split(os.sep)
+        if len(subfolders) != 0 and not individual:
+            if subfolders[-1].endswith(".pkl"):
+                path_out = folder_out
+            else:
+                if name is None:
+                    name = "out"
+                if name.endswith(".pkl"):
+                    path_out = op.join(folder_out, name)
+                else:
+                    path_out = op.join(folder_out, f"{name}.pkl")
+
+        # Save the data
+        if not individual:
+            with open(path_out, "wb") as f:
+                pickle.dump(self, f)
+
+        else:
+            for s in range(len(self.samples)):
+                if name is None:
+                    name = "pose"
+                perc = show_progression(verbosity, s, len(self.samples), perc)
+                with open(op.join(folder_out, f"{name}_{s}.pkl"), "wb") as f:
+                    pickle.dump(self.samples[s], f)
+
+    def save_wav(self, folder_out, name=None, include_metadata=True, verbosity=1):
         """Saves an audio clip as a .wav file or files. This function is called by the :meth:`Audio.save` method, and
         saves the Audio instance as ``folder_out/name.file_format``.
 
@@ -2393,23 +2225,49 @@ class Audio(object):
         name: str or None, optional
             Defines the name of the file or files where to save the audio clip. If set on ``None``, the name will be set
             on ``"out"``.
+
+        include_metadata: bool, optional
+            Whether to include the metadata in the file (default: `True`). The metadata is saved on the first lines
+            of the file. Note: due to WAV tags limitations, the case of the metadata might be modified.
+
+        verbosity: int, optional
+            Sets how much feedback the code will provide in the console output:
+
+            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+              current steps.
+            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+              may clutter the output and slow down the execution.
+
+        Example
+        -------
+        >>> audio = Audio("Recordings/Mozart/recording_32.json")
+        >>> audio.save_wav("Recordings/Mozart/recording_32.wav")
         """
 
-        try:
-            from scipy.io import wavfile
-        except ImportError:
-            raise ModuleNotFoundException("scipy", "save a file in .wav format.")
+        path_out = None
+        subfolders = op.normpath(folder_out).split(os.sep)
+        if len(subfolders) != 0:
+            if "." in subfolders[-1]:
+                path_out = folder_out
+                file_format = op.splitext(subfolders[-1])[-1][1:]
+            else:
+                if name is None:
+                    name = "out"
+                if "." in name:
+                    path_out = op.join(folder_out, name)
+                else:
+                    path_out = op.join(folder_out, f"{name}.wav")
 
-        try:
-            import numpy as np
-        except ImportError:
-            raise ModuleNotFoundException("numpy", "save a file in .wav format.")
+        wavfile.write(path_out, self.frequency, self.samples)
 
-        if name is None:
-            name = "out"
-        wavfile.write(folder_out + "/" + name + ".wav", self.frequency, self.samples)
+        if include_metadata:
+            with taglib.File(path_out, save_on_exit=True) as f:
+                for key in self.metadata:
+                    f.tags[key] = list(self.metadata[key])
 
-    def _save_txt(self, folder_out, name=None, file_format="csv", individual=False, verbosity=1):
+    def save_txt(self, folder_out, name=None, file_format="csv", encoding="utf-8", individual=False,
+                 include_metadata=True, verbosity=1):
         """Saves an audio clip as a .txt, .csv, .tsv, or custom extension file or files. This function is called by the
         :meth:`Audio.save` method, and saves the Audio instance as ``folder_out/name.file_format``.
 
@@ -2432,6 +2290,11 @@ class Audio(object):
             both separate the values by a tabulation. Any other string will not return an error, but rather be used as
             a custom extension. The data will be saved as in a text file (using tabulations as values separators).
 
+        encoding: str, optional
+            The encoding of the file to save. By default, the file is saved in UTF-8 encoding. This input can take any
+            of the
+            `official Python accepted formats <https://docs.python.org/3/library/codecs.html#standard-encodings>`_.
+
         individual: bool, optional
             If set on ``False`` (default), the function will save the audio clip in a unique file.
             If set on ``True``, the function will save each sample of the audio clip in an individual file, appending an
@@ -2442,6 +2305,10 @@ class Audio(object):
                 audio files has only been implemented to follow the same logic as for the Sequence files, and should be
                 avoided.
 
+        include_metadata: bool, optional
+            Whether to include the metadata in the file (default: `True`). The metadata is saved on the first lines
+            of the file.
+
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
 
@@ -2450,9 +2317,30 @@ class Audio(object):
               current steps.
             • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
               may clutter the output and slow down the execution.
+
+        Examples
+        --------
+        >>> audio = Audio("Recordings/Vivaldi/recording_33.wav")
+        >>> audio.save_txt("Recordings/Vivaldi/recording_33.txt")
+        >>> audio.save_txt("Recordings/Vivaldi/recording_33.tsv", include_metadata=False)
+        >>> audio.save_txt("Recordings/Vivaldi", "recording_33", "aaa", include_metadata=False)
         """
 
         perc = 10  # Used for the progression percentage
+
+        path_out = None
+        subfolders = op.normpath(folder_out).split(os.sep)
+        if len(subfolders) != 0 and not individual:
+            if "." in subfolders[-1]:
+                path_out = folder_out
+                file_format = op.splitext(subfolders[-1])[-1][1:]
+            else:
+                if name is None:
+                    name = "out"
+                if "." in name:
+                    path_out = op.join(folder_out, name)
+                else:
+                    path_out = op.join(folder_out, f"{name}.{file_format}")
 
         # Force comma or semicolon separator
         if file_format == "csv,":
@@ -2461,7 +2349,7 @@ class Audio(object):
         elif file_format == "csv;":
             separator = ";"
             file_format = "csv"
-        elif file_format[0:3] == "csv":  # Get the separator from local user (to get , or ;)
+        elif file_format == "csv":  # Get the separator from local user (to get , or ;)
             separator = get_system_csv_separator()
         elif file_format == "txt":  # For text files, tab separator
             separator = "\t"
@@ -2470,16 +2358,42 @@ class Audio(object):
 
         # Save the data
         if not individual:
-            if name is None:
-                name = "out"
-            write_text_table(self.convert_to_table(), separator, folder_out + "/" + name + "." + file_format, verbosity)
+            if include_metadata:
+                metadata = self.metadata
+            else:
+                metadata = None
+            write_text_table(self.to_table(), separator, path_out, metadata, None, encoding,
+                             verbosity=verbosity)
         else:
+            table = self.to_table()
             for s in range(len(self.samples)):
                 if name is None:
-                    name = "pose"
-                write_text_table(self.samples[s].convert_to_table(), separator,
-                                 folder_out + "/" + name + "_" + str(s) + "." + file_format, 0)
+                    name = "sample"
+                if s == 0:
+                    metadata = self.metadata
+                else:
+                    metadata = None
+                write_text_table([table[0], table[s+1]], separator,
+                                 op.join(folder_out, f"{name}_{s}.{file_format}"), metadata,
+                                 encoding=encoding, verbosity=0)
                 perc = show_progression(verbosity, s, len(self.samples), perc)
+
+    def copy(self):
+        """Returns a deep copy of the Audio object.
+
+        .. versionadded:: 2.0
+
+        Returns
+        -------
+        Audio
+            A new Audio object, copy of the original.
+
+        Example
+        -------
+        >>> audio = Audio("Recordings/Tchaikovsky/recording_34.tsv")
+        >>> audio_copy = audio.copy()
+        """
+        return super().copy()
 
     def __len__(self):
         """Returns the number of samples in the audio clip (i.e., the length of the attribute :attr:`samples`).
@@ -2490,6 +2404,12 @@ class Audio(object):
         -------
         int
             The number of samples in the audio clip.
+
+        Example
+        -------
+        >>> audio = Audio("Recordings/Din/recording_35.wav")
+        >>> len(audio)
+        88200
         """
         return len(self.samples)
 
@@ -2505,5 +2425,50 @@ class Audio(object):
         -------
         float
             A sample from the attribute :attr:`samples`.
+
+        Example
+        -------
+        >>> audio = Audio("Recordings/Nayru/recording_36.wav")
+        >>> audio[820]
+        417
         """
         return self.samples[index]
+
+    def __repr__(self):
+        """Returns the :attr:`name` attribute of the audio clip.
+
+        Returns
+        -------
+        str
+            The attribute :attr:`name` of the Audio instance.
+
+        Examples
+        --------
+        >>> audio = Audio("Recordings/Farore/recording_37.wav")
+        >>> print(audio)
+        recording_37
+
+        >>> audio = Audio("Recordings/Farore/recording_37.wav", name="audio_37")
+        >>> print(audio)
+        audio_37
+        """
+        return self.name
+
+    def __eq__(self, other):
+        """Returns `True` if all the samples in the attribute :attr:`samples` have identical values between the two
+        :class:`Audio` objects, and if the frequency is identical..
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        other: Audio
+            Another :class:`Audio` object.
+        """
+        if len(self.samples) != len(other.samples):
+            return False
+
+        if self.frequency != other.frequency:
+            return False
+
+        return np.array_equal(self.samples, other.samples)

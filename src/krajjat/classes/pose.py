@@ -3,8 +3,9 @@ equivalent of a frame in a video. The methods in this class are mainly handled b
 but some of them can be directly accessed."""
 
 from collections import OrderedDict
+
+from krajjat.classes.exceptions import InvalidJointLabelException, JointLabelAlreadyExistsException
 from krajjat.classes.joint import Joint
-from krajjat.tool_functions import UNITS
 
 
 class Pose(object):
@@ -26,6 +27,10 @@ class Pose(object):
         The timestamp of the pose (in seconds).
     relative_timestamp: float
         The timestamp of the pose, relative to the first pose of the sequence (in seconds).
+
+    Example
+    -------
+    >>> p = Pose(1)
     """
 
     def __init__(self, timestamp=None):
@@ -33,29 +38,27 @@ class Pose(object):
         self.timestamp = timestamp  # Original timestamp of the pose
         self.relative_timestamp = None  # Timestamp relative to the first pose
 
-    # === Joints functions ===
-
-    def add_joint(self, joint_label, joint, replace_if_exists=False):
-        """Adds a Joint object to the pose.
+    # === Setter functions ===
+    def set_timestamp(self, timestamp):
+        """Sets the attribute :attr:`timestamp` of the pose (in seconds).
 
         .. versionadded:: 2.0
 
         Parameters
         ----------
-        joint_label: str
-            The label of the joint (e.g. ``"Head"``).
-        joint: Joint
-            A joint object.
-        replace_if_exists: bool
-            If ``False`` (default), the function will return an error if there is already a key with the name
-            ``joint_label`` in the :attr:`joints` parameter. If ``True``, the function will replace the existing
-            value if it exists, without any warning message.
-        """
-        if not replace_if_exists and joint_label in self.joints.keys():
-            raise Exception("The joint "+str(joint_label)+" already exists in this pose.")
-        else:
-            self.joints[joint_label] = joint
+        timestamp
+            The timestamp of the pose (in seconds).
 
+        Example
+        -------
+        >>> p = Pose(1)
+        >>> p.set_timestamp(2)
+        >>> p.get_timestamp()
+        2
+        """
+        self.timestamp = float(timestamp)
+
+    # === Getter functions ===
     def get_joint(self, joint_label):
         """Returns a joint object from the pose.
 
@@ -70,9 +73,22 @@ class Pose(object):
         -------
         Joint
             An instance of the class :class:`Joint`.
+
+        Raises
+        ------
+        InvalidJointLabelException
+            If the joint label is not in the keys of the :attr:`joints` attribute.
+
+        Example
+        -------
+        >>> p = Pose(0)
+        >>> j = Joint("Head", 1, 2, 3)
+        >>> p.add_joint(j)
+        >>> p.get_joint("Head")
+        Head: (1, 2, 3)
         """
         if joint_label not in self.joints.keys():
-            raise Exception("Invalid joint label: " + joint_label + ".")
+            raise InvalidJointLabelException(joint_label)
         return self.joints[joint_label]
 
     def get_joint_labels(self):
@@ -84,8 +100,116 @@ class Pose(object):
         -------
         list(str)
             The list of joint labels.
+
+        Example
+        -------
+        >>> pose = Pose(42)
+        >>> joint_1 = Joint("Head", 1, 2, 3)
+        >>> pose.add_joint(joint_1)
+        >>> joint_2 = Joint("HandRight", 4, 5, 6)
+        >>> pose.add_joint(joint_2)
+        >>> joint_3 = Joint("HandLeft", 7, 8, 9)
+        >>> pose.add_joint(joint_3)
+        >>> pose.get_joint_labels()
+        ["Head", "HandRight", "HandLeft"]
         """
         return list(self.joints.keys())
+
+    def get_timestamp(self):
+        """Returns the attribute :attr:`timestamp` of the pose (in seconds).
+
+        .. versionadded:: 2.0
+
+        Returns
+        -------
+        float
+            The timestamp of the pose (in seconds).
+
+        Example
+        -------
+        >>> p = Pose(108)
+        >>> p.get_timestamp()
+        108
+        """
+        return self.timestamp
+
+    def get_relative_timestamp(self):
+        """Returns the attribute :attr:`relative_timestamp` of the pose, which is the timestamp relative to the first
+        pose of the sequence (in seconds).
+
+        .. versionadded:: 2.0
+
+        Returns
+        -------
+        float
+            The timestamp of the pose relative to the first timestamp of the sequence, in seconds.
+        """
+        return self.relative_timestamp
+
+    # === Joints functions ===
+    def add_joint(self, joint, replace_if_exists=False):
+        """Adds a Joint object to the pose.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        joint: Joint
+            A joint object.
+        replace_if_exists: bool
+            If ``False`` (default), the function will return an error if there is already a key with the name
+            ``joint_label`` in the :attr:`joints` parameter. If ``True``, the function will replace the existing
+            value if it exists, without any warning message.
+
+        Raises
+        ------
+        JointLabelAlreadyExistsException
+            If the parameter ``replace_if_exists`` is set on `False` and there is already a joint with the same label
+            in the pose.
+
+        Example
+        -------
+        >>> p = Pose(23.4268)
+        >>> p.add_joint(Joint("Head", 1, 2, 3))
+        """
+
+        joint_label = joint.joint_label
+        if not replace_if_exists and joint_label in self.joints.keys():
+            raise JointLabelAlreadyExistsException(joint_label)
+        else:
+            self.joints[joint_label] = joint
+
+    def add_joints(self, *joints, replace_if_exists=False):
+        """Adds Joint objects to the pose.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        joints: Joint
+            One or multiple Joint objects.
+        replace_if_exists: bool
+            If ``False`` (default), the function will return an error if there is already a key with the name
+            ``joint_label`` in the :attr:`joints` parameter. If ``True``, the function will replace the existing
+            value if it exists, without any warning message.
+
+        Raises
+        ------
+        JointLabelAlreadyExistsException
+            If the parameter ``replace_if_exists`` is set on `False` and there is already a joint with the same label
+            in the pose.
+
+        Example
+        -------
+        >>> p = Pose(23.4268)
+        >>> j1 = Joint("Head", 1, 2, 3)
+        >>> j2 = Joint("HandRight", 4, 5, 6)
+        >>> j3 = Joint("HandLeft", 7, 8, 9)
+        >>> p.add_joints(j1, j2, j3)
+        """
+
+        for joint in joints:
+            self.add_joint(joint, replace_if_exists)
 
     def generate_average_joint(self, list_joints_to_average, new_joint_label, add_joint=True):
         """Generates and returns a joint that is located at the average position of the other joints.
@@ -106,6 +230,20 @@ class Pose(object):
         -------
         Joint
             The average joint.
+
+        Raises
+        ------
+        JointLabelAlreadyExistsException
+            If the label ``new_joint_label`` is already in the :attr:`joints` attribute and ``add_joint`` is set on
+            `True`.
+
+        Example
+        -------
+        >>> pose = Pose(7)
+        >>> pose.add_joint(Joint("HeadFront", 0, 0, 0))
+        >>> pose.add_joint(Joint("HeadBack", 2, 4, 6))
+        >>> joint = pose.generate_average_joint(["HeadFront", "HeadBack"], "Head", True)
+        Head: (1, 2, 3)
         """
         x = 0
         y = 0
@@ -122,6 +260,10 @@ class Pose(object):
         z /= no_joints
 
         new_joint = Joint(new_joint_label, x, y, z)
+
+        if add_joint and new_joint_label in self.joints.keys():
+            raise JointLabelAlreadyExistsException(new_joint_label)
+
         if add_joint:
             self.joints[new_joint_label] = new_joint
 
@@ -136,11 +278,22 @@ class Pose(object):
         ----------
         joint_label: str
             The label of the joint (e.g. ``"Head"``).
+
+        Raises
+        ------
+        InvalidJointLabelException
+            If the joint label is not present in the keys of the :attr:`joints` attribute.
+
+        Example
+        -------
+        >>> pose = Pose()
+        >>> pose.add_joint(Joint("HeadFront", 0, 0, 0))
+        >>> pose.remove_joint("HeadFront")
         """
         try:
             self.joints.pop(joint_label)
         except KeyError:
-            raise Exception("No joint label with the name "+str(joint_label)+" in this pose.")
+            raise InvalidJointLabelException(joint_label)
 
     def remove_joints(self, list_of_joint_labels):
         """Removes the specified joints from the pose.
@@ -151,74 +304,27 @@ class Pose(object):
         ----------
         list_of_joint_labels: list(str)
             A list of labels of joints to remove.
+
+        Raises
+        ------
+        InvalidJointLabelException
+            If a joint label is not present in the keys of the :attr:`joints` attribute.
+
+        Example
+        -------
+        >>> pose = Pose()
+        >>> pose.add_joint(Joint("HeadFront", 0, 0, 0))
+        >>> pose.add_joint(Joint("HeadBack", 2, 4, 6))
+        >>> pose.remove_joints(["HeadFront", "HeadBack"])
         """
         for joint_label in list_of_joint_labels:
             try:
                 self.joints.pop(joint_label)
             except KeyError:
-                raise Exception("No joint label with the name " + str(joint_label) + " in this pose.")
-
-    # === Timestamp functions ===
-
-    def set_timestamp(self, timestamp):
-        """Sets the attribute :attr:`timestamp` of the pose (in seconds).
-
-        .. versionadded:: 2.0
-
-        Parameters
-        ----------
-        timestamp
-            The timestamp of the pose (in seconds).
-        """
-        self.timestamp = float(timestamp)
-
-    def get_timestamp(self):
-        """Returns the attribute :attr:`timestamp` of the pose (in seconds).
-
-        .. versionadded:: 2.0
-
-        Returns
-        -------
-        float
-            The timestamp of the pose (in seconds).
-        """
-        return self.timestamp
-
-    def get_relative_timestamp(self):
-        """Returns the attribute :attr:`relative_timestamp` of the pose, which is the timestamp relative to the first
-        pose of the sequence (in seconds).
-
-        .. versionadded:: 2.0
-
-        Returns
-        -------
-        float
-            The timestamp of the pose relative to the first timestamp of the sequence, in seconds.
-        """
-        return self.relative_timestamp
-
-    def _calculate_relative_timestamp(self, timestamp_first_pose, time_unit="s"):
-        """Calculates the timestamp relative to the first pose of the sequence. This function is typically called at the
-        end of the initialisation of a new sequence (either by opening a file or performing a processing on an
-        existing sequence), and sets a value to the attribute :attr:`relative_timestamp`.
-
-        .. versionadded:: 2.0
-
-        Parameters
-        ----------
-        timestamp_first_pose: float
-            The timestamp of the first pose of the sequence, in its original time unit.
-        time_unit: str, optional
-            The time unit of the timestamps of the sequence. This parameter can take the following values:  "ns", "1ns",
-             "10ns", "100ns", "µs", "1µs", "10µs", "100µs", "ms", "1ms", "10ms", "100ms", "s", "sec", "1s", "min", "mn",
-              "h", "hr", "d", "day".
-
-        """
-        self.relative_timestamp = (self.timestamp - timestamp_first_pose) / UNITS[time_unit]
+                raise InvalidJointLabelException(joint_label)
 
     # === Conversion functions ===
-
-    def convert_to_table(self, use_relative_timestamp=False):
+    def to_table(self, use_relative_timestamp=False):
         """Returns a table (a list of lists) where the first row is the header, and the second row contains the
         values. The first column of the table contains the timestamps, while the subsequent columns, by sets of three,
         contain the coordinates of a joint on the x, y and z axes respectively. The output then resembles the table
@@ -237,6 +343,15 @@ class Pose(object):
         list(list)
             A list of lists that can be interpreted as a table, containing headers and the values of the timestamps and
             the coordinates of the joints from the pose.
+
+        Example
+        -------
+        >>> pose = Pose(0)
+        >>> pose.add_joint(Joint("HeadFront", 0, 0, 0))
+        >>> pose.add_joint(Joint("HeadBack", 2, 4, 6))
+        >>> pose.to_table()
+        [['Timestamp', 'HeadFront_X', 'HeadFront_Y', 'HeadFront_Z', 'HeadBack_X', 'HeadBack_Y', 'HeadBack_Z'],
+        [0, 0, 0, 0, 2, 4, 6]]
         """
         labels = ["Timestamp"]
         if use_relative_timestamp:
@@ -253,7 +368,7 @@ class Pose(object):
             values.append(self.joints[joint_label].z)
         return [labels, values]
 
-    def convert_to_json(self, use_relative_timestamp=False):
+    def to_json(self, use_relative_timestamp=False):
         """Returns a list ready to be exported in JSON. The structure followed by the dictionary is the same as the
         output dictionary from Kinect, for compatibility purposes. The output then resembles the table found in
         :ref:`JSON formats <json_example>`.
@@ -269,7 +384,18 @@ class Pose(object):
         Returns
         -------
         list
-            A list containing the data of the sequence, ready to be exported in JSON."""
+            A list containing the data of the sequence, ready to be exported in JSON.
+
+        Example
+        -------
+        >>> pose = Pose(0)
+        >>> pose.add_joint(Joint("HeadFront", 0, 0, 0))
+        >>> pose.add_joint(Joint("HeadBack", 2, 4, 6))
+        >>> pose.to_json()
+        {'Bodies': [{'Joints': [{'JointType': 'HeadFront', 'Position': {'X': 0.0, 'Y': 0.0, 'Z': 0.0}},
+                                {'JointType': 'HeadBack', 'Position': {'X': 2.0, 'Y': 4.0, 'Z': 6.0}}]}],
+         'Timestamp': 0}
+        """
 
         data = {"Bodies": [{"Joints": []}]}
 
@@ -287,7 +413,41 @@ class Pose(object):
 
         return data
 
-    # === Miscellaneous functions ===
+    # === Copy function ===
+    def copy(self):
+        """Returns a deep copy of itself, containing deep copies of all the joints.
+
+        .. versionadded:: 2.0
+
+        Returns
+        -------
+        Pose
+            A deep copy of the Pose instance.
+        """
+
+        p = Pose(self.timestamp)
+        p.relative_timestamp = self.relative_timestamp
+
+        p.joints = OrderedDict()
+        for key in self.joints.keys():
+            p.joints[key] = self.joints[key].copy()
+
+        return p
+
+    # === Private methods ===
+    def _calculate_relative_timestamp(self, timestamp_first_pose):
+        """Calculates the timestamp relative to the first pose of the sequence. This function is typically called at the
+        end of the initialisation of a new sequence (either by opening a file or performing a processing on an
+        existing sequence), and sets a value to the attribute :attr:`relative_timestamp`.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        timestamp_first_pose: float
+            The timestamp of the first pose of the sequence, in its original time unit.
+        """
+        self.relative_timestamp = (self.timestamp - timestamp_first_pose)
 
     def _get_copy_with_empty_joints(self, use_relative_timestamp=False):
         """Creates a deep copy of the pose with a timestamp, and a :attr:`joints` with the same label joints as the
@@ -320,26 +480,6 @@ class Pose(object):
         p.relative_timestamp = self.relative_timestamp
         return p
 
-    def get_copy(self):
-        """Returns a deep copy of itself, containing deep copies of all the joints.
-
-        .. versionadded:: 2.0
-
-        Returns
-        -------
-        Pose
-            A deep copy of the Pose instance.
-        """
-
-        p = Pose(self.timestamp)
-        p.relative_timestamp = self.relative_timestamp
-
-        p.joints = OrderedDict()
-        for key in self.joints.keys():
-            p.joints[key] = self.joints[key].get_copy()
-
-        return p
-
     def __repr__(self):
         """Returns a string containing the timestamp, the relative timestamp and all the joints labels and coordinates
         from the Pose instance.
@@ -352,47 +492,31 @@ class Pose(object):
 
         Example
         -------
-        >>> sequence = Sequence("C:/Users/Hadeel/Sequences/seq1/")
-        >>> pose = sequence.get_pose(4)
+        >>> pose = Pose(0.5)
+        >>> pose.add_joint(Joint("Head", 0.2580389, 0.4354536, 2.449435))
+        >>> pose.add_joint(Joint("HandRight", 0.2747259, -0.3047626, 2.200738))
         >>> print(pose)
-        Timestamp: 0.7673687
-        Relative timestamp: 0.7673687
-        Joints (21):
+        Timestamp: 0.5
+        Relative timestamp: None
+        Joints (2):
             Head: (0.2580389, 0.4354536, 2.449435)
-            Neck: (0.2200405, 0.2870165, 2.452467)
-            SpineShoulder: (0.2213234, 0.2103061, 2.444264)
-            SpineMid: (0.224096, -0.02492883, 2.409717)
-            SpineBase: (0.2265415, -0.3467222, 2.352579)
-            ShoulderLeft: (0.08861267, 0.1529641, 2.387205)
-            ElbowLeft: (0.05989294, -0.05652162, 2.338059)
-            WristLeft: (0.1408673, -0.2341767, 2.213683)
-            HandLeft: (0.1808563, -0.2797168, 2.203833)
-            ShoulderRight: (0.3932458, 0.1480468, 2.420666)
-            ElbowRight: (0.410402, -0.09375393, 2.338974)
-            WristRight: (0.3219678, -0.2662066, 2.203344)
             HandRight: (0.2747259, -0.3047626, 2.200738)
-            HipLeft: (0.1522616, -0.3320134, 2.309463)
-            KneeLeft: (0.1468181, -0.8557156, 2.233713)
-            AnkleLeft: (0.08108322, -1.155779, 2.15636)
-            FootLeft: (0.1320685, -1.193715, 2.080927)
-            HipRight: (0.2934242, -0.3502887, 2.319931)
-            KneeRight: (0.2045003, -0.8930826, 2.275977)
-            AnkleRight: (0.2089309, -1.175371, 2.194727)
-            FootRight: (0.2288543, -1.20977, 2.095591)
         """
 
-        txt = "\nTimestamp: "+str(self.timestamp)
+        txt = "Timestamp: "+str(self.timestamp)
         txt += "\nRelative timestamp: " + str(self.relative_timestamp)
-        txt += "\nJoints ("+str(len(self.joints))+"): \n"
         if len(list(self.joints.keys())) == 0:
-            txt = "Empty list of joints."
+            txt += "\nEmpty list of joints.\n"
+        else:
+            txt += "\nJoints (" + str(len(self.joints)) + "):\n"
         for joint_label in self.joints.keys():
             txt += "\t" + str(self.joints[joint_label]) + "\n"
-        return txt
+        return txt[:-1]
 
     def __eq__(self, other):
         """Returns `True` if all the joints in the attribute :attr:`joints` are identical between the two
-        :class:`Pose` objects.
+        :class:`Pose` objects. If the joints are equal, the function will return `True` regardless of the timestamps.
+        Each joint is compared using the function :method:`Joint.__eq__`.
 
         .. versionadded:: 2.0
 
@@ -400,6 +524,34 @@ class Pose(object):
         ----------
         other: Pose
             Another :class:`Pose` object.
+
+        Examples
+        --------
+        >>> pose_1 = Pose(0.5)
+        >>> pose_1.add_joint(Joint("Head", 1, 2, 3))
+        >>> pose_2 = Pose(0.5)
+        >>> pose_2.add_joint(Joint("Head", 1, 2, 3))
+        >>> pose_1 == pose_2
+        True
+        >>> pose_3 = Pose(0)
+        >>> pose_3.add_joint(Joint("Head", 1, 2, 3))
+        >>> pose_1 == pose_3
+        True
+        >>> pose_4 = Pose(0.5)
+        >>> pose_4.add_joint(Joint("Head", 1, 2, 4))
+        >>> pose_1 == pose_4
+        False
+        >>> pose_5 = Pose(0.5)
+        >>> pose_5.add_joint(Joint("HandRight", 1, 2, 3))
+        >>> pose_1 == pose_5
+        False
+        >>> pose_6 = pose_1.copy()
+        >>> pose_1 == pose_6
+        True
+        >>> pose_7 = Pose(0.5)
+        >>> pose_7.add_joint(Joint("Head", 1.00001, 2, 3))
+        >>> pose_1 == pose_7
+        True
         """
         if len(self.joints) != len(other.joints):
             return False
@@ -412,3 +564,30 @@ class Pose(object):
                 return False
 
         return True
+
+    def __getitem__(self, key):
+        """Allows to get a joint directly from its label.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        key: str
+            A joint label.
+
+        Returns
+        -------
+        Joint
+            A Joint, if the joint label was present in the :attr:`joints` attribute.
+
+        Example
+        -------
+        >>> pose = Pose(0)
+        >>> pose.add_joint(Joint("HeadFront", 0, 0, 0))
+        >>> pose["HeadFront"]
+        HeadFront: (0, 0, 0)
+        """
+        if key in self.joints:
+            return self.joints[key]
+        else:
+            raise InvalidJointLabelException(key)

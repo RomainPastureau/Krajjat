@@ -6,7 +6,7 @@ import pygame
 from pygame.locals import *
 from pygame import gfxdraw
 import cv2
-from krajjat.tool_functions import convert_color, load_joint_labels, load_joints_connections, show_progression
+from krajjat.tool_functions import convert_color, load_joint_labels, load_joint_connections, show_progression
 
 
 class WindowArea(object):
@@ -512,20 +512,17 @@ class GraphicSequence(object):
         A list of joint labels to be displayed.
 
     joint_labels_top: list(str)
-        A list of the joints from the top of the body, loaded from ``res/kinect_joint_labels_top.txt`` or
-        ``res/kualisys_joint_labels_top.txt``.
+        A list of the joints from the top of the body, loaded from :func:`tool_functions.load_joint_labels`.
 
     joint_labels_all: list(str)
-        A list of all the joints from the body, concatenating the list from :attr:`joint_labels_top` to the list
-        contained in either ``res/kinect_joint_labels_bottom.txt`` or
-        ``res/kualisys_joint_labels_top.txt``.
+        A list of all the joints from the body, loaded from :func:`tool_functions.load_joint_labels`.
 
     connections_to_show: list(list(str, str))
         A list of the connections that will be displayed as lines between joints.
 
     connections_top: list(list(str, str))
-        A list of the connections from the top of the body, loaded from ``res/kinect_skeleton_connections_top.txt`` or
-        ``res/kualisys_skeleton_connections_top.txt``.
+        A list of the connections from the top of the body, loaded from ``res/kinect_skeleton_connections.txt`` or
+        ``res/kualisys_skeleton_connections.txt``.
 
     connections_all: list(list(str, str))
         A list of all the connections from the body, concatenating the list from :attr:`connections_top` to the list
@@ -574,7 +571,9 @@ class GraphicSequence(object):
         self.ignore_bottom = None
         self.connections_to_show = []
         self.joints_to_show = []
+        self.ignored_joints = kwargs.get("ignored_joints", [])
         self.set_ignore_bottom(kwargs.get("ignore_bottom", False))
+
         self._load_poses(graphic_window, x_axis, y_axis, verbosity)
         self.show_lines = kwargs.get("show_lines", True)
         self.color_background = kwargs.get("color_background", "black")
@@ -644,8 +643,7 @@ class GraphicSequence(object):
     def _load_joint_labels(self):
         """Loads two lists of joint labels, :attr:`joint_labels_top` and :attr:`joint_labels_all`, defining which joints
         will be displayed depending if the attribute :attr:`ignore_bottom` is set on ``True`` or ``False``. The joint
-        labels list are loaded from ``res/kinect_joint_labels_top.txt`` and ``res/kinect_joint_labels_bottom.txt`` or
-        ``res/kualisys_joint_labels_top.txt`` and ``res/kualisys_joint_labels_bottom.txt``.
+        labels list are loaded from ``res/kinect_joint_labels.txt`` or ``res/kualisys_joint_labels.txt``.
 
         .. versionadded:: 2.0
         """
@@ -653,36 +651,30 @@ class GraphicSequence(object):
         joints = self.sequence.get_joint_labels()
 
         if "Head" in joints:
-            self.joint_labels_top = load_joint_labels("kinect_joint_labels_top.txt")
-            self.joint_labels_all = load_joint_labels("kinect_joint_labels_top.txt")
-            self.joint_labels_all += load_joint_labels("kinect_joint_labels_bottom.txt")
+            self.joint_labels_top = load_joint_labels("kinect", "top")
+            self.joint_labels_all = load_joint_labels("kinect", "all")
         elif "HeadTop" in joints:
-            self.joint_labels_top = load_joint_labels("kualisys_joint_labels_top.txt")
-            self.joint_labels_all = load_joint_labels("kualisys_joint_labels_top.txt")
-            self.joint_labels_all += load_joint_labels("kualisys_joint_labels_bottom.txt")
+            self.joint_labels_top = load_joint_labels("kualisys", "top", "new")
+            self.joint_labels_all = load_joint_labels("kualisys", "all", "new")
 
     def _load_connections(self):
         """Loads the list of pairs of joints that will be connected by a line. This function automatically recognizes
         the system (Kinect or Kualisys) and creates two lists of connections, one for the top of the body (loaded
-        from ``res/kinect_skeleton_connections_top.txt`` or ``res/kualisys_skeleton_connections_top.txt``), and one
-        concatenating this list with the connections for the bottom of the body (loaded from
-        ``res/kinect_skeleton_connections_bottom.txt`` or ``res/kualisys_skeleton_connections_bottom.txt``), which will
-        be ignored if :attr:ignore_bottom is set on ``True``.
+        from ``res/kinect_skeleton_connections.txt``), and one concatenating this list with the connections for the
+        bottom of the body, which will be ignored if :attr:ignore_bottom is set on ``True``.
 
         .. versionadded:: 2.0
         """
 
         # Kinect
         if "Head" in self.joint_labels_all:
-            self.connections_top = load_joints_connections("kinect_skeleton_connections_top.txt")
-            self.connections_all = load_joints_connections("kinect_skeleton_connections_top.txt")
-            self.connections_all += load_joints_connections("kinect_skeleton_connections_bottom.txt")
+            self.connections_top = load_joint_connections("kinect", "top")
+            self.connections_all = load_joint_connections("kinect", "all")
 
         # Qualisys
         elif "HeadTop" in self.joint_labels_all:
-            self.connections_top = load_joints_connections("kualisys_skeleton_connections_top.txt")
-            self.connections_all = load_joints_connections("kualisys_skeleton_connections_top.txt")
-            self.connections_all += load_joints_connections("kualisys_skeleton_connections_bottom.txt")
+            self.connections_top = load_joint_connections("qualisys", "top")
+            self.connections_all = load_joint_connections("qualisys", "all")
 
         for connection in self.connections_top:
             keep = True
@@ -701,6 +693,13 @@ class GraphicSequence(object):
                     break
             if not keep:
                 self.connections_all.remove(connection)
+
+    def _remove_ignored_joints(self):
+        if len(self.ignored_joints) > 0:
+            if type(self.ignored_joints) is str:
+                self.ignored_joints = [self.ignored_joints]
+            for ignored_joint in self.ignored_joints:
+                self.joints_to_show.remove(ignored_joint)
 
     def _add_entry_joint_surfaces(self, entry, size, color):
         """Adds or modifies an entry in the dictionary of Surface objects :attr:`joint_surfaces`.
@@ -1003,6 +1002,7 @@ class GraphicSequence(object):
         else:
             self.connections_to_show = self.connections_all
             self.joints_to_show = self.joint_labels_all
+        self._remove_ignored_joints()
 
     def set_show_lines(self, show_lines):
         """Sets the attribute :attr:`show_lines`.
@@ -1391,9 +1391,11 @@ class GraphicPose(object):
             joint1 = self.joints[connection[0]]
             joint2 = self.joints[connection[1]]
 
-            pygame.draw.line(graphic_window.window_area, color_line,
-                             ((joint1.x + shift_x) * zoom_level, (joint1.y + shift_y) * zoom_level),
-                             ((joint2.x + shift_x) * zoom_level, (joint2.y + shift_y) * zoom_level), width_line)
+            if joint1.x is not None and joint1.y is not None and joint2.x is not None and joint2.y is not None:
+                pygame.draw.line(graphic_window.window_area, color_line,
+                                 ((joint1.x + shift_x) * zoom_level, (joint1.y + shift_y) * zoom_level),
+                                 ((joint2.x + shift_x) * zoom_level, (joint2.y + shift_y) * zoom_level),
+                                 width_line)
 
         except KeyError:
             pass
@@ -1444,7 +1446,7 @@ class GraphicPose(object):
             for connection in connections_to_show:
                 self.show_line(graphic_window, connection, color_line, width_line, shift_x, shift_y, zoom_level)
         for j in self.joints.keys():
-            if j in joints_to_show:
+            if j in joints_to_show and self.joints[j].x is not None and self.joints[j].y is not None:
                 self.joints[j].show(graphic_window, joint_surfaces, shift_x, shift_y, zoom_level)
 
 
@@ -1529,12 +1531,19 @@ class GraphicJoint(object):
             factor_y = -1
             y_axis = y_axis[1]
 
-        self.x = graphic_window.convert_x(factor_x * self.joint.get_coordinate(x_axis), 1)
-        if verbosity > 1:
-            print("\t\t\tCoordinate x (" + str(self.joint.x) + "): " + str(self.x))
-        self.y = graphic_window.convert_y(factor_y * self.joint.get_coordinate(y_axis), 1)
-        if verbosity > 1:
-            print("\t\t\tCoordinate y (" + str(self.joint.y) + "): " + str(self.y))
+        if self.joint.get_coordinate(x_axis) is not None:
+            self.x = graphic_window.convert_x(factor_x * self.joint.get_coordinate(x_axis), 1)
+            if verbosity > 1:
+                print("\t\t\tCoordinate x (" + str(self.joint.x) + "): " + str(self.x))
+        else:
+            self.x = None
+
+        if self.joint.get_coordinate(y_axis) is not None:
+            self.y = graphic_window.convert_y(factor_y * self.joint.get_coordinate(y_axis), 1)
+            if verbosity > 1:
+                print("\t\t\tCoordinate y (" + str(self.joint.y) + "): " + str(self.y))
+        else:
+            self.y = None
 
     def rotate(self, graphic_window, yaw=0, pitch=0, roll=0):
         """Sets the attributes :attr:`x` and :attr:`y` given three rotations from the original coordinates: yaw, pitch
@@ -1552,15 +1561,15 @@ class GraphicJoint(object):
             The window object, where to display the sequence.
 
         yaw: float, optional
-            The angle of yaw, or rotation on the x axis, in degrees (default: 0).
+            The angle of yaw, or rotation on the x-axis, in degrees (default: 0).
 
         pitch: float, optional
-            The angle of pitch, or rotation on the y axis, in degrees (default: 0).
+            The angle of pitch, or rotation on the y-axis, in degrees (default: 0).
 
         roll: float, optional
             The angle of roll, or rotation on the z axis, in degrees (default: 0).
         """
-        rot_x, rot_y, rot_z = self.joint.convert_rotation(yaw, pitch, roll)
+        rot_x, rot_y, rot_z = self.joint.rotate(yaw, pitch, roll)
         self.x = graphic_window.convert_x(rot_x, 1)
         self.y = graphic_window.convert_y(rot_y, 1)
 
@@ -1592,7 +1601,7 @@ class GraphicJoint(object):
         location = "_default"
         correction = "_default"
 
-        if self.joint.get_is_randomized():
+        if self.joint.is_randomized():
             if self.joint.joint_label in ["SpineMid", "Chest"]:
                 location = "_head"
             elif self.joint.joint_label in ["ShoulderLeft", "Neck", "ShoulderTopLeft", "HeadRight"]:
@@ -1605,7 +1614,7 @@ class GraphicJoint(object):
                 location = "_hand"
             correction = "_default"
 
-        if self.joint.get_is_corrected():
+        if self.joint.is_corrected():
             correction = "_corrected"
 
         half_width = joint_surfaces["joint" + location + correction].get_width() // 2
@@ -1862,9 +1871,7 @@ class Video(object):
         """
         self.current_frame_index += 1
         self.time_next_frame += 1 / self.fps * 1000
-        if self.current_frame_index == self.number_of_frames - 1:
-            self.reset()
-        else:
+        if self.current_frame_index < self.number_of_frames - 1:
             self._load_frame()
 
     def show_frame(self, window_area):

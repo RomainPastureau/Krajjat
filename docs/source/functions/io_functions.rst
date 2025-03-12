@@ -11,4 +11,4 @@ Functions
 .. autofunction:: krajjat.io_functions.load_audios
 .. autofunction:: krajjat.io_functions.save_sequences
 .. autofunction:: krajjat.io_functions.save_audios
-.. autofunction:: krajjat.io_functions.save_stats
+.. autofunction:: krajjat.io_functions.save_info

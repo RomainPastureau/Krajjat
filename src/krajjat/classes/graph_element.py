@@ -119,7 +119,9 @@ class GraphPlot(object):
     def __init__(self, x, y, sd=None, line_width=1.0, color="#000000", label=None):
         self.x = np.array(x)
         self.y = np.array(y)
-        self.sd = np.array(sd)
+        self.sd = None
+        if sd is not None:
+            self.sd = np.array(sd)
         self.line_width = line_width
         self.color = color
         self.label = label

@@ -1,0 +1,2 @@
+Name	Path	Condition	Duration	Number of poses	Number of joint labels	Date of recording	Stable sampling rate	Sampling rate	Fill level Head	Average velocity Head
+test_sequence_7	test_sequences\test_sequence_7.tsv	None	0.015	16	1	No date found	True	1000.0	0.875	827.3635554012055

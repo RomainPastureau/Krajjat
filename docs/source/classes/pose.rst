@@ -15,6 +15,7 @@ Magic methods
 -------------
 .. automethod:: krajjat.classes.pose.Pose.__repr__
 .. automethod:: krajjat.classes.pose.Pose.__eq__
+.. automethod:: krajjat.classes.pose.Pose.__getitem__
 
 Public methods
 --------------
@@ -28,11 +29,11 @@ Getter functions
 .. automethod:: krajjat.classes.pose.Pose.get_joint_labels
 .. automethod:: krajjat.classes.pose.Pose.get_timestamp
 .. automethod:: krajjat.classes.pose.Pose.get_relative_timestamp
-.. automethod:: krajjat.classes.pose.Pose.get_copy
 
 Joints functions
 ^^^^^^^^^^^^^^^^
 .. automethod:: krajjat.classes.pose.Pose.add_joint
+.. automethod:: krajjat.classes.pose.Pose.add_joints
 .. automethod:: krajjat.classes.pose.Pose.generate_average_joint
 .. automethod:: krajjat.classes.pose.Pose.remove_joint
 .. automethod:: krajjat.classes.pose.Pose.remove_joints
@@ -41,6 +42,10 @@ Conversion functions
 ^^^^^^^^^^^^^^^^^^^^
 .. automethod:: krajjat.classes.pose.Pose.convert_to_table
 .. automethod:: krajjat.classes.pose.Pose.convert_to_json
+
+Copy function
+^^^^^^^^^^^^^
+.. automethod:: krajjat.classes.pose.Pose.copy
 
 Private methods
 ---------------

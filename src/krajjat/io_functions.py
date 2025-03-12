@@ -7,7 +7,7 @@ from krajjat.classes.audio import Audio
 
 # === Loading functions ===
 def load_sequences(input_folder, recursive=False, output_type="list", ignore_empty_sequences=True,
-                   ignore_loading_errors=False, verbose=1):
+                   ignore_loading_errors=False, ignore_folders=True, verbosity=1):
     """Loads multiple sequences and returns a list or a dict containing them.
 
     .. versionadded:: 2.0
@@ -43,7 +43,10 @@ def load_sequences(input_folder, recursive=False, output_type="list", ignore_emp
         console if ``verbose`` is 1 or more. If set on ``False`` (default), any :class:`InvalidPathException` or
         :class:`ImpossibleTimeTravelException` will stop the function.
 
-    verbose: int, optional
+    ignore_folders: bool, optional
+        If set on ``True`` (default), the function will not look for folders as containing individual sequence files.
+
+    verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
 
         • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
@@ -68,58 +71,65 @@ def load_sequences(input_folder, recursive=False, output_type="list", ignore_emp
     elif output_type.lower() == "dict":
         sequences = {}
     else:
-        raise Exception('Wrong output type: "' + str(output_type) + '". The output type should be "list" or "dict".')
+        raise InvalidParameterValueException("output_type", output_type, ["list", "dict"])
 
     # Going through the content
     for element in content:
 
         # Load sequences
         try:
-            if verbose > 0:
-                print("\n======= " + input_folder + "/" + element + " =======")
-            sequence = Sequence(input_folder + "/" + element, name=element)
+            if verbosity > 0:
+                print("\n======= " + op.join(input_folder, element) + " =======")
 
-            if output_type.lower() == "list":
-                sequences.append(sequence)
+            if not (op.isdir(op.join(input_folder, element)) and ignore_folders):
+                sequence = Sequence(op.join(input_folder, element), name=element, verbosity=verbosity)
 
-            elif output_type.lower() == "dict":
-                sequences[input_folder + "/" + element] = sequence
+                if output_type.lower() == "list":
+                    sequences.append(sequence)
+
+                elif output_type.lower() == "dict":
+                    sequences[input_folder + "/" + element] = sequence
+
+            else:
+                if verbosity > 0:
+                    print("Ignoring folder.")
 
         # Exceptions
         except InvalidPathException as ex:
-            if ignore_loading_errors and verbose > 0:
+            if ignore_loading_errors and verbosity > 0:
                 print(ex.message)
             elif not ignore_loading_errors:
                 raise InvalidPathException(ex.path, "sequence", ex.reason)
         except ImpossibleTimeTravelException as ex:
-            if ignore_loading_errors and verbose > 0:
+            if ignore_loading_errors and verbosity > 0:
                 print(ex.message)
             elif not ignore_loading_errors:
                 raise ImpossibleTimeTravelException(ex.index1, ex.index2, ex.timestamp1,
                                                     ex.timestamp2, ex.number_of_timestamps, ex.object_type)
         except EmptySequenceException as ex:
-            if ignore_empty_sequences and verbose > 0:
+            if ignore_empty_sequences and verbosity > 0:
                 print(ex.message)
             elif not ignore_empty_sequences:
                 raise EmptySequenceException()
 
-            if recursive:
-                if os.path.isdir(input_folder + "/" + element):
-                    sequences_subdirectory = load_sequences(input_folder + "/" + element, True, output_type,
-                                                            ignore_empty_sequences, ignore_loading_errors, verbose)
-                    if output_type.lower() == "list":
-                        sequences += sequences_subdirectory
-                    elif output_type.lower() == "dict":
-                        sequences.update(sequences_subdirectory)
+        if recursive:
+            if os.path.isdir(op.join(input_folder, element)):
+                sequences_subdirectory = load_sequences(op.join(input_folder, element), True, output_type,
+                                                        ignore_empty_sequences, ignore_loading_errors, ignore_folders,
+                                                        verbosity)
+                if output_type.lower() == "list":
+                    sequences += sequences_subdirectory
+                elif output_type.lower() == "dict":
+                    sequences.update(sequences_subdirectory)
 
-    if verbose > 0:
+    if verbosity > 0:
         print(str(len(sequences)) + " sequence(s) have been loaded from the directory " + str(input_folder))
 
     return sequences
 
 
 def load_audios(input_folder, recursive=False, output_type="list", ignore_empty_audios=True,
-                ignore_loading_errors=False, verbose=1):
+                ignore_loading_errors=False, ignore_folders=True, verbosity=1):
     """Loads multiple audio clips and returns a list or a dict containing them.
 
     .. versionadded:: 2.0
@@ -155,7 +165,10 @@ def load_audios(input_folder, recursive=False, output_type="list", ignore_empty_
         console if ``verbose`` is 1 or more. If set on ``False`` (default), any :class:`InvalidPathException` or
         :class:`ImpossibleTimeTravelException` will stop the function.
 
-    verbose: int, optional
+    ignore_folders: bool, optional
+        If set on ``True`` (default), the function will not look for folders as containing individual audio files.
+
+    verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
 
         • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
@@ -186,51 +199,58 @@ def load_audios(input_folder, recursive=False, output_type="list", ignore_empty_
 
         # Load sequences
         try:
-            if verbose > 0:
-                print("\n======= " + input_folder + "/" + element + " =======")
-            audio = Audio(input_folder + "/" + element, name=element)
+            if verbosity > 0:
+                print("\n======= " + op.join(input_folder, element) + " =======")
 
-            if output_type.lower() == "list":
-                audios.append(audio)
+            if not (op.isdir(op.join(input_folder, element)) and ignore_folders):
+                audio = Audio(op.join(input_folder, element), name=element, verbosity=verbosity)
 
-            elif output_type.lower() == "dict":
-                audios[input_folder + "/" + element] = audio
+                if output_type.lower() == "list":
+                    audios.append(audio)
+
+                elif output_type.lower() == "dict":
+                    audios[input_folder + "/" + element] = audio
+
+            else:
+                if verbosity > 0:
+                    print("Ignoring folder.")
 
         # Exceptions
         except InvalidPathException as ex:
-            if ignore_loading_errors and verbose > 0:
+            if ignore_loading_errors and verbosity > 0:
                 print(ex.message)
             elif not ignore_loading_errors:
                 raise InvalidPathException(ex.path, "audio clip", ex.reason)
         except ImpossibleTimeTravelException as ex:
-            if ignore_loading_errors and verbose > 0:
+            if ignore_loading_errors and verbosity > 0:
                 print(ex.message)
             elif not ignore_loading_errors:
                 raise ImpossibleTimeTravelException(ex.index1, ex.index2, ex.timestamp1,
                                                     ex.timestamp2, ex.number_of_timestamps, ex.object_type)
         except EmptyAudioException as ex:
-            if ignore_empty_audios and verbose > 0:
+            if ignore_empty_audios and verbosity > 0:
                 print(ex.message)
             elif not ignore_empty_audios:
                 raise EmptyAudioException()
 
-            if recursive:
-                if os.path.isdir(input_folder + "/" + element):
-                    audios_subdirectory = load_audios(input_folder + "/" + element, True, output_type,
-                                                            ignore_empty_audios, ignore_loading_errors, verbose)
-                    if output_type.lower() == "list":
-                        audios += audios_subdirectory
-                    elif output_type.lower() == "dict":
-                        audios.update(audios_subdirectory)
+        if recursive:
+            if os.path.isdir(op.join(input_folder, element)):
+                audios_subdirectory = load_audios(op.join(input_folder, element), True, output_type,
+                                                  ignore_empty_audios, ignore_loading_errors, ignore_folders, verbosity)
+                if output_type.lower() == "list":
+                    audios += audios_subdirectory
+                elif output_type.lower() == "dict":
+                    audios.update(audios_subdirectory)
 
-    if verbose > 0:
+    if verbosity > 0:
         print(str(len(audios)) + " audio clip(s) have been loaded from the directory " + str(input_folder))
 
     return audios
 
 
-def save_sequences(sequence_or_sequences, folder_out="", names=None, file_format="json", individual=False,
-                   use_relative_timestamps=True, keep_subdirectory_structure=True, verbose=1):
+def save_sequences(sequence_or_sequences, folder_out="", names=None, file_format="json", encoding="utf-8",
+                   individual=False, include_metadata=True, use_relative_timestamps=True,
+                   keep_subdirectory_structure=True, verbosity=1):
     """Saves one or multiple Sequence instances on the disk.
 
     .. versionadded:: 2.0
@@ -268,10 +288,27 @@ def save_sequences(sequence_or_sequences, folder_out="", names=None, file_format
             these files upon opening. The support for ``.mat`` and custom extensions as input may come in a future
             release, but for now these are just offered as output options.
 
+    encoding: str, optional
+        The encoding of the file to save. By default, the file is saved in UTF-8 encoding. This input can take any
+        of the
+        `official Python accepted formats <https://docs.python.org/3/library/codecs.html#standard-encodings>`_.
+
     individual: bool, optional
         If set on ``False`` (default), the function will save each sequence in a unique file.
         If set on ``True``, the function will save each pose of the sequences in an individual file, appending an
         underscore and the index of the pose (starting at 0) after the name.
+
+    include_metadata: bool, optional
+        Whether to include the metadata in the file (default: `True`). This parameter does not apply to individually
+        saved files.
+
+            • For ``json`` files, the metadata is saved at the top level. Metadata keys will be saved next to the
+              ``"Poses"`` key.
+            • For ``mat`` files, the metadata is saved at the top level of the structure.
+            • For ``xlsx```files, the metadata is saved in a second sheet.
+            • For ``pkl`` files, the metadata will always be saved as the object is saved as-is - this parameter
+              is thus ignored.
+            • For all the other formats, the metadata is saved at the beginning of the file.
 
     use_relative_timestamps: bool, optional
         Defines if the timestamps that will be saved are absolute (``False``) or relative to the first pose (``True``).
@@ -283,7 +320,7 @@ def save_sequences(sequence_or_sequences, folder_out="", names=None, file_format
         and the ``folder_out`` provided is ``D:/Resampled/``, the recordings will be saved as
         ``D:/Resampled/Subject_01/March_14/recording.json`` and ``D:/Resampled/Subject_02/May_04/recording.json``.
 
-    verbose: int, optional
+    verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
 
         • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
@@ -302,40 +339,41 @@ def save_sequences(sequence_or_sequences, folder_out="", names=None, file_format
         if len(names) != len(sequence_or_sequences):
             raise Exception("The number of names (" + str(len(names)) + ") is not the same as the number of " +
                             "sequences provided (" + str(len(sequence_or_sequences)) + ").")
-
-    # Handling file format
-    file_format = file_format.strip(".")  # We remove the dot in the format
-    if file_format == "xls":
-        file_format = "xlsx"
+    else:
+        names = [None] * len(sequence_or_sequences)
 
     common_path = ""
     if keep_subdirectory_structure:
-        common_path = find_common_parent_path(get_objects_paths(sequence_or_sequences))
+        common_path = os.path.commonpath(get_objects_paths(*sequence_or_sequences))
 
     for s in range(len(sequence_or_sequences)):
         if keep_subdirectory_structure:
-            path_out = folder_out + "/" + compute_subpath(common_path, sequence_or_sequences[s].get_path()) + "/"
+            path_out = op.join(folder_out, compute_subpath(sequence_or_sequences[s].get_path(), common_path))
         else:
             path_out = folder_out
 
-        if verbose > 0:
-            print("Saving sequence " + str(s) + "/" + str(len(sequence_or_sequences)))
+        if file_format is not None:
+            path_out, names[s] = op.split(op.splitext(path_out)[0])
 
-        if names is None:
-            sequence_or_sequences[s].save(path_out, None, file_format, individual, use_relative_timestamps, verbose)
+        if verbosity > 0:
+            print("Saving sequence " + str(s+1) + "/" + str(len(sequence_or_sequences)))
+
+        if names[s] is None:
+            sequence_or_sequences[s].save(path_out, None, file_format, encoding, individual, include_metadata,
+                                          use_relative_timestamps, verbosity)
         else:
-            sequence_or_sequences[s].save(path_out, str(names[s]), file_format, individual, use_relative_timestamps,
-                                          verbose)
+            sequence_or_sequences[s].save(path_out, str(names[s]), file_format, encoding, individual, include_metadata,
+                                          use_relative_timestamps, verbosity)
 
-    if verbose > 0:
+    if verbosity > 0:
         if len(sequence_or_sequences) == 1:
             print("1 sequence saved.")
         else:
             print(str(len(sequence_or_sequences)) + " sequences saved.")
 
 
-def save_audios(audio_or_audios, folder_out="", names=None, file_format="json", individual=False,
-                keep_subdirectory_structure=True, verbose=1):
+def save_audios(audio_or_audios, folder_out="", names=None, file_format="json", encoding="utf-8", individual=False,
+                include_metadata=True, keep_subdirectory_structure=True, verbosity=1):
     """Saves one or multiple Audio instances on the disk.
 
     .. versionadded:: 2.0
@@ -375,6 +413,11 @@ def save_audios(audio_or_audios, folder_out="", names=None, file_format="json", 
             these files upon opening. The support for ``.mat`` and custom extensions as input may come in a future
             release, but for now these are just offered as output options.
 
+    encoding: str, optional
+        The encoding of the file to save. By default, the file is saved in UTF-8 encoding. This input can take any
+        of the
+        `official Python accepted formats <https://docs.python.org/3/library/codecs.html#standard-encodings>`_.
+
     individual: bool, optional
         If set on ``False`` (default), the function will save each audio clip in a unique file.
         If set on ``True``, the function will save each sample of each audio clip in an individual file, appending an
@@ -384,6 +427,18 @@ def save_audios(audio_or_audios, folder_out="", names=None, file_format="json", 
             This incredibly tedious way of opening and saving audio files has only been implemented to follow the same
             logic as for the Sequence files, and should be avoided.
 
+    include_metadata: bool, optional
+        Whether to include the metadata in the file (default: `True`). This parameter does not apply to individually
+        saved files.
+
+            • For ``json`` files, the metadata is saved at the top level. Metadata keys will be saved next to the
+              ``"Poses"`` key.
+            • For ``mat`` files, the metadata is saved at the top level of the structure.
+            • For ``xlsx```files, the metadata is saved in a second sheet.
+            • For ``pkl`` files, the metadata will always be saved as the object is saved as-is - this parameter
+              is thus ignored.
+            • For all the other formats, the metadata is saved at the beginning of the file.
+
     keep_subdirectory_structure: bool, optional
         If set on ``True``, audio clips in distinct subfolders will remain separated according to the same structure in
         the output directory. For example, if two audio clips have for original paths
@@ -391,7 +446,7 @@ def save_audios(audio_or_audios, folder_out="", names=None, file_format="json", 
         and the ``folder_out`` provided is ``D:/Resampled/``, the recordings will be saved as
         ``D:/Resampled/Subject_01/April_27/recording.wav`` and ``D:/Resampled/Subject_02/October_21/recording.wav``.
 
-    verbose: int, optional
+    verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
 
         • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
@@ -410,39 +465,40 @@ def save_audios(audio_or_audios, folder_out="", names=None, file_format="json", 
         if len(names) != len(audio_or_audios):
             raise Exception("The number of names (" + str(len(names)) + ") is not the same as the number of " +
                             "audio clips provided (" + str(len(audio_or_audios)) + ").")
-
-    # Handling file format
-    file_format = file_format.strip(".")  # We remove the dot in the format
-    if file_format == "xls":
-        file_format = "xlsx"
+    else:
+        names = [None] * len(audio_or_audios)
 
     common_path = ""
     if keep_subdirectory_structure:
-        common_path = find_common_parent_path(get_objects_paths(audio_or_audios))
+        common_path = os.path.commonpath(get_objects_paths(*audio_or_audios))
 
     for s in range(len(audio_or_audios)):
         if keep_subdirectory_structure:
-            path_out = folder_out + "/" + compute_subpath(common_path, audio_or_audios[s].get_path()) + "/"
+            path_out = op.join(folder_out, compute_subpath(audio_or_audios[s].get_path(), common_path))
         else:
             path_out = folder_out
 
-        if verbose > 0:
+        if file_format is not None:
+            path_out, names[s] = op.split(op.splitext(path_out)[0])
+
+        if verbosity > 0:
             print("Saving audio clip " + str(s) + "/" + str(len(audio_or_audios)))
 
         if names is None:
-            audio_or_audios[s].save(path_out, None, file_format, individual, verbose)
+            audio_or_audios[s].save(path_out, None, file_format, encoding, individual, include_metadata, verbosity)
         else:
-            audio_or_audios[s].save(path_out, str(names[s]), file_format, individual, verbose)
+            audio_or_audios[s].save(path_out, str(names[s]), file_format, encoding, individual, include_metadata,
+                                    verbosity)
 
-    if verbose > 0:
+    if verbosity > 0:
         if len(audio_or_audios) == 1:
             print("1 audio clip saved.")
         else:
             print(str(len(audio_or_audios)) + " audio clips saved.")
 
 
-def save_stats(sequence_or_sequences, folder_out="", name="stats", file_format="json", individual=False,
-               keys_to_exclude=None, keys_to_include=None, verbose=1):
+def save_info(sequence_or_sequences, folder_out="", name="stats", file_format="json", encoding="utf-8",
+              individual=False, keys_to_exclude=None, keys_to_include=None, verbosity=1):
     """Saves the statistics of one or multiple sequences on the disk.
 
     .. versionadded:: 2.0
@@ -475,6 +531,11 @@ def save_stats(sequence_or_sequences, folder_out="", name="stats", file_format="
             • Any other string will not return an error, but rather be used as a custom extension. The data will
               be saved as in a text file (using tabulations as values separators).
 
+    encoding: str, optional
+        The encoding of the file to save. By default, the file is saved in UTF-8 encoding. This input can take any
+        of the
+        `official Python accepted formats <https://docs.python.org/3/library/codecs.html#standard-encodings>`_.
+
     individual: bool, optional
         If set on ``False`` (default), the function will save the stats of all the sequences in the same file, with one
         entry/row per sequence.
@@ -494,7 +555,7 @@ def save_stats(sequence_or_sequences, folder_out="", name="stats", file_format="
         some keys are specified in ``keys_to_exclude``. If at least one key is entered, all the absent keys will not be
         saved. This parameter will only be considered if ``keys_to_exclude`` is None.
 
-    verbose: int, optional
+    verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
 
         • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
@@ -505,7 +566,6 @@ def save_stats(sequence_or_sequences, folder_out="", name="stats", file_format="
     """
 
     # Automatic creation of all the folders of the path if they don't exist
-    os.makedirs("/".join(folder_out.split("/")[:-1]), exist_ok=True)
 
     # Open the sequence or sequences
     if type(sequence_or_sequences) is Sequence:
@@ -513,34 +573,27 @@ def save_stats(sequence_or_sequences, folder_out="", name="stats", file_format="
 
     if folder_out == "":
         folder_out = os.getcwd()
-    if folder_out[-1] != "/":
-        folder_out.append("/")
 
     if not individual:
-        subfolders = folder_out.split("/")
+        subfolders = os.path.join(folder_out).split(os.sep)
         if len(subfolders) != 0:
             if "." in subfolders[-1]:
-                folder_out = "/".join(subfolders[:-1])
-                name = ".".join(subfolders[-1].split(".")[:-1])
-                file_format = subfolders[-1].split(".")[-1]
+                folder_out = os.path.split(folder_out)[0]
+                name, file_format = os.path.splitext(subfolders[-1])
 
-    # Handling file format
-    file_format = file_format.strip(".")  # We remove the dot in the format
-    if file_format == "xls":
-        file_format = "xlsx"
+    os.makedirs(folder_out, exist_ok=True)
 
     if not individual:
+        path_out = op.join(str(folder_out), str(name) + "." + str(file_format))
 
-        path_out = str(folder_out) + str(name) + "." + str(file_format)
-
-        if verbose > 0:
+        if verbosity > 0:
             print("Saving stat file for " + str(len(sequence_or_sequences)) + " sequences under " + str(path_out) +
                   "...")
 
         global_stats = {}
         i = 1
         for sequence in sequence_or_sequences:
-            stats = sequence.get_stats()
+            stats = sequence.get_info(verbosity=verbosity)
             if keys_to_exclude is not None:
                 for key in keys_to_exclude:
                     del stats[key]
@@ -560,7 +613,7 @@ def save_stats(sequence_or_sequences, folder_out="", name="stats", file_format="
         if file_format in ["json", "mat"]:
 
             if file_format == "json":
-                with open(path_out, 'w', encoding="utf-16-le") as f:
+                with open(path_out, 'w', encoding=encoding) as f:
                     json.dump(global_stats, f)
 
             elif file_format == "mat":
@@ -585,7 +638,7 @@ def save_stats(sequence_or_sequences, folder_out="", name="stats", file_format="
                 table.append(row)
 
             if file_format == "xlsx":
-                write_xlsx(global_stats, path_out, verbose)
+                write_xlsx(global_stats, path_out, verbosity)
 
             else:
                 # Force comma or semicolon separator
@@ -602,7 +655,7 @@ def save_stats(sequence_or_sequences, folder_out="", name="stats", file_format="
                 else:
                     separator = "\t"
 
-                write_text_table(global_stats, separator, folder_out, 0)
+                write_text_table(global_stats, separator, folder_out, encoding=encoding, verbosity=verbosity)
 
     else:
 
@@ -613,4 +666,5 @@ def save_stats(sequence_or_sequences, folder_out="", name="stats", file_format="
                 i += 1
             else:
                 name_sequence = sequence.name
-            sequence.save_stats(folder_out + "/", name_sequence, file_format, keys_to_exclude, keys_to_include, verbose)
+            sequence.save_info(folder_out + "/", name_sequence, file_format, encoding, keys_to_exclude,
+                               keys_to_include, verbosity)

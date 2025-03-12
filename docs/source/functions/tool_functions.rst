@@ -10,10 +10,10 @@ Functions
 
 Path functions
 ^^^^^^^^^^^^^^
-.. autofunction:: krajjat.tool_functions.find_common_parent_path
 .. autofunction:: krajjat.tool_functions.compute_subpath
 .. autofunction:: krajjat.tool_functions.get_difference_paths
 .. autofunction:: krajjat.tool_functions.get_objects_paths
+.. autofunction:: krajjat.tool_functions.sort_files_trailing_index
 
 Name functions
 ^^^^^^^^^^^^^^^
@@ -33,24 +33,29 @@ File reading functions
 .. autofunction:: krajjat.tool_functions.read_json
 .. autofunction:: krajjat.tool_functions.read_text_table
 .. autofunction:: krajjat.tool_functions.read_xlsx
+.. autofunction:: krajjat.tool_functions.read_pandas_dataframe
 .. autofunction:: krajjat.tool_functions.convert_data_from_qtm
 
-File saving functions
-^^^^^^^^^^^^^^^^^^^^^
+File writing functions
+^^^^^^^^^^^^^^^^^^^^^^
 .. autofunction:: krajjat.tool_functions.write_text_table
 .. autofunction:: krajjat.tool_functions.write_xlsx
 
 Calculation functions
 ^^^^^^^^^^^^^^^^^^^^^
 .. autofunction:: krajjat.tool_functions.resample_data
+.. autofunction:: krajjat.tool_functions.resample_window
 .. autofunction:: krajjat.tool_functions.interpolate_data
 .. autofunction:: krajjat.tool_functions.pad
 .. autofunction:: krajjat.tool_functions.add_delay
 .. autofunction:: krajjat.tool_functions.calculate_distance
-.. autofunction:: krajjat.tool_functions.calculate_velocity
-.. autofunction:: krajjat.tool_functions.calculate_acceleration
+.. autofunction:: krajjat.tool_functions.calculate_consecutive_distances
+.. autofunction:: krajjat.tool_functions.calculate_euclidian_distances
+.. autofunction:: krajjat.tool_functions.calculate_derivative
 .. autofunction:: krajjat.tool_functions.calculate_delay
 .. autofunction:: krajjat.tool_functions.generate_random_joints
+.. autofunction:: krajjat.tool_functions.get_number_of_windows
+.. autofunction:: krajjat.tool_functions.get_window_length
 .. autofunction:: krajjat.tool_functions.divide_in_windows
 
 Color functions
@@ -70,13 +75,12 @@ Audio functions
 ^^^^^^^^^^^^^^^
 .. autofunction:: krajjat.tool_functions.scale_audio
 .. autofunction:: krajjat.tool_functions.stereo_to_mono
+.. autofunction:: krajjat.tool_functions.remove_average
 
 Internal loading functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. autofunction:: krajjat.tool_functions.load_kinect_joint_labels
-.. autofunction:: krajjat.tool_functions.load_qualisys_joint_labels
-.. autofunction:: krajjat.tool_functions.load_qualisys_joint_label_conversion
 .. autofunction:: krajjat.tool_functions.load_joint_labels
+.. autofunction:: krajjat.tool_functions.load_qualisys_joint_label_conversion
 .. autofunction:: krajjat.tool_functions.load_joints_connections
 .. autofunction:: krajjat.tool_functions.load_qualisys_to_kinect
 .. autofunction:: krajjat.tool_functions.load_joints_subplot_layout
@@ -85,12 +89,13 @@ Internal loading functions
 
 Time functions
 ^^^^^^^^^^^^^^
+.. autofunction:: krajjat.tool_functions.convert_timestamp_to_unit
 .. autofunction:: krajjat.tool_functions.format_time
 .. autofunction:: krajjat.tool_functions.time_unit_to_datetime
+.. autofunction:: krajjat.tool_functions.time_unit_to_timedelta
 
 Miscellaneous functions
 ^^^^^^^^^^^^^^^^^^^^^^^
 .. autofunction:: krajjat.tool_functions.show_progression
-.. autofunction:: krajjat.tool_functions.resample_images_to_frequency
 .. autofunction:: krajjat.tool_functions.get_min_max_values_from_plot_dictionary
 .. autofunction:: krajjat.tool_functions.kwargs_parser

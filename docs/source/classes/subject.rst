@@ -21,15 +21,8 @@ Setter functions
 Sequences functions
 -------------------
 .. automethod:: krajjat.classes.subject.Subject.add_sequence
-.. automethod:: krajjat.classes.subject.Subject.load_sequence
 .. automethod:: krajjat.classes.subject.Subject.get_sequences
-.. automethod:: krajjat.classes.subject.Subject.get_sequence_from_index
-.. automethod:: krajjat.classes.subject.Subject.get_sequence_from_name
-.. automethod:: krajjat.classes.subject.Subject.remove_sequence_from_index
-.. automethod:: krajjat.classes.subject.Subject.remove_sequence_from_name
-.. automethod:: krajjat.classes.subject.Subject.get_sequences_from_condition
-.. automethod:: krajjat.classes.subject.Subject.get_sequences_from_attribute
-.. automethod:: krajjat.classes.subject.Subject.get_number_of_sequences
+.. automethod:: krajjat.classes.subject.Subject.get_sequence
 
 Getter functions
 ----------------

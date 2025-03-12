@@ -26,6 +26,12 @@ Setter functions
 .. automethod:: krajjat.classes.sequence.Sequence.set_condition
 .. automethod:: krajjat.classes.sequence.Sequence.set_path_audio
 .. automethod:: krajjat.classes.sequence.Sequence.set_first_timestamp
+.. automethod:: krajjat.classes.sequence.Sequence.set_date_recording
+
+Pose functions
+^^^^^^^^^^^^^^
+.. automethod:: krajjat.classes.sequence.Sequence.add_pose
+.. automethod:: krajjat.classes.sequence.Sequence.add_poses
 
 Getter functions
 ^^^^^^^^^^^^^^^^
@@ -35,12 +41,14 @@ General
 .. automethod:: krajjat.classes.sequence.Sequence.get_path
 .. automethod:: krajjat.classes.sequence.Sequence.get_name
 .. automethod:: krajjat.classes.sequence.Sequence.get_condition
+.. automethod:: krajjat.classes.sequence.Sequence.get_system
 .. automethod:: krajjat.classes.sequence.Sequence.get_joint_labels
+.. automethod:: krajjat.classes.sequence.Sequence.get_number_of_joints
 .. automethod:: krajjat.classes.sequence.Sequence.get_date_recording
-.. automethod:: krajjat.classes.sequence.Sequence.get_printable_date_recording
 .. automethod:: krajjat.classes.sequence.Sequence.get_subject_height
 .. automethod:: krajjat.classes.sequence.Sequence.get_subject_arm_length
-.. automethod:: krajjat.classes.sequence.Sequence.get_stats
+.. automethod:: krajjat.classes.sequence.Sequence.get_info
+.. automethod:: krajjat.classes.sequence.Sequence.get_fill_level
 
 Poses
 """""
@@ -53,64 +61,20 @@ Poses
 Time
 """"
 .. automethod:: krajjat.classes.sequence.Sequence.get_timestamps
-.. automethod:: krajjat.classes.sequence.Sequence.get_timestamps_for_metric
-.. automethod:: krajjat.classes.sequence.Sequence.get_time_between_two_poses
+.. automethod:: krajjat.classes.sequence.Sequence.get_time_between_poses
 .. automethod:: krajjat.classes.sequence.Sequence.get_duration
 
-Framerate
-"""""""""
-.. automethod:: krajjat.classes.sequence.Sequence.get_framerates
-.. automethod:: krajjat.classes.sequence.Sequence.get_framerate
-.. automethod:: krajjat.classes.sequence.Sequence.get_average_framerate
-.. automethod:: krajjat.classes.sequence.Sequence.get_min_framerate
-.. automethod:: krajjat.classes.sequence.Sequence.get_max_framerate
+Sampling rate
+"""""""""""""
+.. automethod:: krajjat.classes.sequence.Sequence.get_sampling_rate
+.. automethod:: krajjat.classes.sequence.Sequence.get_sampling_rates
+.. automethod:: krajjat.classes.sequence.Sequence.has_stable_sampling_rate
 
-Metrics: single joint
-"""""""""""""""""""""
-.. automethod:: krajjat.classes.sequence.Sequence.get_joint_coordinate_as_list
-.. automethod:: krajjat.classes.sequence.Sequence.get_joint_distance_as_list
-.. automethod:: krajjat.classes.sequence.Sequence.get_joint_velocity_as_list
-.. automethod:: krajjat.classes.sequence.Sequence.get_joint_acceleration_as_list
-.. automethod:: krajjat.classes.sequence.Sequence.get_joint_metric_as_list
-
-Metrics: all joints
-"""""""""""""""""""
-.. automethod:: krajjat.classes.sequence.Sequence.get_single_coordinates
-.. automethod:: krajjat.classes.sequence.Sequence.get_distances
-.. automethod:: krajjat.classes.sequence.Sequence.get_distance_between_hands
-.. automethod:: krajjat.classes.sequence.Sequence.get_distance_between_joints
-.. automethod:: krajjat.classes.sequence.Sequence.get_velocities
-.. automethod:: krajjat.classes.sequence.Sequence.get_accelerations
-.. automethod:: krajjat.classes.sequence.Sequence.get_time_series_as_list
-
-Metrics: max values
-"""""""""""""""""""
-.. automethod:: krajjat.classes.sequence.Sequence.get_max_distance_whole_sequence
-.. automethod:: krajjat.classes.sequence.Sequence.get_max_velocity_whole_sequence
-.. automethod:: krajjat.classes.sequence.Sequence.get_max_acceleration_whole_sequence
-.. automethod:: krajjat.classes.sequence.Sequence.get_max_distance_single_joint
-.. automethod:: krajjat.classes.sequence.Sequence.get_max_velocity_single_joint
-.. automethod:: krajjat.classes.sequence.Sequence.get_max_acceleration_single_joint
-.. automethod:: krajjat.classes.sequence.Sequence.get_max_distance_per_joint
-.. automethod:: krajjat.classes.sequence.Sequence.get_max_velocity_per_joint
-.. automethod:: krajjat.classes.sequence.Sequence.get_max_acceleration_per_joint
-
-Metrics: total values
-"""""""""""""""""""""
-.. automethod:: krajjat.classes.sequence.Sequence.get_total_distance_whole_sequence
-.. automethod:: krajjat.classes.sequence.Sequence.get_total_velocity_whole_sequence
-.. automethod:: krajjat.classes.sequence.Sequence.get_total_acceleration_whole_sequence
-.. automethod:: krajjat.classes.sequence.Sequence.get_total_distance_single_joint
-.. automethod:: krajjat.classes.sequence.Sequence.get_total_velocity_single_joint
-.. automethod:: krajjat.classes.sequence.Sequence.get_total_acceleration_single_joint
-.. automethod:: krajjat.classes.sequence.Sequence.get_total_distance_per_joint
-.. automethod:: krajjat.classes.sequence.Sequence.get_total_velocity_per_joint
-.. automethod:: krajjat.classes.sequence.Sequence.get_total_acceleration_per_joint
-
-Fill level
-""""""""""
-.. automethod:: krajjat.classes.sequence.Sequence.get_fill_level_single_joint
-.. automethod:: krajjat.classes.sequence.Sequence.get_fill_level_per_joint
+Metrics
+"""""""
+.. automethod:: krajjat.classes.sequence.Sequence.get_measure
+.. automethod:: krajjat.classes.sequence.Sequence.get_extreme_measure
+.. automethod:: krajjat.classes.sequence.Sequence.get_sum_measure
 
 Correction functions
 ^^^^^^^^^^^^^^^^^^^^
@@ -121,52 +85,57 @@ Correction functions
 .. _trim:
 .. automethod:: krajjat.classes.sequence.Sequence.trim
 .. automethod:: krajjat.classes.sequence.Sequence.trim_to_audio
+.. _filter_frequencies:
+.. automethod:: krajjat.classes.sequence.Sequence.filter_frequencies
 .. _resample:
 .. automethod:: krajjat.classes.sequence.Sequence.resample
-.. _correct_zeros:
-.. automethod:: krajjat.classes.sequence.Sequence.correct_zeros
+.. _interpolate_missing_data:
+.. automethod:: krajjat.classes.sequence.Sequence.interpolate_missing_data
 .. automethod:: krajjat.classes.sequence.Sequence.randomize
-
-Copy functions
-^^^^^^^^^^^^^^
-.. automethod:: krajjat.classes.sequence.Sequence.copy_pose
-.. automethod:: krajjat.classes.sequence.Sequence.copy_joint
-
-Print functions
-^^^^^^^^^^^^^^^
-.. automethod:: krajjat.classes.sequence.Sequence.print_pose
-.. automethod:: krajjat.classes.sequence.Sequence.print_stats
-.. automethod:: krajjat.classes.sequence.Sequence.print_details
 
 Conversion functions
 ^^^^^^^^^^^^^^^^^^^^
-.. automethod:: krajjat.classes.sequence.Sequence.convert_to_table
-.. automethod:: krajjat.classes.sequence.Sequence.convert_to_json
+.. automethod:: krajjat.classes.sequence.Sequence.to_table
+.. automethod:: krajjat.classes.sequence.Sequence.to_json
+.. automethod:: krajjat.classes.sequence.Sequence.to_dict
+.. automethod:: krajjat.classes.sequence.Sequence.to_dataframe
 
 Saving functions
 ^^^^^^^^^^^^^^^^
 .. automethod:: krajjat.classes.sequence.Sequence.save
-.. automethod:: krajjat.classes.sequence.Sequence.save_stats
+.. automethod:: krajjat.classes.sequence.Sequence.save_info
+.. automethod:: krajjat.classes.sequence.Sequence.save_json
+.. automethod:: krajjat.classes.sequence.Sequence.save_mat
+.. automethod:: krajjat.classes.sequence.Sequence.save_xlsx
+.. automethod:: krajjat.classes.sequence.Sequence.save_pickle
+.. automethod:: krajjat.classes.sequence.Sequence.save_txt
 
 Miscellaneous functions
 ^^^^^^^^^^^^^^^^^^^^^^^^
 .. automethod:: krajjat.classes.sequence.Sequence.average_qualisys_to_kinect
 .. automethod:: krajjat.classes.sequence.Sequence.average_joints
 .. automethod:: krajjat.classes.sequence.Sequence.concatenate
+.. automethod:: krajjat.classes.sequence.Sequence.copy
+.. automethod:: krajjat.classes.sequence.Sequence.print_all
 
 Private methods
 ---------------
 Initialisation functions
 ^^^^^^^^^^^^^^^^^^^^^^^^
 .. automethod:: krajjat.classes.sequence.Sequence._define_name_init
+.. automethod:: krajjat.classes.sequence.Sequence._set_time_unit
 .. automethod:: krajjat.classes.sequence.Sequence._load_from_path
-.. automethod:: krajjat.classes.sequence.Sequence._fetch_files_from_folder
 .. automethod:: krajjat.classes.sequence.Sequence._load_poses
 .. automethod:: krajjat.classes.sequence.Sequence._load_single_pose_file
 .. automethod:: krajjat.classes.sequence.Sequence._load_sequence_file
 .. automethod:: krajjat.classes.sequence.Sequence._create_pose_from_table_row
 .. automethod:: krajjat.classes.sequence.Sequence._create_pose_from_json
+.. automethod:: krajjat.classes.sequence.Sequence._set_timestamp_time_unit
+.. automethod:: krajjat.classes.sequence.Sequence._load_json_metadata
 .. automethod:: krajjat.classes.sequence.Sequence._load_date_recording
+.. automethod:: krajjat.classes.sequence.Sequence._set_joint_labels
+.. automethod:: krajjat.classes.sequence.Sequence._apply_joint_labels
+.. automethod:: krajjat.classes.sequence.Sequence._set_system
 .. automethod:: krajjat.classes.sequence.Sequence._calculate_relative_timestamps
 
 Correction functions
@@ -174,13 +143,7 @@ Correction functions
 .. automethod:: krajjat.classes.sequence.Sequence._correct_jitter_window
 .. automethod:: krajjat.classes.sequence.Sequence._correct_jitter_single_joint
 
-Saving functions
-^^^^^^^^^^^^^^^^
-.. automethod:: krajjat.classes.sequence.Sequence._save_json
-.. automethod:: krajjat.classes.sequence.Sequence._save_mat
-.. automethod:: krajjat.classes.sequence.Sequence._save_xlsx
-.. automethod:: krajjat.classes.sequence.Sequence._save_txt
-
 Miscellaneous functions
 ^^^^^^^^^^^^^^^^^^^^^^^
 .. automethod:: krajjat.classes.sequence.Sequence._create_new_sequence_with_timestamps
+.. automethod:: krajjat.classes.sequence.Sequence._set_attributes_from_other_sequences

@@ -2,9 +2,7 @@
 contain multiple trials."""
 import os
 from collections import OrderedDict
-
-from krajjat.classes.exceptions import InvalidParameterValueException
-from krajjat.tool_functions import get_system_csv_separator
+from krajjat.tool_functions import get_system_csv_separator, show_progression
 
 
 class Experiment(object):
@@ -27,13 +25,12 @@ class Experiment(object):
     """
 
     def __init__(self, name=None):
-        self._name = name
+        self.name = name
         self.subjects = OrderedDict()
 
     # == Getter/Setter functions =======================================================================================
 
-    @property
-    def name(self):
+    def get_name(self):
         """Returns the attribute :attr:`name` of the Experiment instance.
 
         .. versionadded:: 2.0
@@ -43,10 +40,9 @@ class Experiment(object):
         str
             The name of the experiment.
         """
-        return self._name
+        return self.name
 
-    @name.setter
-    def name(self, name):
+    def set_name(self, name):
         """Sets the attribute :attr:`Experiment.name` of the Experiment instance.
 
         .. versionadded:: 2.0
@@ -56,7 +52,7 @@ class Experiment(object):
         name: str
             The name of the experiment.
         """
-        self._name = name
+        self.name = name
 
     # == Managing subjects =============================================================================================
 
@@ -254,6 +250,15 @@ class Experiment(object):
             • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
               may clutter the output and slow down the execution.
 
+        **kwargs
+            timestamp_start: float or None, optional
+                If provided, the return values having a timestamp below the one provided will be ignored from the
+                output.
+
+            timestamp_end: float or None, optional
+                If provided, the return values having a timestamp above the one provided will be ignored from the
+                output.
+
         Note
         ----
         The function also allows to set a series af other attributes related to the generation of an Audio or
@@ -292,124 +297,149 @@ class Experiment(object):
         if include_columns is not None:
             for column in include_columns:
                 columns.append(column)
-        columns.append(sequence_measure)
-        if audio_measure is not None:
-            columns.append(audio_measure)
+
+        # Define measures
+        if type(sequence_measure) is not list:
+            sequence_measure = [sequence_measure]
+        if audio_measure is not None and type(audio_measure) is not list:
+            audio_measure = [audio_measure]
 
         # Define the joint labels
         joint_labels = self.get_joint_labels()
 
         # Create the dataframe skeleton
-        # data = {column: np.zeros(rows, dtype=types.get(column, str)) for column in columns}
         data = {column: [] for column in columns}
-        data[sequence_measure] = np.array([])
-        data[audio_measure] = np.array([])
+
+        # Get timestamps if specified
+        timestamp_start = kwargs.get("timestamp_start", None)
+        timestamp_end = kwargs.get("timestamp_end", None)
+
+        # Progression
+        number_of_iterations = 0
+        for subject in self.subjects:
+            a = self.subjects[subject].get_number_of_trials()
+            b = (len(joint_labels) + (audio_measure is not None))
+            c = len(sequence_measure)
+            d = 0
+            if audio_measure is not None:
+                d = len(audio_measure)
+            number_of_iterations += a * b * (c + d)
         i = 0
-        j = 0
+        perc = 10
+
+        if verbosity > 0:
+            print("Creating the dataframe...")
 
         # For each subject
         for subject_name in self.subjects:
+
+            if verbosity > 1:
+                print(f"\tSubject {subject_name}")
+
             subject = self.subjects[subject_name]
 
             # For each trial
             for trial_id in subject.trials:
+
+                if verbosity > 1:
+                    print(f"\t\tTrial {trial_id}")
+
                 trial = subject.trials[trial_id]
 
                 if not trial.has_sequence():
                     raise Exception(f"A Sequence is missing for Subject {subject_name}, Trial {trial_id}.")
                 sequence = trial.sequence
 
-                if sequence.get_framerate() != sampling_frequency:
+                if sequence.get_sampling_rate() != sampling_frequency:
                     sequence = sequence.resample(sampling_frequency, kwargs.get("mode", "pchip"), verbosity=verbosity)
 
-                sequence_values = sequence.get_time_series_as_list(sequence_measure,
-                                                                   timestamp_start=kwargs.get("timestamp_start", None),
-                                                                   timestamp_end=kwargs.get("timestamp_end", None),
-                                                                   verbosity=verbosity)
+                # For each measure (mocap)
+                for measure in sequence_measure:
 
-                timestamps = sequence.get_timestamps_for_metric(sequence_measure,
-                                                                timestamp_start=kwargs.get("timestamp_start", None),
-                                                                timestamp_end=kwargs.get("timestamp_end", None))
+                    perc = show_progression(verbosity, i, number_of_iterations, perc)
 
-                j += 1
+                    if verbosity > 1:
+                        print(f"\t\t\tMeasure {measure}")
 
-                audio_values = None
+                    sequence_values = sequence.get_time_series_as_list(measure, timestamp_start, timestamp_end,
+                                                                       verbosity)
+                    timestamps = sequence.get_timestamps_for_metric(measure, False, timestamp_start, timestamp_end)
+
+                    # For each joint
+                    for joint_label in joint_labels:
+                        values_to_append = {"subject": subject_name, "group": subject.group, "trial": trial_id,
+                                            "condition": trial.condition, "modality": "mocap", "label": joint_label,
+                                            "measure": measure}
+                        for column in columns:
+                            if column in values_to_append.keys():
+                                repeated_values = np.array([values_to_append[column] for _ in range(len(timestamps))])
+                                data[column] = np.concatenate((data[column], repeated_values))
+                            elif column == "timestamp":
+                                data[column] = np.concatenate((data[column], timestamps))
+                            elif column == "value":
+                                if joint_label not in sequence_values.keys():
+                                    data[column] = np.concatenate((data[column], np.full(np.shape(timestamps), np.nan)))
+                                else:
+                                    data[column] = np.concatenate((data[column], sequence_values[joint_label]))
+                            elif hasattr(subject, column):
+                                repeated_values = [getattr(subject, column) for _ in range(len(timestamps))]
+                                data[column] = np.concatenate((data[column], repeated_values))
+                            elif hasattr(trial, column):
+                                repeated_values = [getattr(trial, column) for _ in range(len(timestamps))]
+                                data[column] = np.concatenate((data[column], repeated_values))
+                            else:
+                                data[column] = np.concatenate((data[column], np.full(np.shape(timestamps), np.nan)))
+
+                        i += 1
+
+                # For each measure (audio)
                 if audio_measure is not None:
-                    if not trial.has_sequence():
+
+                    perc = show_progression(verbosity, i, number_of_iterations, perc)
+
+                    if not trial.has_audio():
                         raise Exception(f"An Audio is missing for Subject {subject_name}, Trial {trial_id}.")
 
-                    audio = trial.audio
+                    for measure in audio_measure:
 
-                    if audio_measure == "envelope":
-                        audio = audio.get_envelope(kwargs.get("window_size", 1e6), kwargs.get("overlap_ratio", 0.5),
-                                                   kwargs.get("filter_below", None), kwargs.get("filter_over", None),
+                        if verbosity > 1:
+                            print(f"\t\t\tMeasure {measure}")
+
+                        audio = trial.audio
+
+                        audio = audio.get_derivative(measure, timestamp_start=timestamp_start,
+                                                     timestamp_end=timestamp_end, verbosity=verbosity, **kwargs)
+
+                        if audio.frequency != sampling_frequency:
+                            audio = audio.resample(sampling_frequency, method=kwargs.get("resampling_mode", "pchip"),
+                                                   window_size=kwargs.get("res_window_size", 1e7),
+                                                   overlap_ratio=kwargs.get("res_overlap_ratio", 0.5),
                                                    verbosity=verbosity)
 
-                    elif audio_measure == "pitch":
-                        audio = audio.get_pitch(kwargs.get("filter_below", None), kwargs.get("filter_over", None),
-                                                kwargs.get("pitch_method", None),
-                                                zeros_as_nan=kwargs.get("zeros_as_nan", False), verbosity=verbosity)
+                        timestamps = audio.timestamps
 
-                    elif audio_measure in ["f1", "f2", "f3", "f4", "f5"]:
-                        audio = audio.get_formant(kwargs.get("filter_below", None), kwargs.get("filter_over", None),
-                                                  formant_number=kwargs.get("formant_number", int(audio_measure[1])),
-                                                  verbosity=verbosity)
+                        values_to_append = {"subject": subject_name, "group": subject.group, "trial": trial_id,
+                                            "condition": trial.condition, "modality": "audio", "label": "audio",
+                                            "measure": measure}
 
-                    elif audio_measure == "intensity":
-                        audio = audio.get_intensity(kwargs.get("filter_below", None), kwargs.get("filter_over", None),
-                                                    verbosity=verbosity)
-
-                    elif audio_measure == "audio":
-                        audio = audio.filter_frequencies(kwargs.get("filter_below", None), kwargs.get("filter_over",
-                                                                                                      None))
-
-                    else:
-                        raise InvalidParameterValueException("audio_measure", audio_measure)
-
-                    if audio.frequency != sampling_frequency:
-                        audio = audio.resample(sampling_frequency, mode=kwargs.get("mode", "pchip"),
-                                               window_size=kwargs.get("res_window_size", 1e7),
-                                               overlap_ratio=kwargs.get("res_overlap_ratio", 0.5), verbosity=verbosity)
-
-                    audio_values = audio.samples
-
-                for joint_label in joint_labels:
-                    points = len(timestamps)
-
-                    if joint_label in sequence_values.keys():
-                        sequence_values_joint = sequence_values[joint_label]
-                    else:
-                        sequence_values_joint = [np.nan for _ in range(points)]
-                    if audio_measure is not None:
-                        audio_values = audio_values[:len(sequence_values_joint)]
-
-                    for column in columns:
-                        if column == "subject":
-                            data["subject"] += [subject_name for _ in range(points)]
-                        elif column == "group":
-                            data["group"] += [subject.group for _ in range(points)]
-                        elif column == "trial":
-                            data["trial"] += [trial_id for _ in range(points)]
-                        elif column == "condition":
-                            data["condition"] += [trial.condition for _ in range(points)]
-                        elif column == "joint_label":
-                            data["joint_label"] += [joint_label for _ in range(points)]
-                        elif column == "timestamp":
-                            data["timestamp"] += timestamps
-                        else:
-                            if column == sequence_measure:
-                                data[sequence_measure] = np.concatenate((data[sequence_measure],
-                                                                        np.array(sequence_values_joint)))
-                            elif audio_measure is not None and column == audio_measure:
-                                data[audio_measure] = np.concatenate((data[audio_measure], np.array(audio_values)))
+                        for column in columns:
+                            if column in values_to_append.keys():
+                                repeated_values = np.array([values_to_append[column] for _ in range(len(timestamps))])
+                                data[column] = np.concatenate((data[column], repeated_values))
+                            elif column == "timestamp":
+                                data[column] = np.concatenate((data[column], timestamps))
+                            elif column == "value":
+                                data[column] = np.concatenate((data[column], audio.samples))
                             elif hasattr(subject, column):
-                                data[column] += [getattr(subject, column) for _ in range(points)]
+                                repeated_values = [getattr(subject, column) for _ in range(len(timestamps))]
+                                data[column] = np.concatenate((data[column], repeated_values))
                             elif hasattr(trial, column):
-                                data[column] += [getattr(trial, column) for _ in range(points)]
+                                repeated_values = [getattr(trial, column) for _ in range(len(timestamps))]
+                                data[column] = np.concatenate((data[column], repeated_values))
                             else:
-                                data[column] += [np.nan for _ in range(points)]
+                                data[column] = np.concatenate((data[column], np.full(np.shape(timestamps), np.nan)))
 
-                    i += points
+                        i += 1
 
         return pd.DataFrame(data)
 
@@ -432,7 +462,7 @@ class Experiment(object):
             Defines the name of the file or files where to save the dataframe. By default, it is set on `"dataframe`.
 
         file_format: str, optional
-            The file format in which to save the sequence. The file format must be ``"pkl"`` (default),
+            The file format in which to save the sequence. The file format must be ``"pkl"`` (default), ``"gzip"``,
             ``"json"`` (default), ``"xlsx"``, ``"txt"``, ``"csv"``, ``"tsv"``, or, if you are a masochist,
             ``"mat"``. Notes:
 
@@ -545,6 +575,8 @@ class Experiment(object):
             dataframe.to_excel(path_out)
         elif extension == "pkl":
             dataframe.to_pickle(path_out)
+        elif extension == "gzip":
+            dataframe.to_parquet(path_out)
         elif extension == ".mat":
             try:
                 import scipy.io.savemat as savemat

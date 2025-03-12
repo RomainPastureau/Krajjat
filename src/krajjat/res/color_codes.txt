@@ -68,6 +68,7 @@ greenyellow	173	255	47	255
 honeydew	240	255	240	255
 hotpink	255	105	180	255
 indianred	205	92	92	255
+i	75	0	130	255
 indigo	75	0	130	255
 ivory	255	255	240	255
 k	0	0	0	255
@@ -97,6 +98,7 @@ linen	250	240	230	255
 m	191	0	191	255
 magenta	255	0	255	255
 maroon	128	0	0	255
+mb	0	114	189	255
 matlab:blue	0	114	189	255
 matlab:cyan	77	190	238	255
 matlab:green	119	172	48	255
@@ -104,6 +106,7 @@ matlab:orange	217	83	25	255
 matlab:purple	126	47	142	255
 matlab:red	162	20	47	255
 matlab:yellow	237	177	32	255
+mc	77	190	238	255
 mediumaquamarine	102	205	170	255
 mediumblue	0	0	205	255
 mediumorchid	186	85	211	255
@@ -116,7 +119,12 @@ mediumvioletred	199	21	133	255
 midnightblue	25	25	112	255
 mintcream	245	255	250	255
 mistyrose	255	228	225	255
+mg	119	172	48	255
+mo	217	83	25	255
 moccasin	255	228	181	255
+mp	126	47	142	255
+mr	162	20	47	255
+my	237	177	32	255
 navajowhite	255	222	173	255
 navy	0	0	128	255
 o	255	165	0	255

@@ -24,6 +24,8 @@ LHandOut	HandOutLeft
 LHandIn	HandInLeft
 WaistRBack	WaistBackRight
 WaistRFront	WaistFrontRight
+WaistLBack	WaistBackLeft
+WaistLFront	WaistFrontLeft
 RThigh	ThighRight
 RKneeOut	KneeRight
 RShin	ShinRight
@@ -32,8 +34,6 @@ RHeelBack	HeelRight
 RForefootOut	ForefootOutRight
 RForefootIn	ForefootInRight
 RToeTip	ToetipRight
-WaistLBack	WaistBackLeft
-WaistLFront	WaistFrontLeft
 LThigh	ThighLeft
 LKneeOut	KneeLeft
 LShin	ShinLeft

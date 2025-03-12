@@ -1,5 +1,6 @@
 Head	HeadTop	HeadFront	HeadRight	HeadLeft
-Neck	Head	SpineShoulder
+Neck	Head	SpineTop
+SpineShoulder	SpineTop
 ShoulderLeft	ShoulderTopLeft	ShoulderBackLeft
 ShoulderRight	ShoulderTopRight	ShoulderBackRight
 SpineMid	Chest	BackRight	BackLeft
