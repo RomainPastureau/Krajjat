@@ -51,7 +51,6 @@ class TestsAudio(unittest.TestCase):
         assert audio.kind == "Audio"
         assert audio.name == "test_audio_4"
         assert audio.timestamps[42] == 42 * 1 / 44100
-        print(audio.metadata)
         assert len(audio.metadata) == 1
         assert len(audio.metadata["processing_steps"]) == 0
 
@@ -63,6 +62,20 @@ class TestsAudio(unittest.TestCase):
         assert audio.condition is None
         assert audio.path == op.join("test_audios", "test_audio_1.mat")
         assert audio.files == ["test_audio_1.mat"]
+        assert audio.kind == "Audio"
+        assert audio.name == "test_audio_1"
+        assert audio.timestamps[42] == 42 * 1 / 44100
+        assert len(audio.metadata) == 1
+        assert len(audio.metadata["processing_steps"]) == 0
+
+        # Pickle
+        audio = Audio("test_audios/test_audio_1.pkl", verbosity=0)
+        assert len(audio.samples) == 22050
+        assert audio.samples[42] == 18488
+        assert audio.frequency == 44100
+        assert audio.condition is None
+        assert audio.path == op.join("test_audios", "test_audio_1.pkl")
+        assert audio.files == ["test_audio_1.pkl"]
         assert audio.kind == "Audio"
         assert audio.name == "test_audio_1"
         assert audio.timestamps[42] == 42 * 1 / 44100
@@ -185,6 +198,10 @@ class TestsAudio(unittest.TestCase):
         pass
 
     def test_load_audio_file(self):
+        # See test_init
+        pass
+
+    def test_load_json_metadata(self):
         # See test_init
         pass
 
@@ -547,7 +564,7 @@ class TestsAudio(unittest.TestCase):
         audio = Audio("test_audios/test_audio_1.wav", condition="test", verbosity=0)
         new_audio = Audio([0, 1, 2], 1000)
 
-        new_audio._set_attributes_from_other_audio(audio)
+        new_audio._set_attributes_from_other_object(audio)
         assert new_audio.get_path() == audio.get_path()
         assert new_audio.get_condition() == audio.get_condition()
         assert new_audio.metadata == audio.metadata

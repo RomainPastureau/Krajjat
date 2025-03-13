@@ -13,7 +13,7 @@ from scipy.io import loadmat, savemat
 from krajjat.classes.pose import Pose
 from krajjat.classes.audio import Audio
 from krajjat.classes.exceptions import *
-from krajjat.classes.timeseries import TimeSeries
+from krajjat.classes.time_series import TimeSeries
 from krajjat.tool_functions import *
 
 from statistics import stdev
@@ -430,7 +430,7 @@ class Sequence(TimeSeries):
         self._load_poses(verbosity)  # Loads the files into poses
 
         if len(self.poses) == 0:
-            raise EmptySequenceException()
+            raise EmptyInstanceException("Sequence")
 
         self._load_date_recording(verbosity)
 
@@ -567,7 +567,7 @@ class Sequence(TimeSeries):
             data = read_json(self.path)
 
             if len(data) == 0:
-                raise EmptySequenceException()
+                raise EmptyInstanceException("Sequence")
 
             self._load_json_metadata(data, verbosity)
 
@@ -587,6 +587,8 @@ class Sequence(TimeSeries):
         # Excel file
         elif file_extension == ".xlsx":
             data, metadata = read_xlsx(self.path, verbosity=verbosity)
+            if "processing_steps" in metadata.keys():
+                metadata["processing_steps"] = json.loads(metadata["processing_steps"])
             self.metadata.update(metadata)
 
             # For each pose
@@ -603,12 +605,12 @@ class Sequence(TimeSeries):
         # Pickle file
         elif file_extension == ".pkl":
             with open(self.path, "rb") as f:
-                sequence = pickle.load(f)
-            for attr in sequence.__dict__:
+                audio = pickle.load(f)
+            for attr in audio.__dict__:
                 if attr == "metadata":
-                    self.metadata.update(sequence.metadata)
-                else:
-                    self.__setattr__(attr, sequence.__dict__[attr])
+                    self.metadata.update(audio.metadata)
+                elif attr not in ["name", "path", "files"]:
+                    self.__setattr__(attr, audio.__dict__[attr])
 
         # Mat file
         elif file_extension == ".mat":
@@ -743,7 +745,7 @@ class Sequence(TimeSeries):
             pose.timestamp = pose.timestamp / UNITS[self.time_unit]
 
     def _load_json_metadata(self, data, verbosity=1):
-        """Loads the data from the file apart from the joint positions, and saves it in the parameter :param:`metadata`.
+        """Loads the data from the file apart from the joint positions, and saves it in the attribute :attr:`metadata`.
         For Kinect data, this function will load all the elements from the JSON file apart from `"Bodies"`.
 
         .. versionadded:: 2.0
@@ -1733,7 +1735,7 @@ class Sequence(TimeSeries):
         >>> sequence.get_pose(42)
         """
         if len(self.poses) == 0:
-            raise EmptySequenceException()
+            raise EmptyInstanceException("Sequence")
         elif not type(pose_index) is int or not 0 <= pose_index < len(self.poses):
             raise InvalidPoseIndexException(pose_index, len(self.poses))
 
@@ -2044,6 +2046,7 @@ class Sequence(TimeSeries):
         ----------
         measure: str|int
             The measure to return for each of the joints. This parameter can take multiple values:
+
             • For the x-coordinate: ``"x"``, ``"x_coord"``, ``"coord_x"``, or ``"x_coordinate"``.
             • For the y-coordinate: ``"y"``, ``"y_coord"``, ``"coord_y"``, or ``"y_coordinate"``.
             • For the z-coordinate: ``"z"``, ``"z_coord"``, ``"coord_z"``, or ``"z_coordinate"``.
@@ -2308,6 +2311,7 @@ class Sequence(TimeSeries):
         ----------
         measure: str|int
             The measure to return for each of the joints. This parameter can take multiple values:
+
             • For the x-coordinate: ``"x"``, ``"x_coord"``, ``"coord_x"``, or ``"x_coordinate"``.
             • For the y-coordinate: ``"y"``, ``"y_coord"``, ``"coord_y"``, or ``"y_coordinate"``.
             • For the z-coordinate: ``"z"``, ``"z_coord"``, ``"coord_z"``, or ``"z_coordinate"``.
@@ -2451,6 +2455,7 @@ class Sequence(TimeSeries):
         ----------
         measure: str|int
             The measure to return for each of the joints. This parameter can take multiple values:
+
             • For the x-coordinate: ``"x"``, ``"x_coord"``, ``"coord_x"``, or ``"x_coordinate"``.
             • For the y-coordinate: ``"y"``, ``"y_coord"``, ``"coord_y"``, or ``"y_coordinate"``.
             • For the z-coordinate: ``"z"``, ``"z_coord"``, ``"coord_z"``, or ``"z_coordinate"``.
@@ -4630,25 +4635,25 @@ class Sequence(TimeSeries):
         Timestamp: 0.0
         Relative timestamp: 0.0
         Joints (3):
-            Head: (0.160617024, 0.494735048, -0.453307693)
-            HandRight: (0.127963375, 0.873208589, 0.408531847)
-            HandLeft: (-1.395065714, 2.653738732, -0.483163821)
+        Head: (0.160617024, 0.494735048, -0.453307693)
+        HandRight: (0.127963375, 0.873208589, 0.408531847)
+        HandLeft: (-1.395065714, 2.653738732, -0.483163821)
 
         Pose 2/3
         Timestamp: 0.001
         Relative timestamp: 0.001
         Joints (3):
-            Head: (1.769412418, 0.885312165, -0.785718175)
-            HandRight: (0.948776526, 2.805260745, 2.846927978)
-            HandLeft: (-0.80645271, 1.460889453, 2.557279205)
+        Head: (1.769412418, 0.885312165, -0.785718175)
+        HandRight: (0.948776526, 2.805260745, 2.846927978)
+        HandLeft: (-0.80645271, 1.460889453, 2.557279205)
 
         Pose 3/3
         Timestamp: 0.002
         Relative timestamp: 0.002
         Joints (3):
-            Head: (-1.678118013, 0.85064505, 1.37303521)
-            HandRight: (-1.612589342, -0.059736892, -1.456678185)
-            HandLeft: (-1.418789803, 0.283037432, -0.221482265)
+        Head: (-1.678118013, 0.85064505, 1.37303521)
+        HandRight: (-1.612589342, -0.059736892, -1.456678185)
+        HandLeft: (-1.418789803, 0.283037432, -0.221482265)
         """
 
         print("#" * (len(self.name) + 6))
@@ -5067,7 +5072,6 @@ class Sequence(TimeSeries):
         >>> sequence.save_mat("DylanG", "sequence_4")
         >>> sequence.save_mat("DylanG/sequence_4.mat")
         """
-
         perc = 10  # Used for the progression percentage
 
         path_out = None
@@ -5090,6 +5094,11 @@ class Sequence(TimeSeries):
             for key in data_json:
                 if data_json[key] is None:
                     data_json[key] = np.nan
+                elif key == "processing_steps":
+                    for i in range(len(data_json["processing_steps"])):
+                        for param in data_json["processing_steps"][i]:
+                            if data_json["processing_steps"][i][param] is None:
+                                data_json["processing_steps"][i][param] = np.nan
             savemat(path_out, {"data": data_json})
         else:
             for p in range(len(self.poses)):
@@ -5177,7 +5186,8 @@ class Sequence(TimeSeries):
         if not individual:
             data = self.to_table(use_relative_timestamps)
             if include_metadata:
-                metadata = self.metadata
+                metadata = copy.deepcopy(self.metadata)
+                metadata["processing_steps"] = json.dumps(metadata["processing_steps"])
             else:
                 metadata = None
             write_xlsx(data, path_out, sheet_name, metadata, metadata_sheet_name, verbosity)
@@ -5241,6 +5251,9 @@ class Sequence(TimeSeries):
                     path_out = op.join(folder_out, name)
                 else:
                     path_out = op.join(folder_out, f"{name}.pkl")
+
+        self.path = op.normpath(path_out)
+        self.files = [op.split(self.path)[-1]]
 
         # Save the data
         if not individual:

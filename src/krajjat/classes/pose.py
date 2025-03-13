@@ -516,7 +516,7 @@ class Pose(object):
     def __eq__(self, other):
         """Returns `True` if all the joints in the attribute :attr:`joints` are identical between the two
         :class:`Pose` objects. If the joints are equal, the function will return `True` regardless of the timestamps.
-        Each joint is compared using the function :method:`Joint.__eq__`.
+        Each joint is compared using the function :meth:`Joint.__eq__`.
 
         .. versionadded:: 2.0
 

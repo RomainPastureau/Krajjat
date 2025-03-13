@@ -1,5 +1,6 @@
 /coherence_romain.py
 /delays.txt
+/test/__pycache__/
 /tests/
 /.venv/
 /doc/
@@ -10,6 +11,7 @@
 /__pycache__/
 /.idea/
 /src/krajjat/lib/__pycache__/
+/src/krajjat/__pycache__/
 /docs/build/doctrees/
 /lund_processing/
 /src/krajjat/unused/

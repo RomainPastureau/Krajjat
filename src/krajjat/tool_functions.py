@@ -1598,8 +1598,8 @@ def resample_window(array, original_timestamps, resampled_timestamps, index_star
           Polynomial) via `scipy.interpolate.PchipInterpolator
           <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.PchipInterpolator.html>`_.
         • ``"akima"`` performs another type of monotonic cubic spline interpolation, using
-        `scipy.interpolate.Akima1DInterpolator
-        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Akima1DInterpolator.html>`_.
+          `scipy.interpolate.Akima1DInterpolator
+          <https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.Akima1DInterpolator.html>`_.
         • ``"take"`` keeps one out of n samples from the original array. While being the fastest computation, it will
           be prone to imprecision if the downsampling factor is not an integer divider of the original frequency.
         • ``"interp1d_XXX"`` uses the function `scipy.interpolate.interp1d

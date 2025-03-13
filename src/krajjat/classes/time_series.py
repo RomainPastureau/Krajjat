@@ -1,10 +1,14 @@
 """Default metaclass for Sequence, Audio and AudioDerivative. Contains the methods that are common to all time series.
 """
 import copy
+import os
 import os.path as op
 
+import numpy as np
+from scipy.io import savemat
+
 from krajjat.classes.exceptions import InvalidPathException, EmptyInstanceException
-from krajjat.tool_functions import sort_files_trailing_index
+from krajjat.tool_functions import sort_files_trailing_index, show_progression
 
 
 class TimeSeries(object):
@@ -101,7 +105,8 @@ class TimeSeries(object):
 
         # If the file contains a wildcard
         if "*" in file:
-            self.files = sort_files_trailing_index(self.path, object_type=self.kind.lower(), verbosity=verbosity, add_tabs=1)
+            self.files = sort_files_trailing_index(self.path, object_type=self.kind.lower(), verbosity=verbosity,
+                                                   add_tabs=1)
             self.path = folder
 
         else:
@@ -119,14 +124,14 @@ class TimeSeries(object):
                 self.files = [file]
 
     def _set_attributes_from_other_object(self, other):
-        """Sets the attributes `condition`, `path` and `metadata` of the AudioDerivative from another instance.
+        """Sets the attributes `condition`, `path` and `metadata` of the object from another instance.
 
         .. versionadded:: 2.0
 
         Parameters
         ----------
-        other: Audio|AudioDerivative
-            Another Audio or AudioDerivative instance, from which to copy some of the parameters.
+        other: TimeSeries
+            Another TimeSeries instance, from which to copy some of the parameters.
         """
         self.path = other.path
         self.condition = other.condition

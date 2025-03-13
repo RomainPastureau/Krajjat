@@ -5,13 +5,10 @@ formants of the speech.
 from collections import OrderedDict
 
 from find_delay import find_delay, find_delays
-from scipy.signal import butter, lfilter, hilbert
-from scipy.io import wavfile, loadmat, savemat
+from scipy.signal import hilbert
 from parselmouth import Sound
 
 from krajjat.classes.audio_derivatives import *
-from krajjat.classes.timeseries import TimeSeries
-
 
 class Audio(AudioDerivative):
     """Default class for audio clips matching a Sequence, typically the voice of the subject of the motion
@@ -84,7 +81,7 @@ class Audio(AudioDerivative):
     """
 
     def __init__(self, path_or_samples, frequency=None, name=None, condition=None, verbosity=1):
-        super().__init__("Audio", path_or_samples, name, condition, verbosity)
+        super().__init__("Audio", path_or_samples, frequency, name, condition, verbosity)
 
     # === Setter functions ===
     def set_name(self, name):
@@ -125,335 +122,6 @@ class Audio(AudioDerivative):
         """
         super().set_condition(condition)
 
-    # === Loading functions ===
-    def _load_from_path(self, verbosity=1):
-        """Loads the audio data from the :attr:`path` provided during the initialization.
-
-        .. versionadded:: 2.0
-
-        Parameters
-        ----------
-        verbosity: int, optional
-            Sets how much feedback the code will provide in the console output:
-
-            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
-            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
-              current steps.
-            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
-              may clutter the output and slow down the execution.
-        """
-        super()._load_from_path(verbosity)
-
-    def _load_from_samples(self, samples, frequency, verbosity=1):
-        """Loads the audio data when samples and frequency have been provided upon initialisation.
-
-        .. versionadded:: 2.0
-
-        Parameters
-        ----------
-        samples: list(int) or numpy.ndarray(int)
-            A list containing the audio samples, in chronological order.
-        frequency: int or float
-            The amount of samples per second.
-        verbosity: int, optional
-            Sets how much feedback the code will provide in the console output:
-
-            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
-            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
-              current steps.
-            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
-              may clutter the output and slow down the execution.
-
-        """
-
-        if verbosity > 1:
-            print("Parameter path_or_samples detected as being samples.")
-
-        if not isinstance(samples, np.ndarray):
-            self.samples = np.array(samples)
-        else:
-            self.samples = samples
-        if frequency is not None:
-            self.frequency = frequency
-        else:
-            raise Exception("If samples are provided, frequency cannot be None. Please provide a value for frequency.")
-
-        self._calculate_timestamps()
-
-    def _load_samples(self, verbosity=1):
-        """Loads the single sample files or the global file containing all the samples. Depending on the input, this
-        function calls either :meth:`Audio._load_single_sample_file` or :meth:`Audio._load_audio_file`.
-
-        .. versionadded:: 2.0
-
-        Parameters
-        ----------
-        verbosity: int, optional
-            Sets how much feedback the code will provide in the console output:
-
-            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
-            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
-              current steps.
-            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
-              may clutter the output and slow down the execution.
-
-        """
-
-        if verbosity == 1:
-            print(f"Opening audio from {self.path}...", end=" ")
-        elif verbosity > 1:
-            print(f"Opening audio from {self.path}...")
-        perc = 10  # Used for the progression percentage
-
-        # If the path is a folder, we load every single file
-        if os.path.isdir(self.path):
-
-            self.samples = np.zeros((len(self.files),))
-            self.timestamps = np.zeros((len(self.files),))
-
-            for i in range(len(self.files)):
-
-                if verbosity > 1:
-                    print(f"Loading file {i + 1} of {len(self.files)}: {self.files[i]}...", end=" ")
-
-                # Show percentage if verbosity
-                perc = show_progression(verbosity, i, len(self.files), perc)
-
-                # Loads a file containing one timestamp and one sample
-                self._load_single_sample_file(i, op.join(self.path, self.files[i]), verbosity)
-
-                if verbosity > 1:
-                    print("OK.")
-
-            self._calculate_frequency()
-
-            if verbosity > 0:
-                print("100% - Done.")
-
-        # Otherwise, we load the one file
-        else:
-            self._load_audio_file(verbosity)
-
-    def _load_single_sample_file(self, sample_index, path, verbosity):
-        """Loads the content of a single sample file into the Audio object. Depending on the file type, this function
-        handles the content differently (see :ref:`Audio formats <wav_example>`).
-
-        .. versionadded:: 2.0
-
-        Parameters
-        ----------
-        sample_index: int
-            The index of the sample to load.
-        path: str
-            The path of a file containing a single sample and timestamp.
-        verbosity: int, optional
-            Sets how much feedback the code will provide in the console output:
-
-            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
-            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
-              current steps.
-            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
-              may clutter the output and slow down the execution.
-        """
-
-        file_extension = op.splitext(path)[-1]
-
-        # JSON file
-        if file_extension == ".json":
-            data = read_json(path)
-            if sample_index == 0:
-                self._load_json_metadata(data, verbosity)
-            self.samples[sample_index] = data["Sample"]
-            self.timestamps[sample_index] = data["Timestamp"]
-
-        # Excel file
-        elif file_extension == ".xlsx":
-            data = read_xlsx(path, verbosity=verbosity)
-            self.samples[sample_index] = float(data[1][1])
-            self.timestamps[sample_index] = float(data[1][0])
-
-        # Pickle file
-        elif file_extension == ".pkl":
-            with open(path, "rb") as f:
-                content = pickle.load(f)
-            self.samples[sample_index] = content["Sample"]
-            self.timestamps[sample_index] = content["Timestamp"]
-
-        # Text file
-        else:
-            if os.path.splitext(self.path)[-1] not in [".csv", ".tsv", ".txt"]:
-                if verbosity > 0:
-                    print(f"Loading from non-standard extension {os.path.splitext(self.path)[-1]} as text...")
-
-            separator = get_filetype_separator(file_extension[-1])
-
-            # Open the file and read the data
-            data, metadata = read_text_table(path)
-            if sample_index == 0:
-                self.metadata.update(metadata)
-            self.samples[sample_index] = float(data[1][1])
-            self.timestamps[sample_index] = float(data[1][0])
-
-    def _load_audio_file(self, verbosity=1):
-        """Loads the content of a file containing all the samples of the audio stream. Depending on the file type, this
-        function handles the content differently (see :ref:`Audio formats <wav_example>`).
-
-        .. versionadded:: 2.0
-
-        Parameters
-        ----------
-        verbosity: int, optional
-            Sets how much feedback the code will provide in the console output:
-
-            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
-            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
-              current steps.
-            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
-              may clutter the output and slow down the execution.
-
-        """
-
-        if verbosity > 0:
-            print("\n\tOpening the audio...", end=" ")
-
-        file_extension = op.splitext(self.path)[-1]
-
-        if file_extension == ".wav":
-            audio_data = wavfile.read(self.path)
-            self.frequency = audio_data[0]
-
-            # Turn stereo to mono if the file is stereo
-            if len(np.shape(audio_data[1])) != 1:
-                self.samples = stereo_to_mono(audio_data[1], verbosity=verbosity)
-            else:
-                self.samples = audio_data[1]
-
-            # Metadata
-            with taglib.File(self.path) as file:
-                for tag in file.tags:
-                    self.metadata[tag] = file.tags[tag]
-
-            self._calculate_timestamps()
-
-        elif file_extension == ".json":
-            data = read_json(self.path)
-
-            if len(data) == 0:
-                raise EmptyAudioException()
-
-            self._load_json_metadata(data, verbosity)
-            self.samples = np.array(data["Sample"])
-            self.frequency = data["Frequency"]
-            self._calculate_timestamps()
-
-        # Pickle file
-        elif file_extension == ".pkl":
-            with open(self.path, "rb") as f:
-                audio = pickle.load(f)
-            for attr in audio.__dict__:
-                self.__setattr__(attr, audio.__dict__[attr])
-
-        # Mat file
-        elif file_extension == ".mat":
-            with open(self.path, "rb") as f:
-                data = loadmat(f, simplify_cells=True)
-
-            for key in data["data"]:
-                if key == "Sample":
-                    self.samples = pd.DataFrame(data["data"]["Sample"]).values.flatten()
-
-                elif key == "Timestamp":
-                    self.timestamps = pd.DataFrame(data["data"]["Timestamp"]).values.flatten()
-
-                elif key == "Frequency":
-                    self.frequency = data["data"]["Frequency"]
-
-                else:
-                    self.metadata[key] = data["data"][key]
-
-            self._calculate_frequency()
-
-        else:
-            if file_extension not in [".csv", ".xlsx", ".tsv", ".txt"]:
-                if verbosity > 0:
-                    print(f"Loading from non-standard extension {file_extension} as text...")
-
-            if self.path.split(".")[-1] == "xlsx":
-                data, metadata = read_xlsx(self.path, verbosity=verbosity)
-                self.metadata.update(metadata)
-
-            else:
-                data, metadata = read_text_table(self.path)
-                self.metadata.update(metadata)
-
-            if "Frequency" in self.metadata:
-                self.frequency = self.metadata["Frequency"]
-                del self.metadata["Frequency"]
-
-            self.samples = np.array([data[i][1] for i in range(1, len(data))])
-            self.timestamps = np.array([data[i][0] for i in range(1, len(data))])
-
-            self._calculate_frequency()
-
-        if verbosity:
-            print("100% - Done.")
-
-    def _load_json_metadata(self, data, verbosity=1):
-        """Loads the data from the file apart from the samples, and saves it in the attribute :attr:`metadata`.
-
-        .. versionadded:: 2.0
-
-        Parameters
-        ----------
-        data: dict
-            The data from the file containing the full audio, or containing the first sample of the audio clip.
-
-        verbosity: int, optional
-            Sets how much feedback the code will provide in the console output:
-
-            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
-            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
-              current steps.
-            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
-              may clutter the output and slow down the execution.
-        """
-
-        if verbosity > 1:
-            print("Trying to find metadata...", end=" ")
-
-        for key in data:
-            if key not in ["Sample", "Timestamp", "Frequency"]:
-                self.metadata[key] = data[key]
-
-        if verbosity > 1:
-            if len(self.metadata) == 0:
-                print("Found no metadata entries.")
-            elif len(self.metadata) == 1:
-                print("Found 1 metadata entry.")
-            else:
-                print("Found " + str(len(self.metadata)) + " metadata entries.")
-
-            for key in self.metadata:
-                print("\t" + str(key) + ": " + str(self.metadata[key]))
-
-    def _calculate_frequency(self):
-        """Determines the frequency (number of samples per second) of the audio by calculating the time elapsed between
-        the two first timestamps. This function is automatically called when reading the timestamps and samples from
-        a text file.
-
-        .. versionadded:: 2.0
-        """
-        self.frequency = 1 / ((self.timestamps[-1] - self.timestamps[0]) / (len(self.timestamps) - 1))
-
-    def _calculate_timestamps(self):
-        """Calculates the timestamps of the audio samples from the frequency and the number of samples. This function
-        is automatically called when reading the frequency and samples from an audio file, or when a list of samples
-        and a frequency are passed as a parameters during the initialisation.
-
-        .. versionadded:: 2.0
-        """
-        self.timestamps = np.arange(0, len(self.samples)) / self.frequency
-
     # === Getter functions ===
     def get_path(self):
         """Returns the attribute :attr:`path` of the Audio instance.
@@ -471,7 +139,7 @@ class Audio(AudioDerivative):
         >>> audio.get_path()
         Recordings/Giacchino/01.wav
         """
-        return self.path
+        return super().get_path()
 
     def get_name(self):
         """Returns the attribute :attr:`name` of the Audio instance.
@@ -489,7 +157,7 @@ class Audio(AudioDerivative):
         >>> audio.get_path()
         recording_02
         """
-        return self.name
+        return super().get_name()
 
     def get_condition(self):
         """Returns the attribute :attr:`condition` of the Audio instance.
@@ -510,7 +178,7 @@ class Audio(AudioDerivative):
         >>> audio.get_condition()
         Basque
         """
-        return self.condition
+        return super().get_condition()
 
     def get_samples(self):
         """Returns the attribute :attr:`samples` of the Audio instance.
@@ -528,7 +196,7 @@ class Audio(AudioDerivative):
         >>> audio.get_samples()
         array([0, 1, 3, 6, 2, 7, 13, 20, 12, 21, 11, 22, 10, 23])
         """
-        return self.samples
+        return super().get_samples()
 
     def get_sample(self, sample_index):
         """Returns the sample corresponding to the index passed as parameter.
@@ -551,12 +219,7 @@ class Audio(AudioDerivative):
         >>> audio.get_sample(42)
         7418880
         """
-        if len(self.samples) == 0:
-            raise Exception("The Audio does not have any sample.")
-        elif not 0 <= sample_index < len(self.samples):
-            raise Exception("The pose index must be between 0 and " + str(len(self.samples) - 1) + ". ")
-
-        return self.samples[sample_index]
+        return super().get_sample(sample_index)
 
     def get_number_of_samples(self):
         """Returns the number of samples in the audio clip.
@@ -574,7 +237,7 @@ class Audio(AudioDerivative):
         >>> audio.get_number_of_samples()
         22050
         """
-        return len(self.samples)
+        return super().get_number_of_samples()
 
     def get_timestamps(self):
         """Returns a list of the timestamps for every sample, in seconds.
@@ -593,7 +256,7 @@ class Audio(AudioDerivative):
         array([0.00000000e+00 2.26757370e-05 4.53514739e-05 6.80272109e-05
                9.07029478e-05 1.13378685e-04 1.36054422e-04 1.58730159e-04])
         """
-        return self.timestamps
+        return super().get_timestamps()
 
     def get_duration(self):
         """Returns the duration of the audio clip, in seconds.
@@ -611,7 +274,7 @@ class Audio(AudioDerivative):
         >>> audio.get_duration()
         42.48151
         """
-        return self.timestamps[-1]
+        return super().get_duration()
 
     def get_frequency(self):
         """Returns the frequency of the audio clip, in hertz.
@@ -629,7 +292,7 @@ class Audio(AudioDerivative):
         >>> audio.get_frequency()
         44100
         """
-        return self.frequency
+        return super().get_frequency()
 
     def get_info(self, return_type="dict", include_path=True):
         """Returns information regarding the Audio clip.
@@ -665,27 +328,7 @@ class Audio(AudioDerivative):
         Name: recording_11 · Duration: 0.5 · Frequency: 44100 · Number of samples: 22150
         """
 
-        stats = OrderedDict()
-        stats["Name"] = self.name
-        if include_path:
-            stats["Path"] = self.path
-        if self.condition is not None:
-            stats["Condition"] = self.condition
-        stats["Duration"] = self.get_duration()
-        stats["Frequency"] = self.frequency
-        stats["Number of samples"] = self.get_number_of_samples()
-
-        if return_type.lower() in ["list", "table"]:
-            table = [[], []]
-            for key in stats.keys():
-                table[0].append(key)
-                table[1].append(stats[key])
-            return table
-
-        elif return_type.lower() == "str":
-            return " · ".join([f"{key}: {stats[key]}" for key in stats.keys()])
-
-        return stats
+        return super().get_info(return_type, include_path)
 
     # === Transformation functions ===
     def get_envelope(self, window_size=1e6, overlap_ratio=0.5, filter_below=None, filter_over=None, name=None,
@@ -1095,6 +738,9 @@ class Audio(AudioDerivative):
         for i in range(1, number_of_points + 1):
             t = parselmouth_formant.get_time_from_frame_number(i)
             f[i-1] = parselmouth_formant.get_value_at_time(formant_number=formant_number, time=t)
+
+        if not np.isclose(formant_timestamps[0] * self.frequency, round(formant_timestamps[0] * self.frequency, 0)):
+            formant_timestamps -= 0.5/self.frequency
         f, timestamps = pad(f, formant_timestamps, self.timestamps)
 
         if verbosity > 0:
@@ -1107,6 +753,7 @@ class Audio(AudioDerivative):
                                                      "original_audio": self.name, "original_path": self.path,
                                                      "formant_number": formant_number, "zeros_as_nan": zeros_as_nan,
                                                      "filter_below": filter_below, "filter_over": filter_over})
+        formant.metadata["formant_number"] = formant_number
 
         if filter_below is not None or filter_over is not None:
             formant = formant.filter_frequencies(filter_below, filter_over, name, verbosity)
@@ -1239,7 +886,6 @@ class Audio(AudioDerivative):
 
         return audio_derivative
 
-    # noinspection PyTupleAssignmentBalance
     def filter_frequencies(self, filter_below=None, filter_over=None, name=None, verbosity=1):
         """Applies a low-pass, high-pass or band-pass filter to the data in the attribute :attr:`samples`.
 
@@ -1280,44 +926,7 @@ class Audio(AudioDerivative):
         >>> audio = Audio("Recordings/Shore/recording_17.wav")
         >>> audio_ff = audio.filter_frequencies(filter_below=10, filter_over=50)
         """
-
-        # Band-pass filter
-        if filter_below not in [None, 0] and filter_over not in [None, 0]:
-            if verbosity > 0:
-                print("Applying a band-pass filter for frequencies between " + str(filter_below) + " and " +
-                      str(filter_over) + " Hz...", end=" ")
-            b, a = butter(2, [filter_below, filter_over], "band", fs=self.frequency)
-            new_samples = lfilter(b, a, self.samples)
-
-        # High-pass filter
-        elif filter_below not in [None, 0]:
-            if verbosity > 0:
-                print("Applying a high-pass filter for frequencies over " + str(filter_below) + " Hz...", end=" ")
-            b, a = butter(2, filter_below, "high", fs=self.frequency)
-            new_samples = lfilter(b, a, self.samples)
-
-        # Low-pass filter
-        elif filter_over not in [None, 0]:
-            if verbosity > 0:
-                print("Applying a low-pass filter for frequencies below " + str(filter_over) + " Hz...", end=" ")
-            b, a = butter(2, filter_over, "low", fs=self.frequency)
-            new_samples = lfilter(b, a, self.samples)
-
-        else:
-            new_samples = self.samples
-
-        if verbosity > 0:
-            print("Done.")
-
-        if name is None:
-            name = self.name + " +FF"
-
-        new_audio = Audio(new_samples, self.frequency, name, verbosity=0)
-        new_audio._set_attributes_from_other_audio(self)
-
-        new_audio.metadata["processing_steps"].append({"processing_type": "filter_frequencies",
-                                                       "filter_below": filter_below, "filter_over": filter_over})
-        return new_audio
+        return super().filter_frequencies(filter_below, filter_over, name, verbosity)
 
     def resample(self, frequency, method="cubic", window_size=1e7, overlap_ratio=0.5, name=None, verbosity=1):
         """Resamples an audio clip to the `frequency` parameter. It first creates a new set of timestamps at the
@@ -1387,44 +996,7 @@ class Audio(AudioDerivative):
         >>> audio = Audio("Recordings/Raine/recording_18.wav")
         >>> audio_resampled = audio.resample(2000, "cubic")
         """
-
-        if verbosity > 0:
-            print("Resampling the audio clip at " + str(frequency) + " Hz (mode: " + str(method) + ")...")
-            print("\tOriginal frequency: " + str(round(self.get_frequency(), 2)))
-
-        if verbosity > 0:
-            print("\tPerforming the resampling...", end=" ")
-
-        if window_size == 0 or window_size is None:
-            window_size = len(self.samples)
-
-        if overlap_ratio is None:
-            overlap_ratio = 0
-
-        resampled_audio_array, resampled_audio_times = resample_data(self.samples, self.timestamps, frequency,
-                                                                     window_size, overlap_ratio, method,
-                                                                     verbosity=verbosity)
-        resampled_audio_array = list(resampled_audio_array)
-
-        if name is None:
-            name = self.name + " +RS " + str(frequency)
-
-        new_audio = Audio(resampled_audio_array, frequency, name, verbosity=verbosity)
-        new_audio.path = self.path
-
-        if verbosity > 0:
-            print("100% - Done.")
-            print("\tOriginal audio had " + str(len(self.samples)) + " samples.")
-            print("\tNew audio has " + str(len(new_audio.samples)) + " samples.\n")
-
-        new_audio._set_attributes_from_other_audio(self)
-        new_audio.metadata["processing_steps"].append({"processing_type": "resample",
-                                                       "frequency": frequency,
-                                                       "method": method,
-                                                       "window_size": window_size,
-                                                       "overlap_ratio": overlap_ratio})
-
-        return new_audio
+        return super().resample(frequency, method, window_size, overlap_ratio, name, verbosity)
 
     def trim(self, start=None, end=None, name=None, error_if_out_of_bounds=False, verbosity=1, add_tabs=0):
         """Trims an audio clip according to a starting and an ending timestamps. Timestamps must be provided in seconds.
@@ -1474,77 +1046,7 @@ class Audio(AudioDerivative):
         >>> audio = Audio("Recordings/Holt/recording_19.wav")
         >>> audio_trimmed = audio.trim(10, 15)
         """
-
-        start_index = None
-        end_index = None
-
-        tabs = add_tabs * "\t"
-
-        if start is None:
-            start = self.timestamps[0]
-            start_index = 0
-        if end is None:
-            end = self.timestamps[-1]
-            end_index = -1
-
-        if end < start:
-            raise Exception("End timestamp should be inferior to beginning timestamp.")
-
-        if error_if_out_of_bounds:
-            if not 0 <= start <= self.get_duration():
-                raise Exception(f"The start timestamp should be between 0 and {self.get_duration()}.")
-            elif not 0 <= end <= self.get_duration():
-                raise Exception(f"The end timestamp should be between 0 and {self.get_duration()}.")
-
-        if verbosity > 0:
-            print(tabs + "Trimming the audio:")
-            print(tabs + "\tStarting timestamp: " + str(start) + " seconds")
-            print(tabs + "\tEnding timestamp: " + str(end) + " seconds")
-            print(tabs + "\tOriginal duration: " + str(self.get_duration()) + " seconds")
-            print(tabs + "\tDuration after trimming: " + str(end - start) + " seconds")
-        if verbosity == 1:
-            print(tabs + "Starting the trimming...", end=" ")
-
-        if name is None:
-            name = self.name + " +TR"
-
-        if start_index is None:
-            start_index = int(np.floor(start * self.frequency))
-            if start_index < 0:
-                start_index = 0
-
-        if verbosity > 1:
-            print(tabs + f"Closest (above) starting timestamp from {start}: {self.timestamps[start_index]}")
-
-        if end_index is None:
-            end_index = int(np.ceil(end * self.frequency))
-        if end_index > len(self.timestamps) - 1:
-            end_index = len(self.timestamps) - 1
-
-        if verbosity > 1:
-            print(tabs + f"Closest (below) starting timestamp from {end}: {self.timestamps[end_index]}")
-
-        new_audio = Audio(self.samples[start_index:end_index + 1], self.frequency, name, self.condition, verbosity)
-        new_audio._set_attributes_from_other_audio(self)
-
-        new_audio.metadata["processing_steps"].append({"processing_type": "trim",
-                                                       "start": start,
-                                                       "end": end})
-        return new_audio
-
-    def _set_attributes_from_other_audio(self, other):
-        """Sets the attributes `condition`, `path` and `metadata` of the Audio from another instance.
-
-        .. versionadded:: 2.0
-
-        Parameters
-        ----------
-        other: Audio
-            Another Audio instance, from which to copy some of the parameters.
-        """
-        self.path = other.path
-        self.condition = other.condition
-        self.metadata = copy.deepcopy(other.metadata)
+        return super().trim(start, end, name, error_if_out_of_bounds, verbosity, add_tabs)
 
     def find_excerpt(self, other, **kwargs):
         """This function tries to find the timestamp at which an excerpt of the current Audio instance begins.
@@ -1635,7 +1137,7 @@ class Audio(AudioDerivative):
         -------
         list(list)
             A list of lists that can be interpreted as a table, containing headers, and with the timestamps and the
-            coordinates of the joints from the sequence on each row.
+            sample value on each row.
 
         Example
         -------
@@ -1647,18 +1149,12 @@ class Audio(AudioDerivative):
          [0.001, 0.1623],
          [0.002, 0.42]]
         """
-        table = [["Timestamp", "Sample"]]
-
-        # For each pose
-        for s in range(len(self.samples)):
-            table.append([self.timestamps[s], self.samples[s]])
-
-        return table
+        return super().to_table()
 
     def to_json(self, include_metadata=True):
-        """Returns a list ready to be exported in JSON. The returned JSON data is a dictionary with two keys:
-        "Sample" is the key to the list of samples, while "Frequency" is the key to the sampling frequency of
-        the audio clip.
+        """Returns a list ready to be exported in JSON. The returned JSON data is a dictionary with three keys:
+        "Timestamp" is the key to the list of timestamps, "Sample" is the key to the list of samples, and "Frequency"
+        is the key to the sampling frequency of the audio clip.
 
         .. versionadded:: 2.0
 
@@ -1680,20 +1176,7 @@ class Audio(AudioDerivative):
         {"Timestamp": [0, 0.001, 0.002, 0.003], "Sample": [0, 0.4815, 0.1623, 0.42], "Frequency": 1000.0,
         "processing_steps": []}
         """
-
-        if include_metadata:
-            data = self.metadata.copy()
-            for key in data:
-                if type(data[key]) == datetime:
-                    data[key] = str(data[key])
-        else:
-            data = {}
-
-        data["Sample"] = self.samples.tolist()
-        data["Timestamp"] = self.timestamps.tolist()
-        data["Frequency"] = self.frequency
-
-        return data
+        return super().to_json(include_metadata)
 
     def to_dict(self, include_frequency=True):
         """Returns a dictionary containing the data of the audio clip.
@@ -1717,10 +1200,7 @@ class Audio(AudioDerivative):
         >>> dict_data
         {"Timestamp": [0, 0.001, 0.002, 0.003], "Sample": [0, 0.4815, 0.1623, 0.42], "Frequency": 1000.0}
         """
-        data_dict = {"Timestamp": self.timestamps, "Sample": self.samples}
-        if include_frequency:
-            data_dict["Frequency"] = self.frequency
-        return data_dict
+        return super().to_dict(include_frequency)
 
     def to_dataframe(self):
         """Returns a Pandas dataframe containing the data of the audio clip.
@@ -1741,8 +1221,7 @@ class Audio(AudioDerivative):
         1      0.001      1623
         2      0.002        42
         """
-        data_dict = self.to_dict(False)
-        return pd.DataFrame(data_dict)
+        return super().to_dataframe()
 
     # === Saving functions ===
     def save(self, folder_out, name=None, file_format="json", encoding="utf-8", individual=False,
@@ -1766,7 +1245,8 @@ class Audio(AudioDerivative):
             on the attribute :attr:`name` of the audio clip; if that attribute is also set on ``None``, the name will be
             set on ``"out"``. If ``individual`` is set on ``True``, each sample will be saved as a different file,
             having the index of the pose as a suffix after the name (e.g. if the name is ``"sample"`` and the file
-            format is ``"txt"``, the poses will be saved as ``sample_0.txt``, ``sample_1.txt``, ``sample_2.txt``, etc.).
+            format is ``"txt"``, the samples will be saved as ``sample_0.txt``, ``sample_1.txt``, ``sample_2.txt``,
+            etc.).
 
         file_format: str or None, optional
             The file format in which to save the audio clip. The file format must be ``"json"`` (default), ``"xlsx"``,
@@ -1780,14 +1260,9 @@ class Audio(AudioDerivative):
                 • Any other string will not return an error, but rather be used as a custom extension. The data will
                   be saved as in a text file (using tabulations as values separators).
 
-            .. warning::
-                While it is possible to save audio clips as ``.mat`` or custom extensions, the toolbox will not
-                recognize these files upon opening. The support for ``.mat`` and custom extensions as input may come in
-                a future release, but for now these are just offered as output options.
-
         encoding: str, optional
-            The encoding of the file to save (not applicable for WAV files). By default, the file is saved in UTF-8
-            encoding. This input can take any of the
+            The encoding of the file to save (applicable for json and text-based files). By default, the file is saved
+            in UTF-8 encoding. This input can take any of the
             official Python accepted formats <https://docs.python.org/3/library/codecs.html#standard-encodings>`_.
 
         individual: bool, optional
@@ -1829,67 +1304,12 @@ class Audio(AudioDerivative):
         >>> audio.save("Recordings/Bach/recording_26.tsv")
         >>> audio.save("Recordings/Bach/recording_26.mat", include_metadata=False)
         """
-
-        if folder_out == "":
-            folder_out = os.getcwd()
-
-        if not individual:
-            subfolders = op.normpath(folder_out).split(os.sep)
-            if len(subfolders) != 0:
-                if "." in subfolders[-1]:
-                    folder_out = op.split(folder_out)[0]
-                    name, file_format = op.splitext(subfolders[-1])
-
-        # Automatic creation of all the folders of the path if they don't exist
-        os.makedirs(folder_out, exist_ok=True)
-
-        if name is None and self.name is not None:
-            name = self.name
-        elif name is None:
-            name = "out"
-
-        file_format = file_format.strip(".")  # We remove the dot in the format
-        if file_format in ["xl", "xls", "excel"]:
-            file_format = "xlsx"
-
-        if verbosity > 0:
-            if individual:
-                print(f"Saving {file_format.upper()} individual files...")
-            else:
-                folder_without_slash = folder_out.strip('/')
-                print(f"Saving {file_format.upper()} global file: {folder_without_slash}/{name}.{file_format}...")
-
-        if file_format == "json":
-            self.save_json(folder_out, name, individual, include_metadata, encoding, verbosity)
-
-        elif file_format == "mat":
-            self.save_mat(folder_out, name, individual, include_metadata, verbosity)
-
-        elif file_format == "xlsx":
-            self.save_excel(folder_out, name, individual, include_metadata=include_metadata,
-                            verbosity=verbosity)
-
-        elif file_format in ["pickle", "pkl"]:
-            self.save_pickle(folder_out, name, individual, verbosity)
-
-        elif file_format == "wav":
-            self.save_wav(folder_out, name, include_metadata, verbosity)
-
-        else:
-            self.save_txt(folder_out, name, file_format, encoding, individual, include_metadata, verbosity)
-
-        if individual:
-            self.path = op.join(folder_out, name)
-        else:
-            self.path = op.join(folder_out, name + "." + file_format)
-
-        if verbosity > 0:
-            print("100% - Done.")
+        super().save(folder_out, name, file_format, encoding, individual, include_metadata, verbosity)
 
     def save_json(self, folder_out, name=None, individual=False, include_metadata=True, encoding="utf-8",
                   verbosity=1):
-        """Saves an audio clip as a json file or files. This function is called by the :meth:`Audio.save`
-        method, and saves the Audio instance as ``folder_out/name.file_format``.
+        """Saves an audio clip as a json file or files. This function saves the Audio instance as
+        ``folder_out/name.file_format``.
 
         .. versionadded:: 2.0
 
@@ -1921,7 +1341,6 @@ class Audio(AudioDerivative):
             of the
             `official Python accepted formats <https://docs.python.org/3/library/codecs.html#standard-encodings>`_.
 
-
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
 
@@ -1936,50 +1355,11 @@ class Audio(AudioDerivative):
         >>> audio = Audio("Recordings/Beethoven/recording_27.wav")
         >>> audio.save_json("Recordings/Beethoven/recording_27.json")
         """
-
-        perc = 10  # Used for the progression percentage
-
-        path_out = None
-        subfolders = op.normpath(folder_out).split(os.sep)
-        if len(subfolders) != 0 and not individual:
-            if subfolders[-1].endswith(".json"):
-                path_out = folder_out
-            else:
-                if name is None:
-                    name = "out"
-                if name.endswith(".json"):
-                    path_out = op.join(folder_out, name)
-                else:
-                    path_out = op.join(folder_out, f"{name}.json")
-
-        data = self.to_json(include_metadata)
-
-        if not individual:
-            with open(path_out, 'w', encoding=encoding) as f:
-                json.dump(data, f)
-        else:
-            if name is None:
-                name = "pose"
-            for s in range(len(self.samples)):
-                perc = show_progression(verbosity, s, len(self.samples), perc)
-                with open(op.join(folder_out, f"{name}_{s}.json"), 'w', encoding="utf-16-le") as f:
-                    json.dump(data["Poses"][s], f)
-
-        # Save the data
-        if not individual:
-            with open(path_out, 'w', encoding=encoding) as f:
-                json.dump(data, f)
-        else:
-            if name is None:
-                name = "sample"
-            for s in range(len(self.samples)):
-                perc = show_progression(verbosity, s, len(self.samples), perc)
-                with open(op.join(folder_out, f"{name}_{s}.json"), 'w', encoding=encoding) as f:
-                    json.dump({"Sample": self.samples[s], "Timestamp": self.timestamps[s]}, f)
+        super().save_json(folder_out, name, individual, include_metadata, encoding, verbosity)
 
     def save_mat(self, folder_out, name=None, individual=False, include_metadata=True, verbosity=1):
-        """Saves an audio clip as a Matlab .mat file or files. This function is called by the :meth:`Audio.save`
-        method, and saves the Audio instance as ``folder_out/name.file_format``.
+        """Saves an audio clip as a Matlab .mat file or files. This function saves the Audio instance as
+        ``folder_out/name.file_format``.
 
         .. versionadded:: 2.0
 
@@ -2024,36 +1404,7 @@ class Audio(AudioDerivative):
         >>> audio = Audio("Recordings/Shostakovich/recording_28.wav")
         >>> audio.save_mat("Recordings/Shostakovich/recording_28.mat")
         """
-
-        perc = 10  # Used for the progression percentage
-
-        path_out = None
-        subfolders = op.normpath(folder_out).split(os.sep)
-        if len(subfolders) != 0 and not individual:
-            if subfolders[-1].endswith(".mat"):
-                path_out = folder_out
-            else:
-                if name is None:
-                    name = "out"
-                if name.endswith(".mat"):
-                    path_out = op.join(folder_out, name)
-                else:
-                    path_out = op.join(folder_out, f"{name}.mat")
-
-        # Save the data
-        if not individual:
-            data_json = self.to_json(include_metadata)
-            for key in data_json:
-                if data_json[key] is None:
-                    data_json[key] = np.nan
-            savemat(path_out, {"data": data_json})
-        else:
-            for s in range(len(self.samples)):
-                if name is None:
-                    name = "sample"
-                data = {"sample": self.samples[s], "timestamp": self.timestamps[s]}
-                perc = show_progression(verbosity, s, len(self.samples), perc)
-                savemat(op.join(folder_out, f"{name}_{s}.mat"), {"data": data})
+        super().save_mat(folder_out, name, individual, include_metadata, verbosity)
 
     def save_excel(self, folder_out, name=None, individual=False, sheet_name="Data", include_metadata=True,
                    metadata_sheet_name="Metadata", verbosity=1):
@@ -2112,39 +1463,7 @@ class Audio(AudioDerivative):
         >>> audio = Audio("Recordings/Chopin/recording_29.wav")
         >>> audio.save_excel("Recordings/Chopin/recording_29.xlsx")
         """
-
-        perc = 10  # Used for the progression percentage
-
-        path_out = None
-        subfolders = op.normpath(folder_out).split(os.sep)
-        if len(subfolders) != 0 and not individual:
-            if subfolders[-1].endswith(".xlsx") or subfolders[-1].endswith(".xls"):
-                path_out = folder_out
-            else:
-                if name is None:
-                    name = "out"
-                if name.endswith(".xlsx") or name.endswith(".xls"):
-                    path_out = op.join(folder_out, name)
-                else:
-                    path_out = op.join(folder_out, f"{name}.xlsx")
-
-        data = self.to_table()
-
-        # Save the data
-        if not individual:
-            if include_metadata:
-                metadata = self.metadata
-            else:
-                metadata = None
-            write_xlsx(data, path_out, sheet_name, metadata, metadata_sheet_name, verbosity)
-
-        else:
-            for s in range(len(self.samples)):
-                if name is None:
-                    name = "pose"
-                data = [data[0], data[s + 1]]
-                perc = show_progression(verbosity, s, len(self.samples), perc)
-                write_xlsx(data, op.join(folder_out, f"{name}_{s}.xlsx"), sheet_name, verbosity=0)
+        super().save_excel(folder_out, name, individual, sheet_name, include_metadata, metadata_sheet_name, verbosity)
 
     def save_pickle(self, folder_out, name=None, individual=False, verbosity=1):
         """Saves an audio clip by pickling it. This allows to reopen the audio clip as an Audio object.
@@ -2181,34 +1500,7 @@ class Audio(AudioDerivative):
         >>> audio = Audio("Recordings/Saint-Saëns/recording_30.wav")
         >>> audio.save_pickle("Recordings/Saint-Saëns/recording_30.pkl")
         """
-
-        perc = 10  # Used for the progression percentage
-
-        path_out = None
-        subfolders = op.normpath(folder_out).split(os.sep)
-        if len(subfolders) != 0 and not individual:
-            if subfolders[-1].endswith(".pkl"):
-                path_out = folder_out
-            else:
-                if name is None:
-                    name = "out"
-                if name.endswith(".pkl"):
-                    path_out = op.join(folder_out, name)
-                else:
-                    path_out = op.join(folder_out, f"{name}.pkl")
-
-        # Save the data
-        if not individual:
-            with open(path_out, "wb") as f:
-                pickle.dump(self, f)
-
-        else:
-            for s in range(len(self.samples)):
-                if name is None:
-                    name = "pose"
-                perc = show_progression(verbosity, s, len(self.samples), perc)
-                with open(op.join(folder_out, f"{name}_{s}.pkl"), "wb") as f:
-                    pickle.dump(self.samples[s], f)
+        super().save_pickle(folder_out, name, individual, verbosity)
 
     def save_wav(self, folder_out, name=None, include_metadata=True, verbosity=1):
         """Saves an audio clip as a .wav file or files. This function is called by the :meth:`Audio.save` method, and
@@ -2244,27 +1536,7 @@ class Audio(AudioDerivative):
         >>> audio = Audio("Recordings/Mozart/recording_32.json")
         >>> audio.save_wav("Recordings/Mozart/recording_32.wav")
         """
-
-        path_out = None
-        subfolders = op.normpath(folder_out).split(os.sep)
-        if len(subfolders) != 0:
-            if "." in subfolders[-1]:
-                path_out = folder_out
-                file_format = op.splitext(subfolders[-1])[-1][1:]
-            else:
-                if name is None:
-                    name = "out"
-                if "." in name:
-                    path_out = op.join(folder_out, name)
-                else:
-                    path_out = op.join(folder_out, f"{name}.wav")
-
-        wavfile.write(path_out, self.frequency, self.samples)
-
-        if include_metadata:
-            with taglib.File(path_out, save_on_exit=True) as f:
-                for key in self.metadata:
-                    f.tags[key] = list(self.metadata[key])
+        super().save_wav(folder_out, name, include_metadata, verbosity)
 
     def save_txt(self, folder_out, name=None, file_format="csv", encoding="utf-8", individual=False,
                  include_metadata=True, verbosity=1):
@@ -2325,58 +1597,7 @@ class Audio(AudioDerivative):
         >>> audio.save_txt("Recordings/Vivaldi/recording_33.tsv", include_metadata=False)
         >>> audio.save_txt("Recordings/Vivaldi", "recording_33", "aaa", include_metadata=False)
         """
-
-        perc = 10  # Used for the progression percentage
-
-        path_out = None
-        subfolders = op.normpath(folder_out).split(os.sep)
-        if len(subfolders) != 0 and not individual:
-            if "." in subfolders[-1]:
-                path_out = folder_out
-                file_format = op.splitext(subfolders[-1])[-1][1:]
-            else:
-                if name is None:
-                    name = "out"
-                if "." in name:
-                    path_out = op.join(folder_out, name)
-                else:
-                    path_out = op.join(folder_out, f"{name}.{file_format}")
-
-        # Force comma or semicolon separator
-        if file_format == "csv,":
-            separator = ","
-            file_format = "csv"
-        elif file_format == "csv;":
-            separator = ";"
-            file_format = "csv"
-        elif file_format == "csv":  # Get the separator from local user (to get , or ;)
-            separator = get_system_csv_separator()
-        elif file_format == "txt":  # For text files, tab separator
-            separator = "\t"
-        else:
-            separator = "\t"
-
-        # Save the data
-        if not individual:
-            if include_metadata:
-                metadata = self.metadata
-            else:
-                metadata = None
-            write_text_table(self.to_table(), separator, path_out, metadata, None, encoding,
-                             verbosity=verbosity)
-        else:
-            table = self.to_table()
-            for s in range(len(self.samples)):
-                if name is None:
-                    name = "sample"
-                if s == 0:
-                    metadata = self.metadata
-                else:
-                    metadata = None
-                write_text_table([table[0], table[s+1]], separator,
-                                 op.join(folder_out, f"{name}_{s}.{file_format}"), metadata,
-                                 encoding=encoding, verbosity=0)
-                perc = show_progression(verbosity, s, len(self.samples), perc)
+        super().save_txt(folder_out, name, file_format, encoding, individual, include_metadata, verbosity)
 
     def copy(self):
         """Returns a deep copy of the Audio object.
@@ -2411,7 +1632,7 @@ class Audio(AudioDerivative):
         >>> len(audio)
         88200
         """
-        return len(self.samples)
+        return super().__len__()
 
     def __getitem__(self, index):
         """Returns the sample of index specified by the parameter ``index``.
@@ -2432,7 +1653,7 @@ class Audio(AudioDerivative):
         >>> audio[820]
         417
         """
-        return self.samples[index]
+        return super().__getitem__(index)
 
     def __repr__(self):
         """Returns the :attr:`name` attribute of the audio clip.
@@ -2452,11 +1673,11 @@ class Audio(AudioDerivative):
         >>> print(audio)
         audio_37
         """
-        return self.name
+        return super().__repr__()
 
     def __eq__(self, other):
         """Returns `True` if all the samples in the attribute :attr:`samples` have identical values between the two
-        :class:`Audio` objects, and if the frequency is identical..
+        :class:`Audio` objects, and if the frequency is identical.
 
         .. versionadded:: 2.0
 
@@ -2465,10 +1686,4 @@ class Audio(AudioDerivative):
         other: Audio
             Another :class:`Audio` object.
         """
-        if len(self.samples) != len(other.samples):
-            return False
-
-        if self.frequency != other.frequency:
-            return False
-
-        return np.array_equal(self.samples, other.samples)
+        return super().__eq__(other)

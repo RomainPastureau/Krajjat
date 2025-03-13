@@ -81,15 +81,15 @@ Internal loading functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. autofunction:: krajjat.tool_functions.load_joint_labels
 .. autofunction:: krajjat.tool_functions.load_qualisys_joint_label_conversion
-.. autofunction:: krajjat.tool_functions.load_joints_connections
+.. autofunction:: krajjat.tool_functions.load_joint_connections
 .. autofunction:: krajjat.tool_functions.load_qualisys_to_kinect
 .. autofunction:: krajjat.tool_functions.load_joints_subplot_layout
 .. autofunction:: krajjat.tool_functions.load_joints_silhouette_layout
-.. autofunction:: krajjat.tool_functions.load_steps_gui
+.. autofunction:: krajjat.tool_functions.load_default_steps_gui
 
 Time functions
 ^^^^^^^^^^^^^^
-.. autofunction:: krajjat.tool_functions.convert_timestamp_to_unit
+.. autofunction:: krajjat.tool_functions.convert_timestamp_to_seconds
 .. autofunction:: krajjat.tool_functions.format_time
 .. autofunction:: krajjat.tool_functions.time_unit_to_datetime
 .. autofunction:: krajjat.tool_functions.time_unit_to_timedelta

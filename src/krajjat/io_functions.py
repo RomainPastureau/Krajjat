@@ -106,11 +106,11 @@ def load_sequences(input_folder, recursive=False, output_type="list", ignore_emp
             elif not ignore_loading_errors:
                 raise ImpossibleTimeTravelException(ex.index1, ex.index2, ex.timestamp1,
                                                     ex.timestamp2, ex.number_of_timestamps, ex.object_type)
-        except EmptySequenceException as ex:
+        except EmptyInstanceException as ex:
             if ignore_empty_sequences and verbosity > 0:
                 print(ex.message)
             elif not ignore_empty_sequences:
-                raise EmptySequenceException()
+                raise EmptyInstanceException("Sequence")
 
         if recursive:
             if os.path.isdir(op.join(input_folder, element)):
@@ -227,11 +227,11 @@ def load_audios(input_folder, recursive=False, output_type="list", ignore_empty_
             elif not ignore_loading_errors:
                 raise ImpossibleTimeTravelException(ex.index1, ex.index2, ex.timestamp1,
                                                     ex.timestamp2, ex.number_of_timestamps, ex.object_type)
-        except EmptyAudioException as ex:
+        except EmptyInstanceException as ex:
             if ignore_empty_audios and verbosity > 0:
                 print(ex.message)
             elif not ignore_empty_audios:
-                raise EmptyAudioException()
+                raise EmptyInstanceException("Audio")
 
         if recursive:
             if os.path.isdir(op.join(input_folder, element)):

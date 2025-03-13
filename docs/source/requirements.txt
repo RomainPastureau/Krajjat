@@ -14,3 +14,4 @@ praat-parselmouth == 0.4.3
 chardet == 5.2.0
 PyAudio == 0.2.13
 seaborn == 0.12.2
+pytaglib == 3.0.0

@@ -73,7 +73,7 @@ Sampling rate
 Metrics
 """""""
 .. automethod:: krajjat.classes.sequence.Sequence.get_measure
-.. automethod:: krajjat.classes.sequence.Sequence.get_extreme_measure
+.. automethod:: krajjat.classes.sequence.Sequence.get_extremum_measure
 .. automethod:: krajjat.classes.sequence.Sequence.get_sum_measure
 
 Correction functions
@@ -106,7 +106,7 @@ Saving functions
 .. automethod:: krajjat.classes.sequence.Sequence.save_info
 .. automethod:: krajjat.classes.sequence.Sequence.save_json
 .. automethod:: krajjat.classes.sequence.Sequence.save_mat
-.. automethod:: krajjat.classes.sequence.Sequence.save_xlsx
+.. automethod:: krajjat.classes.sequence.Sequence.save_excel
 .. automethod:: krajjat.classes.sequence.Sequence.save_pickle
 .. automethod:: krajjat.classes.sequence.Sequence.save_txt
 
@@ -130,7 +130,7 @@ Initialisation functions
 .. automethod:: krajjat.classes.sequence.Sequence._load_sequence_file
 .. automethod:: krajjat.classes.sequence.Sequence._create_pose_from_table_row
 .. automethod:: krajjat.classes.sequence.Sequence._create_pose_from_json
-.. automethod:: krajjat.classes.sequence.Sequence._set_timestamp_time_unit
+.. automethod:: krajjat.classes.sequence.Sequence._set_timestamps_time_unit
 .. automethod:: krajjat.classes.sequence.Sequence._load_json_metadata
 .. automethod:: krajjat.classes.sequence.Sequence._load_date_recording
 .. automethod:: krajjat.classes.sequence.Sequence._set_joint_labels
@@ -146,4 +146,4 @@ Correction functions
 Miscellaneous functions
 ^^^^^^^^^^^^^^^^^^^^^^^
 .. automethod:: krajjat.classes.sequence.Sequence._create_new_sequence_with_timestamps
-.. automethod:: krajjat.classes.sequence.Sequence._set_attributes_from_other_sequences
+.. automethod:: krajjat.classes.sequence.Sequence._set_attributes_from_other_sequence

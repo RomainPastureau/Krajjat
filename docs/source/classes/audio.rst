@@ -29,16 +29,14 @@ Getter functions
 ^^^^^^^^^^^^^^^^
 .. automethod:: krajjat.classes.audio.Audio.get_path
 .. automethod:: krajjat.classes.audio.Audio.get_name
+.. automethod:: krajjat.classes.audio.Audio.get_condition
 .. automethod:: krajjat.classes.audio.Audio.get_samples
 .. automethod:: krajjat.classes.audio.Audio.get_sample
 .. automethod:: krajjat.classes.audio.Audio.get_number_of_samples
 .. automethod:: krajjat.classes.audio.Audio.get_timestamps
 .. automethod:: krajjat.classes.audio.Audio.get_duration
 .. automethod:: krajjat.classes.audio.Audio.get_frequency
-
-Copy function
-^^^^^^^^^^^^^
-.. automethod:: krajjat.classes.audio.Audio.copy
+.. automethod:: krajjat.classes.audio.Audio.get_info
 
 Transformation functions
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -51,7 +49,12 @@ Transformation functions
 .. _get_formant:
 .. automethod:: krajjat.classes.audio.Audio.get_formant
 .. automethod:: krajjat.classes.audio.Audio.get_derivative
+
+Correction functions
+^^^^^^^^^^^^^^^^^^^^
+.. automethod:: krajjat.classes.audio.Audio.filter_frequencies
 .. automethod:: krajjat.classes.audio.Audio.resample
+.. automethod:: krajjat.classes.audio.Audio.trim
 
 Delay finding
 ^^^^^^^^^^^^^
@@ -60,10 +63,10 @@ Delay finding
 
 Conversion functions
 ^^^^^^^^^^^^^^^^^^^^
-.. automethod:: krajjat.classes.audio.Audio.convert_to_table
-.. automethod:: krajjat.classes.audio.Audio.convert_to_json
-.. automethod:: krajjat.classes.audio.Audio.convert_to_dict
-.. automethod:: krajjat.classes.audio.Audio.convert_to_dataframe
+.. automethod:: krajjat.classes.audio.Audio.to_table
+.. automethod:: krajjat.classes.audio.Audio.to_json
+.. automethod:: krajjat.classes.audio.Audio.to_dict
+.. automethod:: krajjat.classes.audio.Audio.to_dataframe
 
 Saving function
 ^^^^^^^^^^^^^^^
@@ -75,20 +78,6 @@ Saving function
 .. automethod:: krajjat.classes.audio.Audio.save_wav
 .. automethod:: krajjat.classes.audio.Audio.save_txt
 
-Private methods
----------------
-Initialisation functions
-^^^^^^^^^^^^^^^^^^^^^^^^
-.. automethod:: krajjat.classes.audio.Audio._define_name_init
-.. automethod:: krajjat.classes.audio.Audio._load_from_path
-.. automethod:: krajjat.classes.audio.Audio._load_from_samples
-.. automethod:: krajjat.classes.audio.Audio._load_samples
-.. automethod:: krajjat.classes.audio.Audio._load_single_sample_file
-.. automethod:: krajjat.classes.audio.Audio._load_audio_file
-.. automethod:: krajjat.classes.audio.Audio._load_json_metadata
-.. automethod:: krajjat.classes.audio.Audio._calculate_frequency
-.. automethod:: krajjat.classes.audio.Audio._calculate_timestamps
-
-Other function
-^^^^^^^^^^^^^^
-.. automethod:: krajjat.classes.audio.Audio._set_attributes_from_other_audio
+Copy function
+^^^^^^^^^^^^^
+.. automethod:: krajjat.classes.audio.Audio.copy

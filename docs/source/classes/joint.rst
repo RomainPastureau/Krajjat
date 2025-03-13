@@ -50,8 +50,8 @@ Predicates
 
 Other methods
 ^^^^^^^^^^^^^
-.. automethod:: krajjat.classes.joint.Joint.get_copy
-.. automethod:: krajjat.classes.joint.Joint.convert_rotation
+.. automethod:: krajjat.classes.joint.Joint.copy
+.. automethod:: krajjat.classes.joint.Joint.rotate
 
 Private method
 --------------

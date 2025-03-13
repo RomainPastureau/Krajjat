@@ -40,8 +40,8 @@ Joints functions
 
 Conversion functions
 ^^^^^^^^^^^^^^^^^^^^
-.. automethod:: krajjat.classes.pose.Pose.convert_to_table
-.. automethod:: krajjat.classes.pose.Pose.convert_to_json
+.. automethod:: krajjat.classes.pose.Pose.to_table
+.. automethod:: krajjat.classes.pose.Pose.to_json
 
 Copy function
 ^^^^^^^^^^^^^

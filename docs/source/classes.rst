@@ -4,6 +4,7 @@ Classes
 .. toctree::
     classes/experiment
     classes/subject
+    classes/time_series
     classes/sequence
     classes/pose
     classes/joint

@@ -19,7 +19,7 @@ The toolbox allows to:
      :ref:`re-referencing <re_reference>`,
      :ref:`trimming <trim>`,
      :ref:`resampling <resample>`, and
-     :ref:`interpolating missing data <correct_zeros>`. See more details
+     :ref:`interpolating missing data <interpolate_missing_data>`. See more details
      :ref:`here<processing_functions>`.
    • Get **basic information** about the sequences, via e.g. :meth:`~krajjat.classes.sequence.Sequence.print_stats`.
    • Get **acoustic components** of the speech, such as the :ref:`envelope <get_envelope>`, the
