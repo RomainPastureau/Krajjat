@@ -71,6 +71,31 @@ Color schemes
       <rect x="0" y="0" width="500" height="20" id="rect3" />
     </svg></p>
 
+    <p>Horizon</br>
+    <svg width="500" height="20" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+          <linearGradient id="Gradient8">
+            <stop class="stop1-008" offset="0%"/>
+            <stop class="stop2-008" offset="25%"/>
+            <stop class="stop3-008" offset="50%"/>
+            <stop class="stop4-008" offset="75%"/>
+            <stop class="stop5-008" offset="100%"/>
+          </linearGradient>
+
+          <style type="text/css"><![CDATA[
+            #rect8 { fill: url(#Gradient8); }
+            .stop1-008 { stop-color: #483d8b; }
+            .stop2-008 { stop-color: #029386; }
+            .stop3-008 { stop-color: #ffff00; }
+            .stop4-008 { stop-color: #ffa500; }
+            .stop5-008 { stop-color: #ff1493; }
+          ]]></style>
+
+      </defs>
+
+      <rect x="0" y="0" width="500" height="20" id="rect8" />
+    </svg></p>
+
     <p>Cividis</br>
     <svg width="500" height="20" version="1.1" xmlns="http://www.w3.org/2000/svg">
       <defs>
@@ -139,8 +164,6 @@ Color schemes
 
       <rect x="0" y="0" width="500" height="20" id="rect6" />
     </svg></p>
-
-    </embed>
 
     <p>Matlab_Ordered</br>
     <svg width="500" height="20" version="1.1" xmlns="http://www.w3.org/2000/svg">

@@ -2,7 +2,6 @@
 """
 import numpy as np
 import scipy
-from matplotlib import pyplot as plt
 
 from krajjat.classes.exceptions import ModuleNotFoundException
 from krajjat.classes.experiment import Experiment
@@ -194,15 +193,15 @@ def correlation(experiment_or_dataframe, group=None, condition=None, subjects=No
 
     Parameters
     ----------
-    experiment_or_dataframe: Experiment, pandas.DataFrame, str or list(any).
+    experiment_or_dataframe: Experiment, pandas.DataFrame, str or list(any)
         This parameter can be:
-
-        · A :class:`Experiment` instance, containing the full dataset to be analyzed.
-        · A `pandas DataFrame <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html>`_,
-          generally generated from :meth:`Experiment.get_dataframe()`.
-        · The path of a file containing a pandas DataFrame, generally generated from
-          :class:`Experiment.save_dataframe()`.
-        · A list combining any of the above types. In that case, all the dataframes will be merged sequentially.
+        
+            • A :class:`Experiment` instance, containing the full dataset to be analyzed.
+            • A `pandas DataFrame <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html>`_,
+              generally generated from :meth:`Experiment.get_dataframe()`.
+            • The path of a file containing a pandas DataFrame, generally generated from
+              :class:`Experiment.save_dataframe()`.
+            • A list combining any of the above types. In that case, all the dataframes will be merged sequentially.
 
     group: str or None
         If specified, the analysis will focus exclusively on subjects whose
@@ -225,19 +224,21 @@ def correlation(experiment_or_dataframe, group=None, condition=None, subjects=No
         If specified, the analysis will discard the trials whose
         :attr:`~krajjat.classes.trial.Trial.name` attribute does not match the value(s) provided for this parameter.
         This parameter can be:
-            · A dictionary where each key is a subject name, and each value is a list containing trial names. This
+
+            • A dictionary where each key is a subject name, and each value is a list containing trial names. This
               allows to discard or select specific trials for individual subjects.
-            · A list where each element is a trial name. This will select only the trials matching the given name,
+            • A list where each element is a trial name. This will select only the trials matching the given name,
               for each subject.
-            · The name of a single trial. This will select the given trial for all subjects.
-            · `None` (default). In that case, all trials will be considered.
+            • The name of a single trial. This will select the given trial for all subjects.
+            • `None` (default). In that case, all trials will be considered.
+
         This parameter can be combined with the other parameters to select specific subjects or conditions.
 
         ..note ::
             In the case where at least two of the parameters `group`, `condition`, `subjects` or `trials` are set,
             the selected trials will be the ones that match all the selected categories. For example, if `subjects`
             is set on `["sub_001", "sub_002", "sub_003"]` and trials is set on `{"sub_001": ["trial_001", "trial_002"],
-            "sub_004": ["trial_001"]`, the analysis will run on the trials that intersect both requirements, i.e.
+            "sub_004": ["trial_001"]}`, the analysis will run on the trials that intersect both requirements, i.e.
             trials 1 and 2 for subject 1. Trials from subjects 2, 3 and 4 will be discarded.
 
     series: str, optional
@@ -247,8 +248,8 @@ def correlation(experiment_or_dataframe, group=None, condition=None, subjects=No
 
     correlation_type: str, optional
         Can be either `"corr"` (default, uses
-        `pingouin_corr <https://pingouin-stats.org/build/html/generated/pingouin.corr.html>`_) or `"rm_corr"` (uses
-        `pingouin_corr <https://pingouin-stats.org/build/html/generated/pingouin.rm_corr.html>`_).
+        `pingouin_corr <https://pingouin-stats.org/build/html/generated/pingouin.corr.html>`__) or `"rm_corr"` (uses
+        `pingouin_corr <https://pingouin-stats.org/build/html/generated/pingouin.rm_corr.html>`__).
 
     average: str or None, optional
         Defines if an average correlation is returned. This parameter can be:
@@ -265,13 +266,13 @@ def correlation(experiment_or_dataframe, group=None, condition=None, subjects=No
     sequence_measure: str, optional
         The measure used for each sequence instance, can be either:
 
-            • ``"x"``, for the values on the x axis (in meters)
-            • ``"y"``, for the values on the y axis (in meters)
+            • ``"x"``, for the values on the x-axis (in meters)
+            • ``"y"``, for the values on the y-axis (in meters)
             • ``"z"``, for the values on the z axis (in meters)
             • ``"distance_hands"``, for the distance between the hands (in meters)
             • ``"distance"``, for the distance travelled (in meters, default)
-            • ``"distance_x"`` for the distance travelled on the x axis (in meters)
-            • ``"distance_y"`` for the distance travelled on the y axis (in meters)
+            • ``"distance_x"`` for the distance travelled on the x-axis (in meters)
+            • ``"distance_y"`` for the distance travelled on the y-axis (in meters)
             • ``"distance_z"`` for the distance travelled on the z axis (in meters)
             • ``"velocity"`` for the velocity (in meters per second)
             • ``"acceleration"`` for the acceleration (in meters per second squared)
@@ -528,6 +529,8 @@ def correlation(experiment_or_dataframe, group=None, condition=None, subjects=No
 
     return average_correlation, sd_correlation
 
+def cross_correlation():
+    pass
 
 def coherence(experiment_or_dataframe, group=None, condition=None, subjects=None, trials=None, series=None,
               average="subject", include_randperm="whole", sequence_measure="distance", coherence_with="envelope",
@@ -543,12 +546,12 @@ def coherence(experiment_or_dataframe, group=None, condition=None, subjects=None
     experiment_or_dataframe: Experiment, pandas.DataFrame, str or list(any).
         This parameter can be:
 
-        · A :class:`Experiment` instance, containing the full dataset to be analyzed.
-        · A `pandas DataFrame <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html>`_,
-          generally generated from :meth:`Experiment.get_dataframe()`.
-        · The path of a file containing a pandas DataFrame, generally generated from
-          :class:`Experiment.save_dataframe()`.
-        · A list combining any of the above types. In that case, all the dataframes will be merged sequentially.
+            • A :class:`Experiment` instance, containing the full dataset to be analyzed.
+            • A `pandas DataFrame <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html>`_,
+              generally generated from :meth:`Experiment.get_dataframe()`.
+            • The path of a file containing a pandas DataFrame, generally generated from
+              :class:`Experiment.save_dataframe()`.
+            • A list combining any of the above types. In that case, all the dataframes will be merged sequentially.
 
     group: str or None
         If specified, the analysis will focus exclusively on subjects whose
@@ -571,19 +574,21 @@ def coherence(experiment_or_dataframe, group=None, condition=None, subjects=None
         If specified, the analysis will discard the trials whose
         :attr:`~krajjat.classes.trial.Trial.name` attribute does not match the value(s) provided for this parameter.
         This parameter can be:
-            · A dictionary where each key is a subject name, and each value is a list containing trial names. This
+
+            • A dictionary where each key is a subject name, and each value is a list containing trial names. This
               allows to discard or select specific trials for individual subjects.
-            · A list where each element is a trial name. This will select only the trials matching the given name,
+            • A list where each element is a trial name. This will select only the trials matching the given name,
               for each subject.
-            · The name of a single trial. This will select the given trial for all subjects.
-            · `None` (default). In that case, all trials will be considered.
+            • The name of a single trial. This will select the given trial for all subjects.
+            • `None` (default). In that case, all trials will be considered.
+
         This parameter can be combined with the other parameters to select specific subjects or conditions.
 
         ..note ::
             In the case where at least two of the parameters `group`, `condition`, `subjects` or `trials` are set,
             the selected trials will be the ones that match all the selected categories. For example, if `subjects`
             is set on `["sub_001", "sub_002", "sub_003"]` and trials is set on `{"sub_001": ["trial_001", "trial_002"],
-            "sub_004": ["trial_001"]`, the analysis will run on the trials that intersect both requirements, i.e.
+            "sub_004": ["trial_001"]}`, the analysis will run on the trials that intersect both requirements, i.e.
             trials 1 and 2 for subject 1. Trials from subjects 2, 3 and 4 will be discarded.
 
     series: str, optional
@@ -606,13 +611,13 @@ def coherence(experiment_or_dataframe, group=None, condition=None, subjects=None
     sequence_measure: str, optional
         The measure used for each sequence instance, can be either:
 
-            • ``"x"``, for the values on the x axis (in meters)
-            • ``"y"``, for the values on the y axis (in meters)
+            • ``"x"``, for the values on the x-axis (in meters)
+            • ``"y"``, for the values on the y-axis (in meters)
             • ``"z"``, for the values on the z axis (in meters)
             • ``"distance_hands"``, for the distance between the hands (in meters)
             • ``"distance"``, for the distance travelled (in meters, default)
-            • ``"distance_x"`` for the distance travelled on the x axis (in meters)
-            • ``"distance_y"`` for the distance travelled on the y axis (in meters)
+            • ``"distance_x"`` for the distance travelled on the x-axis (in meters)
+            • ``"distance_y"`` for the distance travelled on the y-axis (in meters)
             • ``"distance_z"`` for the distance travelled on the z axis (in meters)
             • ``"velocity"`` for the velocity (in meters per second)
             • ``"acceleration"`` for the acceleration (in meters per second squared)
@@ -902,7 +907,7 @@ def pca(experiment_or_dataframe, n_components, group=None, condition=None, subje
     """Performs a principal component analysis (PCA) on the measures from the experiment, reducing the dimensionality
     of the data. Each joint_label is used as a feature for the PCA, and, if specified, the audio measure too.
     Relies on the PCA function from
-    `scikit <https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html>`_.
+    `scikit <https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html>`__.
 
     ..versionadded:: 2.0
 
@@ -911,12 +916,12 @@ def pca(experiment_or_dataframe, n_components, group=None, condition=None, subje
     experiment_or_dataframe: Experiment, pandas.DataFrame, str or list(any).
         This parameter can be:
 
-        · A :class:`Experiment` instance, containing the full dataset to be analyzed.
-        · A `pandas DataFrame <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html>`_,
+        • A :class:`Experiment` instance, containing the full dataset to be analyzed.
+        • A `pandas DataFrame <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html>`_,
           generally generated from :meth:`Experiment.get_dataframe()`.
-        · The path of a file containing a pandas DataFrame, generally generated from
+        • The path of a file containing a pandas DataFrame, generally generated from
           :class:`Experiment.save_dataframe()`.
-        · A list combining any of the above types. In that case, all the dataframes will be merged sequentially.
+        • A list combining any of the above types. In that case, all the dataframes will be merged sequentially.
 
     n_components: int, optional
         The number of components to generate from the PCA.
@@ -942,31 +947,33 @@ def pca(experiment_or_dataframe, n_components, group=None, condition=None, subje
         If specified, the analysis will discard the trials whose
         :attr:`~krajjat.classes.trial.Trial.name` attribute does not match the value(s) provided for this parameter.
         This parameter can be:
-            · A dictionary where each key is a subject name, and each value is a list containing trial names. This
+
+            • A dictionary where each key is a subject name, and each value is a list containing trial names. This
               allows to discard or select specific trials for individual subjects.
-            · A list where each element is a trial name. This will select only the trials matching the given name,
+            • A list where each element is a trial name. This will select only the trials matching the given name,
               for each subject.
-            · The name of a single trial. This will select the given trial for all subjects.
-            · `None` (default). In that case, all trials will be considered.
+            • The name of a single trial. This will select the given trial for all subjects.
+            • `None` (default). In that case, all trials will be considered.
+
         This parameter can be combined with the other parameters to select specific subjects or conditions.
 
         ..note ::
             In the case where at least two of the parameters `group`, `condition`, `subjects` or `trials` are set,
             the selected trials will be the ones that match all the selected categories. For example, if `subjects`
             is set on `["sub_001", "sub_002", "sub_003"]` and trials is set on `{"sub_001": ["trial_001", "trial_002"],
-            "sub_004": ["trial_001"]`, the analysis will run on the trials that intersect both requirements, i.e.
+            "sub_004": ["trial_001"]}`, the analysis will run on the trials that intersect both requirements, i.e.
             trials 1 and 2 for subject 1. Trials from subjects 2, 3 and 4 will be discarded.
 
     sequence_measure: str, optional
         The measure used for each sequence instance, can be either:
 
-            • ``"x"``, for the values on the x axis (in meters)
-            • ``"y"``, for the values on the y axis (in meters)
+            • ``"x"``, for the values on the x-axis (in meters)
+            • ``"y"``, for the values on the y-axis (in meters)
             • ``"z"``, for the values on the z axis (in meters)
             • ``"distance_hands"``, for the distance between the hands (in meters)
             • ``"distance"``, for the distance travelled (in meters, default)
-            • ``"distance_x"`` for the distance travelled on the x axis (in meters)
-            • ``"distance_y"`` for the distance travelled on the y axis (in meters)
+            • ``"distance_x"`` for the distance travelled on the x-axis (in meters)
+            • ``"distance_y"`` for the distance travelled on the y-axis (in meters)
             • ``"distance_z"`` for the distance travelled on the z axis (in meters)
             • ``"velocity"`` for the velocity (in meters per second)
             • ``"acceleration"`` for the acceleration (in meters per second squared)
@@ -1097,7 +1104,7 @@ def ica(experiment_or_dataframe, n_components, group=None, condition=None, subje
         show_graph=True, selected_components=None, nan_behaviour="ignore", verbosity=1):
     """Performs an independent component analysis (ICA) on the measures from the experiment, trying to separate them
     into subcomponents. Relies on the fastICA function from
-    `scikit <https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.FastICA.html>`_.
+    `scikit <https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.FastICA.html>`__.
 
     ..versionadded:: 2.0
 
@@ -1106,12 +1113,12 @@ def ica(experiment_or_dataframe, n_components, group=None, condition=None, subje
     experiment_or_dataframe: Experiment, pandas.DataFrame, str or list(any).
         This parameter can be:
 
-        · A :class:`Experiment` instance, containing the full dataset to be analyzed.
-        · A `pandas DataFrame <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html>`_,
+        • A :class:`Experiment` instance, containing the full dataset to be analyzed.
+        • A `pandas DataFrame <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html>`_,
           generally generated from :meth:`Experiment.get_dataframe()`.
-        · The path of a file containing a pandas DataFrame, generally generated from
+        • The path of a file containing a pandas DataFrame, generally generated from
           :class:`Experiment.save_dataframe()`.
-        · A list combining any of the above types. In that case, all the dataframes will be merged sequentially.
+        • A list combining any of the above types. In that case, all the dataframes will be merged sequentially.
 
     n_components: int, optional
         The number of components to generate from the ICA.
@@ -1137,31 +1144,33 @@ def ica(experiment_or_dataframe, n_components, group=None, condition=None, subje
         If specified, the analysis will discard the trials whose
         :attr:`~krajjat.classes.trial.Trial.name` attribute does not match the value(s) provided for this parameter.
         This parameter can be:
-            · A dictionary where each key is a subject name, and each value is a list containing trial names. This
+
+            • A dictionary where each key is a subject name, and each value is a list containing trial names. This
               allows to discard or select specific trials for individual subjects.
-            · A list where each element is a trial name. This will select only the trials matching the given name,
+            • A list where each element is a trial name. This will select only the trials matching the given name,
               for each subject.
-            · The name of a single trial. This will select the given trial for all subjects.
-            · `None` (default). In that case, all trials will be considered.
+            • The name of a single trial. This will select the given trial for all subjects.
+            • `None` (default). In that case, all trials will be considered.
+
         This parameter can be combined with the other parameters to select specific subjects or conditions.
 
         ..note ::
             In the case where at least two of the parameters `group`, `condition`, `subjects` or `trials` are set,
             the selected trials will be the ones that match all the selected categories. For example, if `subjects`
             is set on `["sub_001", "sub_002", "sub_003"]` and trials is set on `{"sub_001": ["trial_001", "trial_002"],
-            "sub_004": ["trial_001"]`, the analysis will run on the trials that intersect both requirements, i.e.
+            "sub_004": ["trial_001"]}`, the analysis will run on the trials that intersect both requirements, i.e.
             trials 1 and 2 for subject 1. Trials from subjects 2, 3 and 4 will be discarded.
 
     sequence_measure: str, optional
         The measure used for each sequence instance, can be either:
 
-            • ``"x"``, for the values on the x axis (in meters)
-            • ``"y"``, for the values on the y axis (in meters)
+            • ``"x"``, for the values on the x-axis (in meters)
+            • ``"y"``, for the values on the y-axis (in meters)
             • ``"z"``, for the values on the z axis (in meters)
             • ``"distance_hands"``, for the distance between the hands (in meters)
             • ``"distance"``, for the distance travelled (in meters, default)
-            • ``"distance_x"`` for the distance travelled on the x axis (in meters)
-            • ``"distance_y"`` for the distance travelled on the y axis (in meters)
+            • ``"distance_x"`` for the distance travelled on the x-axis (in meters)
+            • ``"distance_y"`` for the distance travelled on the y-axis (in meters)
             • ``"distance_z"`` for the distance travelled on the z axis (in meters)
             • ``"velocity"`` for the velocity (in meters per second)
             • ``"acceleration"`` for the acceleration (in meters per second squared)
@@ -1293,7 +1302,7 @@ def mutual_information(experiment_or_dataframe, group=None, condition=None, subj
                        regression_with="envelope", sampling_frequency=50, nan_behaviour="ignore", verbosity=1,
                        **kwargs):
     """Performs a mutual information regression between the sequence measure and the audio. Relies on
-    `scikit <https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.mutual_info_regression.html>`_.
+    `scikit <https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.mutual_info_regression.html>`__.
 
     ..versionadded:: 2.0
 
@@ -1302,12 +1311,12 @@ def mutual_information(experiment_or_dataframe, group=None, condition=None, subj
     experiment_or_dataframe: Experiment, pandas.DataFrame, str or list(any).
         This parameter can be:
 
-        · A :class:`Experiment` instance, containing the full dataset to be analyzed.
-        · A `pandas DataFrame <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html>`_,
+        • A :class:`Experiment` instance, containing the full dataset to be analyzed.
+        • A `pandas DataFrame <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html>`_,
           generally generated from :meth:`Experiment.get_dataframe()`.
-        · The path of a file containing a pandas DataFrame, generally generated from
+        • The path of a file containing a pandas DataFrame, generally generated from
           :class:`Experiment.save_dataframe()`.
-        · A list combining any of the above types. In that case, all the dataframes will be merged sequentially.
+        • A list combining any of the above types. In that case, all the dataframes will be merged sequentially.
 
     group: str or None
         If specified, the analysis will discard the trials whose
@@ -1330,19 +1339,21 @@ def mutual_information(experiment_or_dataframe, group=None, condition=None, subj
         If specified, the analysis will discard the trials whose
         :attr:`~krajjat.classes.trial.Trial.name` attribute does not match the value(s) provided for this parameter.
         This parameter can be:
-            · A dictionary where each key is a subject name, and each value is a list containing trial names. This
+
+            • A dictionary where each key is a subject name, and each value is a list containing trial names. This
               allows to discard or select specific trials for individual subjects.
-            · A list where each element is a trial name. This will select only the trials matching the given name,
+            • A list where each element is a trial name. This will select only the trials matching the given name,
               for each subject.
-            · The name of a single trial. This will select the given trial for all subjects.
-            · `None` (default). In that case, all trials will be considered.
+            • The name of a single trial. This will select the given trial for all subjects.
+            • `None` (default). In that case, all trials will be considered.
+
         This parameter can be combined with the other parameters to select specific subjects or conditions.
 
         ..note ::
             In the case where at least two of the parameters `group`, `condition`, `subjects` or `trials` are set,
             the selected trials will be the ones that match all the selected categories. For example, if `subjects`
             is set on `["sub_001", "sub_002", "sub_003"]` and trials is set on `{"sub_001": ["trial_001", "trial_002"],
-            "sub_004": ["trial_001"]`, the analysis will run on the trials that intersect both requirements, i.e.
+            "sub_004": ["trial_001"]}`, the analysis will run on the trials that intersect both requirements, i.e.
             trials 1 and 2 for subject 1. Trials from subjects 2, 3 and 4 will be discarded.
 
     series: str, optional
@@ -1365,13 +1376,13 @@ def mutual_information(experiment_or_dataframe, group=None, condition=None, subj
     sequence_measure: str, optional
         The measure used for each sequence instance, can be either:
 
-            • ``"x"``, for the values on the x axis (in meters)
-            • ``"y"``, for the values on the y axis (in meters)
+            • ``"x"``, for the values on the x-axis (in meters)
+            • ``"y"``, for the values on the y-axis (in meters)
             • ``"z"``, for the values on the z axis (in meters)
             • ``"distance_hands"``, for the distance between the hands (in meters)
             • ``"distance"``, for the distance travelled (in meters, default)
-            • ``"distance_x"`` for the distance travelled on the x axis (in meters)
-            • ``"distance_y"`` for the distance travelled on the y axis (in meters)
+            • ``"distance_x"`` for the distance travelled on the x-axis (in meters)
+            • ``"distance_y"`` for the distance travelled on the y-axis (in meters)
             • ``"distance_z"`` for the distance travelled on the z axis (in meters)
             • ``"velocity"`` for the velocity (in meters per second)
             • ``"acceleration"`` for the acceleration (in meters per second squared)
@@ -1639,23 +1650,23 @@ def _make_dataframe(experiment_or_dataframe, sequence_measure, audio_measure, sa
     experiment_or_dataframe: Experiment, pandas.DataFrame, str or list(any).
         This parameter can be:
 
-        · A :class:`Experiment` instance, containing the full dataset to be analyzed.
-        · A `pandas DataFrame <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html>`_,
+        • A :class:`Experiment` instance, containing the full dataset to be analyzed.
+        • A `pandas DataFrame <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html>`_,
           generally generated from :meth:`Experiment.get_dataframe()`.
-        · The path of a file containing a pandas DataFrame, generally generated from
+        • The path of a file containing a pandas DataFrame, generally generated from
           :class:`Experiment.save_dataframe()`.
-        · A list combining any of the above types. In that case, all the dataframes will be merged sequentially.
+        • A list combining any of the above types. In that case, all the dataframes will be merged sequentially.
 
     sequence_measure: str, optional
         The measure used for each sequence instance, can be either:
 
-            • ``"x"``, for the values on the x axis (in meters)
-            • ``"y"``, for the values on the y axis (in meters)
+            • ``"x"``, for the values on the x-axis (in meters)
+            • ``"y"``, for the values on the y-axis (in meters)
             • ``"z"``, for the values on the z axis (in meters)
             • ``"distance_hands"``, for the distance between the hands (in meters)
             • ``"distance"``, for the distance travelled (in meters, default)
-            • ``"distance_x"`` for the distance travelled on the x axis (in meters)
-            • ``"distance_y"`` for the distance travelled on the y axis (in meters)
+            • ``"distance_x"`` for the distance travelled on the x-axis (in meters)
+            • ``"distance_y"`` for the distance travelled on the y-axis (in meters)
             • ``"distance_z"`` for the distance travelled on the z axis (in meters)
             • ``"velocity"`` for the velocity (in meters per second)
             • ``"acceleration"`` for the acceleration (in meters per second squared)
@@ -1777,19 +1788,21 @@ def _get_dataframe_from_requirements(dataframe, group=None, condition=None, subj
         If specified, the analysis will discard the trials whose
         :attr:`~krajjat.classes.trial.Trial.name` attribute does not match the value(s) provided for this parameter.
         This parameter can be:
-            · A dictionary where each key is a subject name, and each value is a list containing trial names. This
+
+            • A dictionary where each key is a subject name, and each value is a list containing trial names. This
               allows to discard or select specific trials for individual subjects.
-            · A list where each element is a trial name. This will select only the trials matching the given name,
+            • A list where each element is a trial name. This will select only the trials matching the given name,
               for each subject.
-            · The name of a single trial. This will select the given trial for all subjects.
-            · `None` (default). In that case, all trials will be considered.
+            • The name of a single trial. This will select the given trial for all subjects.
+            • `None` (default). In that case, all trials will be considered.
+            
         This parameter can be combined with the other parameters to select specific subjects or conditions.
 
         ..note ::
             In the case where at least two of the parameters `group`, `condition`, `subjects` or `trials` are set,
             the selected trials will be the ones that match all the selected categories. For example, if `subjects`
             is set on `["sub_001", "sub_002", "sub_003"]` and trials is set on `{"sub_001": ["trial_001", "trial_002"],
-            "sub_004": ["trial_001"]`, the analysis will run on the trials that intersect both requirements, i.e.
+            "sub_004": ["trial_001"]}`, the analysis will run on the trials that intersect both requirements, i.e.
             trials 1 and 2 for subject 1. Trials from subjects 2, 3 and 4 will be discarded.
 
     Returns

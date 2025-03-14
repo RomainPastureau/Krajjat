@@ -515,7 +515,7 @@ class TestsAudioDerivatives(unittest.TestCase):
         assert envelope_ff.get_name() == "ff"
 
         pitch = Pitch("test_pitches/test_audio_1_pitch.wav", verbosity=0)
-        pitch_ff = pitch.filter_frequencies(filter_below=10, filter_over=3000)
+        pitch_ff = pitch.filter_frequencies(filter_below=10, filter_over=3000, verbosity=0)
         assert np.allclose(pitch_ff.samples[10000:10008], [35.90719797, 35.7800959, 35.65326703, 35.52671107,
                                                            35.40042771, 35.27441667, 35.14867763, 35.02321028])
         assert len(pitch_ff.samples) == len(pitch.samples)
@@ -536,7 +536,6 @@ class TestsAudioDerivatives(unittest.TestCase):
 
         intensity = Intensity("test_intensities/test_audio_1_intensity.wav", verbosity=0)
         intensity_rs = intensity.resample(1000, verbosity=0)
-        print(intensity_rs.samples[100:108])
         assert np.allclose(intensity_rs.samples[100:108], [179.23876828, 179.23088875, 179.22505774, 179.2209274,
                                                            179.21837787, 179.21813704, 179.22018497, 179.2239262])
         assert len(intensity_rs.samples) == 500

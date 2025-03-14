@@ -29,6 +29,26 @@ UNITS = {"ns": 1000000000, "1ns": 1000000000, "10ns": 100000000, "100ns": 100000
          "s": 1, "sec": 1, "1s": 1, "min": 1 / 60, "mn": 1 / 60, "h": 1 / 3600, "hr": 1 / 3600,
          "d": 1 / 86400, "day": 1 / 86400}
 
+CLEAN_DERIV_NAMES = {"x-axis": "x", "x_coord": "x", "coord_x": "x", "x_coordinate": "x", "x": "x",
+                     "y-axis": "y", "y_coord": "y", "coord_y": "y", "y_coordinate": "y", "y": "y",
+                     "z-axis": "z", "z_coord": "z", "coord_z": "z", "z_coordinate": "z", "z": "z",
+                     "d": "distance", "distances": "distance", "dist": "distance", 0: "distance", "0": "distance",
+                     "distance": "distance",
+                     "dx": "distance x", "distance_x": "distance x", "x_distance": "distance x", "dist_x": "distance x",
+                     "x_dist": "distance x", "distance x": "distance x",
+                     "dy": "distance y", "distance_y": "distance y", "y_distance": "distance y", "dist_y": "distance y",
+                     "y_dist": "distance y", "distance y": "distance y",
+                     "dz": "distance z", "distance_z": "distance z", "z_distance": "distance z", "dist_z": "distance z",
+                     "z_dist": "distance z", "distance z": "distance z",
+                     "v": "velocity", "vel": "velocity", "velocities": "velocity", "speed": "velocity", 1: "velocity",
+                     "1": "velocity", "velocity": "velocity",
+                     "a": "acceleration", "acc": "acceleration", "accelerations": "acceleration", 2: "acceleration",
+                     "2": "acceleration", "acceleration": "acceleration",
+                     "j": "jerk", 3: "jerk", "3": "jerk", "jerk": "jerk",
+                     "s": "snap", 4: "snap", "4": "snap", "snap": "snap",
+                     "c": "crackle", 5: "crackle", "5": "crackle", "crackle": "crackle",
+                     "p": "pop", 6: "pop", "6": "pop", "pop": "pop"}
+
 MODULE_DIR = op.dirname(__file__)
 
 DEFAULT_FONT_PATH = op.join(MODULE_DIR, "res", "junction_bold.otf")
@@ -3103,7 +3123,8 @@ def load_joints_subplot_layout(joint_layout):
     Parameters
     ----------
     joint_layout: str
-        The layout to load, either ``"kinect"`` or ``"kualisys"``/``"qualisys"``.
+        The layout to load, either ``"kinect"``, ``"kualisys"``/``"qualisys"``, or the path to a text file containing
+        a custom layout.
 
     Returns
     -------
@@ -3118,7 +3139,11 @@ def load_joints_subplot_layout(joint_layout):
         with open(op.join(MODULE_DIR, "res", "kualisys_joints_subplot_layout.txt")) as f:
             content = f.read().split("\n")
     else:
-        raise Exception("Wrong layout argument: should be 'kinect' or 'qualisys'.")
+        try:
+            with open(op.join(joint_layout)) as f:
+                content = f.read().split("\n")
+        except FileNotFoundError:
+            raise Exception("The file " + str(joint_layout) + " is not a valid file.")
 
     joints_positions = {}
 

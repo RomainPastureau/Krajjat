@@ -1,7 +1,7 @@
-# **Krajjat 1.99.15**
+# **Krajjat 1.99.18**
 ### ~~Kinect Realignment Algorithm for Joint Jumps And Twitches~~
 ### ~~Kinetic Recordings Algorithms for Joint Jazzing in an All-in-one Toolbox~~
-### Kinetic Recordings And Juxtaposition of Jabbering Along That
+### ~~Kinetic Recordings And Juxtaposition of Jabbering Along That~~
 
 Author: Romain Pastureau
 
@@ -17,8 +17,11 @@ The pre-processing functions allow to:
 * Re-reference all the positions according to a specific joint.
 * Trimming a motion sequence to the duration of an audio file, or to a defined duration.
 * Resampling a motion sequence to a target frequency.
-* Correcting zero values via interpolation.
-All of these functions can be applied on single motion sequences, or on a batch of sequences.
+* Correcting missing values via interpolation.
+
+All of these functions can be applied on single motion sequences, or on a batch of sequences. You can also
+perform pre-processing steps on audio files:
+* Resample
 
 ### Display
 The display functions allow to:

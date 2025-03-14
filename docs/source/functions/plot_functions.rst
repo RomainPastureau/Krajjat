@@ -16,3 +16,7 @@ Functions
 .. autofunction:: krajjat.plot_functions.audio_plotter
 .. autofunction:: krajjat.plot_functions.plot_body_graphs
 .. autofunction:: krajjat.plot_functions.plot_silhouette
+
+Private function
+----------------
+.. autofunction:: krajjat.plot_functions._plot_components

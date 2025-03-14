@@ -25,9 +25,9 @@ class Graph(object):
         Parameters
         ----------
         x: list(float) or numpy.array(float)
-            An array of values to plot on the x axis.
+            An array of values to plot on the x-axis.
         y: list(float) or numpy.array(float)
-            An array of values to plot on the y axis.
+            An array of values to plot on the y-axis.
         sd: list(float), numpy.array(float), or None, optional
             A list containing the standard deviations of x.
         line_width: float, optional

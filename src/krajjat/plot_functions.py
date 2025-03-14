@@ -2,6 +2,7 @@
 statistics calculated using the analysis_functions."""
 
 import pygame
+from parselmouth import Sound
 from pygame.locals import *
 from scipy import signal
 
@@ -14,10 +15,10 @@ import matplotlib.dates as mdates
 import seaborn as sns
 
 
-def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight", metrics="all", domain="time",
-                                  align=True, x_start=None, x_end=None, ylim=None, time_format=True,
-                                  figure_background_color=None, graph_background_color=None, line_color=None,
-                                  line_width=1.0, verbosity=1):
+def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight", measures="default", domain="time",
+                                  window_length=7, poly_order=None, align=True, x_start=None, x_end=None, ylim=None,
+                                  time_format=True, figure_background_color=None, graph_background_color=None,
+                                  line_color=None, line_width=1.0, verbosity=1, **kwargs):
     """Plots the x, y, z positions across time of the joint of one or more sequences, along with the distance travelled,
     velocity and absolute variations of acceleration.
 
@@ -38,10 +39,43 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
     joint_label: str, optional
         The label of the joint from which to use the values to plot (default: ``"HandRight"``).
 
-    metrics: str or list(str)
-        The name of a metric, or a list containing the name of multiple metrics, among ``"x"``, ``"y"``, ``"z"``,
-        ``"distance"``, ``"velocity"`` and ``"acceleration"``. This value can also be ``"all"`` (default) and will
-        in that case display all the aforementioned metrics.
+    measures: str or list(str)
+        The name of a metric, or a list containing the name of multiple metrics, among:
+
+        • For the x-coordinate: ``"x"``, ``"x_coord"``, ``"coord_x"``, or ``"x_coordinate"``.
+        • For the y-coordinate: ``"y"``, ``"y_coord"``, ``"coord_y"``, or ``"y_coordinate"``.
+        • For the z-coordinate: ``"z"``, ``"z_coord"``, ``"coord_z"``, or ``"z_coordinate"``.
+        • For the consecutive distances: ``"d"``, ``"distances"``, ``"dist"``, ``"distance"``,  or ``0``.
+        • For the consecutive distances on the x-axis: ``"dx"`, ``"distance_x"``, ``"x_distance"``, ``"dist_x"``,
+          or ``"x_dist"``.
+        • For the consecutive distances on the y-axis: ``"dy"`, ``"distance_y"``, ``"y_distance"``, ``"dist_y"``,
+          or ``"y_dist"``.
+        • For the consecutive distances on the z-axis: ``"dz"`, ``"distance_z"``, ``"z_distance"``, ``"dist_z"``,
+          or ``"z_dist"``.
+        • For the velocity: ``"v"``, ``"vel"``, ``"velocity"``, ``"velocities"``, ``"speed"``, or ``1``.
+        • For the acceleration: ``"a"``, ``"acc"``, ``"acceleration"``, ``"accelerations"``, or ``2``.
+        • For the jerk: ``"j"``, ``"jerk"``, or ``3``.
+        • For the snap: ``"s"``, ``"snap"``, ``"joust"`` or ``4``.
+        • For the crackle: ``"c"``, ``"crackle"``, or ``5``.
+        • For the pop: ``"p"``, ``"pop"``, or ``6``.
+        • For any derivative of a higher order, set the corresponding integer.
+
+        This value can also be ``"default"`` (default) and will in that case display a sub-selection made of the x, y
+        and z coordinates, the consecutive distances, the velocity, and the acceleration.
+
+        It is also possible to add the suffix ``"_abs"`` after a specific measure to plot the absolute values of the
+        measure.
+
+    window_length: int, optional
+        The length of the window for the Savitzky–Golay filter when calculating a derivative (default: 7). See
+        `scipy.signal.savgol_filter <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.savgol_filter.html>`_
+        for more info.
+
+    poly_order: int|None, optional
+        The order of the polynomial for the Savitzky–Golay filter. If set on `None`, the polynomial will be set to
+        one over the derivative rank. See
+        `scipy.signal.savgol_filter <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.savgol_filter.html>`_
+        for more info.
 
     domain: str, optional
         Defines if to plot the movement in the time domain (`"time"`, default) or in the frequency domain
@@ -60,10 +94,11 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
         If defined, indicates at what timestamp or frequency value the plot ends.
 
     ylim: list(int or float), optional
-        If defined, sets the lower and upper limits of the y axis for all sub-graphs (e.g. `[0, 1]`)
+        If defined, sets the lower and upper limits of the y-axis for all sub-graphs (e.g. `[0, 1]`). If this parameter
+        is a list of lists, each sublist sets the limits for each sub-graph.
 
     time_format: bool, optional
-        Defines if the time on the x axis should be shown in raw seconds (``False``) or in a formatted ``mm:ss:ms.``
+        Defines if the time on the x-axis should be shown in raw seconds (``False``) or in a formatted ``mm:ss:ms.``
         format (``True``, default). The format turns automatically to ``hh:mm:ss`` if more than 60 minutes of recording
         are plotted.
 
@@ -91,43 +126,73 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
           current steps.
         • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
           may clutter the output and slow down the execution.
+
+    **kwargs: dict
+        Any of the parameters accepted by
+        `matplotlib.pyplot.plot <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html>`_.
+
+    Examples
+    --------
+    >>> sequence = Sequence("Sequences/Auge/sequence_01.tsv")
+    >>> single_joint_movement_plotter(sequence, joint_label="HandRight", measures="default")
+    >>> sequence_cj = sequence.correct_jitter(1, 5)
+    >>> single_joint_movement_plotter([sequence, sequence_cj], joint_label="HandRight", measures=["d", "v", "a", "j"])
+    >>> single_joint_movement_plotter([sequence, sequence_cj], joint_label="HandRight",
+    ...                               measures=["d", "v", "a", "j"], domain="frequency", x_start=1, x_end=2,
+    ...                               ylim=[[0, 4e-5], [0, 0.003], [0, 0.35], [0, 50]], line_width=2,
+    ...                               line_color=["bcbl blue", "bcbl dark blue"], verbosity=1)
     """
 
     if type(sequence_or_sequences) is not list:
         sequence_or_sequences = [sequence_or_sequences]
 
     # Aligning sequences
-    if align:
+    if align and len(sequence_or_sequences) > 1:
         if verbosity > 0:
             print("Trying to align sequences...", end=" ")
         timestamps = align_multiple_sequences(*sequence_or_sequences, verbosity=verbosity)
         if verbosity > 0:
-            print(" - Done.")
+            print("Done.")
     else:
+        if verbosity > 0:
+            print("Getting the timestamps...", end=" ")
         timestamps = []
         for sequence in sequence_or_sequences:
             timestamps.append(sequence.get_timestamps())
+        if verbosity > 0:
+            print("Done.")
 
     # Handling timestamp_start and timestamp_end
     x_end_to_define = False
     if x_start is None:
+        if verbosity > 0:
+            print("Defining x_start...", end=" ")
         for timestamps_sequence in timestamps:
             if domain == "time":
-                if x_start is None or x_start < min(timestamps_sequence):
-                    x_start = min(timestamps_sequence)
+                if x_start is None or np.min(timestamps_sequence) < x_start :
+                    x_start = np.min(timestamps_sequence)
             elif domain == "frequency":
                 if x_start is None or x_start < 0:
                     x_start = 0
+    if verbosity > 0:
+        print(f"x_start set on {x_start}.")
+
     if x_end is None:
+        if verbosity > 0:
+            print("Defining x_end...", end=" ")
         for timestamps_sequence in timestamps:
             if domain == "time":
-                if x_end is None or x_end > max(timestamps_sequence):
-                    x_end = max(timestamps_sequence)
+                if x_end is None or np.max(timestamps_sequence) > x_end:
+                    x_end = np.max(timestamps_sequence)
             elif domain == "frequency":
                 x_end_to_define = True
                 x_end = 0
+    if verbosity > 0:
+        print(f"x_end set on {x_end}.")
 
     # Getting the epoch timestamps for each aligned sequence
+    if verbosity > 0:
+        print("Getting the timestamps between x_start and x_end for each sequence...", end=" ")
     epoch_timestamps = []
     for i in range(len(timestamps)):
         sequence_epoch_timestamps = []
@@ -136,67 +201,110 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
                 sequence_epoch_timestamps.append(t)
         epoch_timestamps.append(sequence_epoch_timestamps)
     timestamps = epoch_timestamps
+    if verbosity > 0:
+        print("Done.")
+
+    if verbosity > 0:
+        print("Checking the validity of the requested measures...", end=" ")
+
+    # Setting the measures on their values
+    if measures == "default":
+        measures = ["x", "y", "z", "distance", "velocity", "acceleration"]
+    elif type(measures) is str:
+        measures = list(measures)
 
     # Create empty lists for the arrays
-    values = {"x": [], "y": [], "z": [],  "distance": [], "velocity": [], "acceleration": [], "jerk": []}
-    plot_timestamps = {"x": [], "y": [], "z": [],  "distance": [], "velocity": [], "acceleration": [], "jerk": []}
+    absolute_measures = {}
 
-    # For all poses
+    for m in range(len(measures)):
+        abs_measure = False
+        if measures[m].endswith("_abs"):
+            measures[m] = measures[m][:-4]
+            abs_measure = True
+
+        if measures[m] not in CLEAN_DERIV_NAMES:
+            raise InvalidParameterValueException("measures", measures[m], ["x", "y", "z",
+                                                 "distance_x", "distance_y", "distance_z", "distance", "velocity",
+                                                 "acceleration", "jerk", "snap", "crackle", "pop"])
+
+        measures[m] = CLEAN_DERIV_NAMES[measures[m]]
+        absolute_measures[measures[m]] = abs_measure
+
+    values = {measure: [] for measure in measures}
+    plot_timestamps = {measure: [] for measure in measures}
+
+    if verbosity > 0:
+        print("Done.")
+
+    if verbosity > 0:
+        print("Getting the measures for each sequence...", end=" ")
+
+    # For all sequences
     for i in range(len(sequence_or_sequences)):
         sequence = sequence_or_sequences[i]
 
-        values["x"].append(sequence.get_joint_coordinate_as_array(joint_label, "x", timestamps[i][0], timestamps[i][-1]))
-        values["y"].append(sequence.get_joint_coordinate_as_array(joint_label, "y", timestamps[i][0], timestamps[i][-1]))
-        values["z"].append(sequence.get_joint_coordinate_as_array(joint_label, "z", timestamps[i][0], timestamps[i][-1]))
-        values["distance"].append(sequence.get_joint_distance_as_array(joint_label, None, timestamps[i][0],
-                                                                       timestamps[i][-1]))
-        values["velocity"].append(sequence.get_joint_metric_as_array(joint_label, "velocity", timestamps[i][0], timestamps[i][-1]))
-        values["acceleration"].append(sequence.get_joint_metric_as_array(joint_label, "acceleration", timestamps[i][0], timestamps[i][-1]))
-        values["jerk"].append(sequence.get_joint_metric_as_array(joint_label, "jerk", timestamps[i][0], timestamps[i][-1]))
-        # values["velocity"].append(sequence.get_joint_velocity_as_array(joint_label, timestamps[i][0], timestamps[i][-1]))
-        # values["acceleration"].append(sequence.get_joint_acceleration_as_array(joint_label, True, timestamps[i][0],
-        #                                                                        timestamps[i][-1]))
+        if domain == "time":
 
-        for key in plot_timestamps.keys():
-            plot_timestamps[key].append(np.array(sequence.get_timestamps_for_metric(key, False, timestamps[i][0],
-                                                                                    timestamps[i][-1])))
+            for measure in measures:
+                values[measure].append(sequence.get_measure(measure, joint_label, x_start, x_end,
+                                                            window_length, poly_order, absolute_measures[measure],
+                                                            verbosity))
 
-        if domain == "frequency":
-            for key in values.keys():
-                plot_timestamps[key][i], values[key][i] = signal.welch(np.array(values[key][i]),
-                                                                       sequence.get_sampling_rate(), "flattop", 1024,
-                                                                       scaling="spectrum")
-                if x_end_to_define and x_end < plot_timestamps[key][i][-1]:
+            for measure in plot_timestamps.keys():
+                if measure in ["x", "y", "z"]:
+                    plot_timestamps[measure].append(np.array(timestamps[i]))
+                else:
+                    plot_timestamps[measure].append(np.array(timestamps[i][1:]))
 
-                    x_end = plot_timestamps[key][i][-1]
+        elif domain == "frequency":
 
-    if type(metrics) is str and metrics.lower() == "all":
-        metrics = ["x", "y", "z", "distance", "velocity", "acceleration", "jerk"]
+            for measure in measures:
+                values[measure].append(sequence.get_measure(measure, joint_label, None, None,
+                                                            window_length, poly_order, absolute_measures[measure],
+                                                            verbosity))
+
+                t, values[measure][i] = signal.welch(np.array(values[measure][i]),
+                                                     sequence.get_sampling_rate(), "flattop", 1024,
+                                                     scaling="spectrum")
+                plot_timestamps[measure].append(t)
+                if x_end_to_define and plot_timestamps[measure][i][-1] > x_end:
+                    x_end = plot_timestamps[measure][i][-1]
+
+    if verbosity > 0:
+        print("Done.")
 
     if time_format and domain != "frequency":
-        for key in plot_timestamps:
-            for i in range(len(plot_timestamps[key])):
-                plot_timestamps[key][i] = np.array(plot_timestamps[key][i] * 1000000, dtype="datetime64[us]")
-                # for j in range(len(plot_timestamps[key][i])):
-                #     plot_timestamps[key][i][j] = np.array(time_unit_to_datetime(plot_timestamps[key][i][j])
+        if verbosity > 0:
+            print("Setting the timestamps to seconds...", end=" ")
+        for measure in plot_timestamps:
+            for i in range(len(sequence_or_sequences)):
+                plot_timestamps[measure][i] = np.array(plot_timestamps[measure][i] * 1000000, dtype="datetime64[us]")
         x_start = np.datetime64(int(x_start * 1000000), "us")
         x_end = np.datetime64(int(x_end * 1000000), "us")
+        if verbosity > 0:
+            print("Done.")
 
-    sns.set()
+    sns.set_theme()
     plt.rcParams["figure.figsize"] = (12, 9)
 
     fig = plt.figure()
     if figure_background_color is not None:
         fig.patch.set_facecolor(convert_color(figure_background_color, "hex", False))
-    fig.subplots(7, 1)  # figsize=(12, 9))
+    fig.subplots(len(measures), 1)  # figsize=(12, 9))
     fig.subplots_adjust(left=0.15, bottom=0.1, right=0.97, top=0.9, wspace=0.3, hspace=0.6)
 
     # Plot x, y, z, distance travelled and velocities
     parameters = {"rotation": "horizontal", "horizontalalignment": "right", "verticalalignment": "center",
                   "font": {"weight": "bold"}}
 
-    labels_units = {"x": "m", "y": "m", "z": "m", "distance": "m", "velocity": "m/s", "acceleration": "m/s²",
-                    "jerk": "m/s³"}
+    if domain == "time":
+        labels_units = {"x": "m", "y": "m", "z": "m", "distance": "m", "distance x": "m", "distance y": "m",
+                        "distance z": "m", "velocity": "m/s", "acceleration": "m/s²", "jerk": "m/s³", "snap": "m/s⁴",
+                        "crackle": "m/s⁵", "pop": "m/s⁶"}
+    else:
+        labels_units = {"x": "A.U.", "y": "A.U.", "z": "A.U.", "distance": "A.U.", "distance x": "A.U.",
+                        "distance y": "A.U.", "distance z": "A.U.", "velocity": "A.U.", "acceleration": "A.U.",
+                        "jerk": "A.U.", "snap": "A.U.", "crackle": "A.U.", "pop": "A.U."}
 
     # Get colors
     colors = []
@@ -267,8 +375,8 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
         ax.xaxis.set_major_formatter(formatter)
         return ax
 
-    for i in range(len(metrics)):
-        ax = plt.subplot(len(metrics), 1, i + 1)
+    for i in range(len(measures)):
+        ax = plt.subplot(len(measures), 1, i + 1)
         if graph_background_color is not None:
             ax.set_facecolor(convert_color(graph_background_color, "hex", False))
             ax = set_label_time_figure(ax)
@@ -282,27 +390,31 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
         for j in range(len(sequence_or_sequences)):
             plt.xlim([x_start, x_end])
             if ylim is not None:
-                plt.ylim(ylim)
+                if type(ylim[0]) is list:
+                    plt.ylim(ylim[i])
+                else:
+                    plt.ylim(ylim)
             if i == 0:
                 label = sequence_or_sequences[j].get_name()
             else:
                 label = None
 
-            plt.plot(plot_timestamps[metrics[i]][j], values[metrics[i]][j], linewidth=line_width,
-                     color=colors[j % len(colors)], label=label)
+            plt.plot(plot_timestamps[measures[i]][j], values[measures[i]][j], linewidth=line_width,
+                     color=colors[j % len(colors)], label=label, **kwargs)
 
             if i == 0:
                 plt.legend(bbox_to_anchor=(0, 1, 1, 0), loc="lower left", mode="expand",
                            ncol=len(sequence_or_sequences))
 
-        plt.ylabel(metrics[i] + " (" + labels_units[metrics[i]] + ")", **parameters)
+        plt.ylabel(measures[i] + " (" + labels_units[measures[i]] + ")", **parameters)
 
     plt.show()
 
 
-def joints_movement_plotter(sequence, time_series="velocity", domain="time", audio_or_derivative=None,
-                            overlay_audio=False, line_width=1.0, color_scheme="default", show_scale=False,
-                            show_graph=True, path_saving=None, verbosity=1):
+def joints_movement_plotter(sequence_or_sequences, measure="velocity",  window_length=7, poly_order=None, domain="time",
+                            audio_or_derivative=None, overlay_audio=False, audio_color="#a102db", align=True,
+                            x_start=None, x_end=None, ylim=None, line_width=1.0, color_scheme="default",
+                            show_scale=False, show_graph=True, path_saving=None, verbosity=1, **kwargs):
     """Plots the distance or velocity across time of the joints, in separate sub-graphs whose localisation roughly
     follows the original body position of the joints.
 
@@ -310,15 +422,46 @@ def joints_movement_plotter(sequence, time_series="velocity", domain="time", aud
 
     Parameters
     ----------
+    sequence_or_sequences: Sequence or list(Sequence)
+        One or multiple sequence instances.
 
-    sequence: Sequence
-        A Sequence instance.
+    measure: str, optional
+        This parameter can take the following values:
 
-    time_series: str, optional
-        Defines which time series to display in the graphs, either ``"x"``, ``"y"`` or ``"z"`` for the distance
-        travelled between poses on one single axis, ``"distance"`` for the euclidian 3D distance travelled between
-        poses, ``"velocity"`` (default) for the velocity between poses, or ``"acceleration"`` for the changes of
-        velocity between pairs of poses.
+        • For the x-coordinate: ``"x"``, ``"x_coord"``, ``"coord_x"``, or ``"x_coordinate"``.
+        • For the y-coordinate: ``"y"``, ``"y_coord"``, ``"coord_y"``, or ``"y_coordinate"``.
+        • For the z-coordinate: ``"z"``, ``"z_coord"``, ``"coord_z"``, or ``"z_coordinate"``.
+        • For the consecutive distances: ``"d"``, ``"distances"``, ``"dist"``, ``"distance"``,  or ``0``.
+        • For the consecutive distances on the x-axis: ``"dx"`, ``"distance_x"``, ``"x_distance"``, ``"dist_x"``,
+          or ``"x_dist"``.
+        • For the consecutive distances on the y-axis: ``"dy"`, ``"distance_y"``, ``"y_distance"``, ``"dist_y"``,
+          or ``"y_dist"``.
+        • For the consecutive distances on the z-axis: ``"dz"`, ``"distance_z"``, ``"z_distance"``, ``"dist_z"``,
+          or ``"z_dist"``.
+        • For the velocity: ``"v"``, ``"vel"``, ``"velocity"``, ``"velocities"``, ``"speed"``, or ``1``.
+        • For the acceleration: ``"a"``, ``"acc"``, ``"acceleration"``, ``"accelerations"``, or ``2``.
+        • For the jerk: ``"j"``, ``"jerk"``, or ``3``.
+        • For the snap: ``"s"``, ``"snap"``, ``"joust"`` or ``4``.
+        • For the crackle: ``"c"``, ``"crackle"``, or ``5``.
+        • For the pop: ``"p"``, ``"pop"``, or ``6``.
+        • For any derivative of a higher order, set the corresponding integer.
+
+        This value can also be ``"default"`` (default) and will in that case display a sub-selection made of the x, y
+        and z coordinates, the consecutive distances, the velocity, and the acceleration.
+
+        It is also possible to add the suffix ``"_abs"`` after a specific measure to plot the absolute values of the
+        measure.
+
+    window_length: int, optional
+        The length of the window for the Savitzky–Golay filter when calculating a derivative (default: 7). See
+        `scipy.signal.savgol_filter <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.savgol_filter.html>`_
+        for more info.
+
+    poly_order: int|None, optional
+        The order of the polynomial for the Savitzky–Golay filter. If set on `None`, the polynomial will be set to
+        one over the derivative rank. See
+        `scipy.signal.savgol_filter <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.savgol_filter.html>`_
+        for more info.
 
     domain: str, optional
         Defines if to plot the movement in the time domain (`"time"`, default) or in the frequency domain
@@ -333,6 +476,25 @@ def joints_movement_plotter(sequence, time_series="velocity", domain="time", aud
         If set on ``True``, and if audio_or_derivative is not None, the samples of the ``audio_or_derivative`` object
         will be shown on overlay of the different joint velocities.
 
+    audio_color: str, optional
+        The color of the audio samples if ``overlay_audio`` is set on ``True`` (default: "#a102db").
+
+    align: bool, optional
+        If this parameter is set on ``"True"`` (default), and if the parameter ``sequence_or_sequences`` is a list
+        containing more than one sequence instance, the function will try to check if one or more of the sequences
+        provided is or are sub-sequences of others. If it is the case, the function will align the timestamps of the
+        sequences for the plot. If only one sequence is provided, this parameter is ignored.
+
+    x_start: float or None, optional
+        If defined, indicates at what timestamp or frequency value the plot starts.
+
+    x_end: float or None, optional
+        If defined, indicates at what timestamp or frequency value the plot ends.
+
+    ylim: list(int or float), optional
+        If defined, sets the lower and upper limits of the y-axis for all sub-graphs (e.g. `[0, 1]`). If this parameter
+        is a list of lists, each sublist sets the limits for each sub-graph.
+
     line_width: float, optional
         The width of the plotted lines, in pixels (default: 1.0).
 
@@ -342,6 +504,8 @@ def joints_movement_plotter(sequence, time_series="velocity", domain="time", aud
         :doc:`color scheme <../appendix/color_schemes>` will be used, with the joints having the highest quantity of
         movement colored red. If a list of colors is set as parameter, the colors can be specified in RGB, RGBA,
         hexadecimal or standard `HTML/CSS color names <https://en.wikipedia.org/wiki/X11_color_names>`_.
+        In the case where multiple sequences are passed as parameter, this parameter should contain a list of colors,
+        for each sequence.
 
     show_scale: bool, optional
         If set on ``True``, shows a colored scale on the left side of the graph.
@@ -361,68 +525,191 @@ def joints_movement_plotter(sequence, time_series="velocity", domain="time", aud
           current steps.
         • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
           may clutter the output and slow down the execution.
+
+    **kwargs: dict
+        Any of the parameters accepted by
+        `matplotlib.pyplot.plot <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html>`_.
+
+    Examples
+    --------
+    >>> sequence = Sequence("Sequences/Anatolê/sequence_02.tsv")
+    >>> joints_movement_plotter(sequence, measure="velocity", domain="time", verbosity=0)
+    >>> sequence_cj = sequence.correct_jitter(1, 5)
+    >>> joints_movement_plotter([sequence, sequence_cj], measure="velocity_abs", domain="time", verbosity=0)
+    >>> audio = Audio("Sequences/Anatolê/sequence_02.wav", verbosity=0)
+    >>> joints_movement_plotter(sequence_cj, measure="velocity", domain="time", audio_or_derivative=audio,
+    ...                         overlay_audio=True, verbosity=0)
     """
 
+    if type(sequence_or_sequences) is not list:
+        sequence_or_sequences = [sequence_or_sequences]
+
     if verbosity > 0:
-        print("Plotting the data skeleton for the sequence " + str(sequence.get_name()) + "...")
-        print("\tGetting data...", end=" ")
+        if len(sequence_or_sequences) > 1:
+            print(f"Plotting the data skeleton for {len(sequence_or_sequences)} sequences...")
+            print("\tGetting data...", end=" ")
+        else:
+            print(f"Plotting the data skeleton for the sequence {sequence_or_sequences[0].get_name()}...")
+            print("\tGetting data...", end=" ")
 
-    timestamps = sequence.get_timestamps()[1:]
+    # Aligning sequences
+    if align and len(sequence_or_sequences) > 1:
+        if verbosity > 0:
+            print("Trying to align sequences...", end=" ")
+        timestamps = align_multiple_sequences(*sequence_or_sequences, verbosity=verbosity)
+        if verbosity > 0:
+            print("Done.")
+    else:
+        if verbosity > 0:
+            print("Getting the timestamps...", end=" ")
+        timestamps = []
+        for sequence in sequence_or_sequences:
+            timestamps.append(sequence.get_timestamps())
+        if verbosity > 0:
+            print("Done.")
 
-    if time_series in ["x", "y", "z"]:
-        joints_time_series = sequence.get_single_coordinates(time_series)
-        total_time_series_per_joint = sequence.get_total_distance_per_joint(time_series)
-        max_value_whole_sequence = sequence.get_max_coordinate_whole_sequence(time_series)
-        timestamps = sequence.get_timestamps()
-        title_scale = "Sum of the distances travelled on the " + time_series + " coordinate"
-        title = "Position on the " + time_series + " coordinate for each joint of the sequence"
+    # Handling timestamp_start and timestamp_end
+    x_end_to_define = False
+    if x_start is None:
+        if verbosity > 0:
+            print("Defining x_start...", end=" ")
+        for timestamps_sequence in timestamps:
+            if domain == "time":
+                if x_start is None or np.min(timestamps_sequence) < x_start :
+                    x_start = np.min(timestamps_sequence)
+            elif domain == "frequency":
+                if x_start is None or x_start < 0:
+                    x_start = 0
+    if verbosity > 0:
+        print(f"x_start set on {x_start}.")
 
-    # Compute velocities of the joints
-    elif time_series in ["distance_x", "distance_y", "distance_z"]:
-        joints_time_series = sequence.get_distances(time_series[-1])
-        total_time_series_per_joint = sequence.get_total_distance_per_joint(time_series[-1])
-        max_value_whole_sequence = sequence.get_max_distance_whole_sequence(time_series[-1])
-        title_scale = "Sum of the distances travelled on the " + time_series[-1] + " coordinate"
-        title = "Distance travelled on the " + time_series[-1] + " coordinate between poses for each joint of " +\
-                "the sequence"
+    if x_end is None:
+        if verbosity > 0:
+            print("Defining x_end...", end=" ")
+        for timestamps_sequence in timestamps:
+            if domain == "time":
+                if x_end is None or np.max(timestamps_sequence) > x_end:
+                    x_end = np.max(timestamps_sequence)
+            elif domain == "frequency":
+                x_end_to_define = True
+                x_end = 0
+    if verbosity > 0:
+        print(f"x_end set on {x_end}.")
 
-    elif time_series == "distance":
-        joints_time_series = sequence.get_distances()
-        total_time_series_per_joint = sequence.get_total_distance_per_joint()
-        max_value_whole_sequence = sequence.get_max_distance_whole_sequence()
-        title_scale = "Sum of the distances travelled"
-        title = "Distance travelled between poses for each joint of the sequence"
+    # Getting the epoch timestamps for each aligned sequence
+    if verbosity > 0:
+        print("Getting the timestamps between x_start and x_end for each sequence...", end=" ")
+    epoch_timestamps = []
+    for i in range(len(timestamps)):
+        sequence_epoch_timestamps = []
+        for t in timestamps[i]:
+            if x_start <= t <= x_end:
+                sequence_epoch_timestamps.append(t)
+        epoch_timestamps.append(sequence_epoch_timestamps)
+    timestamps = epoch_timestamps
+    if verbosity > 0:
+        print("Done.")
 
-    elif time_series == "velocity":
-        joints_time_series = sequence.get_velocities()
-        total_time_series_per_joint = sequence.get_total_velocity_per_joint()
-        max_value_whole_sequence = sequence.get_max_velocity_whole_sequence()
-        title_scale = "Sum of the velocities"
-        title = "Velocity between poses for each joint of the sequence"
+    if verbosity > 0:
+        print("Checking the validity of the requested measure...", end=" ")
 
-    elif time_series == "acceleration":
-        joints_time_series = sequence.get_accelerations(absolute=True)
-        total_time_series_per_joint = sequence.get_total_acceleration_per_joint()
-        max_value_whole_sequence = sequence.get_max_acceleration_whole_sequence(absolute=True)
-        timestamps = sequence.get_timestamps()[2:]
-        title_scale = "Sum of the absolute accelerations"
-        title = "Variations of acceleration between pairs of poses for each joint of the sequence"
+    abs_measure = False
+    if measure.endswith("_abs"):
+        measure = measure[:-4]
+        abs_measure = True
+
+    # Setting the measures on their values
+    if measure not in CLEAN_DERIV_NAMES:
+        raise InvalidParameterValueException("measures", measure, ["x", "y", "z", "distance_x", "distance_y",
+                                                                   "distance_z", "distance", "velocity",
+                                                                   "acceleration", "jerk", "snap", "crackle", "pop"])
+
+    measure = CLEAN_DERIV_NAMES[measure]
+
+    if verbosity > 0:
+        print("Done.")
+
+    if verbosity > 0:
+        print(f"Getting the {measure} for each sequence...", end=" ")
+
+    values = []
+    totals = []
+    maxima = []
+    plot_timestamps = []
+
+    min_value = 0
+    max_value = 0
+
+    # For all sequences
+    for i in range(len(sequence_or_sequences)):
+        sequence = sequence_or_sequences[i]
+
+        if domain == "time":
+            values.append(sequence.get_measure(measure, None, x_start, x_end, window_length, poly_order,
+                                                abs_measure, verbosity))
+            totals.append(sequence.get_sum_measure(measure, None, True, x_start, x_end, window_length, poly_order,
+                                          True, verbosity))
+            min_seq, max_seq = sequence.get_extremum_measure(measure, None, "both", False, x_start, x_end, window_length,
+                                                   poly_order, abs_measure, verbosity)
+            if min_seq < min_value:
+               min_value = min_seq
+            if max_seq > max_value:
+               max_value = max_seq
+
+            if measure in ["x", "y", "z"]:
+               plot_timestamps.append(np.array(timestamps[i]))
+            else:
+               plot_timestamps.append(np.array(timestamps[i][1:]))
+
+        elif domain == "frequency":
+            values.append(sequence.get_measure(measure, None, None, None, window_length, poly_order,
+                                               abs_measure, verbosity))
+
+            t = []
+            for joint_label in values[i]:
+
+                t, values[i][joint_label] = signal.welch(values[i][joint_label], sequence.get_sampling_rate(),
+                                                  "flattop", 1024, scaling="spectrum")
+
+                if np.min(values[i][joint_label]) < min_value:
+                    min_value = np.min(values[i][joint_label])
+                if np.max(values[i][joint_label]) > max_value:
+                    max_value = np.max(values[i][joint_label])
+
+            plot_timestamps.append(t)
+            if x_end_to_define and plot_timestamps[i][-1] > x_end:
+                x_end = plot_timestamps[i][-1]
+
+    if verbosity > 0:
+        print("Done.")
+        print("Getting the titles...")
+
+    # Titles
+    title_scale = "Sum of the variations"
+    if measure in ["x", "y", "z"]:
+        title = f"Position on the {measure} coordinate for each joint of the sequence"
+
+    elif measure in ["distance x", "distance y", "distance z"]:
+        title = f"Distance travelled on the {measure[-1]} coordinate between poses for each joint of the sequence"
+
+    elif measure == "distance":
+        title = f"Distance travelled for each joint of the sequence"
+
+    elif measure in ["velocity", "acceleration", "jerk", "snap", "crackle", "pop"]:
+        if abs_measure:
+            title = f"Absolute {measure} for each joint of the sequence"
+        else:
+            title = f"{measure.title()} for each joint of the sequence"
 
     else:
-        raise InvalidParameterValueException("time_series", time_series, ["x", "y", "z", "distance", "velocity",
-                                                                          "acceleration"])
+        raise InvalidParameterValueException("measure", measure, ["x", "y", "z", "distance_x", "distance_y",
+                                                                  "distance_z", "distance", "velocity", "acceleration",
+                                                                  "jerk", "snap", "crackle", "pop"])
 
-    if domain == "frequency":
-        max_value_whole_sequence = 0
-        for key in joints_time_series.keys():
-            timestamps, joints_time_series[key] = signal.welch(np.array(joints_time_series[key]),
-                                                               sequence.get_sampling_rate(), "flattop", 1024,
-                                                               scaling="spectrum")
-            if np.max(joints_time_series[key]) > max_value_whole_sequence:
-                max_value_whole_sequence = np.max(joints_time_series[key])
-
-    if sequence.get_name() is not None:
-        title += " " + str(sequence.get_name())
+    if len(sequence_or_sequences) > 1:
+        title += f" ({len(sequence_or_sequences)} sequences)"
+    elif len(sequence_or_sequences) == 1 and sequence_or_sequences[0].get_name() is not None:
+        title += " " + str(sequence_or_sequences[0].get_name())
 
     # We define the plot dictionary
     plot_dictionary = {}
@@ -431,8 +718,25 @@ def joints_movement_plotter(sequence, time_series="velocity", domain="time", aud
         print("Done.")
         print("\tCalculating colors...", end=" ")
 
-    # Determine color depending on global velocity
-    joints_colors = calculate_colors_by_values(total_time_series_per_joint, color_scheme, "hex", False)
+    # Determine color depending on global sum
+    joints_colors = []
+    if domain == "time":
+        if len(sequence_or_sequences) == 1:
+            joints_colors.append(calculate_colors_by_values(totals[0], color_scheme, type_return="hex",
+                                                            include_alpha=False))
+        else:
+            for s in range(len(sequence_or_sequences)):
+                if type(color_scheme) is list:
+                    joints_colors.append({joint_label: color_scheme[s % len(color_scheme)]
+                                          for joint_label in sequence_or_sequences[s].get_joint_labels()})
+                else:
+                    joints_colors.append({joint_label: "C"+str(s) for joint_label in
+                                          sequence_or_sequences[s].get_joint_labels()})
+
+    else:
+        for s in range(len(sequence_or_sequences)):
+            joints_colors.append({joint_label: "C"+str(s)
+                                  for joint_label in sequence_or_sequences[s].get_joint_labels()})
 
     if verbosity > 0:
         print("Done.")
@@ -441,38 +745,49 @@ def joints_movement_plotter(sequence, time_series="velocity", domain="time", aud
     # Scale the audio
     scaled_audio_or_derivative = []
     if audio_or_derivative is not None and overlay_audio:
-        scaled_audio_or_derivative = scale_audio(audio_or_derivative.get_samples(), max_value_whole_sequence,
-                                                 True, True, 0)
+        if abs_measure:
+            scaled_audio_or_derivative = scale_audio(audio_or_derivative.get_samples(), max_value,
+                                                     abs_measure, True, 0)
+        else:
+            scaled_audio_or_derivative = scale_audio(audio_or_derivative.get_samples(), max_value,
+                                                     abs_measure, False, 0)
 
     if verbosity > 0:
         print("Done.")
         print("\tCreating the sub-graphs...", end=" ")
 
-    for joint in joints_time_series.keys():
+    for joint_label in sequence_or_sequences[0].get_joint_labels():
         graph = Graph()
         if overlay_audio:
             graph.add_plot(audio_or_derivative.get_timestamps(), scaled_audio_or_derivative, None, line_width,
-                           "#d5cdd8")
-        graph.add_plot(timestamps, joints_time_series[joint], None, line_width, joints_colors[joint])
-        plot_dictionary[joint] = graph
+                           convert_color(audio_color, "hex", False) + "60")
+
+        for s in range(len(sequence_or_sequences)):
+            if (len(sequence_or_sequences)) > 1:
+                label = sequence_or_sequences[s].get_name()
+            else:
+                label = None
+            graph.add_plot(plot_timestamps[s], values[s][joint_label], None, line_width,
+                           joints_colors[s][joint_label], label)
+        plot_dictionary[joint_label] = graph
 
     title_audio = None
     if audio_or_derivative is not None:
         graph = Graph()
         graph.add_plot(audio_or_derivative.get_timestamps(), audio_or_derivative.get_samples(), None, line_width,
-                       "#a102db")
+                       convert_color(audio_color, "hex", True))
         plot_dictionary["Audio"] = graph
         title_audio = audio_or_derivative.kind
 
     if verbosity > 0:
         print("Done.")
 
-    plot_body_graphs(plot_dictionary, min_scale=0, max_scale=max_value_whole_sequence, show_scale=show_scale,
+    plot_body_graphs(plot_dictionary, min_scale=min_value, max_scale=max_value, show_scale=show_scale,
                      title_scale=title_scale, color_scheme=color_scheme, title=title, title_audio=title_audio,
-                     show_graph=show_graph, path_saving=path_saving)
+                     show_graph=show_graph, path_saving=path_saving, **kwargs)
 
 
-def framerate_plotter(sequence_or_sequences, line_width=1.0, line_color="#000000"):
+def framerate_plotter(sequence_or_sequences, line_width=1.0, line_color="black", **kwargs):
     """Plots the framerates across time for one or multiple sequences. The framerate is calculated by getting the
     inverse of the time between consecutive poses.
 
@@ -493,6 +808,17 @@ def framerate_plotter(sequence_or_sequences, line_width=1.0, line_color="#000000
           ``"blanched almond"``),
         • An hexadecimal code, starting with a number sign (``#``, e.g. ``"#ffcc00"`` or ``"#c0ffee"``).
         • A RGB or RGBA tuple (e.g. ``(153, 204, 0)`` or ``(77, 77, 77, 255)``).
+
+    **kwargs: dict
+        Any of the parameters accepted by
+        `matplotlib.pyplot.plot <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html>`_.
+
+    Examples
+    --------
+    >>> sequence = Sequence("Sequences/Musica/sequence_02.csv", verbosity=0)
+    >>> framerate_plotter(sequence)
+    >>> sequence_rs = sequence.resample(20, "cubic", verbosity=0)
+    >>> framerate_plotter([sequence, sequence_rs])
     """
 
     # If only one sequence has been provided, we turn it into a list
@@ -500,11 +826,9 @@ def framerate_plotter(sequence_or_sequences, line_width=1.0, line_color="#000000
         sequence_or_sequences = [sequence_or_sequences]
 
     # Figure parameters
-    sns.set()
+    sns.set_theme()
     plt.rcParams["figure.figsize"] = (12, 6)
-    plt.subplots_adjust(left=0.03, bottom=0.03, right=0.97, top=0.9, wspace=0.3, hspace=0.7)
-    labels = get_difference_paths(*get_objects_names(sequence_or_sequences))
-    # print(labels)
+    labels = get_difference_paths(*get_objects_names(*sequence_or_sequences))
     for i in range(len(labels)):
         if len(labels[i]) == 1:
             labels[i] = labels[i][0]
@@ -523,7 +847,7 @@ def framerate_plotter(sequence_or_sequences, line_width=1.0, line_color="#000000
         sequence = sequence_or_sequences[seq]
         framerates = sequence.get_sampling_rates()
         timestamps = sequence.get_timestamps()[1:]
-        average = sequence.get_average_sampling_rate()
+        average = np.average(framerates)
         averages = [average for _ in range(len(framerates))]
 
         framerates_list.append(framerates)
@@ -541,17 +865,18 @@ def framerate_plotter(sequence_or_sequences, line_width=1.0, line_color="#000000
     for seq in range(len(sequence_or_sequences)):
         plt.subplot(i, j, seq + 1)
         plt.ylim([0, max_framerate + 1])
-        plt.plot(timestamps_list[seq], framerates_list[seq], linewidth=line_width, color=line_color, label="Framerate")
-        plt.plot(timestamps_list[seq], averages_list[seq], linewidth=line_width, color="#ff0000", label="Average")
+        plt.plot(timestamps_list[seq], framerates_list[seq], linewidth=line_width, color=line_color, label="Framerate", **kwargs)
+        plt.plot(timestamps_list[seq], averages_list[seq], linewidth=line_width, color="#ff0000", label="Average", **kwargs)
         if seq == 0:
             plt.legend(bbox_to_anchor=(0, 1 + i * 0.15), loc="upper left", ncol=2)
         plt.title(labels[seq] + " [Avg: " + format(averages_list[seq][0], '.2f') + "]")
 
+    plt.tight_layout()
     plt.show()
 
 
 # noinspection PyArgumentList
-def audio_plotter(audio, threshold_low_pass_envelope=10, number_of_formants=3):
+def audio_plotter(audio, filter_below=None, filter_over=None, number_of_formants=3, verbosity=1):
     """Given an audio instance, plots the samples, filtered envelope, pitch, intensity, formants and spectrogram.
 
     .. versionadded:: 2.0
@@ -560,59 +885,78 @@ def audio_plotter(audio, threshold_low_pass_envelope=10, number_of_formants=3):
     ----------
     audio: Audio
         An Audio instance.
-    threshold_low_pass_envelope: int or None, optional
-        Defines the threshold frequency over which the envelope will be filtered (default: 10). If set on ``None``, the
-        envelope will not be filtered.
+
+    filter_below: int, float or None, optional
+        If not ``None`` nor 0, this value will be provided as the lowest frequency of the band-pass filter.
+
+    filter_over: int, float or None, optional
+        If not ``None`` nor 0, this value will be provided as the highest frequency of the band-pass filter.
+
     number_of_formants: int, optional
         The number of formants to plot (default: 3).
+
+    verbosity: int, optional
+        Sets how much feedback the code will provide in the console output:
+
+        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+          current steps.
+        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+          may clutter the output and slow down the execution.
 
     Warning
     -------
     With non-resampled audio files, this function can take several minutes to compute before being able to plot the
     graphs. It is recommended to perform a downsampling of the audio object before running this function.
+
+    Example
+    -------
+    >>> audio = Audio("Sequences/Gymnastica/recording_gymnastica.wav", verbosity=0)
+    >>> audio_plotter(audio, filter_over=50, verbosity=0)
     """
 
-    try:
-        from parselmouth import Sound
-    except ImportError:
-        raise ModuleNotFoundException("parselmouth", "get the pitch, intensity and formants of an audio clip.")
+    if verbosity > 0:
+        print("Getting the envelope...", end=" ")
+    envelope = audio.get_envelope(filter_over=filter_over, filter_below=filter_below, verbosity=verbosity-1)
+    if verbosity > 0:
+        print("Done.")
 
-    try:
-        import numpy as np
-    except ImportError:
-        raise ModuleNotFoundException("numpy", "get the pitch, intensity and formants of an audio clip.")
+    if verbosity > 0:
+        print("Getting the pitch...", end=" ")
+    pitch = audio.get_pitch(filter_over=filter_over, filter_below=filter_below, zeros_as_nan=False,
+                            verbosity=verbosity-1)
+    print(pitch.samples)
+    print(pitch.timestamps)
+    if verbosity > 0:
+        print("Done.")
 
-    # Creating a Parselmouth object
+    if verbosity > 0:
+        print("Getting the intensity...", end=" ")
+    intensity = audio.get_intensity(filter_over=filter_over, filter_below=filter_below, zeros_as_nan=False,
+                                    verbosity=verbosity-1)
+    if verbosity > 0:
+        print("Done.")
+
+    formants = []
+    for f in range(1, number_of_formants + 1):
+        if verbosity > 0:
+            print(f"Getting the formant f{f}...", end=" ")
+        formant = audio.get_formant(f, filter_over=filter_over, filter_below=filter_below, zeros_as_nan=False,
+                                    verbosity=verbosity-1)
+        if verbosity > 0:
+            print("Done.")
+
+    if verbosity > 0:
+        print("Getting the spectrogram...", end=" ")
     audio_samples = np.array(audio.get_samples(), dtype=np.float64)
     parselmouth_sound = Sound(np.ndarray(np.shape(audio_samples), np.float64, audio_samples), audio.frequency)
+    spectrogram = parselmouth_sound.to_spectrogram()
+    x, y = spectrogram.x_grid(), spectrogram.y_grid()
+    sg_db = 10 * np.log10(spectrogram.values)
+    if verbosity > 0:
+        print("Done.")
 
-    # Envelope
-    envelope = audio.get_envelope(filter_over=10, verbosity=0)
-
-    # Intensity
-    intensity = parselmouth_sound.to_intensity(time_step=1 / audio.frequency)
-    temp_timestamps = add_delay(intensity.xs(), -1 / (2 * audio.frequency))
-    intensity_samples, intensity_timestamps = pad(intensity.values.T, temp_timestamps, audio.timestamps, 100)
-
-    # Pitch
-    pitch = parselmouth_sound.to_pitch(time_step=1 / audio.frequency)
-    pitch_samples, pitch_timestamps = pad(pitch.selected_array["frequency"], pitch.xs(), audio.timestamps)
-
-    # Formants
-    formants = parselmouth_sound.to_formant_burg(time_step=1 / audio.frequency)
-    temp_timestamps = add_delay(formants.xs(), -1 / (2 * audio.frequency))
-    number_of_points = formants.get_number_of_frames()
-    formants_samples = [[] for _ in range(number_of_formants)]
-    formants_timestamps = [[] for _ in range(number_of_formants)]
-    for i in range(1, number_of_points + 1):
-        t = formants.get_time_from_frame_number(i)
-        for j in range(number_of_formants):
-            formants_samples[j].append(formants.get_value_at_time(formant_number=j + 1, time=t))
-    for j in range(number_of_formants):
-        formants_samples[j], formants_timestamps[j] = pad(formants_samples[j], temp_timestamps, audio.timestamps)
-
-    import seaborn as sns
-    sns.set()
+    sns.set_theme()
 
     plt.subplot(3, 2, 1)
     plt.plot(audio.timestamps, audio.samples)
@@ -620,29 +964,23 @@ def audio_plotter(audio, threshold_low_pass_envelope=10, number_of_formants=3):
 
     plt.subplot(3, 2, 2)
     plt.plot(envelope.timestamps, envelope.samples)
-    title = "Envelope"
-    if threshold_low_pass_envelope is not None:
-        title += " (low-pass: " + str(threshold_low_pass_envelope) + " Hz)"
     plt.title("Envelope")
 
     plt.subplot(3, 2, 3)
-    plt.plot(intensity_timestamps, intensity_samples)
-    plt.title("Intensity")
-
-    plt.subplot(3, 2, 4)
-    plt.plot(pitch_timestamps, pitch_samples)
+    plt.plot(pitch.timestamps, pitch.samples)
     plt.title("Pitch")
 
+    plt.subplot(3, 2, 4)
+    plt.plot(intensity.timestamps, intensity.samples)
+    plt.title("Intensity")
+
     plt.subplot(3, 2, 5)
-    for i in range(len(formants_samples)):
-        plt.plot(formants_timestamps[i], formants_samples[i], label="f" + str(i + 1))
+    for i in range(len(formants)):
+        plt.plot(formants[i].timestamps, formants[i].samples, label="f" + str(i + 1))
     plt.legend()
     plt.title("Formants")
 
     plt.subplot(3, 2, 6)
-    spectrogram = parselmouth_sound.to_spectrogram()
-    x, y = spectrogram.x_grid(), spectrogram.y_grid()
-    sg_db = 10 * np.log10(spectrogram.values)
     plt.pcolormesh(x, y, sg_db, vmin=sg_db.max() - 70, cmap='afmhot')
     plt.ylim([spectrogram.ymin, spectrogram.ymax])
     plt.xlabel("time [s]")
@@ -652,8 +990,8 @@ def audio_plotter(audio, threshold_low_pass_envelope=10, number_of_formants=3):
 
 
 def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale=None, max_scale=None, show_scale=False,
-                     title_scale=None, x_lim=None, color_scheme="default", title_audio="Audio", full_screen=False, show_graph=True,
-                     path_saving=None):
+                     title_scale=None, x_lim=None, color_scheme="default", title_audio="Audio", full_screen=False,
+                     show_graph=True, path_saving=None, **kwargs):
     """Creates multiple sub-plots placed so that each joint is roughly placed where it is located on the body. The
     values of each subplot are taken from the parameter ``plot_dictionary``, and the positions from the layout
     differ between Kinect and Kualisys systems.
@@ -666,9 +1004,9 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
         A dictionary containing the title of the sub-graphs as keys, and Graph objects as elements.
 
     joint_layout: str, optional
-        Defines the layout to use for the sub-plots of the joints: ``"kinect"`` or ``"qualisys"``/``"kualisys"``. If
-        set on ``"auto"`` (default), the function will automatically assign the layout depending on if the joint label
-        ``"Chest"`` is among the keys of the ``plot_dictionary``.
+        Defines the layout to use for the sub-plots of the joints: ``"kinect"``, ``"qualisys"``/``"kualisys"``, or the
+        path to a file containing a custom layout.  If set on ``"auto"`` (default), the function will automatically
+        assign the layout depending on if the joint label ``"Chest"`` is among the keys of the ``plot_dictionary``.
 
         The joint layouts are a grid of 7 × 5 sub-plots for Kinect, and 13 × 7 subplots for Qualisys. The corresponding
         spot for each joint are loaded from ``"res/kinect_joints_subplot_layout.txt"`` and
@@ -678,12 +1016,12 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
         The title to display on top of the plot.
 
     min_scale: float or None, optional
-        The minimum value to set on the y axis, for all the elements in the ``plot_dictionary`` that match joint keys
+        The minimum value to set on the y-axis, for all the elements in the ``plot_dictionary`` that match joint keys
         (i.e., except from the sub-plot under the ``"Audio"`` key). If set on None (default), the minimum value will be
         the overall minimum value from the ``plot_dictionary``, with the sub-graph ``"Audio"`` excluded.
 
     max_scale: float or None, optional
-        The maximum value to set on the y axis, for all the elements in the ``plot_dictionary`` that match joint keys
+        The maximum value to set on the y-axis, for all the elements in the ``plot_dictionary`` that match joint keys
         (i.e., except from the sub-plot under the ``"Audio"`` key). If set on None (default), the maximum value will be
         the overall minimum value from the ``plot_dictionary``, with the sub-graph ``"Audio"`` excluded.
 
@@ -715,6 +1053,22 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
 
     path_saving: str or None
         If not `None`, the function saves the obtained graph at the given path.
+
+    **kwargs: dict
+        Any of the parameters accepted by
+        `matplotlib.pyplot.plot <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html>`_.
+
+    Example
+    -------
+    >>> plot_dictionary = {}
+    >>> plot_dictionary["Head"] = Graph()
+    >>> plot_dictionary["Head"].add_plot(np.linspace(0, 10, 11), np.linspace(0, 10, 11), None, 1, "red", "x=y")
+    >>> plot_dictionary["HandRight"] = Graph()
+    >>> plot_dictionary["HandRight"].add_plot(np.linspace(0, 10, 11), np.linspace(0, 10, 11), None, 1, "green", "x=y")
+    >>> plot_dictionary["HandLeft"] = Graph()
+    >>> plot_dictionary["HandLeft"].add_plot(np.linspace(0, 10, 11), np.linspace(0, 10, 11), None, 1, "blue", "x=y")
+    >>> plot_dictionary["HandLeft"].add_plot(np.linspace(0, 10, 11), np.linspace(10, 0, 11), None, 2, "orange", "y=x")
+    >>> plot_body_graphs(plot_dictionary, joint_layout="auto")
     """
 
     # Getting the joint layout
@@ -726,7 +1080,7 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
     joints_positions = load_joints_subplot_layout(joint_layout)
 
     # Figure parameters
-    sns.set(font_scale=0.8)
+    sns.set_theme(font_scale=0.8)
     plt.rcParams["figure.figsize"] = (12, 9)
 
     # plt.rcParams["font.size"] = 7
@@ -813,7 +1167,7 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
 def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, min_scale="auto", max_scale="auto",
                     show_scale=True, title_scale=None, color_scheme="default", color_background="white",
                     color_silhouette="black", resolution=0.5, full_screen=False, show_graph=True, path_save=None,
-                    verbosity=1):
+                    verbosity=1, **kwargs):
     """Plots a silhouette with circles representing the different joints, colored according to their values in the
     ``plot_dictionary``. Passing the mouse on the different joints shows, in the bottom right corner, the value
     associated to the joint the mouse is on.
@@ -910,9 +1264,22 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, min_scale=
           current steps.
         • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
           may clutter the output and slow down the execution.
-    """
 
+    **kwargs: dict
+        Any of the parameters accepted by
+        `matplotlib.pyplot.plot <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html>`_.
+
+    Example
+    -------
+    >>> plot_dictionary = {"Head": 0.1, "HandRight": 0.48, "HandLeft": 0.88}
+    >>> plot_silhouette(plot_dictionary, joint_layout="auto", title="Coherence", min_scale=0, max_scale=1,
+    ...                 show_scale=True, title_scale="Coherence scale (A.U.)", color_scheme="horizon",
+    ...                 color_background="black", color_silhouette="#303030", verbosity=0)
+    """
     pygame.init()
+
+    if verbosity > 0:
+        print("Setting up the resolution...", end=" ")
 
     # Setting up the resolution
     info = pygame.display.Info()
@@ -920,9 +1287,6 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, min_scale=
         resolution = (info.current_w, info.current_h)
     elif isinstance(resolution, float):
         resolution = (int(info.current_w * resolution), int(info.current_h * resolution))
-
-    if verbosity > 0:
-        print("Window resolution: " + str(resolution))
 
     # Setting up the full screen mode
     if not show_graph:
@@ -938,17 +1302,21 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, min_scale=
     ratio_w = resolution[0] / 1920
     ratio_h = resolution[1] / 1080
 
+    if verbosity > 0:
+        print("Window resolution: " + str(resolution))
+        print("Load the silhouette...", end=" ")
+
     # Load silhouette picture, color it and resize it
     silhouette = pygame.image.load(SILHOUETTE_PATH)
     color_background = convert_color(color_background, "rgb", False)
     if color_background != (255, 255, 255):
-        for x in range(silhouette.get_width()):
-            for y in range(silhouette.get_height()):
-                alpha = silhouette.get_at((x, y))[3]
-                silhouette.set_at((x, y), pygame.Color(color_background[0], color_background[1],
-                                                       color_background[2], alpha))
+        silhouette.fill(color_background, special_flags=pygame.BLEND_RGBA_MIN)
     silhouette = pygame.transform.scale(silhouette, (resolution[1] * (16 / 9), resolution[1]))
     silhouette_x = resolution[0] // 2 - silhouette.get_width() // 2
+
+    if verbosity > 0:
+        print("Done.")
+        print("Load the fonts and colors...", end=" ")
 
     # Font and colors
     colors = convert_colors(color_scheme, "rgb", True)  # Color scheme
@@ -959,6 +1327,9 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, min_scale=
         font_color = convert_color("black", "rgb", False)
     else:
         font_color = convert_color("white", "rgb", False)
+
+    if verbosity > 0:
+        print("Done.")
 
     # If the scale is on auto, we scale it the max value
     min_value, max_value = get_min_max_values_from_plot_dictionary(plot_dictionary)
@@ -1136,7 +1507,6 @@ def _plot_components(pca_or_ica, components, joint_labels, title, selected_compo
     selected_components: int, list(int) or None
         If set, plots only the selected component(s). The components start at index 0.
     """
-
     n_components = np.shape(components)[0]
     max_components = np.max(components)
 

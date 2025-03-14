@@ -2036,7 +2036,7 @@ class Sequence(TimeSeries):
         return np.allclose(framerates, np.ones(framerates.size) * framerates[0])
 
     def get_measure(self, measure, joint_label=None, timestamp_start=None, timestamp_end=None, window_length=7,
-                    poly_order=None, absolute=False, verbosity=1):
+                    poly_order=None, absolute=False, use_relative_timestamps=True, verbosity=1):
         """Returns an array of coordinates, distances, or derivatives of the distance for one or multiple joints
         from the Sequence instance.
 
@@ -2093,6 +2093,10 @@ class Sequence(TimeSeries):
 
         absolute: bool, optional
             If set on ``True``, the returned values will be absolute. By default, the parameter is set on ``False``.
+
+        use_relative_timestamps: bool, optional
+            Defines if the timestamps ``timestamp_start`` and ``timestamp_end`` refer to the original timestamps or
+            the relative timestamps, and if the returned timestamps should be original or relative.
 
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
@@ -2173,25 +2177,25 @@ class Sequence(TimeSeries):
             measure = "z"
         elif measure in ["coord", "coords", "coordinate", "coordinates", "xyz"]:
             measure = "coordinates"
-        elif measure in ["distance", "distances", "dist", "d", 0]:
+        elif measure in ["distance", "distances", "dist", "d", 0, "0"]:
             measure = "distance"
-        elif measure in ["distance_x", "x_distance", "dist_x", "x_dist", "dx"]:
+        elif measure in ["distance_x", "distance x", "x_distance", "dist_x", "x_dist", "dx"]:
             measure = "distance_x"
-        elif measure in ["distance_y", "y_distance", "dist_y", "y_dist", "dy"]:
+        elif measure in ["distance_y", "distance y", "y_distance", "dist_y", "y_dist", "dy"]:
             measure = "distance_y"
-        elif measure in ["distance_z", "z_distance", "dist_z", "z_dist", "dz"]:
+        elif measure in ["distance_z", "distance z", "z_distance", "dist_z", "z_dist", "dz"]:
             measure = "distance_z"
-        elif measure in ["vel", "speed", "velocity", "velocities", "v", 1]:
+        elif measure in ["vel", "speed", "velocity", "velocities", "v", 1, "1"]:
             measure = "velocity"
-        elif measure in ["acc", "acceleration", "accelerations", "a", 2]:
+        elif measure in ["acc", "acceleration", "accelerations", "a", 2, "2"]:
             measure = "acceleration"
-        elif measure in ["jerk", "j", 3]:
+        elif measure in ["jerk", "j", 3, "3"]:
             measure = "jerk"
-        elif measure in ["snap", "joust", "s", 4]:
+        elif measure in ["snap", "joust", "s", 4, "4"]:
             measure = "snap"
-        elif measure in ["crackle", "c", 5]:
+        elif measure in ["crackle", "c", 5, "5"]:
             measure = "crackle"
-        elif measure in ["pop", "p", 6]:
+        elif measure in ["pop", "p", 6, "6"]:
             measure = "pop"
         elif type(measure) != int:
             raise InvalidParameterValueException("measure", measure, ["x", "y", "z", "coordinates",
@@ -2235,7 +2239,12 @@ class Sequence(TimeSeries):
                 if verbosity > 1:
                     print(f"\t\tPose with index {p}", end=" ")
 
-                if timestamp_start <= pose.get_timestamp() <= timestamp_end:
+                if use_relative_timestamps:
+                    timestamp = pose.get_relative_timestamp()
+                else:
+                    timestamp = pose.get_timestamp()
+
+                if timestamp_start <= timestamp <= timestamp_end:
 
                     if start is None:
                         if verbosity > 1:
@@ -2284,8 +2293,8 @@ class Sequence(TimeSeries):
             if measure not in ["x", "y", "z", "coordinates", "distance", "distance_x", "distance_y", "distance_z"]:
                 if verbosity > 1:
                     print(f"\t\tDistances calculated. Now getting the derivative...")
-                measures[joint_label] = calculate_derivative(measures[joint_label][1:], measure, window_length, poly_order,
-                                                             freq=self.get_sampling_rate())
+                measures[joint_label] = calculate_derivative(measures[joint_label][1:], measure, window_length,
+                                                             poly_order, freq=self.get_sampling_rate())
                 start -= 1
                 if end is not None:
                     end -= 1
@@ -4734,7 +4743,7 @@ class Sequence(TimeSeries):
                 • For ``json`` files, the metadata is saved at the top level. Metadata keys will be saved next to the
                   ``"Poses"`` key.
                 • For ``mat`` files, the metadata is saved at the top level of the structure.
-                • For ``xlsx```files, the metadata is saved in a second sheet.
+                • For ``xlsx`` files, the metadata is saved in a second sheet.
                 • For ``pkl`` files, the metadata will always be saved as the object is saved as-is - this parameter
                   is thus ignored.
                 • For all the other formats, the metadata is saved at the beginning of the file.

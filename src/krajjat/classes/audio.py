@@ -777,7 +777,7 @@ class Audio(AudioDerivative):
             • ``"envelope"``
             • ``"pitch"``
             • ``"f1"``, ``"f2"``, ``"f3"``, ``"f4"``, ``"f5"`` for the values of the corresponding formant.
-            • ``"intensity"`
+            • ``"intensity"``
 
         filter_below: int, float or None, optional
             If not ``None`` nor 0, this value will be provided as the lowest frequency of the band-pass filter.
@@ -1283,7 +1283,7 @@ class Audio(AudioDerivative):
                 • For ``json`` files, the metadata is saved at the top level. Metadata keys will be saved next to the
                   ``"Poses"`` key.
                 • For ``mat`` files, the metadata is saved at the top level of the structure.
-                • For ``xlsx```files, the metadata is saved in a second sheet.
+                • For ``xlsx`` files, the metadata is saved in a second sheet.
                 • For ``pkl`` files, the metadata will always be saved as the object is saved as-is - this parameter
                   is thus ignored.
                 • For ``wav`` files, the metadata is saved as tags in the file.

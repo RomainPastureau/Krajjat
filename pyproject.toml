@@ -4,11 +4,14 @@ build-backend = "hatchling.build"
 
 [project]
 name = "krajjat"
-version = "1.99.9"
+version = "1.99.18"
 authors = [
-  { name="Romain Pastureau", email="r.pastureau@bcbl.eu" },
+  {name="Romain Pastureau", email="r.pastureau@bcbl.eu"},
 ]
-description = "Motion capture analysis and relationship between body movements and speech."
+maintainers = [
+  {name = "Romain Pastureau", email = "r.pastureau@bcbl.eu"},
+]
+description = "Pre-processing, display and analysis of motion capture data and speech"
 readme = "README.md"
 requires-python = ">=3.7"
 classifiers = [
@@ -17,17 +20,17 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "scipy >= 1.11.0, < 2",
-    "numpy >= 1.25.0, < 2",
-    "chardet >= 5.2.0, < 6",
-    "matplotlib >= 3.7, < 4",
-    "seaborn >= 0.12.2, < 1",
-    "opencv-python == 4.8.0.76",
-    "openpyxl >= 3.1, < 4",
-    "pandas >= 2.1.0, < 3",
-    "pygame >= 2.5, < 3",
-    "PyAudio >= 0.2.13, < 1",
-    "praat-parselmouth > 0.4, < 1"
+    "scipy >= 1.11.0",
+    "numpy >= 1.25.0",
+    "chardet >= 5.2.0",
+    "matplotlib >= 3.7",
+    "seaborn >= 0.12.21",
+    "opencv-python >= 4.8.0.76",
+    "openpyxl >= 3.1",
+    "pandas >= 2.1.0",
+    "pygame >= 2.5",
+    "PyAudio >= 0.2.13",
+    "praat-parselmouth > 0.4"
 ]
 
 [external]
@@ -35,8 +38,11 @@ build-requires = [
     "pkg:nuget/portaudio@0.19.1"
 ]
 
+[tool.hatch.build.targets.sdist]
+exclude = ["docs", "kinect_processing", "lund_processing", "test", "tests", "venv", ".venv", "pipeline.txt"]
+
 [project.urls]
 "Homepage" = "https://github.com/RomainPastureau/Krajjat"
 "Bug Tracker" = "https://github.com/RomainPastureau/Krajjat/issues"
 "Documentation" = "https://krajjat.readthedocs.io/en/latest/"
-
+"PyPI" = "https://pypi.org/project/krajjat/"
