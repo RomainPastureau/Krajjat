@@ -4,24 +4,32 @@ Example of processing
 You have recorded motion capture data and you wish to process the data and perform some analysis. This page will
 guide you though a simple processing pipeline using a one-minute recording as an example.
 
+Data to download
+----------------
+To run this tutorial, you will need to download the following data:
+* Kinect data
+* Qualisys data
+
 Importing the data
 ------------------
 
-First, you will need to import the toolbox.
+First, you will need to import the toolbox and the necessary classes and functions:
 
 .. code-block:: python
 
-    >>> from krajjat import *
-    >>> from krajjat.classes import *
+    >>> from krajjat.classes.sequence import Sequence  # To define a mocap sequence
+    >>> from krajjat.classes.audio import Audio  # To define an audio sequence
+    >>> from krajjat import display_functions  # To take a look at the sequences
+    >>> from krajjat import plot_functions  # To make some plots
 
-We will then open the sequence by specifying its path. Let's say we have our data saved as ``"sequence1.csv"``:
+We can then open the sequence by specifying its path. Let's say we have our data saved as ``"sequence1.json"``:
 
 .. code-block:: python
 
-    >>> sequence = Sequence("C:/Users/Farnsworth/MoCap/sequence1.csv")
-    Opening sequence from C:/Users/Farnsworth/MoCap/sequence1.csv... 100% - Done.
+    >>> sequence = Sequence("test_kinect/sequence_ainhoa.json")
+    Opening sequence from test_kinect\sequence_ainhoa.json... 10% 20% 30% 40% 50% 60% 70% 80% 90% 100% - Done.
 
-.. note::
+.. tip::
     It is possible to load multiple sequences from a folder, or even recursively through multiple subdirectories,
     using the :func:`io_functions.load_sequences` function. The loaded sequences will be returned as a list or a
     dictionary.
