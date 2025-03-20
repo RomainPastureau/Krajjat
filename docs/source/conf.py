@@ -5,9 +5,9 @@ sys.path.insert(0, os.path.abspath(os.path.join('..', '..', 'src')))
 import krajjat
 
 project = 'krajjat'
-copyright = '2023, Romain Pastureau'
+copyright = '2025, Romain Pastureau'
 author = 'Romain Pastureau'
-release = '1.99.9'
+release = '1.99.19'
 
 extensions = [
     'sphinx.ext.duration',

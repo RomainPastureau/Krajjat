@@ -16,9 +16,9 @@ import seaborn as sns
 
 
 def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight", measures="default", domain="time",
-                                  window_length=7, poly_order=None, align=True, x_start=None, x_end=None, ylim=None,
-                                  time_format=True, figure_background_color=None, graph_background_color=None,
-                                  line_color=None, line_width=1.0, verbosity=1, **kwargs):
+                                  window_length=7, poly_order=None, align=True, timestamp_start=None, timestamp_end=None,
+                                  xlim=None, ylim=None, time_format=True, figure_background_color=None,
+                                  graph_background_color=None, line_color=None, line_width=1.0, verbosity=1, **kwargs):
     """Plots the x, y, z positions across time of the joint of one or more sequences, along with the distance travelled,
     velocity and absolute variations of acceleration.
 
@@ -87,13 +87,18 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
         provided is or are sub-sequences of others. If it is the case, the function will align the timestamps of the
         sequences for the plot. If only one sequence is provided, this parameter is ignored.
 
-    x_start: float or None, optional
-        If defined, indicates at what timestamp or frequency value the plot starts.
+    timestamp_start: float or None, optional
+        If defined, indicates at what timestamp to start to calculate the measure.
 
-    x_end: float or None, optional
-        If defined, indicates at what timestamp or frequency value the plot ends.
+    timestamp_end: float or None, optional
+        If defined, indicates at what timestamp to finish to calculate the measure.
 
-    ylim: list(int or float), optional
+    xlim: list(int|float)|None, optional
+        If defined, indicates the timestamp range of frequency range on the x-axis for all subplots. If not defined,
+        the values of xlim will take the values of `timestamp_start` and `timestamp_end` in the time domain,
+        or ``0`` and the half of the highest sequence frequency in the frequency domain.
+
+    ylim: list(float) or list(list(float)) optional
         If defined, sets the lower and upper limits of the y-axis for all sub-graphs (e.g. `[0, 1]`). If this parameter
         is a list of lists, each sublist sets the limits for each sub-graph.
 
@@ -143,65 +148,22 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
     ...                               line_color=["bcbl blue", "bcbl dark blue"], verbosity=1)
     """
 
-    if type(sequence_or_sequences) is not list:
-        sequence_or_sequences = [sequence_or_sequences]
-
-    # Aligning sequences
-    if align and len(sequence_or_sequences) > 1:
-        if verbosity > 0:
-            print("Trying to align sequences...", end=" ")
-        timestamps = align_multiple_sequences(*sequence_or_sequences, verbosity=verbosity)
-        if verbosity > 0:
-            print("Done.")
-    else:
-        if verbosity > 0:
-            print("Getting the timestamps...", end=" ")
-        timestamps = []
-        for sequence in sequence_or_sequences:
-            timestamps.append(sequence.get_timestamps())
-        if verbosity > 0:
-            print("Done.")
-
-    # Handling timestamp_start and timestamp_end
-    x_end_to_define = False
-    if x_start is None:
-        if verbosity > 0:
-            print("Defining x_start...", end=" ")
-        for timestamps_sequence in timestamps:
-            if domain == "time":
-                if x_start is None or np.min(timestamps_sequence) < x_start :
-                    x_start = np.min(timestamps_sequence)
-            elif domain == "frequency":
-                if x_start is None or x_start < 0:
-                    x_start = 0
     if verbosity > 0:
-        print(f"x_start set on {x_start}.")
+        if len(sequence_or_sequences) > 1:
+            print(f"Plotting the movement for {len(sequence_or_sequences)} sequences...")
+            print("\tGetting data...", end=" ")
+        else:
+            print(f"Plotting the movement for the sequence {sequence_or_sequences[0].get_name()}...")
+            print("\tGetting data...", end=" ")
 
-    if x_end is None:
-        if verbosity > 0:
-            print("Defining x_end...", end=" ")
-        for timestamps_sequence in timestamps:
-            if domain == "time":
-                if x_end is None or np.max(timestamps_sequence) > x_end:
-                    x_end = np.max(timestamps_sequence)
-            elif domain == "frequency":
-                x_end_to_define = True
-                x_end = 0
-    if verbosity > 0:
-        print(f"x_end set on {x_end}.")
+    sequences, timestamps = _prepare_plot_timestamps(sequence_or_sequences, align, verbosity)
+    timestamp_start, timestamp_end, xlim = _calculate_plot_limits(sequences, timestamps, domain,
+                                                                  timestamp_start, timestamp_end, xlim, verbosity)
 
-    # Getting the epoch timestamps for each aligned sequence
     if verbosity > 0:
-        print("Getting the timestamps between x_start and x_end for each sequence...", end=" ")
-    epoch_timestamps = []
-    for i in range(len(timestamps)):
-        sequence_epoch_timestamps = []
-        for t in timestamps[i]:
-            if x_start <= t <= x_end:
-                sequence_epoch_timestamps.append(t)
-        epoch_timestamps.append(sequence_epoch_timestamps)
-    timestamps = epoch_timestamps
-    if verbosity > 0:
+        print(f"Getting the timestamps between {timestamp_start} s and {timestamp_end} s for each sequence...", end=" ")
+        timestamps = [np.where(np.logical_and(seq_timestamps >= timestamp_start, seq_timestamps <= timestamp_end))
+                      for seq_timestamps in timestamps]
         print("Done.")
 
     if verbosity > 0:
@@ -240,13 +202,13 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
         print("Getting the measures for each sequence...", end=" ")
 
     # For all sequences
-    for i in range(len(sequence_or_sequences)):
-        sequence = sequence_or_sequences[i]
+    for i in range(len(sequences)):
+        sequence = sequences[i]
 
         if domain == "time":
 
             for measure in measures:
-                values[measure].append(sequence.get_measure(measure, joint_label, x_start, x_end,
+                values[measure].append(sequence.get_measure(measure, joint_label, timestamp_start, timestamp_end,
                                                             window_length, poly_order, absolute_measures[measure],
                                                             verbosity))
 
@@ -267,8 +229,6 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
                                                      sequence.get_sampling_rate(), "flattop", 1024,
                                                      scaling="spectrum")
                 plot_timestamps[measure].append(t)
-                if x_end_to_define and plot_timestamps[measure][i][-1] > x_end:
-                    x_end = plot_timestamps[measure][i][-1]
 
     if verbosity > 0:
         print("Done.")
@@ -277,10 +237,12 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
         if verbosity > 0:
             print("Setting the timestamps to seconds...", end=" ")
         for measure in plot_timestamps:
-            for i in range(len(sequence_or_sequences)):
+            for i in range(len(sequences)):
                 plot_timestamps[measure][i] = np.array(plot_timestamps[measure][i] * 1000000, dtype="datetime64[us]")
-        x_start = np.datetime64(int(x_start * 1000000), "us")
-        x_end = np.datetime64(int(x_end * 1000000), "us")
+        timestamp_start = np.datetime64(int(timestamp_start * 1000000), "us")
+        timestamp_end = np.datetime64(int(timestamp_end * 1000000), "us")
+        xlim[0] = np.datetime64(int(xlim[0] * 1000000), "us")
+        xlim[1] = np.datetime64(int(xlim[1] * 1000000), "us")
         if verbosity > 0:
             print("Done.")
 
@@ -379,23 +341,28 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
         ax = plt.subplot(len(measures), 1, i + 1)
         if graph_background_color is not None:
             ax.set_facecolor(convert_color(graph_background_color, "hex", False))
-            ax = set_label_time_figure(ax)
 
-            # plt.gcf().axes[i].xaxis.set_major_formatter(formatter)
-            if (x_end - x_start).seconds >= 3600:
-                plt.xlabel("Time (hh:mm:ss.ms)")
+            if domain == "time":
+                ax = set_label_time_figure(ax)
+
+                # plt.gcf().axes[i].xaxis.set_major_formatter(formatter)
+                if (xlim[1] - xlim[0]).seconds >= 3600:
+                    plt.xlabel("Time (hh:mm:ss.ms)")
+                else:
+                    plt.xlabel("Time (mm:ss.ms)")
+
             else:
-                plt.xlabel("Time (mm:ss.ms)")
+                plt.xlabel("Frequency (Hz)")
 
-        for j in range(len(sequence_or_sequences)):
-            plt.xlim([x_start, x_end])
+        for j in range(len(sequences)):
+            plt.xlim(xlim)
             if ylim is not None:
                 if type(ylim[0]) is list:
                     plt.ylim(ylim[i])
                 else:
                     plt.ylim(ylim)
             if i == 0:
-                label = sequence_or_sequences[j].get_name()
+                label = sequences[j].get_name()
             else:
                 label = None
 
@@ -404,7 +371,7 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
 
             if i == 0:
                 plt.legend(bbox_to_anchor=(0, 1, 1, 0), loc="lower left", mode="expand",
-                           ncol=len(sequence_or_sequences))
+                           ncol=len(sequences))
 
         plt.ylabel(measures[i] + " (" + labels_units[measures[i]] + ")", **parameters)
 
@@ -413,8 +380,9 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
 
 def joints_movement_plotter(sequence_or_sequences, measure="velocity",  window_length=7, poly_order=None, domain="time",
                             audio_or_derivative=None, overlay_audio=False, audio_color="#a102db", align=True,
-                            x_start=None, x_end=None, ylim=None, line_width=1.0, color_scheme="default",
-                            show_scale=False, show_graph=True, path_saving=None, verbosity=1, **kwargs):
+                            timestamp_start=None, timestamp_end=None, xlim=None, ylim=None, line_width=1.0, 
+                            color_scheme="default", show_scale=False, show_graph=True, path_saving=None, verbosity=1, 
+                            **kwargs):
     """Plots the distance or velocity across time of the joints, in separate sub-graphs whose localisation roughly
     follows the original body position of the joints.
 
@@ -484,14 +452,19 @@ def joints_movement_plotter(sequence_or_sequences, measure="velocity",  window_l
         containing more than one sequence instance, the function will try to check if one or more of the sequences
         provided is or are sub-sequences of others. If it is the case, the function will align the timestamps of the
         sequences for the plot. If only one sequence is provided, this parameter is ignored.
+        
+    timestamp_start: float or None, optional
+        If defined, indicates at what timestamp to start to calculate the measure.
 
-    x_start: float or None, optional
-        If defined, indicates at what timestamp or frequency value the plot starts.
+    timestamp_end: float or None, optional
+        If defined, indicates at what timestamp to finish to calculate the measure.
 
-    x_end: float or None, optional
-        If defined, indicates at what timestamp or frequency value the plot ends.
+    xlim: list(int|float)|None, optional
+        If defined, indicates the timestamp range of frequency range on the x-axis for all subplots. If not defined,
+        the values of xlim will take the values of `timestamp_start` and `timestamp_end` in the time domain,
+        or ``0`` and the half of the highest sequence frequency in the frequency domain.
 
-    ylim: list(int or float), optional
+    ylim: list(int|float)|None, optional
         If defined, sets the lower and upper limits of the y-axis for all sub-graphs (e.g. `[0, 1]`). If this parameter
         is a list of lists, each sublist sets the limits for each sub-graph.
 
@@ -541,9 +514,6 @@ def joints_movement_plotter(sequence_or_sequences, measure="velocity",  window_l
     ...                         overlay_audio=True, verbosity=0)
     """
 
-    if type(sequence_or_sequences) is not list:
-        sequence_or_sequences = [sequence_or_sequences]
-
     if verbosity > 0:
         if len(sequence_or_sequences) > 1:
             print(f"Plotting the data skeleton for {len(sequence_or_sequences)} sequences...")
@@ -552,62 +522,14 @@ def joints_movement_plotter(sequence_or_sequences, measure="velocity",  window_l
             print(f"Plotting the data skeleton for the sequence {sequence_or_sequences[0].get_name()}...")
             print("\tGetting data...", end=" ")
 
-    # Aligning sequences
-    if align and len(sequence_or_sequences) > 1:
-        if verbosity > 0:
-            print("Trying to align sequences...", end=" ")
-        timestamps = align_multiple_sequences(*sequence_or_sequences, verbosity=verbosity)
-        if verbosity > 0:
-            print("Done.")
-    else:
-        if verbosity > 0:
-            print("Getting the timestamps...", end=" ")
-        timestamps = []
-        for sequence in sequence_or_sequences:
-            timestamps.append(sequence.get_timestamps())
-        if verbosity > 0:
-            print("Done.")
+    sequences, timestamps = _prepare_plot_timestamps(sequence_or_sequences, align, verbosity)
+    timestamp_start, timestamp_end, xlim = _calculate_plot_limits(sequences, timestamps, domain,
+                                                                  timestamp_start, timestamp_end, xlim, verbosity)
 
-    # Handling timestamp_start and timestamp_end
-    x_end_to_define = False
-    if x_start is None:
-        if verbosity > 0:
-            print("Defining x_start...", end=" ")
-        for timestamps_sequence in timestamps:
-            if domain == "time":
-                if x_start is None or np.min(timestamps_sequence) < x_start :
-                    x_start = np.min(timestamps_sequence)
-            elif domain == "frequency":
-                if x_start is None or x_start < 0:
-                    x_start = 0
     if verbosity > 0:
-        print(f"x_start set on {x_start}.")
-
-    if x_end is None:
-        if verbosity > 0:
-            print("Defining x_end...", end=" ")
-        for timestamps_sequence in timestamps:
-            if domain == "time":
-                if x_end is None or np.max(timestamps_sequence) > x_end:
-                    x_end = np.max(timestamps_sequence)
-            elif domain == "frequency":
-                x_end_to_define = True
-                x_end = 0
-    if verbosity > 0:
-        print(f"x_end set on {x_end}.")
-
-    # Getting the epoch timestamps for each aligned sequence
-    if verbosity > 0:
-        print("Getting the timestamps between x_start and x_end for each sequence...", end=" ")
-    epoch_timestamps = []
-    for i in range(len(timestamps)):
-        sequence_epoch_timestamps = []
-        for t in timestamps[i]:
-            if x_start <= t <= x_end:
-                sequence_epoch_timestamps.append(t)
-        epoch_timestamps.append(sequence_epoch_timestamps)
-    timestamps = epoch_timestamps
-    if verbosity > 0:
+        print(f"Getting the timestamps between {timestamp_start} s and {timestamp_end} s for each sequence...", end=" ")
+        timestamps = [np.where(np.logical_and(seq_timestamps >= timestamp_start, seq_timestamps <= timestamp_end))
+                      for seq_timestamps in timestamps]
         print("Done.")
 
     if verbosity > 0:
@@ -641,15 +563,15 @@ def joints_movement_plotter(sequence_or_sequences, measure="velocity",  window_l
     max_value = 0
 
     # For all sequences
-    for i in range(len(sequence_or_sequences)):
-        sequence = sequence_or_sequences[i]
+    for i in range(len(sequences)):
+        sequence = sequences[i]
 
         if domain == "time":
-            values.append(sequence.get_measure(measure, None, x_start, x_end, window_length, poly_order,
+            values.append(sequence.get_measure(measure, None, timestamp_start, timestamp_end, window_length, poly_order,
                                                 abs_measure, verbosity))
-            totals.append(sequence.get_sum_measure(measure, None, True, x_start, x_end, window_length, poly_order,
+            totals.append(sequence.get_sum_measure(measure, None, True, timestamp_start, timestamp_end, window_length, poly_order,
                                           True, verbosity))
-            min_seq, max_seq = sequence.get_extremum_measure(measure, None, "both", False, x_start, x_end, window_length,
+            min_seq, max_seq = sequence.get_extremum_measure(measure, None, "both", False, timestamp_start, timestamp_end, window_length,
                                                    poly_order, abs_measure, verbosity)
             if min_seq < min_value:
                min_value = min_seq
@@ -677,8 +599,6 @@ def joints_movement_plotter(sequence_or_sequences, measure="velocity",  window_l
                     max_value = np.max(values[i][joint_label])
 
             plot_timestamps.append(t)
-            if x_end_to_define and plot_timestamps[i][-1] > x_end:
-                x_end = plot_timestamps[i][-1]
 
     if verbosity > 0:
         print("Done.")
@@ -706,10 +626,10 @@ def joints_movement_plotter(sequence_or_sequences, measure="velocity",  window_l
                                                                   "distance_z", "distance", "velocity", "acceleration",
                                                                   "jerk", "snap", "crackle", "pop"])
 
-    if len(sequence_or_sequences) > 1:
-        title += f" ({len(sequence_or_sequences)} sequences)"
-    elif len(sequence_or_sequences) == 1 and sequence_or_sequences[0].get_name() is not None:
-        title += " " + str(sequence_or_sequences[0].get_name())
+    if len(sequences) > 1:
+        title += f" ({len(sequences)} sequences)"
+    elif len(sequences) == 1 and sequences[0].get_name() is not None:
+        title += " " + str(sequences[0].get_name())
 
     # We define the plot dictionary
     plot_dictionary = {}
@@ -721,22 +641,22 @@ def joints_movement_plotter(sequence_or_sequences, measure="velocity",  window_l
     # Determine color depending on global sum
     joints_colors = []
     if domain == "time":
-        if len(sequence_or_sequences) == 1:
+        if len(sequences) == 1:
             joints_colors.append(calculate_colors_by_values(totals[0], color_scheme, type_return="hex",
                                                             include_alpha=False))
         else:
-            for s in range(len(sequence_or_sequences)):
+            for s in range(len(sequences)):
                 if type(color_scheme) is list:
                     joints_colors.append({joint_label: color_scheme[s % len(color_scheme)]
-                                          for joint_label in sequence_or_sequences[s].get_joint_labels()})
+                                          for joint_label in sequences[s].get_joint_labels()})
                 else:
                     joints_colors.append({joint_label: "C"+str(s) for joint_label in
-                                          sequence_or_sequences[s].get_joint_labels()})
+                                          sequences[s].get_joint_labels()})
 
     else:
-        for s in range(len(sequence_or_sequences)):
+        for s in range(len(sequences)):
             joints_colors.append({joint_label: "C"+str(s)
-                                  for joint_label in sequence_or_sequences[s].get_joint_labels()})
+                                  for joint_label in sequences[s].get_joint_labels()})
 
     if verbosity > 0:
         print("Done.")
@@ -756,15 +676,15 @@ def joints_movement_plotter(sequence_or_sequences, measure="velocity",  window_l
         print("Done.")
         print("\tCreating the sub-graphs...", end=" ")
 
-    for joint_label in sequence_or_sequences[0].get_joint_labels():
+    for joint_label in sequences[0].get_joint_labels():
         graph = Graph()
         if overlay_audio:
             graph.add_plot(audio_or_derivative.get_timestamps(), scaled_audio_or_derivative, None, line_width,
                            convert_color(audio_color, "hex", False) + "60")
 
-        for s in range(len(sequence_or_sequences)):
-            if (len(sequence_or_sequences)) > 1:
-                label = sequence_or_sequences[s].get_name()
+        for s in range(len(sequences)):
+            if (len(sequences)) > 1:
+                label = sequences[s].get_name()
             else:
                 label = None
             graph.add_plot(plot_timestamps[s], values[s][joint_label], None, line_width,
@@ -783,8 +703,8 @@ def joints_movement_plotter(sequence_or_sequences, measure="velocity",  window_l
         print("Done.")
 
     plot_body_graphs(plot_dictionary, min_scale=min_value, max_scale=max_value, show_scale=show_scale,
-                     title_scale=title_scale, color_scheme=color_scheme, title=title, title_audio=title_audio,
-                     show_graph=show_graph, path_saving=path_saving, **kwargs)
+                     title_scale=title_scale, color_scheme=color_scheme, xlim=xlim, ylim=ylim,
+                     title=title, title_audio=title_audio, show_graph=show_graph, path_saving=path_saving, **kwargs)
 
 
 def framerate_plotter(sequence_or_sequences, line_width=1.0, line_color="black", **kwargs):
@@ -990,8 +910,8 @@ def audio_plotter(audio, filter_below=None, filter_over=None, number_of_formants
 
 
 def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale=None, max_scale=None, show_scale=False,
-                     title_scale=None, x_lim=None, color_scheme="default", title_audio="Audio", full_screen=False,
-                     show_graph=True, path_saving=None, **kwargs):
+                     title_scale=None, xlim=None, ylim=None, color_scheme="default", title_audio="Audio",
+                     full_screen=False, show_graph=True, path_saving=None, **kwargs):
     """Creates multiple sub-plots placed so that each joint is roughly placed where it is located on the body. The
     values of each subplot are taken from the parameter ``plot_dictionary``, and the positions from the layout
     differ between Kinect and Kualisys systems.
@@ -1031,8 +951,11 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
     title_scale: str or None, optional
         Defines a title to give to the scale, if ``show_scale`` is set on ``True``.
 
-    x_lim: list(float, float)|None, optional
+    xlim: list(float, float)|None, optional
         If set, defines the lower and upper limits of the x-axis of the sub-graphs (default: None).
+
+    ylim: list(float, float)|None, optional
+        If set, defines the lower and upper limits of the y-axis of the sub-graphs (default: None).
 
     color_scheme: str or list, optional
         The color scheme to use for the color scale. This color scheme should be coherent with the colors defined in
@@ -1116,8 +1039,10 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
             plt.title(key)
         else:
             plt.title(title_audio)
-        if x_lim is not None:
-            plt.xlim(x_lim)
+        if xlim is not None:
+            plt.xlim(xlim)
+        if ylim is not None:
+            plt.ylim(ylim)
         for subplot in plot_dictionary[key].plots:
             plt.plot(subplot.x, subplot.y, linewidth=subplot.line_width, color=subplot.color, label=subplot.label)
             if subplot.sd is not None:
@@ -1498,7 +1423,7 @@ def _plot_components(pca_or_ica, components, joint_labels, title, selected_compo
     pca_or_ica: numpy.ndarray
         The components returned by a Principal Component Analysis.
     components: numpy.ndarray
-        The components_ attribute of the PCA, containing the directions of maximum variance in the data for each feature
+        The components attribute of the PCA, containing the directions of maximum variance in the data for each feature
         (the joint labels).
     joint_labels: list(str)
         The labels of each feature.
@@ -1530,3 +1455,147 @@ def _plot_components(pca_or_ica, components, joint_labels, title, selected_compo
         ax[i][1].plot(pca_or_ica[:, i])
 
     plt.show()
+
+def _prepare_plot_timestamps(sequence_or_sequences, align, verbosity):
+    """
+    Returns the timestamps, aligned or not, from one or multiple Sequence instances.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    sequence_or_sequences: Sequence or list(Sequence)
+        One or multiple sequence instances.
+
+    align: bool, optional
+        If this parameter is set on ``"True"`` (default), and if the parameter ``sequence_or_sequences`` is a list
+        containing more than one sequence instance, the function will try to check if one or more of the sequences
+        provided is or are sub-sequences of others. If it is the case, the function will align the timestamps of the
+        sequences for the plot. If only one sequence is provided, this parameter is ignored.
+
+    verbosity: int, optional
+        Sets how much feedback the code will provide in the console output:
+
+        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+          current steps.
+        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+          may clutter the output and slow down the execution.
+
+    Returns
+    -------
+    list(Sequence)
+        A list containing the Sequence instances passed as parameter. If only one Sequence was passed, a list
+        containing only this Sequence is returned.
+    list(numpy.array(float))
+        A list of timestamps from each of the Sequence instances (in the same order as they were passed as parameters).
+    """
+
+    # Turn to list
+    if type(sequence_or_sequences) is not list:
+        sequence_or_sequences = [sequence_or_sequences]
+
+    # Aligning sequences
+    if align and len(sequence_or_sequences) > 1:
+        if verbosity > 0:
+            print("Trying to align sequences...", end=" ")
+        timestamps = align_multiple_sequences(*sequence_or_sequences, verbosity=verbosity)
+        if verbosity > 0:
+            print("Done.")
+    else:
+        if verbosity > 0:
+            print("Getting the timestamps...", end=" ")
+        timestamps = []
+        for sequence in sequence_or_sequences:
+            timestamps.append(sequence.get_timestamps())
+        if verbosity > 0:
+            print("Done.")
+
+    return sequence_or_sequences, timestamps
+
+def _calculate_plot_limits(sequences, timestamps, domain, timestamp_start, timestamp_end, xlim, verbosity):
+    """Given a list of sequences and their timestamps, sets:
+
+        * The starting and ending timestamps for the measure calculations, if they weren't defined.
+        * The limit on the x-axis, if it wasn't manually defined.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    sequences: list(Sequence)
+        A list of Sequence instances.
+
+    timestamps: list(np.ndarray)
+        A list of timestamps from the Sequence instances.
+
+    domain: str, optional
+        Defines if to plot the movement in the time domain (`"time"`, default) or in the frequency domain
+        (`"frequency"`).
+
+    timestamp_start: float or None, optional
+        If defined, indicates at what timestamp to start to calculate the measure.
+
+    timestamp_end: float or None, optional
+        If defined, indicates at what timestamp to finish to calculate the measure.
+
+    xlim: list(float|None, float|None)
+        The limits of the plot on the x-axis. If set, this parameter will be returned as is. Otherwise, the calculation
+        of the limit of the x-axis depends on the domain:
+
+        • If domain is set on ``"time"``, the limits are set on the timestamp_start and timestamp_end values.
+        • If domain is set on ``"frequency"``, the limits are set on 0 and half of the highest Sequence frequency.
+
+    verbosity: int, optional
+        Sets how much feedback the code will provide in the console output:
+
+        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+          current steps.
+        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+          may clutter the output and slow down the execution.
+    """
+
+    # Handling timestamp_start and timestamp_end
+    if timestamp_start is None:
+        if verbosity > 0:
+            print("Defining timestamp_start...", end=" ")
+        for timestamps_sequence in timestamps:
+            if timestamp_start is None or np.min(timestamps_sequence) < timestamp_start:
+                timestamp_start = np.min(timestamps_sequence)
+    if verbosity > 0:
+        print(f"timestamp_start set on {timestamp_start}.")
+
+    if timestamp_end is None:
+        if verbosity > 0:
+            print("Defining timestamp_end...", end=" ")
+        for timestamps_sequence in timestamps:
+            if timestamp_end is None or np.max(timestamps_sequence) > timestamp_end:
+                timestamp_end = np.max(timestamps_sequence)
+    if verbosity > 0:
+        print(f"timestamp_end set on {timestamp_end}.")
+
+    # Handling xlim
+    if xlim is None:
+        xlim = [None, None]
+
+    if xlim[0] is None:
+        if domain == "frequency":
+            xlim[0] = 0
+        else:
+            xlim[0] = timestamp_start
+    if verbosity > 0:
+        print(f"Lower limit of the x-axis set on {xlim[0]}.")
+
+    if xlim[1] is None:
+        if domain == "frequency":
+            xlim[1] = 0
+            for sequence in sequences:
+                if sequence.get_sampling_rate() / 2 > xlim[1]:
+                    xlim[1] = sequence.get_sampling_rate() / 2
+        else:
+            xlim[1] = timestamp_end
+    if verbosity > 1:
+        print(f"Upper limit of the x-axis set on {xlim[1]}.")
+
+    return timestamp_start, timestamp_end, xlim

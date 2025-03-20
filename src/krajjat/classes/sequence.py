@@ -8,7 +8,7 @@ from collections import OrderedDict
 from bisect import bisect
 
 from scipy.signal import butter, lfilter
-from scipy.io import loadmat, savemat
+from scipy.io import savemat
 
 from krajjat.classes.pose import Pose
 from krajjat.classes.audio import Audio
@@ -2052,11 +2052,11 @@ class Sequence(TimeSeries):
             • For the z-coordinate: ``"z"``, ``"z_coord"``, ``"coord_z"``, or ``"z_coordinate"``.
             • For all the coordinates: ``"xyz"``, ``"coordinates"``, ``"coord"``, ``"coords"``, or ``"coordinate"``.
             • For the consecutive distances: ``"d"``, ``"distances"``, ``"dist"``, ``"distance"``,  or ``0``.
-            • For the consecutive distances on the x-axis: ``"dx"`, ``"distance_x"``, ``"x_distance"``, ``"dist_x"``,
+            • For the consecutive distances on the x-axis: ``"dx"``, ``"distance_x"``, ``"x_distance"``, ``"dist_x"``,
               or ``"x_dist"``.
-            • For the consecutive distances on the y-axis: ``"dy"`, ``"distance_y"``, ``"y_distance"``, ``"dist_y"``,
+            • For the consecutive distances on the y-axis: ``"dy"``, ``"distance_y"``, ``"y_distance"``, ``"dist_y"``,
               or ``"y_dist"``.
-            • For the consecutive distances on the z-axis: ``"dz"`, ``"distance_z"``, ``"z_distance"``, ``"dist_z"``,
+            • For the consecutive distances on the z-axis: ``"dz"``, ``"distance_z"``, ``"z_distance"``, ``"dist_z"``,
               or ``"z_dist"``.
             • For the velocity: ``"v"``, ``"vel"``, ``"velocity"``, ``"velocities"``, ``"speed"``, or ``1``.
             • For the acceleration: ``"a"``, ``"acc"``, ``"acceleration"``, ``"accelerations"``, or ``2``.
@@ -2065,6 +2065,9 @@ class Sequence(TimeSeries):
             • For the crackle: ``"c"``, ``"crackle"``, or ``5``.
             • For the pop: ``"p"``, ``"pop"``, or ``6``.
             • For any derivative of a higher order, set the corresponding integer.
+
+            The measure can be suffixed by ``_abs`` to obtain its absolute values. In that case, the parameter
+            ``absolute`` is ignored.
 
         joint_label: str|list(str)|None, optional
             The joint labels or joint labels you want to return the measures from. If set on ``None`` (default),
@@ -2169,35 +2172,12 @@ class Sequence(TimeSeries):
         # Measures
         if type(measure) is str:
             measure = measure.lower()
-        if measure in ["x", "coord_x", "x_coord", "x_coordinate"]:
-            measure = "x"
-        elif measure in ["y", "coord_y", "coord_y", "y_coordinate"]:
-            measure = "y"
-        elif measure in ["z", "coord_z", "coord_z", "z_coordinate"]:
-            measure = "z"
-        elif measure in ["coord", "coords", "coordinate", "coordinates", "xyz"]:
-            measure = "coordinates"
-        elif measure in ["distance", "distances", "dist", "d", 0, "0"]:
-            measure = "distance"
-        elif measure in ["distance_x", "distance x", "x_distance", "dist_x", "x_dist", "dx"]:
-            measure = "distance_x"
-        elif measure in ["distance_y", "distance y", "y_distance", "dist_y", "y_dist", "dy"]:
-            measure = "distance_y"
-        elif measure in ["distance_z", "distance z", "z_distance", "dist_z", "z_dist", "dz"]:
-            measure = "distance_z"
-        elif measure in ["vel", "speed", "velocity", "velocities", "v", 1, "1"]:
-            measure = "velocity"
-        elif measure in ["acc", "acceleration", "accelerations", "a", 2, "2"]:
-            measure = "acceleration"
-        elif measure in ["jerk", "j", 3, "3"]:
-            measure = "jerk"
-        elif measure in ["snap", "joust", "s", 4, "4"]:
-            measure = "snap"
-        elif measure in ["crackle", "c", 5, "5"]:
-            measure = "crackle"
-        elif measure in ["pop", "p", 6, "6"]:
-            measure = "pop"
-        elif type(measure) != int:
+            if measure.endswith("_abs"):
+                measure = measure[:-4]
+                absolute = True
+        if not type(measure) is int and measure in CLEAN_DERIV_NAMES:
+            measure = CLEAN_DERIV_NAMES[measure]
+        else:
             raise InvalidParameterValueException("measure", measure, ["x", "y", "z", "coordinates",
                                                  "distance", "velocity", "acceleration", "jerk", "snap", "crackle",
                                                  "pop"])
@@ -2261,7 +2241,7 @@ class Sequence(TimeSeries):
                         if verbosity > 1:
                             print(f"· Value: {measures[joint_label][p]}")
 
-                    elif measure in ["distance_x", "distance_y", "distance_z"]:
+                    elif measure in ["distance x", "distance y", "distance z"]:
                         measures[joint_label][p] = calculate_distance(self.poses[p - 1].joints[joint_label],
                                                                       self.poses[p].joints[joint_label],
                                                                       measure[-1])
@@ -2274,7 +2254,7 @@ class Sequence(TimeSeries):
                             print(f"· Defining as ending pose", end=" ")
                         end = p
 
-                if measure not in ["x", "y", "z", "coordinates", "distance_x", "distance_y", "distance_z"]:
+                if measure not in ["x", "y", "z", "coordinates", "distance x", "distance y", "distance z"]:
                     measures[joint_label][p] = calculate_distance(self.poses[p - 1].joints[joint_label],
                                                                   self.poses[p].joints[joint_label])
                     if verbosity > 1:
@@ -2290,7 +2270,7 @@ class Sequence(TimeSeries):
                                 f"{timestamp_end}) is zero. If you are trying to get a distance or a derivative, "
                                 f"consider that no value will be attributed to the first pose of the sequence.")
 
-            if measure not in ["x", "y", "z", "coordinates", "distance", "distance_x", "distance_y", "distance_z"]:
+            if measure not in ["x", "y", "z", "coordinates", "distance", "distance x", "distance y", "distance z"]:
                 if verbosity > 1:
                     print(f"\t\tDistances calculated. Now getting the derivative...")
                 measures[joint_label] = calculate_derivative(measures[joint_label][1:], measure, window_length,

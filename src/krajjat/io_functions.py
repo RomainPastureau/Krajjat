@@ -60,6 +60,13 @@ def load_sequences(input_folder, recursive=False, output_type="list", ignore_emp
     list or dict
         A list or dict (defined by the parameter ``output_type``) of the loaded sequences. If the output is a dict,
         each key is the absolute path to the sequence, and the corresponding values are the loaded sequences.
+
+    Examples
+    --------
+    >>> # Loading all the files located in a folder
+    >>> load_sequences("Recordings/Hadeel/Session_01/")
+    >>> # Loading all the files located in subjects subfolders
+    >>> load_sequences("Recordings/", recursive=True, output_type="dict")
     """
 
     # Read the content of a folder
@@ -182,6 +189,13 @@ def load_audios(input_folder, recursive=False, output_type="list", ignore_empty_
     list or dict
         A list or dict (defined by the parameter ``output_type``) of the loaded audio clips. If the output is a dict,
         each key is the absolute path to the audio clip, and the corresponding values are the loaded audio clips.
+
+    Examples
+    --------
+    >>> # Loading all the files located in a folder
+    >>> load_audios("Recordings/Adele/Session_01/")
+    >>> # Loading all the files located in subjects subfolders
+    >>> load_audios("Recordings/", recursive=True, output_type="dict")
     """
 
     content = os.listdir(input_folder)
@@ -305,7 +319,7 @@ def save_sequences(sequence_or_sequences, folder_out="", names=None, file_format
             • For ``json`` files, the metadata is saved at the top level. Metadata keys will be saved next to the
               ``"Poses"`` key.
             • For ``mat`` files, the metadata is saved at the top level of the structure.
-            • For ``xlsx```files, the metadata is saved in a second sheet.
+            • For ``xlsx`` files, the metadata is saved in a second sheet.
             • For ``pkl`` files, the metadata will always be saved as the object is saved as-is - this parameter
               is thus ignored.
             • For all the other formats, the metadata is saved at the beginning of the file.
@@ -434,7 +448,7 @@ def save_audios(audio_or_audios, folder_out="", names=None, file_format="json", 
             • For ``json`` files, the metadata is saved at the top level. Metadata keys will be saved next to the
               ``"Poses"`` key.
             • For ``mat`` files, the metadata is saved at the top level of the structure.
-            • For ``xlsx```files, the metadata is saved in a second sheet.
+            • For ``xlsx`` files, the metadata is saved in a second sheet.
             • For ``pkl`` files, the metadata will always be saved as the object is saved as-is - this parameter
               is thus ignored.
             • For all the other formats, the metadata is saved at the beginning of the file.

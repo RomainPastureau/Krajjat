@@ -32,24 +32,26 @@ class TestsPlotFunctions(unittest.TestCase):
         #                               measures=["d", "v", "a", "j"], domain="frequency", verbosity=0)
         #
         # single_joint_movement_plotter([sequence_rs, sequence_rs_cj], joint_label="HandRight",
-        #                               measures=["d", "v", "a", "j"], domain="frequency", x_start=1, x_end=2,
-        #                               ylim=[[0, 4e-5], [0, 0.003], [0, 0.35], [0, 50]], line_width=2,
+        #                               measures=["d", "v", "a", "j"], domain="frequency", timestamp_start=1,
+        #                               timestamp_end=2, ylim=[[0, 4e-5], [0, 0.003], [0, 0.35], [0, 50]], line_width=2,
         #                               line_color=["bcbl blue", "bcbl dark blue"], verbosity=0)
 
     def test_joint_movement_plotter(self):
         pass
         # sequence = Sequence("test_sequences/sequence_ainhoa.json", verbosity=0)
         # sequence_rs = sequence.resample(20, "cubic", verbosity=0)
-        # sequence_t = sequence_rs.trim(11.1284139)
+        # sequence_t = sequence_rs.trim(11.1284139, verbosity=0)
         # sequence_t.set_first_timestamp(0)
         # sequence_cj = sequence.correct_jitter(1, 5, "poses", verbosity=0)
         # sequence_rs_cj = sequence_cj.resample(20, "cubic", verbosity=0)
         # audio = Audio("test_audios/audio_ainhoa_trimmed.wav", verbosity=0)
-
+        #
+        #
         # joints_movement_plotter(sequence_rs, measure="velocity", domain="time", verbosity=0)
         # joints_movement_plotter(sequence_rs, measure="velocity_abs", domain="time", verbosity=0)
         # joints_movement_plotter([sequence_rs, sequence_rs_cj], measure="velocity_abs", domain="time", verbosity=0)
-        # joints_movement_plotter(sequence_rs, measure="velocity", domain="frequency", verbosity=0)
+        # joints_movement_plotter(sequence_rs, measure="velocity", domain="frequency", xlim=[1, 3], ylim=[0, 0.004],
+        #                         verbosity=0)
         # joints_movement_plotter(sequence_rs, measure="velocity_abs", domain="frequency", verbosity=0)
         # joints_movement_plotter(sequence_t, measure="velocity", domain="time", audio_or_derivative=audio,
         #                         overlay_audio=True, verbosity=0)
@@ -93,4 +95,10 @@ class TestsPlotFunctions(unittest.TestCase):
         #                 color_background="black", color_silhouette="#303030", verbosity=0)
 
     def test_plot_components(self):
+        pass
+
+    def test_prepare_plot_timestamps(self):
+        pass
+
+    def test_calculate_plot_limits(self):
         pass

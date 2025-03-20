@@ -154,7 +154,7 @@ class Audio(AudioDerivative):
         Example
         -------
         >>> audio = Audio("Recordings/Williams/recording_02.wav")
-        >>> audio.get_path()
+        >>> audio.get_name()
         recording_02
         """
         return super().get_name()
@@ -1065,7 +1065,7 @@ class Audio(AudioDerivative):
 
         **kwargs: dict
             Any of the parameters needed for the function
-            `find_delay <https://find-delay.readthedocs.io/en/latest/find_delay.html>`_.
+            `find_delay <https://find-delay.readthedocs.io/en/latest/find_delay.html>`__.
 
         Returns
         -------
@@ -1102,7 +1102,7 @@ class Audio(AudioDerivative):
 
         **kwargs: dict
             Any of the parameters needed for the function
-            `find_delay <https://find-delay.readthedocs.io/en/latest/find_delays.html>`_.
+            `find_delay <https://find-delay.readthedocs.io/en/latest/find_delays.html>`__.
 
         Returns
         -------

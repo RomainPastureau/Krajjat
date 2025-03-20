@@ -4,7 +4,7 @@ import pickle
 from collections import OrderedDict
 
 import taglib
-from scipy.io import wavfile, loadmat, savemat
+from scipy.io import wavfile, savemat
 
 from krajjat.classes.exceptions import EmptyInstanceException
 from krajjat.classes.time_series import TimeSeries
@@ -432,6 +432,12 @@ class AudioDerivative(TimeSeries):
         -------
         str
             The path of the AudioDerivative instance.
+
+        Example
+        -------
+        >>> envelope = Envelope("Recordings/Bob/envelope.xlsx")
+        >>> envelope.get_path()
+        Recordings/Bob/envelope.xlsx
         """
         return self.path
 
@@ -444,6 +450,15 @@ class AudioDerivative(TimeSeries):
         -------
         str
             The name of the AudioDerivative instance.
+
+        Example
+        -------
+        >>> pitch = Pitch("Recordings/Charles/pitch_001.wav")
+        >>> pitch.get_name()
+        pitch_001
+        >>> pitch = Pitch("Recordings/Charles/pitch_002.wav", name="session 2")
+        >>> pitch.get_name()
+        session 2
         """
         return self.name
 
@@ -456,6 +471,13 @@ class AudioDerivative(TimeSeries):
         -------
         str
             The condition of the AudioDerivative instance.
+
+        >>> intensity = Intensity("Recordings/Chuck/recording_01.wav")
+        >>> intensity.get_condition()
+        None
+        >>> intensity = Intensity("Recordings/Chuck/recording_02.wav", condition="Basque")
+        >>> intensity.get_condition()
+        Basque
         """
         return self.condition
 
@@ -842,7 +864,7 @@ class AudioDerivative(TimeSeries):
         if verbosity > 1:
             print(tabs + f"Closest (below) starting timestamp from {end}: {self.timestamps[end_index]}")
 
-        new_audio_derivative = type(self)(self.samples[start_index:end_index + 1], self.frequency, name=name,
+        new_audio_derivative = type(self)(self.samples[start_index:end_index + 1], frequency=self.frequency, name=name,
                                           condition=self.condition, verbosity=verbosity)
         new_audio_derivative._set_attributes_from_other_object(self)
 
@@ -995,7 +1017,7 @@ class AudioDerivative(TimeSeries):
                 • For ``json`` files, the metadata is saved at the top level. Metadata keys will be saved next to the
                   ``"Poses"`` key.
                 • For ``mat`` files, the metadata is saved at the top level of the structure.
-                • For ``xlsx```files, the metadata is saved in a second sheet.
+                • For ``xlsx`` files, the metadata is saved in a second sheet.
                 • For ``pkl`` files, the metadata will always be saved as the object is saved as-is - this parameter
                   is thus ignored.
                 • For ``wav`` files, the metadata is saved as tags in the file.

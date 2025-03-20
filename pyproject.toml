@@ -4,14 +4,14 @@ build-backend = "hatchling.build"
 
 [project]
 name = "krajjat"
-version = "1.99.18"
+version = "1.99.19"
 authors = [
   {name="Romain Pastureau", email="r.pastureau@bcbl.eu"},
 ]
 maintainers = [
   {name = "Romain Pastureau", email = "r.pastureau@bcbl.eu"},
 ]
-description = "Pre-processing, display and analysis of motion capture data and speech"
+description = "Pre-processing, visualisation and analysis of motion capture data and speech"
 readme = "README.md"
 requires-python = ">=3.7"
 classifiers = [

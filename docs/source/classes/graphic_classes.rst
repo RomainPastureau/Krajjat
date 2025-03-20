@@ -62,6 +62,7 @@ Methods
 .. automethod:: krajjat.classes.graphic_classes.GraphicSequence._load_poses
 .. automethod:: krajjat.classes.graphic_classes.GraphicSequence._load_joint_labels
 .. automethod:: krajjat.classes.graphic_classes.GraphicSequence._load_connections
+.. automethod:: krajjat.classes.graphic_classes.GraphicSequence._remove_ignored_joints
 .. automethod:: krajjat.classes.graphic_classes.GraphicSequence._add_entry_joint_surfaces
 .. automethod:: krajjat.classes.graphic_classes.GraphicSequence._generate_all_joint_surfaces
 .. automethod:: krajjat.classes.graphic_classes.GraphicSequence.get_timestamp
@@ -132,6 +133,7 @@ Initialisation
 Methods
 ^^^^^^^
 .. automethod:: krajjat.classes.graphic_classes.Video._load_video
+.. automethod:: krajjat.classes.graphic_classes.Video._set_frame_start
 .. automethod:: krajjat.classes.graphic_classes.Video._load_frame
 .. automethod:: krajjat.classes.graphic_classes.Video.get_timestamp
 .. automethod:: krajjat.classes.graphic_classes.Video.get_duration

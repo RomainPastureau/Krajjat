@@ -9,6 +9,7 @@ Graph
 -----
 .. autoclass:: krajjat.classes.graph_element.Graph
 .. automethod:: krajjat.classes.graph_element.Graph.add_plot
+.. automethod:: krajjat.classes.graph_element.Graph.add_graph_plot
 .. automethod:: krajjat.classes.graph_element.Graph.__repr__
 
 GraphPlot

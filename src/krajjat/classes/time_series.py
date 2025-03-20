@@ -1,14 +1,10 @@
 """Default metaclass for Sequence, Audio and AudioDerivative. Contains the methods that are common to all time series.
 """
 import copy
-import os
 import os.path as op
 
-import numpy as np
-from scipy.io import savemat
-
-from krajjat.classes.exceptions import InvalidPathException, EmptyInstanceException
-from krajjat.tool_functions import sort_files_trailing_index, show_progression
+from krajjat.classes.exceptions import InvalidPathException
+from krajjat.tool_functions import sort_files_trailing_index
 
 
 class TimeSeries(object):

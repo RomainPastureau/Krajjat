@@ -15,7 +15,10 @@ import chardet
 import numpy as np
 import pandas as pd
 from scipy.interpolate import CubicSpline, PchipInterpolator, Akima1DInterpolator, interp1d
+from scipy.io import loadmat
 from scipy.signal import savgol_filter
+
+import openpyxl as xl
 
 from krajjat.classes.exceptions import ModuleNotFoundException, InvalidParameterValueException, NotASubPathException, \
     InvalidPathException, DifferentSequencesLengthsException, MissingRecordingDateException
@@ -32,6 +35,8 @@ UNITS = {"ns": 1000000000, "1ns": 1000000000, "10ns": 100000000, "100ns": 100000
 CLEAN_DERIV_NAMES = {"x-axis": "x", "x_coord": "x", "coord_x": "x", "x_coordinate": "x", "x": "x",
                      "y-axis": "y", "y_coord": "y", "coord_y": "y", "y_coordinate": "y", "y": "y",
                      "z-axis": "z", "z_coord": "z", "coord_z": "z", "z_coordinate": "z", "z": "z",
+                     "coord": "coordinates", "coords": "coordinates", "coordinate": "coordinates", "xyz": "coordinates",
+                     "coordinates": "coordinates",
                      "d": "distance", "distances": "distance", "dist": "distance", 0: "distance", "0": "distance",
                      "distance": "distance",
                      "dx": "distance x", "distance_x": "distance x", "x_distance": "distance x", "dist_x": "distance x",
@@ -662,8 +667,8 @@ def align_multiple_sequences(*sequences, verbosity=1):
 
                 # Case where the current sequence is a subsequence of the prior
                 if alignment_indices[0] == 0:
-                    if verbosity > 0:
-                        print("Aligning sequence " + str(sequence_index + 1) + " to sequence " +
+                    if verbosity > 1:
+                        print("\tAligning sequence " + str(sequence_index + 1) + " to sequence " +
                               str(prior_sequence_index + 1) + ".")
                     timestamps.append(timestamps[prior_sequence_index][alignment_indices[1]:min(alignment_indices[1] +
                                                                                                 len(sequence),
@@ -671,8 +676,8 @@ def align_multiple_sequences(*sequences, verbosity=1):
 
                 # Case where the prior sequence is a subsequence of the current
                 else:
-                    if verbosity > 0:
-                        print("Aligning sequence " + str(prior_sequence_index + 1) + " to sequence " +
+                    if verbosity > 1:
+                        print("\tAligning sequence " + str(prior_sequence_index + 1) + " to sequence " +
                               str(sequence_index + 1) + ".")
                     timestamps.append(sequence.get_timestamps())
                     timestamps[prior_sequence_index] = timestamps[sequence_index][alignment_indices[0]:
@@ -985,11 +990,6 @@ def read_xlsx(path, sheet=0, read_metadata=True, metadata_sheet=1, verbosity=1):
     dict
         The metadata of the recording, if contained in the Excel file; ``{}`` otherwise.
     """
-    try:
-        import openpyxl as op
-    except ImportError:
-        raise ModuleNotFoundException("openpyxl", "read an Excel file.")
-
     data = None
     metadata = None
 
@@ -997,7 +997,7 @@ def read_xlsx(path, sheet=0, read_metadata=True, metadata_sheet=1, verbosity=1):
     has_metadata = False
     while not opened:
         try:
-            workbook = op.load_workbook(path)
+            workbook = xl.load_workbook(path)
             if len(workbook.sheetnames) > 1:
                 has_metadata = True
 
@@ -1091,7 +1091,7 @@ def read_pandas_dataframe(path, verbosity=1):
     elif path.split(".")[-1] == "csv":
         if verbosity > 0:
             print("Reading a dataframe contained in a CSV file...")
-        return pd.read_csv(path)
+        return pd.read_csv(path, sep=SEPARATOR)
     elif path.split(".")[-1] == "xlsx":
         if verbosity > 0:
             print("Reading a dataframe contained in an Excel file...")
@@ -1101,7 +1101,19 @@ def read_pandas_dataframe(path, verbosity=1):
             except PermissionError:
                 print("The Excel file is currently opened.")
                 _ = input("Press Enter to try again.")
-
+    elif path.split(".")[-1] == "mat":
+        if verbosity > 0:
+            print("Reading a dataframe contained in a MAT file...")
+        data = loadmat(path)["data"]
+        headers = data.dtype
+        ndata = {}
+        for header in headers.names:
+            ndata[header] = data[header][0, 0].flatten().flatten()
+            for i in range(len(ndata[header])):
+                if isinstance(ndata[header][i], np.ndarray):
+                    ndata[header][i] = ndata[header][i][0]
+        df = pd.DataFrame(ndata)
+        return df
     elif path.split(".")[-1] == "pkl":
         if verbosity > 0:
             print("Reading a dataframe contained in an Pickle file...")
@@ -1110,6 +1122,10 @@ def read_pandas_dataframe(path, verbosity=1):
         if verbosity > 0:
             print("Reading a dataframe contained in an GZIP file...")
         return pd.read_parquet(path)
+    elif path.split(".")[-1] in ["tsv", "txt"]:
+        if verbosity > 0:
+            print("Reading a dataframe contained in an text file...")
+        return pd.read_table(path, sep="\t")
     return None
 
 
@@ -1340,11 +1356,7 @@ def write_xlsx(table, path, sheet_name=None, metadata=None, metadata_sheet_name=
         • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
           may clutter the output and slow down the execution.
     """
-    try:
-        import openpyxl as op
-    except ImportError:
-        raise ModuleNotFoundException("openpyxl", "save a file in .xlsx format.")
-    workbook_out = op.Workbook()
+    workbook_out = xl.Workbook()
     sheet_data = workbook_out.active
     if sheet_name is not None:
         sheet_data.title = "Sheet"

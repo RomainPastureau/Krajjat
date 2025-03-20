@@ -97,11 +97,11 @@ def power_spectrum(experiment_or_dataframe, group=None, condition=None, subjects
                 values = dataframe_joint["value"]
 
                 if method == "fft":
-                    power_spectrum = np.abs(np.fft.fft(values)) ** 2
+                    power_spectrum_ = np.abs(np.fft.fft(values)) ** 2
                     frequencies = np.fft.fftfreq(values.size, 1/sampling_frequency)
                     # idx = np.argsort(frequencies)
                 elif method == "welch":
-                    frequencies, power_spectrum = scipy.signal.welch(values, fs=sampling_frequency)
+                    frequencies, power_spectrum_ = scipy.signal.welch(values, fs=sampling_frequency)
                     # for i in range(len(frequencies)):
                     #     if i != 0:
                     #         power_spectrum[i] = power_spectrum[i]/(1/frequencies[i])
@@ -109,7 +109,7 @@ def power_spectrum(experiment_or_dataframe, group=None, condition=None, subjects
                 else:
                     raise Exception("""Method must be "fft" or "welch".""")
 
-                power_spectrum_ind[joint_label] = power_spectrum
+                power_spectrum_ind[joint_label] = power_spectrum_
 
             power_spectrum_series[individual] = power_spectrum_ind
 
@@ -697,11 +697,6 @@ def coherence(experiment_or_dataframe, group=None, condition=None, subjects=None
         raise ModuleNotFoundException("scipy", "calculate the coherence")
 
     try:
-        import numpy as np
-    except ImportError:
-        raise ModuleNotFoundException("numpy", "calculate the coherence")
-
-    try:
         import pandas as pd
     except ImportError:
         raise ModuleNotFoundException("pandas", "calculate the coherence")
@@ -1056,7 +1051,7 @@ def pca(experiment_or_dataframe, n_components, group=None, condition=None, subje
     joint_labels = list(dataframe.loc[dataframe["modality"] == "mocap"]["label"].unique())
 
     ignored = []
-    pca = PCA(n_components=n_components)
+    pca_ = PCA(n_components=n_components)
     i = 0
 
     data_matrix = {}
@@ -1091,10 +1086,10 @@ def pca(experiment_or_dataframe, n_components, group=None, condition=None, subje
     joint_labels = np.delete(joint_labels, ignored)
 
     data_matrix = pd.DataFrame(data_matrix)
-    pca_result = pca.fit_transform(data_matrix)
+    pca_result = pca_.fit_transform(data_matrix)
 
     if show_graph:
-        _plot_components(pca_result, pca.components_, joint_labels, "PCA", selected_components)
+        _plot_components(pca_result, pca_.components_, joint_labels, "PCA", selected_components)
 
     return pca_result
 
@@ -1253,7 +1248,7 @@ def ica(experiment_or_dataframe, n_components, group=None, condition=None, subje
     joint_labels = list(dataframe.loc[dataframe["modality"] == "mocap"]["label"].unique())
 
     ignored = []
-    ica = FastICA(n_components=n_components)
+    ica_ = FastICA(n_components=n_components)
     i = 0
 
     data_matrix = {}
@@ -1289,10 +1284,10 @@ def ica(experiment_or_dataframe, n_components, group=None, condition=None, subje
     joint_labels = np.delete(joint_labels, ignored)
 
     data_matrix = pd.DataFrame(data_matrix)
-    ica_result = ica.fit_transform(data_matrix)
+    ica_result = ica_.fit_transform(data_matrix)
 
     if show_graph:
-        _plot_components(ica_result, ica.components_, joint_labels, "ICA", selected_components)
+        _plot_components(ica_result, ica_.components_, joint_labels, "ICA", selected_components)
 
     return ica_result
 
@@ -1795,7 +1790,7 @@ def _get_dataframe_from_requirements(dataframe, group=None, condition=None, subj
               for each subject.
             • The name of a single trial. This will select the given trial for all subjects.
             • `None` (default). In that case, all trials will be considered.
-            
+
         This parameter can be combined with the other parameters to select specific subjects or conditions.
 
         ..note ::

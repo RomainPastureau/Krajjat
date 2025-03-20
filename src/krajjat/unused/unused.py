@@ -1685,3 +1685,52 @@ def find_common_parent_path(*paths, separator="/"):
             string = string[:-3]
 
         print(string)
+
+    # == Print functions ==
+    def print_subjects_details(self, include_trials=False, include_name=True, include_condition=True,
+                               include_date_recording=True, include_number_of_poses=True, include_duration=True,
+                               add_tabs=0):
+        """Prints details on each Subject instance.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        include_trials: bool, optional
+            If set on `True`, the printed output will contain details from each trial contained in the subject.
+        include_name: bool, optional
+            If set on ``True`` (default), adds the attribute :attr:`name` to the printed string.
+        include_condition: bool, optional
+            If set on ``True`` (default), adds the attribute :attr:`condition` to the printed string.
+        include_date_recording: bool, optional
+            If set on ``True`` (default), adds the attribute :attr:`date_of_recording` to the printed string.
+        include_number_of_poses: bool, optional
+            If set on ``True`` (default), adds the length of the attribute :attr:`poses` to the printed string.
+        include_duration: bool, optional
+            If set on ``True`` (default), adds the duration of the Sequence to the printed string.
+        add_tabs: int, optional
+            Adds the specified amount of tabulations to the verbosity outputs. This parameter may be used by other
+            functions to encapsulate the verbosity outputs by indenting them. In a normal use, it shouldn't be set
+            by the user.
+        """
+
+        t = add_tabs * "\t"
+        # Header
+        if len(self.subjects) == 1:
+            title = t + f"==   Experiment {self.name}, with {len(self.subjects)} subject.   =="
+        else:
+            title = t + f"==   Experiment {self.name}, with {len(self.subjects)} subjects.   =="
+        print(t + "=" * len(title))
+        print(title)
+        print(t + "=" * len(title) + str("\n"))
+
+        # Subjects
+        i = 0
+        for subject_name in self.subjects.keys():
+            subject = self.subjects[subject_name]
+            # print(t + f"Subject {i + 1}/{len(self.subjects)}: {subject_name}")
+            subject.print_sequences_details(include_trials, include_name, include_condition, include_date_recording,
+                                            include_number_of_poses, include_duration, 1 + add_tabs)
+            if i != len(self.subjects) - 1:
+                print("")
+            i += 1

@@ -79,7 +79,7 @@ class Graph(object):
 
 
 class GraphPlot(object):
-    """Class containing the data of the x and y axis to plot in a graph, along with display settings such as line width
+    """Class containing the data of the x and y-axis to plot in a graph, along with display settings such as line width
     and color.
 
     .. versionadded:: 2.0
@@ -87,9 +87,9 @@ class GraphPlot(object):
     Parameters
     ----------
     x: list(float) or numpy.array(float)
-        An array of values to plot on the x axis.
+        An array of values to plot on the x-axis.
     y: list(float) or numpy.array(float)
-        An array of values to plot on the y axis.
+        An array of values to plot on the y-axis.
     sd: list(float), numpy.array(float), or None, optional
         A list containing the standard deviations of x.
     line_width: float, optional
@@ -103,9 +103,9 @@ class GraphPlot(object):
     Attributes
     ----------
     x: numpy.array(float)
-        The array of values to plot on the x axis.
+        The array of values to plot on the x-axis.
     y: numpy.array(float)
-        The array of values to plot on the y axis.
+        The array of values to plot on the y-axis.
     sd: numpy.array(float), or None, optional
         The array containing the standard deviations of x.
     line_width: float

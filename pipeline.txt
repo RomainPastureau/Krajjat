@@ -14,9 +14,8 @@ Update version number
 ---------------------
 * docs/source/conf.py
 * docs/source/version_history.rst (+ date)
-* src/find_delay/find_delay.py (+ date)
 * citation.cff (+ date)
 * pyproject.toml
-* README.md (2 occurrences)
+* README.md
 * SECURITY.md
 * setup.py

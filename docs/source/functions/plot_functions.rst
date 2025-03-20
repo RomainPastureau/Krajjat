@@ -20,3 +20,5 @@ Functions
 Private function
 ----------------
 .. autofunction:: krajjat.plot_functions._plot_components
+.. autofunction:: krajjat.plot_functions._prepare_plot_timestamps
+.. autofunction:: krajjat.plot_functions._calculate_plot_limits

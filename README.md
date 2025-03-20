@@ -1,4 +1,4 @@
-# **Krajjat 1.99.18**
+# **Krajjat 1.99.19**
 ### ~~Kinect Realignment Algorithm for Joint Jumps And Twitches~~
 ### ~~Kinetic Recordings Algorithms for Joint Jazzing in an All-in-one Toolbox~~
 ### ~~Kinetic Recordings And Juxtaposition of Jabbering Along That~~
@@ -19,23 +19,28 @@ The pre-processing functions allow to:
 * Resampling a motion sequence to a target frequency.
 * Correcting missing values via interpolation.
 
-All of these functions can be applied on single motion sequences, or on a batch of sequences. You can also
-perform pre-processing steps on audio files:
-* Resample
+All of these functions can be applied on single motion sequences, or on a batch of sequences.
 
-### Display
+The toolbox also handles the pre-processing of audio files, allowing to: 
+* Filter some frequencies of the audio files.
+* Resample audio files.
+* Trim audio files.
+* Get the envelope of the audio, or the pitch, intensity or formants (via the module Parselmouth).
+
+### Visualisation
 The display functions allow to:
-* Display a sequence pose by pose or in real time, with highly customizable visualization options.
-* Display a sequence concurrently to an audio and/or a video file; the video file can be played below it or next to it.
-* Display two sequences side by side, to compare before and after pre-processing, for example.
+* Visualise a sequence pose by pose or in real time, with highly customizable visualization options.
+* Visualise a sequence concurrently to an audio and/or a video file; the video file can be played below it or next to it.
+* Visualise two sequences side by side, to compare before and after pre-processing, for example.
 * Save any of the previous displays as a MP4 video.
+
+A range of functions also allows to plot different analysis results
 
 ### Analysis
 The toolbox comes with a series of functions for analyses of the sequences to:
-* Plot the values of the x, y and z coordinates, the distance travelled, and the absolute changes of speed and 
-  acceleration across time for any given joint.
+* Plot the values of the x, y and z coordinates, the distance travelled by the joints, or any derivative such as the
+  velocity or acceleration.
 * Plot one of these values for all the joints, with the sub-plots organized according to their position in space.
-* Get the envelope, the pitch, the intensity of the formants from an audio file containing speech.
 * Performing the correlation, cross-correlation, coherence, ICA/PCA, or getting the mutual information between any of
   the kinetic properties of the joints and the acoustic properties of the speech - along with the statistics to compute 
   the significance of the relationship between the two arrays of values.
@@ -46,7 +51,7 @@ The best way to install the toolbox is to follow the recommendations in the
 
 ### Dependencies
 * **Scipy** and **Numpy** for handling audio files and large numeric arrays
-* **Matplotlib** and **Seaborn** for plottings
+* **Matplotlib** and **Seaborn** for plotting
 * **Pandas** to create dataframes for the analysis functions
 * **chardet** to detect the encoding of files
 * **Openpyxl** to process .xls and .xlsx documents
