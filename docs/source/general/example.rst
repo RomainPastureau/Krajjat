@@ -30,6 +30,12 @@ We can then open the sequence by specifying its path. Let's say we have our data
     Opening sequence from test_kinect\sequence_ainhoa.json... 10% 20% 30% 40% 50% 60% 70% 80% 90% 100% - Done.
 
 .. tip::
+    The initialisation function of :func:`Sequence.__init__` can take some parameters, among which:
+        • ``name``: by default, the name will be inferred from the file name (here, it will be ``sequence_ainhoa``),
+          but we can set a custom name using this parameter.
+
+
+.. tip::
     It is possible to load multiple sequences from a folder, or even recursively through multiple subdirectories,
     using the :func:`io_functions.load_sequences` function. The loaded sequences will be returned as a list or a
     dictionary.
