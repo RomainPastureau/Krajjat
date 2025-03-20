@@ -19,8 +19,8 @@ First, you will need to import the toolbox and the necessary classes and functio
 
     >>> from krajjat.classes.sequence import Sequence  # To define a mocap sequence
     >>> from krajjat.classes.audio import Audio  # To define an audio sequence
-    >>> from krajjat import display_functions  # To take a look at the sequences
-    >>> from krajjat import plot_functions  # To make some plots
+    >>> from krajjat.display_functions import * # To take a look at the sequences
+    >>> from krajjat.plot_functions import *  # To make some plots
 
 We can then open the sequence by specifying its path. Let's say we have our data saved as ``"sequence1.json"``:
 
@@ -33,7 +33,10 @@ We can then open the sequence by specifying its path. Let's say we have our data
     The initialisation function of :func:`Sequence.__init__` can take some parameters, among which:
         • ``name``: by default, the name will be inferred from the file name (here, it will be ``sequence_ainhoa``),
           but we can set a custom name using this parameter.
-
+        • ``verbosity``: it allows to set how much text will be printed while running the sub-functions. In all
+          the functions of the toolbox, this parameter is defined on ``1`` by default, providing a moderate amount
+          of text. Setting it on ``0`` allows to have the function running completely silent, while setting it on
+          ``2`` or more allows to get more information.
 
 .. tip::
     It is possible to load multiple sequences from a folder, or even recursively through multiple subdirectories,
@@ -43,6 +46,9 @@ We can then open the sequence by specifying its path. Let's say we have our data
 Looking at the data
 -------------------
 
+Let's first start by taking a look at the data. We can do it using either the :doc:`display functions`, or the plot functions.
+The former will give you options to look at the film of the recording, while the latter provides functions to
+visualize graphs of the mocap sequence.
 We can take a look at the data by using various visualisation functions. First, let's just show the tracked points.
 As we only want to see the joints, and not a skeleton, we will set ``show_lines`` on ``False``. We also want the joints
 to appear in blue over a dark grey background:

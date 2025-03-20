@@ -32,7 +32,7 @@ dependencies = [
     "find-delay >= 2.8",
     "PyAudio >= 0.2.13",
     "praat-parselmouth > 0.4",
-    "pytaglib >= 3.0.0"
+    "pytaglib >= 2.0.0"
 ]
 
 [external]

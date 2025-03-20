@@ -12,4 +12,4 @@ pandas >= 2.1.0
 find-delay >= 2.8
 praat-parselmouth >= 0.4
 PyAudio >= 0.2.14
-pytaglib >= 3.0.0
+pytaglib >= 2.0.0
