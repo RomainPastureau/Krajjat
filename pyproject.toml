@@ -41,7 +41,7 @@ build-requires = [
 ]
 
 [tool.hatch.build.targets.sdist]
-exclude = ["docs", "kinect_processing", "lund_processing", "test", "tests", "venv", ".venv", "pipeline.txt"]
+exclude = ["docs", "example", "kinect_processing", "lund_processing", "test", "tests", "venv", ".venv", "pipeline.txt"]
 
 [project.urls]
 "Homepage" = "https://github.com/RomainPastureau/Krajjat"
