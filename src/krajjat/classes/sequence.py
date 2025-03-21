@@ -3668,13 +3668,13 @@ class Sequence(TimeSeries):
             perc = show_progression(verbosity, i, no_joints, perc)
             new_x_points[joint_label], new_time_points = resample_data(x_points[joint_label], time_points, frequency,
                                                                        window_size, overlap_ratio, method=method,
-                                                                       time_unit=self.time_unit, verbosity=verbosity)
+                                                                       time_unit=self.time_unit, verbosity=verbosity-1)
             new_y_points[joint_label], new_time_points = resample_data(y_points[joint_label], time_points, frequency,
                                                                        window_size, overlap_ratio, method=method,
-                                                                       time_unit=self.time_unit, verbosity=verbosity)
+                                                                       time_unit=self.time_unit, verbosity=verbosity-1)
             new_z_points[joint_label], new_time_points = resample_data(z_points[joint_label], time_points, frequency,
                                                                        window_size, overlap_ratio, method=method,
-                                                                       time_unit=self.time_unit, verbosity=verbosity)
+                                                                       time_unit=self.time_unit, verbosity=verbosity-1)
             i += 1
 
         # Define the percentage counter

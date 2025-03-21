@@ -747,8 +747,8 @@ def _process_events(animation, window_area, modif_this, modif_other, seq_num, ma
                 now = datetime.datetime.now()
                 name = "screenshot_" + str(now) + ".png"
                 cwd = os.getcwd()
-                pygame.image.save(window_area.window_area, cwd + "/" + name)
-                print("Screenshot saved as " + str(cwd) + "/" + name)
+                pygame.image.save(window_area.window_area, op.join(cwd, name))
+                print("Screenshot saved as " + str(op.join(cwd, name)))
 
             elif modifiers[K_LSHIFT] or modifiers[K_RSHIFT]:
                 if event.key == K_RIGHT:

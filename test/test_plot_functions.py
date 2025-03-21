@@ -10,31 +10,36 @@ from krajjat.plot_functions import *
 class TestsPlotFunctions(unittest.TestCase):
 
     def test_single_joint_movement_plotter(self):
-        pass
-        # sequence = Sequence("test_sequences/sequence_ainhoa.json", verbosity=0)
-        # sequence_rs = sequence.resample(20, "cubic", verbosity=0)
-        # sequence_cj = sequence.correct_jitter(1, 5, "poses", verbosity=0)
-        # sequence_rs_cj = sequence_cj.resample(20, "cubic", verbosity=0)
-        #
-        # single_joint_movement_plotter(sequence_rs, joint_label="HandRight", measures="default", verbosity=0)
-        #
-        # single_joint_movement_plotter(sequence_rs, joint_label="HandRight", measures=["x", "y", "z"], verbosity=0)
-        #
-        # single_joint_movement_plotter(sequence_rs, joint_label="HandRight", measures=["velocity_abs"], verbosity=0)
-        #
-        # single_joint_movement_plotter([sequence_rs, sequence_rs_cj], joint_label="HandRight",
-        #                               measures=["d", "v", "a", "j"], verbosity=0)
-        #
-        # single_joint_movement_plotter([sequence_rs, sequence_rs_cj], joint_label="HandRight",
-        #                               measures=["d", "v", "a", "j"], verbosity=0)
-        #
-        # single_joint_movement_plotter([sequence_rs, sequence_rs_cj], joint_label="HandRight",
-        #                               measures=["d", "v", "a", "j"], domain="frequency", verbosity=0)
-        #
-        # single_joint_movement_plotter([sequence_rs, sequence_rs_cj], joint_label="HandRight",
-        #                               measures=["d", "v", "a", "j"], domain="frequency", timestamp_start=1,
-        #                               timestamp_end=2, ylim=[[0, 4e-5], [0, 0.003], [0, 0.35], [0, 50]], line_width=2,
-        #                               line_color=["bcbl blue", "bcbl dark blue"], verbosity=0)
+        # pass
+        sequence = Sequence("test_sequences/sequence_ainhoa.json", verbosity=0)
+        print(sequence.get_timestamps())
+        # sequence_trimmed = sequence.trim(11.1284139, verbosity=0)
+        sequence_r = sequence.resample(20)
+        single_joint_movement_plotter(sequence_r, joint_label="HandRight", measures=["v", "a", "j"], verbosity=0)
+
+        sequence_rs = sequence.resample(20, "cubic", verbosity=0)
+        sequence_cj = sequence.correct_jitter(1, 5, "poses", verbosity=0)
+        sequence_rs_cj = sequence_cj.resample(20, "cubic", verbosity=0)
+
+        single_joint_movement_plotter(sequence_rs, joint_label="HandRight", measures="default", verbosity=0)
+
+        single_joint_movement_plotter(sequence_rs, joint_label="HandRight", measures=["x", "y", "z"], verbosity=0)
+
+        single_joint_movement_plotter(sequence_rs, joint_label="HandRight", measures=["velocity_abs"], verbosity=0)
+
+        single_joint_movement_plotter([sequence_rs, sequence_rs_cj], joint_label="HandRight",
+                                      measures=["d", "v", "a", "j"], verbosity=0)
+
+        single_joint_movement_plotter([sequence_rs, sequence_rs_cj], joint_label="HandRight",
+                                      measures=["d", "v", "a", "j"], verbosity=0)
+
+        single_joint_movement_plotter([sequence_rs, sequence_rs_cj], joint_label="HandRight",
+                                      measures=["d", "v", "a", "j"], domain="frequency", verbosity=0)
+
+        single_joint_movement_plotter([sequence_rs, sequence_rs_cj], joint_label="HandRight",
+                                      measures=["d", "v", "a", "j"], domain="frequency", timestamp_start=1,
+                                      timestamp_end=2, ylim=[[0, 4e-5], [0, 0.003], [0, 0.35], [0, 50]], line_width=2,
+                                      line_color=["bcbl blue", "bcbl dark blue"], verbosity=0)
 
     def test_joint_movement_plotter(self):
         pass

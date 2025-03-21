@@ -162,7 +162,8 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
 
     if verbosity > 0:
         print(f"Getting the timestamps between {timestamp_start} s and {timestamp_end} s for each sequence...", end=" ")
-        timestamps = [np.where(np.logical_and(seq_timestamps >= timestamp_start, seq_timestamps <= timestamp_end))
+        timestamps = [np.array(seq_timestamps)[np.where(np.logical_and(seq_timestamps >= timestamp_start,
+                                                                       seq_timestamps <= timestamp_end))]
                       for seq_timestamps in timestamps]
         print("Done.")
 
@@ -528,7 +529,7 @@ def joints_movement_plotter(sequence_or_sequences, measure="velocity",  window_l
 
     if verbosity > 0:
         print(f"Getting the timestamps between {timestamp_start} s and {timestamp_end} s for each sequence...", end=" ")
-        timestamps = [np.where(np.logical_and(seq_timestamps >= timestamp_start, seq_timestamps <= timestamp_end))
+        timestamps = [np.array(seq_timestamps)[np.where(np.logical_and(seq_timestamps >= timestamp_start, seq_timestamps <= timestamp_end))]
                       for seq_timestamps in timestamps]
         print("Done.")
 
