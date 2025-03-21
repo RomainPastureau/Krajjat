@@ -7,8 +7,8 @@ guide you though a simple processing pipeline using a one-minute recording as an
 Data to download
 ----------------
 To run this tutorial, you will need to download the following data:
-    * Kinect data
-    * Qualisys data
+    * `Kinect data <https://github.com/RomainPastureau/Krajjat/tree/main/example/test_kinect>`_
+    * Qualisys data (soon)
 
 Importing the data
 ------------------
