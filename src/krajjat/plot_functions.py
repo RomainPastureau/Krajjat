@@ -222,9 +222,12 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
         elif domain == "frequency":
 
             for measure in measures:
-                values[measure].append(sequence.get_measure(measure, joint_label, None, None,
+                values[measure].append(sequence.get_measure(measure, joint_label, timestamp_start, timestamp_end,
                                                             window_length, poly_order, absolute_measures[measure],
                                                             verbosity))
+
+                # plt.plot(np.array(timestamps[i]), np.array(values[measure][i]))
+                # plt.show()
 
                 t, values[measure][i] = signal.welch(np.array(values[measure][i]),
                                                      sequence.get_sampling_rate(), "flattop", 1024,
@@ -1508,7 +1511,7 @@ def _prepare_plot_timestamps(sequence_or_sequences, align, verbosity):
             print("Getting the timestamps...", end=" ")
         timestamps = []
         for sequence in sequence_or_sequences:
-            timestamps.append(sequence.get_timestamps())
+            timestamps.append(np.array(sequence.get_timestamps()))
         if verbosity > 0:
             print("Done.")
 

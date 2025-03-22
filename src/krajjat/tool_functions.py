@@ -670,16 +670,16 @@ def align_multiple_sequences(*sequences, verbosity=1):
                     if verbosity > 1:
                         print("\tAligning sequence " + str(sequence_index + 1) + " to sequence " +
                               str(prior_sequence_index + 1) + ".")
-                    timestamps.append(timestamps[prior_sequence_index][alignment_indices[1]:min(alignment_indices[1] +
+                    timestamps.append(np.array(timestamps[prior_sequence_index][alignment_indices[1]:min(alignment_indices[1] +
                                                                                                 len(sequence),
-                                                                                                len(prior_sequence))])
+                                                                                                len(prior_sequence))]))
 
                 # Case where the prior sequence is a subsequence of the current
                 else:
                     if verbosity > 1:
                         print("\tAligning sequence " + str(prior_sequence_index + 1) + " to sequence " +
                               str(sequence_index + 1) + ".")
-                    timestamps.append(sequence.get_timestamps())
+                    timestamps.append(np.array(sequence.get_timestamps()))
                     timestamps[prior_sequence_index] = timestamps[sequence_index][alignment_indices[0]:
                                                                                   min(alignment_indices[0] +
                                                                                   len(prior_sequence), len(sequence))]
@@ -688,7 +688,7 @@ def align_multiple_sequences(*sequences, verbosity=1):
                 break
 
         if not aligned:
-            timestamps.append(sequence.get_timestamps())
+            timestamps.append(np.array(sequence.get_timestamps()))
 
     return timestamps
 
