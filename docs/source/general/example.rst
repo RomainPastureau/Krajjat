@@ -451,5 +451,5 @@ be very similar, with the following exceptions:
 
     • The sequence in already has a stable sampling rate of 200 Hz, but we recommend that you downsample the sequence
       anyway to 50 Hz (you can then apply a band pass filter between 0.1 and 20 Hz). Do the same for the audio.
-    • Some data is missing: you need to interpolate it using the functions :func:`krajjat.classes.sequence.Sequence.interpolate_missing_data`.
+    • Some data is missing: you need to interpolate it using the functions :func:`~krajjat.classes.sequence.Sequence.interpolate_missing_data`.
     • The audio delay is 4.166 seconds.

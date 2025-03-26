@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "krajjat"
-version = "1.99.20"
+version = "1.99.21"
 authors = [
   {name="Romain Pastureau", email="r.pastureau@bcbl.eu"},
 ]
