@@ -16,17 +16,16 @@ First, you will need to import the toolbox and the necessary classes and functio
 
 .. code-block:: python
 
-    >>> from krajjat import Sequence  # To define a mocap sequence
-    >>> from krajjat import Audio  # To define an audio sequence
-    >>> from krajjat import display_functions as kdisp # To take a look at the sequences
-    >>> from krajjat import plot_functions as kplot  # To make some plots
+    from krajjat import Sequence  # To define a mocap sequence
+    from krajjat import Audio  # To define an audio sequence
+    from krajjat import display_functions as kdisp # To take a look at the sequences
+    from krajjat import plot_functions as kplot  # To make some plots
 
 We can then open the sequence by specifying its path. Let's say we have our data saved as ``"sequence1.json"``:
 
 .. code-block:: python
 
-    >>> sequence = Sequence("test_kinect/sequence_ainhoa.json")
-    Opening sequence from test_kinect\sequence_ainhoa.json... 10% 20% 30% 40% 50% 60% 70% 80% 90% 100% - Done.
+    sequence = Sequence("test_kinect/sequence_ainhoa.json")
 
 .. tip::
     The initialisation function of :class:`~krajjat.classes.sequence.Sequence` can take some parameters, among which:
@@ -55,7 +54,7 @@ First, let's visualize the tracked points. As we only want to see the joints, an
 
 .. code-block:: python
 
-    >>> kdisp.sequence_reader(sequence, show_lines=False, color_joint_default="sky blue", color_background=(20, 20, 20))
+    kdisp.sequence_reader(sequence, show_lines=False, color_joint_default="sky blue", color_background=(20, 20, 20))
 
 .. tip::
     While the film runs, you can control the display with your mouse and keyboard. A summary of these controls can
@@ -79,8 +78,8 @@ It is possible using the parameters from :func:`~krajjat.display_functions.seque
 
 .. code-block:: python
 
-    >>> kdisp.sequence_reader(sequence, path_audio="test_kinect/audio_ainhoa_trimmed.wav",
-    ... path_video="test_kinect/video_ainhoa.mp4", show_lines=False, color_joint_default="sky blue")
+    kdisp.sequence_reader(sequence, path_audio="test_kinect/audio_ainhoa_trimmed.wav",
+    path_video="test_kinect/video_ainhoa.mp4", show_lines=False, color_joint_default="sky blue")
 
 It looks like the skeleton and the video are not synchronized... It's normal! The audio and the video were
 actually pre-processed and the first few seconds were cut so the video starts just before the speech starts. Let's
@@ -89,17 +88,17 @@ we cut ``11.13`` seconds from the video, so let's do the same for the mocap sequ
 
 .. code-block:: python
 
-    >>> sequence_trimmed = sequence.trim(11.13)
-    >>> kdisp.sequence_reader(sequence_trimmed, path_audio="test_kinect/audio_ainhoa_trimmed.wav",
-    ... path_video="test_kinect/video_ainhoa.mp4", show_lines=False, color_joint_default="sky blue")
+    sequence_trimmed = sequence.trim(11.13)
+    kdisp.sequence_reader(sequence_trimmed, path_audio="test_kinect/audio_ainhoa_trimmed.wav",
+    path_video="test_kinect/video_ainhoa.mp4", show_lines=False, color_joint_default="sky blue")
 
 Now, it works! Let's try to display the sequence and the video next to each other, instead of superimposed:
 
 .. code-block:: python
 
-    >>> kdisp.sequence_reader(sequence_trimmed, path_audio="test_kinect/audio_ainhoa_trimmed.wav",
-    ... path_video="test_kinect/video_ainhoa.mp4", show_lines=False, color_joint_default="sky blue",
-    ... color_background=(20, 20, 20), position_video="side")
+    kdisp.sequence_reader(sequence_trimmed, path_audio="test_kinect/audio_ainhoa_trimmed.wav",
+    path_video="test_kinect/video_ainhoa.mp4", show_lines=False, color_joint_default="sky blue",
+    color_background=(20, 20, 20), position_video="side")
 
 .. tip::
     If you wish to start the sequence on a specific pose, you can set the parameter ``start_pose`` -
@@ -119,7 +118,7 @@ timestamp:
 
 .. code-block:: python
 
-    >>> kplot.single_joint_movement_plotter(sequence, "HandRight", ["x", "y", "z", "distance"])
+    kplot.single_joint_movement_plotter(sequence, "HandRight", ["x", "y", "z", "distance"])
 
 .. tip::
     If you wish to plot the movement for another joint, you can get a list of the joint labels from
@@ -129,8 +128,7 @@ Let's now try to plot some derivatives of the distance travelled: velocity, acce
 
 .. code-block:: python
 
-    >>> kplot.single_joint_movement_plotter(sequence, "HandRight", ["v", "a", "j"])
-    krajjat.classes.exceptions.VariableSamplingRateException: sequence_ainhoa
+    kplot.single_joint_movement_plotter(sequence, "HandRight", ["v", "a", "j"])
 
 This returns an error: it is indeed not possible to calculate derivatives of the distance as the
 sampling rate of the sequence is variable. This is a common problem with Kinect, and it can be
@@ -138,7 +136,7 @@ solved via resampling:
 
 .. code-block:: python
 
-    >>> sequence_resampled = sequence.resample(20)
+    sequence_resampled = sequence.resample(20)
 
 .. tip::
     You can set the method used to interpolate the data via the parameter ``method``. See
@@ -149,19 +147,19 @@ solved via resampling:
 
     .. code-block:: python
 
-        >>> kplot.framerate_plotter([sequence, sequence_resampled])
+        kplot.framerate_plotter([sequence, sequence_resampled])
 
 Now that we resampled our data, we can plot the derivatives:
 
 .. code-block:: python
 
-    >>> kplot.single_joint_movement_plotter(sequence_resampled, "HandRight", ["v", "a", "j"])
+    kplot.single_joint_movement_plotter(sequence_resampled, "HandRight", ["v", "a", "j"])
 
 These measures can also be plotted in the frequency domain, just by setting the parameter ``domain``:
 
 .. code-block:: python
 
-    >>> kplot.single_joint_movement_plotter(sequence_resampled, "HandRight", ["d", "v", "a", "j"], domain="frequency")
+    kplot.single_joint_movement_plotter(sequence_resampled, "HandRight", ["d", "v", "a", "j"], domain="frequency")
 
 .. tip::
     You can zoom in on a specific range of frequencies using the parameter ``xlim``, e.g. ``xlim=[1, 3]``.
@@ -185,7 +183,7 @@ We can also plot one of these measures for all the joints. To do so, we need to 
 
 .. code-block:: python
 
-    >>> kplot.joints_movement_plotter(sequence_resampled, "velocity")
+    kplot.joints_movement_plotter(sequence_resampled, "velocity")
 
 .. tip::
     The joints with the largest quantity of movement (as a sum) appear in red, while the ones with the less
@@ -197,10 +195,10 @@ We can also overlay the audio to this plot, in order to see some correspondences
 
 .. code-block:: python
 
-    >>> audio = Audio("test_kinect/audio_ainhoa_trimmed.wav")
-    >>> sequence_trimmed = sequence_resampled.trim(11.13)
-    >>> sequence_trimmed.set_first_timestamp(0)
-    >>> joints_movement_plotter(sequence_trimmed, "velocity", audio_or_derivative=audio, overlay_audio=True)
+    audio = Audio("test_kinect/audio_ainhoa_trimmed.wav")
+    sequence_trimmed = sequence_resampled.trim(11.13)
+    sequence_trimmed.set_first_timestamp(0)
+    kplot.joints_movement_plotter(sequence_trimmed, "velocity", audio_or_derivative=audio, overlay_audio=True)
 
 Get information
 ^^^^^^^^^^^^^^^
@@ -208,7 +206,7 @@ Finally, we can print some statistics about the current sequence.
 
 .. code-block:: python
 
-    >>> print(sequence.get_info(return_type="str"))
+    print(sequence.get_info(return_type="str"))
     Name: sequence_ainhoa
     Path: test_kinect\sequence_ainhoa.json
     Condition: None
@@ -258,13 +256,13 @@ You can get illustrations of how this function works on the :doc:`../general/dej
 
 .. code-block:: python
 
-    >>> sequence_cj = sequence.correct_jitter(velocity_threshold=0.5, window=3)
+    sequence_cj = sequence.correct_jitter(velocity_threshold=0.5, window=3)
 
 Let's see what our changes look like, using the function :func:`~krajjat.plot_functions.sequence_comparer`:
 
 .. code-block:: python
 
-    >>> kdisp.sequence_comparer(sequence, sequence_cj)
+    kdisp.sequence_comparer(sequence, sequence_cj)
 
 .. tip::
     On the right side of the window, the jitter-corrected sequence has its corrected joints in green. You can set
@@ -287,13 +285,13 @@ Let's try this (be sure to work on the jitter_corrected sequence, output of the 
 
 .. code-block:: python
 
-    >>> sequence_reref = sequence_cj.re_reference("SpineMid")
+    sequence_reref = sequence_cj.re_reference("SpineMid")
 
 Once again, we can compare our changes:
 
 .. code-block:: python
 
-    >>> kdisp.sequence_comparer(sequence_cj, sequence_reref)
+    kdisp.sequence_comparer(sequence_cj, sequence_reref)
 
 The sequence on the right is all green - which makes sense, we modified the value of all the joints. Just press the
 letter C on your keyboard to toggle the view of the corrected joints.
@@ -305,16 +303,24 @@ trim 11.13 seconds from the beginning of the sequence to synchronize the two:
 
 .. code-block:: python
 
-    >>> sequence_tr = sequence_reref.trim(11.13)
+    sequence_tr = sequence_reref.trim(11.13)
 
 Now, let's compare the duration of the sequence and the audio:
 
 .. code-block:: python
 
-    >>> print(sequence_tr.get_duration())
+    print(sequence_tr.get_duration())
+
+.. code-block:: python
+
     67.9100086
-    >>> audio = Audio("test_kinect/audio_ainhoa_trimmed.wav")
-    >>> print(audio.get_duration())
+
+.. code-block:: python
+    audio = Audio("test_kinect/audio_ainhoa_trimmed.wav")
+    print(audio.get_duration())
+    
+.. code-block:: python
+
     63.40264583333333
 
 The audio is slightly shorter than the sequence. It is important to have the same duration in both, so that we can then
@@ -323,7 +329,7 @@ get the same amount of samples to perform the analyses. Thankfully, the function
 
 .. code-block:: python
 
-    >>> sequence_tr_audio = sequence_tr.trim_to_audio(audio=audio)
+    sequence_tr_audio = sequence_tr.trim_to_audio(audio=audio)
 
 .. tip::
     This function also allows to pass the path to a WAV file as a parameter, instead of an
@@ -336,7 +342,7 @@ get the same amount of samples to perform the analyses. Thankfully, the function
 
     .. code-block:: python
 
-        >>> sequence_tr_audio = sequence_tr.trim_to_audio(11.13, audio)
+        sequence_tr_audio = sequence_tr.trim_to_audio(11.13, audio)
 
 .. tip::
     If you wish to visualize the sequence superimposed over a video file after trimming, you can use the parameter
@@ -352,8 +358,8 @@ sampling rate of the sequence.
 
 .. code-block:: python
 
-    >>> sequence_resampled = sequence_tr_audio.resample(20)
-    >>> sequence_ff = sequence_resampled.filter_frequencies(filter_below=0.1, filter_over=8)
+    sequence_resampled = sequence_tr_audio.resample(20)
+    sequence_ff = sequence_resampled.filter_frequencies(filter_below=0.1, filter_over=8)
 
 We have performed six pre-processing steps so far: jitter correction, re-referencing, trimming, trimming to audio,
 resampling, and frequency filtering. In order to keep track of all of these steps, we can check the attribute
@@ -363,7 +369,9 @@ This is a list, where each element matches, in order, a processing step, with al
 
 .. code-block:: python
 
-    >>> print(sequence_resampled.metadata["processing_steps"])
+    print(sequence_resampled.metadata["processing_steps"])
+
+.. code-block:: python
     [{'processing_type': 'correct_jitter', 'velocity_threshold': 0.5, 'window': 3, 'window_unit': 'poses', 'method': 'default', 'correct_twitches': True, 'correct_jumps': True},
      {'processing_type': 're_reference', 'reference_joint_label': 'SpineMid', 'place_at_zero': True},
      {'processing_type': 'trim', 'start': 11.13, 'end': 79.0833823, 'use_relative_timestamps': False},
@@ -388,7 +396,7 @@ format:
 
 .. code-block:: python
 
-    >>> sequence_ff.save("test_kinect/sequence_preprocessed.tsv")
+    sequence_ff.save("test_kinect/sequence_preprocessed.tsv")
 
 .. tip::
     You can choose whether you want to save the metadata in the file or not (by default, the metadata is saved).
@@ -422,15 +430,15 @@ which is a Python library making use of the Praat software. In our case, we will
 
 .. code-block:: python
 
-    >>> audio = Audio("test_kinect/audio_ainhoa_trimmed.wav")
-    >>> envelope = audio.get_envelope()
-    >>> envelope_resampled = envelope.resample(20)
-    >>> envelope_ff = envelope_resampled.filter_frequencies(0.1, 8)
-    >>> envelope_ff.save("test_kinect/envelope.tsv")
-    >>> pitch = audio.get_pitch()
-    >>> pitch_resampled = pitch.resample(20)
-    >>> pitch_ff = pitch_resampled.filter_frequencies(0.1, 8)
-    >>> pitch_ff.save("test_kinect/pitch.tsv")
+    audio = Audio("test_kinect/audio_ainhoa_trimmed.wav")
+    envelope = audio.get_envelope()
+    envelope_resampled = envelope.resample(20)
+    envelope_ff = envelope_resampled.filter_frequencies(0.1, 8)
+    envelope_ff.save("test_kinect/envelope.tsv")
+    pitch = audio.get_pitch()
+    pitch_resampled = pitch.resample(20)
+    pitch_ff = pitch_resampled.filter_frequencies(0.1, 8)
+    pitch_ff.save("test_kinect/pitch.tsv")
 
 .. note::
     While the calculation of the envelope is optimized, and pretty fast, the other derivatives can be resource-intensive
