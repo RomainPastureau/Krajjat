@@ -21,7 +21,8 @@ First, you will need to import the toolbox and the necessary classes and functio
     from krajjat import display_functions as kdisp # To take a look at the sequences
     from krajjat import plot_functions as kplot  # To make some plots
 
-We can then open the sequence by specifying its path. Let's say we have our data saved as ``"sequence1.json"``:
+We can then open the sequence by specifying its path. Let's say we have our data saved as ``"sequence_ainhoa.json"`` in
+the folder ``"test_kinect"``:
 
 .. code-block:: python
 

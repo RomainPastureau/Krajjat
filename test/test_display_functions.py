@@ -8,11 +8,12 @@ class TestsDisplayFunctions(unittest.TestCase):
 
     def test_common_displayer(self):
         pass
-        # sequence_kinect = Sequence(op.join("test_sequences", "sequence_ainhoa.json"))
-        # sequence_kinect_t = sequence_kinect.trim(11.1284139)
-        # path_audio = op.join("test_sequences", "audio_ainhoa_trimmed.wav")
-        # path_video = op.join("test_sequences", "video_ainhoa.mp4")
-        # common_displayer(sequence_kinect_t, path_audio=path_audio, path_video=path_video)
+        sequence_kinect = Sequence(op.join("test_sequences", "sequence_ainhoa.json"))
+        sequence_kinect_t = sequence_kinect.trim(11.1284139)
+        path_audio = op.join("test_audios", "audio_ainhoa_trimmed.wav")
+        path_video = op.join("test_videos", "video_ainhoa.mp4")
+        common_displayer(sequence_kinect_t, path_audio=path_audio, path_video=path_video)
+        common_displayer(sequence_kinect_t, path_audio=path_audio, path_video=path_video)
         # find_delay(op.join("test_sequences", "audio_ainhoa.wav"), op.join("test_sequences", "audio_ainhoa_trimmed.wav"))
 
     def test_sequence_reader(self):

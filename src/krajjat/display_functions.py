@@ -365,8 +365,9 @@ def common_displayer(sequence1, sequence2=None, path_audio=None, path_video=None
         pygame.display.flip()
         count += 1
 
+    pygame.display.quit()
     pygame.quit()
-    sys.exit()
+    # sys.exit()
 
 
 def sequence_reader(sequence, path_audio=None, path_video=None, position_video="superimposed", timestamp_video_start=0,
