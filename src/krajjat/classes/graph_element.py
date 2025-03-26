@@ -122,6 +122,33 @@ class GraphPlot(object):
         self.sd = None
         if sd is not None:
             self.sd = np.array(sd)
+        assert isinstance(line_width, (int, float))
         self.line_width = line_width
         self.color = color
+        assert isinstance(label, (str, type(None)))
         self.label = label
+
+    def get_extrema(self, x_min=None, x_max=None):
+        """Returns the min and the max of the y array, given the x limits.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        x_min: int|float, optional
+            The minimum value of the x-axis. If None, sets the x_min to the minimum value of the x array.
+
+        x_max: int|float, optional
+            The maximum value of the x-axis. If None, sets the x_max to the maximum value of the x array.
+
+        Returns
+        -------
+        int|float, int|float
+            The minimum and maximum values of the y array, given the x limits.
+        """
+        if x_min is None:
+            x_min = np.min(self.x)
+        if x_max is None:
+            x_max = np.max(self.x)
+        return (np.min(self.y[np.where((self.x >= x_min) & (self.x <= x_max))]),
+                np.max(self.y[np.where((self.x >= x_min) & (self.x <= x_max))]))

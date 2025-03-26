@@ -113,10 +113,12 @@ class TestsToolFunctions(unittest.TestCase):
         sequence_5 = Sequence("test_sequences/test_sequence_5.tsv", time_unit ="s", verbosity=0)
 
         expected_timestamps = [[2.0, 3.0, 4.0], [0.0, 1.0, 2.0, 3.0, 4.0]]
-        assert align_multiple_sequences(sequence_4, sequence_5, verbosity=0) == expected_timestamps
+        for i in range(len(expected_timestamps)):
+            assert np.allclose(align_multiple_sequences(sequence_4, sequence_5, verbosity=0)[i], expected_timestamps[i])
         expected_timestamps = [[0.0, 1.0, 2.0], [2.0, 3.0, 4.0], [0.0, 1.0, 2.0, 3.0, 4.0]]
-        assert align_multiple_sequences(sequence_1, sequence_4, sequence_5,
-                                        verbosity=0) == expected_timestamps
+        for i in range(len(expected_timestamps)):
+            assert np.allclose(align_multiple_sequences(sequence_1, sequence_4, sequence_5, verbosity=0)[i],
+                               expected_timestamps[i])
 
     def test_sort_sequences_by_date(self):
         sequence_1 = Sequence("test_sequences/test_sequence_1.tsv", verbosity=0)
@@ -936,8 +938,8 @@ class TestsToolFunctions(unittest.TestCase):
         assert show_progression(1, 51, 500, 10) == 20
 
     def test_get_min_max_values_from_plot_dictionary(self):
-        plot_dictionary = {"Head": [0, 1, 2, 3, 4], "Hand": [5, 6, 7, 8, 9]}
-        assert get_min_max_values_from_plot_dictionary(plot_dictionary) == (0, 9)
+        # plot_dictionary = {"Head": [0, 1, 2, 3, 4], "Hand": [5, 6, 7, 8, 9]}
+        # assert get_min_max_values_from_plot_dictionary(plot_dictionary) == (0, 9)
 
         g1 = Graph()
         g1.add_plot([0, 1, 2, 3], [0, 1, 2, 3])

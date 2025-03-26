@@ -15,4 +15,5 @@ Graph
 GraphPlot
 ---------
 .. autoclass:: krajjat.classes.graph_element.GraphPlot
+.. automethod:: krajjat.classes.graph_element.GraphPlot.get_extrema
 

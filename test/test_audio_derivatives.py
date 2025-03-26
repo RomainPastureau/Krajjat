@@ -21,12 +21,12 @@ class TestsAudioDerivatives(unittest.TestCase):
         # Envelope
         audio = Audio("test_audios/test_audio_1.wav", verbosity=0)
         envelope = audio.get_envelope(filter_over=50, verbosity=0)
-        envelope.save_pickle("test_envelopes/test_audio_1_envelope.pkl", verbosity=0)
 
         for ext in extensions:
+            envelope.save("test_envelopes/test_audio_1_envelope." + ext, verbosity=0)
             envelope = Envelope("test_envelopes/test_audio_1_envelope." + ext, verbosity=0)
             assert len(envelope.samples) == 22050
-            assert np.isclose(envelope.samples[42], 767.4754693763366)
+            assert np.isclose(envelope.samples[42], 17505.390693769496)
             assert envelope.frequency == 44100
             assert envelope.condition is None
             assert envelope.path == op.join("test_envelopes", "test_audio_1_envelope." + ext)
@@ -162,7 +162,7 @@ class TestsAudioDerivatives(unittest.TestCase):
         formant = Formant("test_formants/test_audio_4_f2.xlsx", verbosity=0)
         assert len(formant.samples) == 4411
         assert formant.formant_number == 2
-        assert np.isclose(formant.samples[2206], 158.0678093872848)
+        assert np.isclose(formant.samples[2206], 157.6749778075632)
         assert formant.frequency == 44100
         assert formant.condition is None
         assert formant.path == op.join("test_formants", "test_audio_4_f2.xlsx")
@@ -388,7 +388,7 @@ class TestsAudioDerivatives(unittest.TestCase):
 
     def test_get_sample(self):
         envelope = Envelope("test_envelopes/test_audio_1_envelope.wav", verbosity=0)
-        assert np.isclose(envelope.get_sample(42), 767.4754693763366)
+        assert np.isclose(envelope.get_sample(42), 17505.390693769496)
 
         pitch = Pitch("test_pitches/test_audio_1_pitch.json", verbosity=0)
         assert np.isclose(pitch.get_sample(10025), 197.32558113945146)
@@ -400,7 +400,7 @@ class TestsAudioDerivatives(unittest.TestCase):
         assert np.isclose(formant.get_sample(2206), 114.27552422725371)
 
         envelope = Envelope("test_envelopes/test_audio_1_envelope.txt", verbosity=0)
-        assert np.isclose(envelope.get_sample(42), 767.4754693763366)
+        assert np.isclose(envelope.get_sample(42), 17505.390693769496)
 
         pitch = Pitch("test_pitches/test_audio_1_pitch.csv", verbosity=0)
         assert np.isclose(pitch.get_sample(10025), 197.32558113945146)
@@ -509,15 +509,16 @@ class TestsAudioDerivatives(unittest.TestCase):
     def test_filter_frequencies(self):
         envelope = Envelope("test_envelopes/test_audio_1_envelope.wav", verbosity=0)
         envelope_ff = envelope.filter_frequencies(filter_below=10, filter_over=3000, name="ff", verbosity=0)
-        assert np.allclose(envelope_ff.samples[0:8], [2.34764269e-03, 2.32594720e-02, 1.12372390e-01, 3.62002009e-01,
-                                                         8.95240420e-01, 1.84493845e+00, 3.33689272e+00, 5.47989149e+00])
+        assert np.allclose(envelope_ff.samples[0:8], [-4837.99812712, -4813.27839174, -4781.24726369, -4743.11218948,
+                                                         -4700.37958566, -4654.51169394, -4606.74436175,
+                                                      -4558.01837946])
         assert len(envelope_ff.samples) == len(envelope.samples)
         assert envelope_ff.get_name() == "ff"
 
         pitch = Pitch("test_pitches/test_audio_1_pitch.wav", verbosity=0)
         pitch_ff = pitch.filter_frequencies(filter_below=10, filter_over=3000, verbosity=0)
-        assert np.allclose(pitch_ff.samples[10000:10008], [35.90719797, 35.7800959, 35.65326703, 35.52671107,
-                                                           35.40042771, 35.27441667, 35.14867763, 35.02321028])
+        assert np.allclose(pitch_ff.samples[10000:10008], [27.51481439, 27.46117937, 27.4076525, 27.35423381,
+                                                           27.3009233, 27.247721, 27.19462691, 27.14164103])
         assert len(pitch_ff.samples) == len(pitch.samples)
         assert pitch_ff.get_name() == "test_audio_1_pitch +FF"
 
@@ -528,9 +529,9 @@ class TestsAudioDerivatives(unittest.TestCase):
     def test_resample(self):
         envelope = Envelope("test_envelopes/test_audio_1_envelope.wav", verbosity=0)
         envelope_rs = envelope.resample(1000, name="rs", verbosity=0)
-        assert np.allclose(envelope_rs.samples[100:108], [26095.57947678, 25578.82067011, 25205.70429134,
-                                                          25061.02902818, 25073.08554854, 25173.3233327,
-                                                          25322.26627459, 25495.1196532])
+        assert np.allclose(envelope_rs.samples[100:108], [25329.03227401, 25373.01320206, 25471.02136963,
+                                                          25594.73672131, 25723.75978195, 25845.3769353,
+                                                          25952.11000856, 26040.42333368])
         assert len(envelope_rs.samples) == 500
         assert envelope_rs.get_name() == "rs"
 
@@ -550,9 +551,9 @@ class TestsAudioDerivatives(unittest.TestCase):
     def test_trim(self):
         envelope = Envelope("test_envelopes/test_audio_1_envelope.wav", verbosity=0)
         envelope_tr = envelope.trim(0.2, 0.3, name="tr", verbosity=0)
-        assert np.allclose(envelope_tr.samples[100:108], [24752.44167911, 24746.92042137, 24741.79038621,
-                                                          24737.04770754, 24732.68833988, 24728.70812428,
-                                                          24725.10277104, 24721.86785002])
+        assert np.allclose(envelope_tr.samples[100:108], [25516.16480856, 25519.67437187, 25523.18006178,
+                                                          25526.68139854, 25530.17791755, 25533.66916928,
+                                                          25537.15471925, 25540.63414801])
         assert len(envelope_tr.samples) == 4411
         assert envelope_tr.get_name() == "tr"
 

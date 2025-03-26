@@ -372,8 +372,8 @@ class TestsAudio(unittest.TestCase):
     def test_get_envelope(self):
         audio = Audio("test_audios/test_audio_1.wav", verbosity=0)
         envelope = audio.get_envelope(filter_over=50, verbosity=0)
-        assert np.allclose(envelope[0:8], [0.06788517, 0.44120087, 1.38907701, 3.04069082,
-                                              5.45514783, 8.67720331, 12.73744256, 17.66024739])
+        assert np.allclose(envelope[0:8], [15308.40133241, 15360.89714681, 15413.41532137, 15465.95342631,
+                                              15518.50902764, 15571.07969116, 15623.66298493, 15676.25648127])
         assert len(envelope.samples) == len(audio.samples)
         assert envelope.get_name() == audio.get_name() + " (ENV)"
 
@@ -391,8 +391,8 @@ class TestsAudio(unittest.TestCase):
     def test_get_pitch(self):
         audio = Audio("test_audios/test_audio_1.wav", verbosity=0)
         pitch = audio.get_pitch(filter_over=50, verbosity=0)
-        assert np.allclose(pitch[10000:10008], [197.7418498, 197.724117, 197.7064746, 197.6889226,
-                                                197.6714611, 197.6540901,  197.6368094, 197.6196190])
+        assert np.allclose(pitch[10000:10008], [195.98805202, 195.98368469, 195.97936191, 195.97508345,
+                                                195.97084909, 195.96665859, 195.96251174, 195.95840829])
         assert len(pitch.samples) == len(audio.samples)
         assert pitch.get_name() == audio.get_name() + " (PIT)"
 
@@ -411,8 +411,8 @@ class TestsAudio(unittest.TestCase):
     def test_get_intensity(self):
         audio = Audio("test_audios/test_audio_1.wav", verbosity=0)
         intensity = audio.get_intensity(filter_over=50, verbosity=0)
-        assert np.allclose(intensity[10000:10008], [179.34838814, 179.34837336, 179.34835867, 179.34834407,
-                                                    179.34832957, 179.34831517, 179.34830087, 179.34828669])
+        assert np.allclose(intensity[10000:10008], [179.34715244, 179.34714534, 179.34713824, 179.34713112,
+                                                    179.347124, 179.34711686, 179.34710971, 179.34710256])
         assert len(intensity.samples) == len(audio.samples)
         assert intensity.get_name() == audio.get_name() + " (INT)"
 
@@ -429,20 +429,20 @@ class TestsAudio(unittest.TestCase):
     def test_get_formant(self):
         audio = Audio("test_audios/test_audio_1.wav", verbosity=0)
         formant = audio.get_formant(filter_over=50, verbosity=0)
-        assert np.allclose(formant[10000:10008], [179.15647516, 179.14794863, 179.13956819, 179.13133285,
-                                                    179.12324156, 179.11529336, 179.10748729, 179.09982239])
+        assert np.allclose(formant[10000:10008], [179.29268628, 179.29478572, 179.29689894, 179.29902553,
+                                                  179.3011651, 179.30331726, 179.30548163, 179.30765781])
         assert len(formant.samples) == len(audio.samples)
         assert formant.get_name() == audio.get_name() + " (F1)"
 
         formant = audio.get_formant(formant_number=1, filter_over=50, verbosity=0)
-        assert np.allclose(formant[10000:10008], [179.15647516, 179.14794863, 179.13956819, 179.13133285,
-                                                    179.12324156, 179.11529336, 179.10748729, 179.09982239])
+        assert np.allclose(formant[10000:10008], [179.29268628, 179.29478572, 179.29689894, 179.29902553,
+                                                  179.3011651, 179.30331726, 179.30548163, 179.30765781])
         assert len(formant.samples) == len(audio.samples)
         assert formant.get_name() == audio.get_name() + " (F1)"
 
         formant = audio.get_formant(formant_number=2, filter_over=50, verbosity=0)
-        assert np.allclose(formant[10000:10008], [282.36585267, 280.76513697, 279.17760047, 277.60319125,
-                                                  276.04185723, 274.49354623, 272.95820598, 271.43578403])
+        assert np.allclose(formant[10000:10008], [173.38511437, 173.23929667, 173.09748704, 172.95965232,
+                                                  172.82575948, 172.69577562, 172.56966799, 172.44740396])
         assert len(formant.samples) == len(audio.samples)
         assert formant.get_name() == audio.get_name() + " (F2)"
 
@@ -461,32 +461,32 @@ class TestsAudio(unittest.TestCase):
         audio = Audio("test_audios/test_audio_1.wav", verbosity=0)
 
         envelope = audio.get_derivative("envelope", filter_over=50, verbosity=0)
-        assert np.allclose(envelope[0:8], [0.06788517, 0.44120087, 1.38907701, 3.04069082,
-                                              5.45514783, 8.67720331, 12.73744256, 17.66024739])
+        assert np.allclose(envelope[0:8], [15308.40133241, 15360.89714681, 15413.41532137, 15465.95342631,
+                                              15518.50902764, 15571.07969116, 15623.66298493, 15676.25648127])
         assert len(envelope.samples) == len(audio.samples)
         assert envelope.get_name() == audio.get_name() + " (ENV)"
 
         pitch = audio.get_derivative("pitch", filter_over=50, verbosity=0)
-        assert np.allclose(pitch[10000:10008], [197.7418498, 197.724117, 197.7064746, 197.6889226,
-                                                197.6714611, 197.6540901,  197.6368094, 197.6196190])
+        assert np.allclose(pitch[10000:10008], [195.98805202, 195.98368469, 195.97936191, 195.97508345,
+                                                195.97084909, 195.96665859, 195.96251174, 195.95840829])
         assert len(pitch.samples) == len(audio.samples)
         assert pitch.get_name() == audio.get_name() + " (PIT)"
 
         intensity = audio.get_derivative("intensity", filter_over=50, verbosity=0)
-        assert np.allclose(intensity[10000:10008], [179.34838814, 179.34837336, 179.34835867, 179.34834407,
-                                                    179.34832957, 179.34831517, 179.34830087, 179.34828669])
+        assert np.allclose(intensity[10000:10008], [179.34715244, 179.34714534, 179.34713824, 179.34713112,
+                                                    179.347124, 179.34711686, 179.34710971, 179.34710256])
         assert len(intensity.samples) == len(audio.samples)
         assert intensity.get_name() == audio.get_name() + " (INT)"
 
         formant = audio.get_derivative("formant", formant_number=1, filter_over=50, verbosity=0)
-        assert np.allclose(formant[10000:10008], [179.15647516, 179.14794863, 179.13956819, 179.13133285,
-                                                    179.12324156, 179.11529336, 179.10748729, 179.09982239])
+        assert np.allclose(formant[10000:10008], [179.29268628, 179.29478572, 179.29689894, 179.29902553,
+                                                  179.3011651, 179.30331726, 179.30548163, 179.30765781])
         assert len(formant.samples) == len(audio.samples)
         assert formant.get_name() == audio.get_name() + " (F1)"
 
         formant = audio.get_derivative("f2", filter_over=50, verbosity=0)
-        assert np.allclose(formant[10000:10008], [282.36585267, 280.76513697, 279.17760047, 277.60319125,
-                                                  276.04185723, 274.49354623, 272.95820598, 271.43578403])
+        assert np.allclose(formant[10000:10008], [173.38511437, 173.23929667, 173.09748704, 172.95965232,
+                                                  172.82575948, 172.69577562, 172.56966799, 172.44740396])
         assert len(formant.samples) == len(audio.samples)
         assert formant.get_name() == audio.get_name() + " (F2)"
 
@@ -503,15 +503,16 @@ class TestsAudio(unittest.TestCase):
 
     def test_filter_frequencies(self):
         audio = Audio("test_audios/test_audio_1.wav", verbosity=0)
-        audio_ff = audio.filter_frequencies(4000, 5000, "ff", verbosity=0)
-        assert np.allclose(audio_ff[0:8], [ 0, 2.25135525, 11.36551573, 27.63221252,
-                                            43.5740015, 48.28064242, 34.18843354, 2.40043875])
+        audio_ff = audio.filter_frequencies(4000, 5000, name="ff", verbosity=0)
+
+        assert np.allclose(audio_ff[0:8], [-62.76544059, -50.48645922, -18.64895339, 19.87834979,
+                                           49.77826841, 59.58874789, 46.21057213, 15.82292774])
         assert len(audio_ff.samples) == len(audio.samples)
         assert audio_ff.get_name() == "ff"
 
         audio_ff = audio.filter_frequencies(4000, 5000, verbosity=0)
-        assert np.allclose(audio_ff[0:8], [ 0, 2.25135525, 11.36551573, 27.63221252,
-                                            43.5740015, 48.28064242, 34.18843354, 2.40043875])
+        assert np.allclose(audio_ff[0:8], [-62.76544059, -50.48645922, -18.64895339, 19.87834979,
+                                           49.77826841, 59.58874789, 46.21057213, 15.82292774])
         assert len(audio_ff.samples) == len(audio.samples)
         assert audio_ff.get_name() == "test_audio_1 +FF"
 

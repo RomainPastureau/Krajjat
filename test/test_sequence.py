@@ -14,6 +14,8 @@ from krajjat.classes.exceptions import InvalidPathException, PoseAlreadyExistsEx
 from krajjat.classes.joint import Joint
 from krajjat.classes.pose import Pose
 from krajjat.classes.sequence import Sequence
+from krajjat.plot_functions import single_joint_movement_plotter
+
 
 class TestsSequenceMethods(unittest.TestCase):
 
@@ -1194,11 +1196,11 @@ class TestsSequenceMethods(unittest.TestCase):
         sequence = Sequence("test_sequences/test_sequence_13.tsv", verbosity=0)
         sequence_ff = sequence.filter_frequencies(None, 4, verbosity=0)
 
-        assert np.isclose(sequence_ff.poses[0].joints["Head"].get_x(), 0)
-        assert np.isclose(sequence_ff.poses[1].joints["Head"].get_x(), 0.06389455251590223)
-        assert np.isclose(sequence_ff.poses[2].joints["Head"].get_x(), 0.1250428850551089)
-        assert np.isclose(sequence_ff.poses[3].joints["Head"].get_y(), 0.09905976757925666)
-        assert np.isclose(sequence_ff.poses[4].joints["Head"].get_z(), 0.10351583485625786)
+        assert np.isclose(sequence_ff.poses[0].joints["Head"].get_x(), 0.01462934)
+        assert np.isclose(sequence_ff.poses[1].joints["Head"].get_x(), 0.03923037)
+        assert np.isclose(sequence_ff.poses[2].joints["Head"].get_x(), 0.24727853)
+        assert np.isclose(sequence_ff.poses[3].joints["Head"].get_y(), -0.14039382)
+        assert np.isclose(sequence_ff.poses[4].joints["Head"].get_z(), 0.45012674)
 
         assert sequence_ff.get_path() == sequence.get_path()
         assert sequence_ff.get_date_recording() == sequence.get_date_recording()

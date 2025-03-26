@@ -5,6 +5,7 @@ from collections import OrderedDict
 
 import taglib
 from scipy.io import wavfile, savemat
+from scipy.signal import butter, filtfilt
 
 from krajjat.classes.exceptions import EmptyInstanceException
 from krajjat.classes.time_series import TimeSeries
@@ -332,8 +333,16 @@ class AudioDerivative(TimeSeries):
                 elif key == "Frequency":
                     self.frequency = data["data"]["Frequency"]
 
-                elif key == "processing_steps" and len(data["data"]["processing_steps"]) == 0:
-                    self.metadata["processing_steps"] = []
+                elif key == "processing_steps":
+                    if len(data["data"]["processing_steps"]) == 0:
+                        self.metadata["processing_steps"] = []
+                    else:
+                        self.metadata["processing_steps"] = data["data"]["processing_steps"]
+                        for step in range(len(self.metadata["processing_steps"])):
+                            for processing_step_key in self.metadata["processing_steps"][step]:
+                                if type(self.metadata["processing_steps"][step][processing_step_key]) is float and \
+                                   np.isnan(self.metadata["processing_steps"][step][processing_step_key]):
+                                    self.metadata["processing_steps"][step][processing_step_key] = None
 
                 else:
                     self.metadata[key] = data["data"][key]
@@ -353,6 +362,8 @@ class AudioDerivative(TimeSeries):
 
             else:
                 data, metadata = read_text_table(self.path)
+                if "processing_steps" in metadata.keys() and type(metadata["processing_steps"]) is str:
+                    metadata["processing_steps"] = json.loads(metadata["processing_steps"].replace("\'", "\""))
                 self.metadata.update(metadata)
 
             if "Frequency" in self.metadata:
@@ -614,7 +625,8 @@ class AudioDerivative(TimeSeries):
 
     # noinspection PyTupleAssignmentBalance
     # noinspection PyArgumentList
-    def filter_frequencies(self, filter_below=None, filter_over=None, name=None, verbosity=1):
+    def filter_frequencies(self, filter_below=None, filter_over=None, padtype="constant", padlen=None, name=None,
+                           verbosity=1):
         """Applies a low-pass, high-pass or band-pass filter to the data in the attribute :attr:`samples`.
 
         .. versionadded: 2.0
@@ -630,6 +642,15 @@ class AudioDerivative(TimeSeries):
             The value over which you want to filter the data. If set on None or 0, this parameter will be ignored.
             If this parameter is the only one provided, a low-pass filter will be applied to the samples; if
             ``filter_below`` is also provided, a band-pass filter will be applied to the samples.
+
+        padtype: str, optional
+            What type of padding to use. See the documentation of `scipy.signal.filtfilt
+            <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.filtfilt.html>`_ for more information
+            (default: ``"constant"`` - warning: this default is not scipy's default (``"odd"``).)
+
+        padlen: int, optional
+            The number of elements for the padding. See the documentation of `scipy.signal.filtfilt
+            <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.filtfilt.html>`_ for more information.
 
         name: str or None, optional
             Defines the name of the output audio derivative. If set on ``None``, the name will be the same as the
@@ -649,29 +670,24 @@ class AudioDerivative(TimeSeries):
         AudioDerivative
             The AudioDerivative instance, with filtered values.
         """
-        try:
-            from scipy.signal import butter, lfilter
-        except ImportError:
-            raise ModuleNotFoundException("scipy", "apply a band-pass filter.")
-
         if filter_below not in [None, 0] and filter_over not in [None, 0]:
             if verbosity > 0:
                 print("Applying a band-pass filter for frequencies between " + str(filter_below) + " and " +
                       str(filter_over) + " Hz...")
             b, a = butter(2, [filter_below, filter_over], "band", fs=self.frequency)
-            new_samples = lfilter(b, a, self.samples)
+            new_samples = filtfilt(b, a, self.samples, padtype=padtype, padlen=padlen)
 
         elif filter_below not in [None, 0]:
             if verbosity > 0:
                 print("Applying a high-pass filter for frequencies over " + str(filter_below) + " Hz...")
             b, a = butter(2, filter_below, "high", fs=self.frequency)
-            new_samples = lfilter(b, a, self.samples)
+            new_samples = filtfilt(b, a, self.samples, padtype=padtype, padlen=padlen)
 
         elif filter_over not in [None, 0]:
             if verbosity > 0:
                 print("Applying a low-pass filter for frequencies below " + str(filter_over) + " Hz...")
             b, a = butter(2, filter_over, "low", fs=self.frequency)
-            new_samples = lfilter(b, a, self.samples)
+            new_samples = filtfilt(b, a, self.samples, padtype=padtype, padlen=padlen)
 
         else:
             new_samples = self.samples

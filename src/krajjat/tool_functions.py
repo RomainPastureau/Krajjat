@@ -3417,7 +3417,7 @@ def show_progression(verbosity, current_iteration, goal, next_percentage, step=1
     return next_percentage
 
 
-def get_min_max_values_from_plot_dictionary(plot_dictionary, keys_to_exclude=None):
+def get_min_max_values_from_plot_dictionary(plot_dictionary, keys_to_exclude=None, xlim=None):
     """Returns the minimum and maximum values of all the graphs contained in a plot dictionary.
 
     .. versionadded:: 2.0
@@ -3428,6 +3428,8 @@ def get_min_max_values_from_plot_dictionary(plot_dictionary, keys_to_exclude=Non
         A dictionary with labels as keys and Graph elements as values.
     keys_to_exclude: list(string)
         A list of keys of the dictionary to exclude from the search of the minimum and maximum values.
+    xlim: list(int|float, int|float), optional
+        The limits of the horizontal axis of the graphs.
 
     Returns
     -------
@@ -3444,26 +3446,30 @@ def get_min_max_values_from_plot_dictionary(plot_dictionary, keys_to_exclude=Non
 
     for key in plot_dictionary.keys():
         if key not in keys_to_exclude:
-            if type(plot_dictionary[key]) is list:
-                local_min = np.min(np.array(plot_dictionary[key]).flatten())
-                local_max = np.max(np.array(plot_dictionary[key]).flatten())
-                if min_value is None or local_min < min_value:
-                    min_value = local_min
-                if max_value is None or local_max > max_value:
-                    max_value = local_max
-            elif type(plot_dictionary[key]) is Graph:
+            # if type(plot_dictionary[key]) in (list, np.array):
+            #     local_min = np.min(np.array(plot_dictionary[key]).flatten())
+            #     local_max = np.max(np.array(plot_dictionary[key]).flatten())
+            #     if min_value is None or local_min < min_value:
+            #         min_value = local_min
+            #     if max_value is None or local_max > max_value:
+            #         max_value = local_max
+            if type(plot_dictionary[key]) is Graph:
                 for plot in plot_dictionary[key].plots:
-                    local_min = np.min(plot.y)
-                    local_max = np.max(plot.y)
+                    if xlim is None:
+                        local_min, local_max = plot.get_extrema()
+                    else:
+                        local_min, local_max = plot.get_extrema(xlim[0], xlim[1])
                     if min_value is None or local_min < min_value:
                         min_value = local_min
                     if max_value is None or local_max > max_value:
                         max_value = local_max
-            else:
+            elif type(plot_dictionary[key]) == float or type(plot_dictionary[key]) == int:
                 if min_value is None or plot_dictionary[key] < min_value:
                     min_value = plot_dictionary[key]
                 if max_value is None or plot_dictionary[key] > max_value:
                     max_value = plot_dictionary[key]
+            else:
+                raise Exception('The plot dictionary values must be Graph, float or int.')
 
     return min_value, max_value
 

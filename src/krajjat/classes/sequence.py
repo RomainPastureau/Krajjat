@@ -7,7 +7,7 @@ import pickle
 from collections import OrderedDict
 from bisect import bisect
 
-from scipy.signal import butter, lfilter
+from scipy.signal import butter, lfilter, filtfilt
 from scipy.io import savemat
 
 from krajjat.classes.pose import Pose
@@ -631,6 +631,17 @@ class Sequence(TimeSeries):
 
                         if verbosity > 1:
                             print("OK.")
+
+                elif key == "processing_steps":
+                    if len(data["data"]["processing_steps"]) == 0:
+                        self.metadata["processing_steps"] = []
+                    else:
+                        self.metadata["processing_steps"] = data["data"]["processing_steps"]
+                        for step in range(len(self.metadata["processing_steps"])):
+                            for processing_step_key in self.metadata["processing_steps"][step]:
+                                if type(self.metadata["processing_steps"][step][processing_step_key]) is float and \
+                                   np.isnan(self.metadata["processing_steps"][step][processing_step_key]):
+                                    self.metadata["processing_steps"][step][processing_step_key] = None
 
                 else:
                     self.metadata[key] = data["data"][key]
@@ -3414,7 +3425,8 @@ class Sequence(TimeSeries):
         return new_sequence
 
     # noinspection PyTupleAssignmentBalance
-    def filter_frequencies(self, filter_below=None, filter_over=None, name=None, verbosity=1):
+    def filter_frequencies(self, filter_below=None, filter_over=None, padtype="constant", padlen=None, name=None,
+                           verbosity=1):
         """Applies a low-pass, high-pass or band-pass filter to the positions of the joints.
 
         .. versionadded: 2.0
@@ -3430,6 +3442,15 @@ class Sequence(TimeSeries):
             The value over which you want to filter the data. If set on None or 0, this parameter will be ignored.
             If this parameter is the only one provided, a low-pass filter will be applied to the data; if
             ``filter_below`` is also provided, a band-pass filter will be applied to the data.
+
+        padtype: str, optional
+            What type of padding to use. See the documentation of `scipy.signal.filtfilt
+            <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.filtfilt.html>`_ for more information
+            (default: ``"constant"`` - warning: this default is not scipy's default (``"odd"``).)
+
+        padlen: int, optional
+            The number of elements for the padding. See the documentation of `scipy.signal.filtfilt
+            <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.filtfilt.html>`_ for more information.
 
         name: str or None, optional
             Defines the name of the output sequence. If set on ``None``, the name will be the same as the
@@ -3457,6 +3478,13 @@ class Sequence(TimeSeries):
 
         VariableSamplingRateException
             If the sampling rate of the Sequence is not fixed.
+
+        Note
+        ----
+        This function uses the scipy functions
+        `scipy.signal.butter <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.butter.html>`_
+        to create the filter, and `scipy.signal.filtfilt
+        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.filtfilt.html>`_ to apply it.
 
         Example
         -------
@@ -3505,9 +3533,9 @@ class Sequence(TimeSeries):
                 filtered_z_positions = z_positions
 
             else:
-                filtered_x_positions = lfilter(b, a, x_positions)
-                filtered_y_positions = lfilter(b, a, y_positions)
-                filtered_z_positions = lfilter(b, a, z_positions)
+                filtered_x_positions = filtfilt(b, a, x_positions, padtype=padtype, padlen=padlen)
+                filtered_y_positions = filtfilt(b, a, y_positions, padtype=padtype, padlen=padlen)
+                filtered_z_positions = filtfilt(b, a, z_positions, padtype=padtype, padlen=padlen)
 
             for p in range(len(new_sequence.poses)):
                 new_sequence.poses[p].joints[joint_label] = Joint(joint_label, filtered_x_positions[p],
