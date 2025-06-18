@@ -14,10 +14,11 @@ class TestsPlotFunctions(unittest.TestCase):
         sequence = Sequence("test_sequences/sequence_ainhoa.json", verbosity=0)
         sequence_trimmed = sequence.trim(11.1284139, verbosity=0)
         figure = single_joint_movement_plotter([sequence, sequence_trimmed], joint_label="HandRight",
-                                      measures=["x", "y", "z", "d"], show=show, verbosity=0)
+                                               measures=["x", "y", "z", "d"], show=show, verbosity=0)
         assert len(figure.axes) == 4
         assert np.allclose(figure.axes[0].get_xlim(), (0, 0.0009153169212962963))
         assert np.allclose(figure.axes[0].get_ylim(), (-0.10709512899999998, 0.587753949))
+        figure.close()
 
         sequence_rs = sequence.resample(20, "cubic", verbosity=0)
         sequence_cj = sequence.correct_jitter(1, 5, "poses", verbosity=0)
@@ -26,53 +27,67 @@ class TestsPlotFunctions(unittest.TestCase):
         figure = single_joint_movement_plotter(sequence_rs, joint_label="HandRight", measures="default", show=show,
                                                verbosity=0)
         assert len(figure.axes) == 6
+        figure.close()
 
-        single_joint_movement_plotter(sequence_rs, joint_label="HandRight", measures=["x", "y", "z"], show=show,
-                                      verbosity=0)
-        single_joint_movement_plotter(sequence_rs, joint_label="HandRight", measures=["velocity_abs"], show=show,
-                                      verbosity=0)
-        single_joint_movement_plotter([sequence_rs, sequence_rs_cj], joint_label="HandRight",
-                                      measures=["d", "v", "a", "j"], show=show, verbosity=0)
-        single_joint_movement_plotter([sequence_rs, sequence_rs_cj], joint_label="HandRight",
-                                      measures=["d", "v", "a", "j"], show=show, verbosity=0)
+        figure = single_joint_movement_plotter(sequence_rs, joint_label="HandRight", measures=["x", "y", "z"],
+                                               show=show, verbosity=0)
+        figure.close()
 
-        single_joint_movement_plotter([sequence_rs, sequence_rs_cj], joint_label="HandRight",
-                                      measures=["d", "v", "a", "j"], domain="frequency", nperseg=256, show=show,
-                                      verbosity=0)
-
-        single_joint_movement_plotter([sequence_rs, sequence_rs_cj], joint_label="HandRight",
-                                      measures=["d", "v", "a", "j"], domain="frequency", nperseg=256,
-                                      welch_window="flattop", show=show, verbosity=0)
+        figure = single_joint_movement_plotter(sequence_rs, joint_label="HandRight", measures=["velocity_abs"],
+                                               show=show, verbosity=0)
+        figure.close()
 
         figure = single_joint_movement_plotter([sequence_rs, sequence_rs_cj], joint_label="HandRight",
-                                      measures=["d", "v", "a", "j"], domain="frequency", timestamp_start=1,
-                                      timestamp_end=2, ylim=[[0, 4e-5], [0, 0.003], [0, 0.35], [0, 250]], line_width=2,
-                                      line_color=["bcbl blue", "bcbl dark blue"], show=show, verbosity=0)
+                                               measures=["d", "v", "a", "j"], show=show, verbosity=0)
+        figure.close()
+
+        figure = single_joint_movement_plotter([sequence_rs, sequence_rs_cj], joint_label="HandRight",
+                                               measures=["d", "v", "a", "j"], show=show, verbosity=0)
+        figure.close()
+
+        figure = single_joint_movement_plotter([sequence_rs, sequence_rs_cj], joint_label="HandRight",
+                                               measures=["d", "v", "a", "j"], domain="frequency", nperseg=256,
+                                               show=show, verbosity=0)
+        figure.close()
+
+        figure = single_joint_movement_plotter([sequence_rs, sequence_rs_cj], joint_label="HandRight",
+                                               measures=["d", "v", "a", "j"], domain="frequency", nperseg=256,
+                                               welch_window="flattop", show=show, verbosity=0)
+        figure.close()
+
+        figure = single_joint_movement_plotter([sequence_rs, sequence_rs_cj], joint_label="HandRight",
+                                               measures=["d", "v", "a", "j"], domain="frequency", timestamp_start=1,
+                                               timestamp_end=2, ylim=[[0, 4e-5], [0, 0.003], [0, 0.35], [0, 250]],
+                                               line_width=2,
+                                               line_color=["bcbl blue", "bcbl dark blue"], show=show, verbosity=0)
 
         assert len(figure.axes) == 4
         assert np.allclose(figure.axes[0].get_xlim(), (0, 10))
         assert np.allclose(figure.axes[0].get_ylim(), (0, 4e-5))
+        figure.close()
 
         figure = single_joint_movement_plotter([sequence_rs, sequence_rs_cj], joint_label="HandRight",
-                                      measures=["d", "v", "a", "j"], domain="frequency", timestamp_start=1,
-                                      timestamp_end=2, xlim=[0, 5], ylim=[0, 1], line_width=2,
-                                      line_color=["bcbl blue", "bcbl dark blue"], show=show, verbosity=0)
+                                               measures=["d", "v", "a", "j"], domain="frequency", timestamp_start=1,
+                                               timestamp_end=2, xlim=[0, 5], ylim=[0, 1], line_width=2,
+                                               line_color=["bcbl blue", "bcbl dark blue"], show=show, verbosity=0)
 
         assert len(figure.axes) == 4
         assert np.allclose(figure.axes[0].get_xlim(), (0, 5))
         assert np.allclose(figure.axes[0].get_ylim(), (0, 1))
-
+        figure.close()
 
         figure = single_joint_movement_plotter([sequence_rs, sequence_rs_cj], joint_label="HandRight",
-                                      measures=["d", "v", "a", "j"], domain="time", timestamp_start=1,
-                                      timestamp_end=2, line_width=2, line_color=["bcbl blue", "bcbl dark blue"],
-                                      show=show, verbosity=0)
+                                               measures=["d", "v", "a", "j"], domain="time", timestamp_start=1,
+                                               timestamp_end=2, line_width=2,
+                                               line_color=["bcbl blue", "bcbl dark blue"],
+                                               show=show, verbosity=0)
 
         assert len(figure.axes) == 4
         assert np.allclose(figure.axes[0].get_xlim(),
                            (1.1574074074074073e-05, 2.3148148148148147e-05))
         assert np.allclose(figure.axes[0].get_ylim(),
                            (-0.0002892237800528336, 0.016544788669802486))
+        figure.close()
 
     def test_joint_movement_plotter(self):
         show = False
@@ -88,31 +103,48 @@ class TestsPlotFunctions(unittest.TestCase):
         assert len(figure.axes) == 21
         assert np.allclose(figure.axes[0].get_xlim(), (0, 79.05))
         assert np.allclose(figure.axes[0].get_ylim(), (-0.728253488317679, 0.7217512296715232))
+        figure.close()
 
         figure = joints_movement_plotter(sequence_rs, measure="velocity", domain="time", timestamp_start=10,
                                          timestamp_end=20, ylim=[-1, 1], show=show, verbosity=0)
         assert len(figure.axes) == 21
         assert np.allclose(figure.axes[0].get_xlim(), (10, 20))
         assert np.allclose(figure.axes[0].get_ylim(), (-1, 1))
+        figure.close()
 
-        joints_movement_plotter(sequence_rs, measure="velocity_abs", domain="time", show=show, verbosity=0)
-        joints_movement_plotter([sequence_rs, sequence_rs_cj], measure="velocity_abs", domain="time",
-                                show=show, verbosity=0)
-        joints_movement_plotter(sequence_rs, measure="velocity", domain="frequency", xlim=[1, 3], ylim=[0, 0.004],
-                                show=show, verbosity=0)
-        joints_movement_plotter(sequence_rs, measure="velocity_abs", domain="frequency", show=show, verbosity=0)
-        joints_movement_plotter(sequence_t, measure="velocity", domain="time", audio_or_derivative=audio,
-                                overlay_audio=True, show=show, verbosity=0)
-        joints_movement_plotter(sequence_t, measure="velocity_abs", domain="time", audio_or_derivative=audio,
-                                overlay_audio=True, show=show, verbosity=0)
+        figure = joints_movement_plotter(sequence_rs, measure="velocity_abs", domain="time", show=show, verbosity=0)
+        figure.close()
+
+        figure = joints_movement_plotter([sequence_rs, sequence_rs_cj], measure="velocity_abs",
+                                         domain="time", show=show, verbosity=0)
+        figure.close()
+
+        figure = joints_movement_plotter(sequence_rs, measure="velocity", domain="frequency", xlim=[1, 3],
+                                         ylim=[0, 0.004], show=show, verbosity=0)
+        figure.close()
+
+        figure = joints_movement_plotter(sequence_rs, measure="velocity_abs", domain="frequency", show=show,
+                                         verbosity=0)
+        figure.close()
+
+        figure = joints_movement_plotter(sequence_t, measure="velocity", domain="time", audio_or_derivative=audio,
+                                         overlay_audio=True, show=show, verbosity=0)
+        figure.close()
+
+        figure = joints_movement_plotter(sequence_t, measure="velocity_abs", domain="time", audio_or_derivative=audio,
+                                         overlay_audio=True, show=show, verbosity=0)
+        figure.close()
 
     def test_framerate_plotter(self):
         show = False
         sequence = Sequence("test_sequences/sequence_ainhoa.json", verbosity=0)
-        framerate_plotter(sequence, show=False)
+        figure = framerate_plotter(sequence, show=False)
+        figure.close()
         sequence_rs = sequence.resample(20, "cubic", verbosity=0)
-        framerate_plotter(sequence_rs, show=show)
-        framerate_plotter([sequence, sequence_rs], show=show)
+        figure = framerate_plotter(sequence_rs, show=show)
+        figure.close()
+        figure = framerate_plotter([sequence, sequence_rs], show=show)
+        figure.close()
 
     def test_audio_plotter(self):
         show = False
@@ -130,10 +162,12 @@ class TestsPlotFunctions(unittest.TestCase):
         plot_dictionary["HandLeft"].add_plot(np.linspace(0, 10, 11), np.linspace(0, 10, 11), None, 1, "blue", "x=y")
         plot_dictionary["HandLeft"].add_plot(np.linspace(0, 10, 11), np.linspace(10, 0, 11), None, 2, "orange", "y=x")
 
-        plot_body_graphs(plot_dictionary, joint_layout="auto", show=show, verbosity=0)
+        figure = plot_body_graphs(plot_dictionary, joint_layout="auto", show=show, verbosity=0)
+        figure.close()
 
-        plot_body_graphs(plot_dictionary, joint_layout="auto", title="Graph", min_scale=-10, max_scale=7,
-                         show_scale=True, title_scale="Scale", x_lim=[-1, 15], show=show, verbosity=0)
+        figure = plot_body_graphs(plot_dictionary, joint_layout="auto", title="Graph", min_scale=-10, max_scale=7,
+                                  show_scale=True, title_scale="Scale", x_lim=[-1, 15], show=show, verbosity=0)
+        figure.close()
 
     def test_plot_silhouette(self):
         show = False

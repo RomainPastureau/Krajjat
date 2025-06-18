@@ -6,10 +6,10 @@ build-backend = "hatchling.build"
 name = "krajjat"
 version = "1.99.21"
 authors = [
-  {name="Romain Pastureau", email="r.pastureau@bcbl.eu"},
+  {name="Romain Pastureau", email="krajjat@proton.me"},
 ]
 maintainers = [
-  {name = "Romain Pastureau", email = "r.pastureau@bcbl.eu"},
+  {name = "Romain Pastureau", email = "krajjat@proton.me"},
 ]
 description = "Pre-processing, visualisation and analysis of motion capture data and speech"
 readme = "README.md"
