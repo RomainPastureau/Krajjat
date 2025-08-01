@@ -194,9 +194,8 @@ class TestsExperimentMethods(unittest.TestCase):
         experiment.add_subjects(subject1, subject2)
 
         df = experiment.get_dataframe("distance", "envelope", 1000,
-                                      exclude_columns=["group", "condition"], include_columns=["visit"])
+                                      exclude_columns=["group", "condition"], include_columns=["visit"], verbosity=0)
 
-        print(df.shape)
         assert df.shape == (36, 8)
         assert sorted(df["subject"].unique()) == ["Alice", "Bob"]
 

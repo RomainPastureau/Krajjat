@@ -29,6 +29,10 @@ Version 2.0 (01/09/2023)
       file.
     * Allows to display correlation and cross-correlation results on a silhouette.
 
+Version 1.99.22 (20/06/2025)
+----------------------------
+
+
 Version 1.11 (25/11/2022)
 -------------------------
 * Correction of the realignment algorithm. Toggle between one and the other with the argument ``"mode"`` set as

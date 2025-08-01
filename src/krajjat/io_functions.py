@@ -1,4 +1,5 @@
 """Functions to load and save multiple sequences, audio clips, and statistics."""
+from krajjat import Envelope, Pitch, Intensity, Formant
 from krajjat.classes.sequence import Sequence
 from krajjat.tool_functions import *
 from krajjat.classes.exceptions import *
@@ -260,6 +261,40 @@ def load_audios(input_folder, recursive=False, output_type="list", ignore_empty_
         print(str(len(audios)) + " audio clip(s) have been loaded from the directory " + str(input_folder))
 
     return audios
+
+
+def load_audio_derivative(path, kind):
+    """Loads an Audio or an AudioDerivative from a file and returns the corresponding object.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    path: str
+        The path of the Audio or AudioDerivative instance.
+
+    kind: str
+        The kind of AudioDerivative contained in the file. Can be either ``"audio"``, ``"envelope"``, ``"pitch"``,
+        ``"fX"`` (with X being the number of the formant), or ``"intensity"``.
+
+    Returns
+    -------
+    Audio or AudioDerivative
+        An Audio or AudioDerivative instance.
+    """
+    if kind.lower() == "audio":
+        return Audio(path)
+    elif kind.lower() == "envelope":
+        return Envelope(path)
+    elif kind.lower() == "pitch":
+        return Pitch(path)
+    elif kind.lower() == "intensity":
+        return Intensity(path)
+    elif len(kind) == 2 and kind[0] == "f":
+        return Formant(path, int(kind[1]))
+    else:
+        raise InvalidParameterValueException("kind", kind,
+                                             ["audio", "envelope", "pitch", "intensity", "f1", "f2", "f3", "f4", "f5"])
 
 
 def save_sequences(sequence_or_sequences, folder_out="", names=None, file_format="json", encoding="utf-8",

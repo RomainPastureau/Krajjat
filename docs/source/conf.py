@@ -7,7 +7,7 @@ import krajjat
 project = 'krajjat'
 copyright = '2025, Romain Pastureau'
 author = 'Romain Pastureau'
-release = '1.99.21'
+release = '1.99.22'
 
 extensions = [
     'sphinx.ext.duration',

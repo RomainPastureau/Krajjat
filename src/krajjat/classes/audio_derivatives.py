@@ -854,10 +854,10 @@ class AudioDerivative(TimeSeries):
 
         if verbosity > 0:
             print(tabs + f"Trimming the {self.kind.lower()}:")
-            print(tabs + "\tStarting timestamp: " + str(start) + " seconds")
-            print(tabs + "\tEnding timestamp: " + str(end) + " seconds")
+            print(tabs + "\tStarting timestamp: " + str(np.max((start, 0))) + " seconds")
+            print(tabs + "\tEnding timestamp: " + str(np.min((self.get_duration(), end))) + " seconds")
             print(tabs + "\tOriginal duration: " + str(self.get_duration()) + " seconds")
-            print(tabs + "\tDuration after trimming: " + str(end - start) + " seconds")
+            print(tabs + "\tDuration after trimming: " + str(np.min((self.get_duration(), end - start))) + " seconds")
         if verbosity == 1:
             print(tabs + "Starting the trimming...", end=" ")
 
@@ -879,6 +879,9 @@ class AudioDerivative(TimeSeries):
 
         if verbosity > 1:
             print(tabs + f"Closest (below) starting timestamp from {end}: {self.timestamps[end_index]}")
+
+        elif verbosity == 1:
+            print("Done.")
 
         new_audio_derivative = type(self)(self.samples[start_index:end_index + 1], frequency=self.frequency, name=name,
                                           condition=self.condition, verbosity=verbosity)

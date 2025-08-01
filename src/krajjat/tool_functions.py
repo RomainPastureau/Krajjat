@@ -1,6 +1,8 @@
 """Functions to perform simple tasks that can be used throughout the toolbox and beyond."""
+import collections
 import datetime
 import glob
+import numbers
 import os
 import os.path as op
 import random
@@ -57,7 +59,7 @@ CLEAN_DERIV_NAMES = {"x-axis": "x", "x_coord": "x", "coord_x": "x", "x_coordinat
 MODULE_DIR = op.dirname(__file__)
 
 DEFAULT_FONT_PATH = op.join(MODULE_DIR, "res", "junction_bold.otf")
-SILHOUETTE_PATH = op.join(MODULE_DIR, "res", "silhouette.png")
+SILHOUETTE_PATH = op.join(MODULE_DIR, "res", "silhouette_cropped.png")
 
 
 # === Folder and path functions ===
@@ -1399,6 +1401,41 @@ def write_xlsx(table, path, sheet_name=None, metadata=None, metadata_sheet_name=
 
 
 # === Calculation functions ===
+def find_closest_value_index(array, value, rtol=1e-5, atol=1e-8):
+    """Find the index of the value in the array that is closest to the given value within a specified tolerance.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    array: numpy.ndarray
+        The array to search.
+    value: float
+        The value to find in the array.
+    rtol: float
+        The relative tolerance parameter for numpy.isclose.
+    atol: float
+        The absolute tolerance parameter for numpy.isclose.
+
+    Returns
+    -------
+    int|None
+        The index of the closest value if found, otherwise None.
+    """
+
+    # Calculate absolute differences between the value and each element in the array
+    differences = np.abs(array - value)
+
+    # Use np.isclose to find indices of values close to the given value
+    close_indices = np.isclose(array, value, rtol=rtol, atol=atol)
+
+    if np.any(close_indices):
+        # Find the index of the minimum difference among the close values
+        closest_index = np.argmin(differences[close_indices])
+        return np.where(close_indices)[0][closest_index]
+    else:
+        return None
+
 def resample_data(array, original_timestamps, resampling_frequency, window_size=1e7, overlap_ratio=0.5,
                   method="cubic", time_unit="s", verbosity=1):
     """Resamples an array to the `resampling_frequency` parameter. It first creates a new set of timestamps at the
@@ -3425,7 +3462,7 @@ def get_min_max_values_from_plot_dictionary(plot_dictionary, keys_to_exclude=Non
     Parameters
     ----------
     plot_dictionary: dict
-        A dictionary with labels as keys and Graph elements as values.
+        A dictionary with labels as keys and Graph elements, float, int or arrays as values.
     keys_to_exclude: list(string)
         A list of keys of the dictionary to exclude from the search of the minimum and maximum values.
     xlim: list(int|float, int|float), optional
@@ -3446,14 +3483,15 @@ def get_min_max_values_from_plot_dictionary(plot_dictionary, keys_to_exclude=Non
 
     for key in plot_dictionary.keys():
         if key not in keys_to_exclude:
-            # if type(plot_dictionary[key]) in (list, np.array):
-            #     local_min = np.min(np.array(plot_dictionary[key]).flatten())
-            #     local_max = np.max(np.array(plot_dictionary[key]).flatten())
-            #     if min_value is None or local_min < min_value:
-            #         min_value = local_min
-            #     if max_value is None or local_max > max_value:
-            #         max_value = local_max
-            if type(plot_dictionary[key]) is Graph:
+            if isinstance(plot_dictionary[key], (collections.abc.Sequence, np.ndarray)):
+                if len(plot_dictionary[key]) > 0:
+                    local_min = np.min(np.array(plot_dictionary[key]).flatten())
+                    local_max = np.max(np.array(plot_dictionary[key]).flatten())
+                    if min_value is None or local_min < min_value:
+                        min_value = local_min
+                    if max_value is None or local_max > max_value:
+                        max_value = local_max
+            elif isinstance(plot_dictionary[key], Graph):
                 for plot in plot_dictionary[key].plots:
                     if xlim is None:
                         local_min, local_max = plot.get_extrema()
@@ -3463,7 +3501,7 @@ def get_min_max_values_from_plot_dictionary(plot_dictionary, keys_to_exclude=Non
                         min_value = local_min
                     if max_value is None or local_max > max_value:
                         max_value = local_max
-            elif type(plot_dictionary[key]) == float or type(plot_dictionary[key]) == int:
+            elif isinstance(plot_dictionary[key], numbers.Number):
                 if min_value is None or plot_dictionary[key] < min_value:
                     min_value = plot_dictionary[key]
                 if max_value is None or plot_dictionary[key] > max_value:

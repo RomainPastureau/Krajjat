@@ -437,7 +437,7 @@ class Experiment(object):
         if verbosity > 1:
             print("Creating a dataframe for the experiment.")
             print("Number of subjects: " + str(len(self.subjects)))
-            print("Number of trials: " + str(sum([len(t) for t in self.subjects])))
+            print("Number of trials: " + str(sum([len(self.subjects[sub]) for sub in self.subjects])))
 
         # Default columns
         columns = ["subject", "group", "trial", "condition", "modality", "label", "measure", "timestamp", "value"]
@@ -509,7 +509,7 @@ class Experiment(object):
                 if len(audio_measure) > 0 and not trial.has_audio():
                     raise Exception(f"An Audio is missing for Subject {subject_name}, Trial {trial_id}.")
 
-                if sequence.get_sampling_rate() != sampling_frequency:
+                if sampling_frequency is not None and sequence.get_sampling_rate() != sampling_frequency:
                     sequence = sequence.resample(sampling_frequency,
                                                  method=kwargs.get("method", "cubic"),
                                                  window_size=kwargs.get("window_size", 1e7),
@@ -602,7 +602,7 @@ class Experiment(object):
                         raise Exception(f"Impossible to derive the measure {measure} from a {type(audio).__name__} "
                                         f"object.")
 
-                    if audio.frequency != sampling_frequency:
+                    if sampling_frequency is not None and audio.frequency != sampling_frequency:
                         audio = audio.resample(sampling_frequency,
                                                method=kwargs.get("resampling_mode", "cubic"),
                                                window_size=kwargs.get("res_window_size", 1e7),
@@ -617,7 +617,7 @@ class Experiment(object):
                                         "trial": trial_id,
                                         "condition": trial.condition,
                                         "modality": "audio",
-                                        "label": "audio",
+                                        "label": "Audio",
                                         "measure": measure}
 
                     for column in columns:
@@ -650,6 +650,9 @@ class Experiment(object):
                             data[column] = np.concatenate((data[column], np.full(np.shape(timestamps), np.nan)))
 
                     i += 1
+
+        if verbosity == 1:
+            print("Done.")
 
         return pd.DataFrame(data)
 

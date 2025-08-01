@@ -1,5 +1,6 @@
 """These various functions allow to plot the data from the Sequence and Audio instances on graphs, or to plot
 statistics calculated using the analysis_functions."""
+import numbers
 
 import pygame
 from parselmouth import Sound
@@ -992,11 +993,11 @@ def audio_plotter(audio, filter_below=None, filter_over=None, number_of_formants
 
     return fig
 
-
 def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale=None, max_scale=None, show_scale=False,
-                     title_scale=None, xlim=None, ylim=None, color_scheme="default", title_audio="Audio",
+                     title_scale=None, xlim=None, ylim=None, shaded_error_bars=True,
+                     alpha_shade=0.4, color_scheme="default", title_audio="Audio",
                      full_screen=False, show=True, path_save=None, **kwargs):
-    """Creates multiple sub-plots placed so that each joint is roughly placed where it is located on the body. The
+    """Creates multiple subplots placed so that each joint is roughly placed where it is located on the body. The
     values of each subplot are taken from the parameter ``plot_dictionary``, and the positions from the layout
     differ between Kinect and Kualisys systems.
 
@@ -1005,15 +1006,15 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
     Parameters
     ----------
     plot_dictionary: dict(str: Graph)
-        A dictionary containing the title of the sub-graphs as keys, and Graph objects as elements.
+        A dictionary containing the title of the subgraphs as keys, and Graph objects as elements.
 
     joint_layout: str, optional
-        Defines the layout to use for the sub-plots of the joints: ``"kinect"``, ``"qualisys"``/``"kualisys"``, or the
+        Defines the layout to use for the subplots of the joints: ``"kinect"``, ``"qualisys"``/``"kualisys"``, or the
         path to a file containing a custom layout.  If set on ``"auto"`` (default), the function will automatically
         assign the layout depending on if the joint label ``"Chest"`` is among the keys of the ``plot_dictionary``.
 
-        The joint layouts are a grid of 7 × 5 sub-plots for Kinect, and 13 × 7 subplots for Qualisys. The corresponding
-        spot for each joint are loaded from ``"res/kinect_joints_subplot_layout.txt"`` and
+        The joint layouts are a grid of 7 × 5 subplots for Kinect, and 13 × 7 subplots for Qualisys. The corresponding
+        spots for each joint are loaded from ``"res/kinect_joints_subplot_layout.txt"`` and
         ``"res/kualisys_joints_subplot_layout.txt"``.
 
     title: str or None, optional
@@ -1021,13 +1022,13 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
 
     min_scale: float or None, optional
         The minimum value to set on the y-axis, for all the elements in the ``plot_dictionary`` that match joint keys
-        (i.e., except from the sub-plot under the ``"Audio"`` key). If set on None (default), the minimum value will be
-        the overall minimum value from the ``plot_dictionary``, with the sub-graph ``"Audio"`` excluded.
+        (i.e., except from the subplot under the ``"Audio"`` key). If set on None (default), the minimum value will be
+        the overall minimum value from the ``plot_dictionary``, with the subgraph ``"Audio"`` excluded.
 
     max_scale: float or None, optional
         The maximum value to set on the y-axis, for all the elements in the ``plot_dictionary`` that match joint keys
-        (i.e., except from the sub-plot under the ``"Audio"`` key). If set on None (default), the maximum value will be
-        the overall minimum value from the ``plot_dictionary``, with the sub-graph ``"Audio"`` excluded.
+        (i.e., except from the subplot under the ``"Audio"`` key). If set on None (default), the maximum value will be
+        the overall minimum value from the ``plot_dictionary``, with the subgraph ``"Audio"`` excluded.
 
     show_scale: bool, optional
         If set on ``True``, shows a colored scale on the right side of the graph.
@@ -1040,6 +1041,12 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
 
     ylim: list(float, float)|None, optional
         If set, defines the lower and upper limits of the y-axis of the sub-graphs (default: None).
+
+    shaded_error_bars: bool, optional
+        Shows shaded error bars for each plot if the standard deviation is part of the plot_dictionary. Default: True.
+
+    alpha_shade: float, optional
+        The alpha value for the color of the shaded error bars. Default: 0.4.
 
     color_scheme: str or list, optional
         The color scheme to use for the color scale. This color scheme should be coherent with the colors defined in
@@ -1109,6 +1116,7 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
     # Get min and max values
     min_value, max_value = get_min_max_values_from_plot_dictionary(plot_dictionary, keys_to_exclude=["Audio"],
                                                                    xlim=xlim)
+
     if min_scale is not None:
         min_value = min_scale
     if max_scale is not None:
@@ -1117,6 +1125,7 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
         max_scale = max_value
 
     # Plot the subplots
+
     for key in plot_dictionary.keys():
         plt.subplot(rows, cols, joints_positions[key])
         if key != "Audio":  # We want to scale everything apart from the audio
@@ -1128,11 +1137,14 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
             plt.xlim(xlim)
         if ylim is not None:
             plt.ylim(ylim)
+        i = 0
         for subplot in plot_dictionary[key].plots:
-            plt.plot(subplot.x, subplot.y, linewidth=subplot.line_width, color=subplot.color, label=subplot.label)
-            if subplot.sd is not None:
+            p = plt.plot(subplot.x, subplot.y, linewidth=subplot.line_width, color=subplot.color, label=subplot.label)
+            if subplot.sd is not None and shaded_error_bars:
+                line_color = list(p[i].get_color())
                 plt.fill_between(subplot.x, subplot.y - subplot.sd, subplot.y + subplot.sd,
-                                 alpha=0.5, facecolor=subplot.color)
+                                 alpha=alpha_shade, facecolor=tuple(line_color))
+                i += 0
 
     # Delete unused axes
     if "Audio" not in plot_dictionary.keys():
@@ -1179,20 +1191,25 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
 
     return fig
 
-def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, min_scale="auto", max_scale="auto",
-                    show_scale=True, title_scale=None, color_scheme="default", color_background="white",
-                    color_silhouette="black", resolution=0.5, full_screen=False, show=True, path_save=None,
-                    verbosity=1, **kwargs):
-    """Plots a silhouette with circles representing the different joints, colored according to their values in the
-    ``plot_dictionary``. Passing the mouse on the different joints shows, in the bottom right corner, the value
-    associated to the joint the mouse is on.
+
+def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, title_silhouette=None,
+                    scale_silhouette=0.9, min_scale="auto", max_scale="auto", show_scale=True, title_scale=None,
+                    color_scheme="default", color_background="white", color_silhouette="black",
+                    pixels_between_silhouettes=100, path_font=None, font_size=1, resolution=0.5,
+                    full_screen=False, show=True, path_save=None, verbosity=1, **kwargs):
+    """Plots one or multiple silhouettes with circles representing the different joints, colored according to their
+    values in the ``plot_dictionary``. Passing the mouse on the different joints shows, in the bottom right corner, the
+    value associated to the joint the mouse is on.
 
     .. versionadded:: 2.0
 
     Parameters
     ----------
-    plot_dictionary: dict(str: float)
-        A dictionary containing the title of the sub-graphs as keys, and values as elements.
+    plot_dictionary: dict(str: float|np.array)
+        A dictionary containing the title of the sub-graphs as keys, and values as elements. The number of silhouettes
+        displayed will depend on the number of values in each value of the plot dictionary: if there is only one value,
+        one silhouette is displayed; if the value is an array, the function will display as many silhouettes as the
+        size of the arrays.
 
     joint_layout: str, optional
         Defines the layout to use for the sub-plots of the joints: ``"kinect"`` or ``"qualisys"``/``"kualisys"``. If
@@ -1207,6 +1224,14 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, min_scale=
 
     title: str or None, optional
         The title to display on top of the plot.
+
+    title_silhouette: str | list | None (optional)
+        The title to set for each silhouette. If a list is provided, the length must be equal to the number of
+        elements in each value of the ``plot_dictionary``.
+
+    scale_silhouette: float (optional)
+        The scale of each silhouette in the window. If set on 1, the silhouette will take the total height of the
+        window. The default value is 0.9, in order to leave place for titles.
 
     min_scale: str or float, optional
         If set on ``"auto"`` (default), the lowest value of the scale will be set on the lowest value in the
@@ -1248,6 +1273,20 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, min_scale=
         The color of the silhouette (default: ``"black"``). This parameter can be a tuple with RGB or RGBA values,
         a string with a hexadecimal value (starting with a leading ``#``) or one of the standard
         `HTML/CSS color names <https://en.wikipedia.org/wiki/X11_color_names>`_.
+
+    pixels_between_silhouettes: int, optional
+        The amount of pixels separating two silhouettes, if more than one silhouette is shown (default: 100).
+
+    path_font: str or None, optional
+        If set, defines the path to any TTF or OTF font. This font will be used for the title, the silhouette titles
+        and the scale titles and values. If set on `None` (default), the built-in font junction-bold.otf will be
+        used.
+
+    font_size: int | tuple, optional
+        The size of the font for the title, the silhouette titles and the scale. The default value is 1, which is an
+        arbitrary value that is equal to 4% of the height of the window. This parameter can be set on a tuple of three
+        values ``(a, b, c)`` where ``α`` is the size of the title, ``b`` the size of the silhouette titles, and ``c``
+        the size of the scale titles and values.
 
     resolution: tuple(int, int) or float or None, optional
         The resolution of the Pygame window that will display the silhouette. This parameter can be:
@@ -1300,10 +1339,10 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, min_scale=
     info = pygame.display.Info()
     if resolution is None:
         resolution = (info.current_w, info.current_h)
-    elif isinstance(resolution, float):
+    elif isinstance(resolution, numbers.Number):
         resolution = (int(info.current_w * resolution), int(info.current_h * resolution))
 
-    # Setting up the full screen mode
+    # Setting up the fullscreen mode
     if not show:
         pygame.display.set_mode((1, 1))
         window = pygame.Surface(resolution)
@@ -1321,13 +1360,43 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, min_scale=
         print("Window resolution: " + str(resolution))
         print("Load the silhouette...", end=" ")
 
+    # Determine how many silhouettes
+    number_of_silhouettes = 1
+    for key in plot_dictionary:
+        if isinstance(plot_dictionary[key], numbers.Number) and key != "Audio":
+            plot_dictionary[key] = np.array([plot_dictionary[key]])
+        if key != "Audio":
+            number_of_silhouettes = len(plot_dictionary[key])
+
     # Load silhouette picture, color it and resize it
     silhouette = pygame.image.load(SILHOUETTE_PATH)
     color_background = convert_color(color_background, "rgb", False)
+
     if color_background != (255, 255, 255):
         silhouette.fill(color_background, special_flags=pygame.BLEND_RGBA_MIN)
-    silhouette = pygame.transform.scale(silhouette, (resolution[1] * (16 / 9), resolution[1]))
-    silhouette_x = resolution[0] // 2 - silhouette.get_width() // 2
+
+    # Calculate silhouette size using `size_silhouette` ratio of vertical resolution
+    silhouette_ratio = silhouette.get_width() / silhouette.get_height()
+    silhouette_height = int(resolution[1] * scale_silhouette)
+    silhouette_width = int(silhouette_height * silhouette_ratio)
+    silhouette = pygame.transform.scale(silhouette, (silhouette_width, silhouette_height))
+
+    # Compute x and y offset to center it horizontally and vertically
+    silhouette_x = (resolution[0] // 2 - (silhouette_width * number_of_silhouettes +
+                                          (pixels_between_silhouettes * (number_of_silhouettes - 1))) // 2)
+    silhouette_y = (resolution[1] - silhouette_height) // 2
+
+    # Create the surfaces around the silhouette
+    width_surface_side = (resolution[0] - (silhouette.get_width() * number_of_silhouettes) - (pixels_between_silhouettes
+                          * (number_of_silhouettes - 1))) / 2
+    surface_horizontal = pygame.Surface((resolution[0], resolution[1] * (1 - scale_silhouette) / 2 + 1))
+    surface_left = pygame.Surface((width_surface_side + 1, resolution[1]))
+    surface_between = pygame.Surface((pixels_between_silhouettes + 1, resolution[1]))
+    surface_right = pygame.Surface((width_surface_side, resolution[1]))
+    surface_horizontal.fill(color_background)
+    surface_left.fill(color_background)
+    surface_between.fill(color_background)
+    surface_right.fill(color_background)
 
     if verbosity > 0:
         print("Done.")
@@ -1337,7 +1406,19 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, min_scale=
     colors = convert_colors(color_scheme, "rgb", True)  # Color scheme
     color_silhouette = convert_color(color_silhouette, "rgb", False)
     luminance = color_background[0] * 0.2126 + color_background[1] * 0.7152 + color_background[2] * 0.0722
-    font = pygame.font.Font(DEFAULT_FONT_PATH, int(resolution[1] * 0.04))
+
+    if isinstance(font_size, numbers.Number):
+        font_size = (font_size, font_size, font_size)
+
+    if path_font is not None:
+        font_title = pygame.font.Font(path_font, int(resolution[1] * 0.04 * font_size[0]))
+        font_silhouette_title = pygame.font.Font(path_font, int(resolution[1] * 0.04 * font_size[1]))
+        font_scale = pygame.font.Font(path_font, int(resolution[1] * 0.04 * font_size[2]))
+    else:
+        font_title = pygame.font.Font(DEFAULT_FONT_PATH, int(resolution[1] * 0.04 * font_size[0]))
+        font_silhouette_title = pygame.font.Font(DEFAULT_FONT_PATH, int(resolution[1] * 0.04 * font_size[1]))
+        font_scale = pygame.font.Font(DEFAULT_FONT_PATH, int(resolution[1] * 0.04 * font_size[2]))
+
     if luminance > 0.5:
         font_color = convert_color("black", "rgb", False)
     else:
@@ -1365,16 +1446,31 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, min_scale=
     # Calculating the color of the circles and applying a gradient
     circles = {}
     values_to_plot = {}
+    circle_positions = {}
 
     for joint in plot_dictionary.keys():
         if joint in joints_positions.keys():
-            ratio = (plot_dictionary[joint] - min_scale) / (max_scale - min_scale)  # Get the ratio of the max value
-            color_in = calculate_color_ratio(colors, ratio)  # Turn that into a color
-            # Transparent color of the circle edge for the gradient
-            color_edge = (color_in[0], color_in[1], color_in[2], 0)
-            circles[joint] = gradients.radial(int(joints_positions[joint][2] * ratio_h), color_in, color_edge)
-            values_to_plot[joint] = font.render(str(joint) + ": " + str(round(plot_dictionary[joint], 2)), True,
-                                                font_color)
+            circles[joint] = []
+            values_to_plot[joint] = []
+            circle_positions[joint] = []
+            for value in plot_dictionary[joint]:
+                ratio = (value - min_scale) / (max_scale - min_scale)  # Get the ratio of the max value
+                color_in = calculate_color_ratio(colors, ratio)  # Turn that into a color
+                # Transparent color of the circle edge for the gradient
+                color_edge = (color_in[0], color_in[1], color_in[2], 0)
+                values_to_plot[joint].append(font_silhouette_title.render(str(joint) + ": " + str(round(value, 2)),
+                                                         True, font_color))
+
+                radius = joints_positions[joint][2] * ratio_h * scale_silhouette
+                pos_x = joints_positions[joint][0] * ratio_h * scale_silhouette
+                pos_y = joints_positions[joint][1] * ratio_h * scale_silhouette
+                absolute_pos_y = pos_y + silhouette_y - radius
+
+                for i in range(number_of_silhouettes):
+                    absolute_pos_x = pos_x + silhouette_x + i * (silhouette_width + pixels_between_silhouettes) - radius
+                    circle_positions[joint].append((absolute_pos_x, absolute_pos_y))
+
+                circles[joint].append(gradients.radial(int(radius), color_in, color_edge))
 
     # Color scale on the side of the graph
     scale_height = 500
@@ -1383,39 +1479,52 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, min_scale=
     start_scale_y = 540 - scale_height // 2
     sep = scale_height // (len(colors) - 1)
 
-    # Side backgrounds
-    side_background = None
-    if resolution[0] / resolution[1] > 16 / 9:
-        side_background = pygame.Surface((silhouette_x, resolution[1] + 5))
-        side_background.fill(color_background)
-
     grad = []
     for i in range(len(colors) - 1):
         grad.append(gradients.vertical((int(scale_width * ratio_w),
                                         int(((scale_height // (len(colors) - 1)) + 1) * ratio_h)),
                                        colors[len(colors) - i - 1], colors[len(colors) - i - 2]))
 
-    scale_top = font.render(str(round(max_scale, 2)), True, font_color)
-    scale_bottom = font.render(str(round(min_scale, 2)), True, font_color)
+    scale_top = font_scale.render(str(round(max_scale, 2)), True, font_color)
+    scale_bottom = font_scale.render(str(round(min_scale, 2)), True, font_color)
     if title_scale is None:
         title_scale = ""
-    scale_title = font.render(str(title_scale), True, font_color)
+    scale_title = font_scale.render(str(title_scale), True, font_color)
     scale_title = pygame.transform.rotate(scale_title, 90)
 
     # Title
     title_plot = None
     if title is not None:
-        title_plot = font.render(str(title), True, font_color)
+        title_plot = font_title.render(str(title), True, font_color)
+        title_pos = (resolution[0] // 2 - title_plot.get_width() // 2,
+                     (resolution[1] * ((1 - scale_silhouette) / 2)) / 2 - (title_plot.get_height() / 2))
+
+    # Silhouette titles
+    silhouette_titles = []
+    silhouette_titles_positions = []
+
+    if title_silhouette is not None:
+        if type(title_silhouette) is str:
+            title_silhouette = [title_silhouette]
+        if len(title_silhouette) != number_of_silhouettes:
+            raise ValueError("The number of silhouette titles must be equal to the number of silhouettes.")
+        for i in range(len(title_silhouette)):
+            silhouette_titles.append(font_silhouette_title.render(str(title_silhouette[i]), True, font_color))
+            pos_x = (silhouette_x + silhouette_width // 2 - silhouette_titles[i].get_width() // 2 +
+                     i * (silhouette_width + pixels_between_silhouettes))
+            pos_y = resolution[1] * (1 - (1 - scale_silhouette) / 4) - silhouette_titles[i].get_height() / 2
+            silhouette_titles_positions.append((pos_x, pos_y))
 
     # Mouse
     pygame.mouse.set_visible(True)  # Allows the mouse to be visible
-    mouse_sensitivity = 50  # Radius around the center in which the mouse position will be detected as inside
+    mouse_sensitivity = 50 * ratio_h * scale_silhouette # Radius around the center in which the mouse position will be detected as inside
 
     place_circle = False
     circle_position = None
     color_in = calculate_color_ratio(colors, 1)  # Turn that into a color
     color_edge = (color_in[0], color_in[1], color_in[2], 0)  # Transparent color of the circle edge for the gradient
-    circle = gradients.radial(int(150 * ratio_w), color_in, color_edge)
+    circle_radius = int(150 * ratio_w)
+    circle = gradients.radial(circle_radius, color_in, color_edge)
     run = True  # Loop variable
     img = None
 
@@ -1423,10 +1532,6 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, min_scale=
     while run:
 
         window.fill(color_silhouette)  # Set background to black
-
-        if resolution[0] / resolution[1] > 16 / 9:
-            window.blit(side_background, (0, 0))
-            window.blit(side_background, (window.get_width() - side_background.get_width(), 0))
 
         mouse_coord = pygame.mouse.get_pos()
 
@@ -1444,39 +1549,65 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, min_scale=
 
             # Click in the figure
             elif event.type == MOUSEBUTTONDOWN and event.button == 1:
-                print((mouse_coord[0] / ratio_w, mouse_coord[1] / ratio_h))
-                print(mouse_coord)
+                print("Click position: " + str(mouse_coord))
+                mouse_x = 0
+                for i in range(number_of_silhouettes):
+                    start_x = silhouette_x + (i * (silhouette.get_width() + pixels_between_silhouettes))
+                    end_x = start_x + silhouette.get_width()
+                    if start_x < mouse_coord[0] < end_x:
+                        print(f"Click in silhouette {i + 1}")
+                        mouse_x = mouse_coord[0] - start_x
+                        print("Scaled position in the figure: " + str((mouse_x / ratio_w, mouse_coord[1] / ratio_h)))
                 if place_circle:
-                    circle_position = (mouse_coord[0] * ratio_w, mouse_coord[1] * ratio_h)
+                    circle_position = (mouse_x / ratio_w, mouse_coord[1] / ratio_h)
 
         for joint in order_joints:
             if joint in plot_dictionary.keys():
-                window.blit(circles[joint], (((joints_positions[joint][0] - joints_positions[joint][2]) * ratio_h +
-                                              silhouette_x),
-                                             (joints_positions[joint][1] - joints_positions[joint][2]) * ratio_h))
+                for i in range(number_of_silhouettes):
+                    if not np.isnan(plot_dictionary[joint][i]):
+                        window.blit(circles[joint][i], circle_positions[joint][i])
 
         if circle_position is not None:
-            window.blit(circle, circle_position)
+            for i in range(number_of_silhouettes):
+                circle_x = silhouette_x + circle_position[0] * ratio_w + (i * (silhouette.get_width() +
+                                                                     pixels_between_silhouettes)) - circle_radius
+                window.blit(circle, (circle_x, circle_position[1] * ratio_h - circle_radius))
 
-        window.blit(silhouette, (silhouette_x, 0))
+        for i in range(number_of_silhouettes):
+            window.blit(silhouette, (silhouette_x + i * (silhouette_width + pixels_between_silhouettes), silhouette_y))
+
+        window.blit(surface_horizontal, (0, 0))
+        window.blit(surface_horizontal, (0, resolution[1] * (1 - ((1 - scale_silhouette) / 2))))
+        window.blit(surface_left, (0, 0))
+        window.blit(surface_right, (resolution[0] - width_surface_side, 0))
+
+        for i in range(number_of_silhouettes - 1):
+            window.blit(surface_between, (width_surface_side + ((i + 1) * silhouette.get_width()) + (i *
+                                          pixels_between_silhouettes), 0))
 
         if title is not None:
-            window.blit(title_plot, ((window.get_width() - title_plot.get_width()) // 2, 5 * ratio_h))
+            window.blit(title_plot, title_pos)
+
+        if title_silhouette is not None:
+            for i in range(number_of_silhouettes):
+                window.blit(silhouette_titles[i], silhouette_titles_positions[i])
 
         to_blit = []
         for joint in order_joints:
             if joint in plot_dictionary.keys():
-                if (joints_positions[joint][0] - mouse_sensitivity) * ratio_w < mouse_coord[0] < (
-                        joints_positions[joint][0] + mouse_sensitivity) * ratio_w and (
-                        joints_positions[joint][1] - mouse_sensitivity) * ratio_h < mouse_coord[1] < (
-                        joints_positions[joint][1] + mouse_sensitivity) * ratio_h:
-                    to_blit.append(joint)
+                for i in range(number_of_silhouettes):
+                    pos_x = circle_positions[joint][i][0] + joints_positions[joint][2] * ratio_h
+                    pos_y = circle_positions[joint][i][1] + joints_positions[joint][2] * ratio_h
+
+                    if (pos_x - mouse_sensitivity < mouse_coord[0] < pos_x + mouse_sensitivity and
+                        pos_y - mouse_sensitivity < mouse_coord[1] < pos_y + mouse_sensitivity):
+                        to_blit.append((joint, i))
 
         height = 0
-        for joint in to_blit:
-            window.blit(values_to_plot[joint], (resolution[0] - values_to_plot[joint].get_width() - 5,
-                                                resolution[1] - values_to_plot[joint].get_height() - 5 - height))
-            height += values_to_plot[joint].get_height() + 5
+        for joint, i in to_blit:
+            window.blit(values_to_plot[joint][i], (resolution[0] - values_to_plot[joint][i].get_width() - 5,
+                                                resolution[1] - values_to_plot[joint][i].get_height() - 5 - height))
+            height += values_to_plot[joint][i].get_height() + 5
 
         if show_scale:
             for i in range(len(colors) - 1):

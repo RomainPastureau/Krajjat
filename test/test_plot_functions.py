@@ -170,8 +170,27 @@ class TestsPlotFunctions(unittest.TestCase):
         figure.close()
 
     def test_plot_silhouette(self):
-        show = False
-        plot_dictionary = {"Head": 0.1, "HandRight": 0.48, "HandLeft": 0.88}
-        plot_silhouette(plot_dictionary, joint_layout="auto", title="Coherence", min_scale=0, max_scale=1,
+        show = True
+        plot_dictionary = {"Head": 0.1, "HandRight": 0.48, "HandLeft": 0.88, "SpineShoulder": 0.28, "SpineMid": 0.54,
+                           "SpineBase": 0.75, "ShoulderRight": 0.44, "ShoulderLeft": 0.23, "ElbowRight": 0.35,
+                           "ElbowLeft": 0.65, "WristRight": 0.54, "WristLeft": 0.75, "HipRight": 0.65,
+                           "HipLeft": 0.04, "KneeRight": 0.54, "KneeLeft": 0.75, "AnkleRight": 0.65, "AnkleLeft": 0.88,
+                           "FootRight": 0.75, "FootLeft": 0.98, "Neck": 0.5}
+        plot_silhouette(plot_dictionary, resolution=0.5, joint_layout="auto", title="Coherence", min_scale=0,
+                        max_scale=1, title_silhouette="2 Hz", font_size=1, scale_silhouette=0.8,
                         show_scale=True, title_scale="Coherence scale (A.U.)", color_scheme="horizon",
                         color_background="black", color_silhouette="#303030", show=show, verbosity=0)
+
+        plot_dictionary = {"Head": [0.1, 0.2], "HandRight": [0.48, 0.35], "HandLeft": [0.88, 0.75], "SpineMid": [
+            np.nan, 0.5]}
+        plot_silhouette(plot_dictionary, joint_layout="auto", title="Coherence", min_scale=0, max_scale=1,
+                        title_silhouette=["Alpha", "Beta"], font_size=(1, 0.8, 0.5),
+                        show_scale=True, title_scale="Coherence scale (A.U.)", color_scheme="horizon",
+                        color_background="black", color_silhouette="#303030", show=show, verbosity=0)
+
+        plot_dictionary = {"Head": [0.1, 0.2, 0.3], "HandRight": [0.48, 0.35, 0.54], "HandLeft": [0.88, 0.75, 0.2]}
+        plot_silhouette(plot_dictionary, joint_layout="auto", title="Coherence", min_scale=0, max_scale=1,
+                        title_silhouette=["0.5 Hz", "2.5 Hz", "4.5 Hz"],
+                        show_scale=True, title_scale="Coherence scale (A.U.)", color_scheme="horizon",
+                        color_background="black", color_silhouette="#303030", show=show, verbosity=0,
+                        pixels_between_silhouettes=20)

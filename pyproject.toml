@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "krajjat"
-version = "1.99.21"
+version = "1.99.22"
 authors = [
   {name="Romain Pastureau", email="krajjat@proton.me"},
 ]
@@ -30,9 +30,17 @@ dependencies = [
     "pandas >= 2.1.0",
     "pygame >= 2.5",
     "find-delay >= 2.8",
-    "PyAudio >= 0.2.13",
     "praat-parselmouth > 0.4",
     "pytaglib >= 2.0.0"
+]
+
+[project.optional-dependencies]
+analysis = [
+    "pingouin >= 0.5.5",
+    "scikit-learn >= 1.7.0"
+]
+display = [
+    "PyAudio >= 0.2.13"
 ]
 
 [external]

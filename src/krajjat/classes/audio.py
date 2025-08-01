@@ -550,7 +550,8 @@ class Audio(AudioDerivative):
                 print("\tGetting the pitch from crepe...", end=" ")
 
         if method == "parselmouth":
-            parselmouth_sound = Sound(np.ndarray(np.shape(samples), dtype=np.float64, buffer=samples), self.frequency)
+            # parselmouth_sound = Sound(np.ndarray(np.shape(samples), dtype=np.float64, buffer=samples), self.frequency)
+            parselmouth_sound = Sound(samples, self.frequency)
 
             if name is None:
                 name = self.name + " (PIT)"
@@ -563,11 +564,32 @@ class Audio(AudioDerivative):
 
             if verbosity > 0:
                 print("Done.")
-                print("\tPadding the data...", end=" ")
 
             original_data_length = len(parselmouth_pitch.xs())
-            samples, timestamps = pad(parselmouth_pitch.selected_array["frequency"], parselmouth_pitch.xs(),
-                                      self.timestamps, verbosity=verbosity)
+            pitch_times = parselmouth_pitch.xs()
+            pitch_data = parselmouth_pitch.selected_array["frequency"]
+            audio_times = self.timestamps
+
+            # Find missing times at start and end
+            pad_start_times = audio_times[audio_times < pitch_times[0]]
+            pad_end_times = audio_times[audio_times > pitch_times[-1]]
+
+            # Construct padded timestamps array
+            padded_times = np.concatenate([pad_start_times, pitch_times, pad_end_times])
+
+            # Create padded data array filled with padding_value (e.g., 0)
+            padding_value = 0
+            padded_data = np.full(len(padded_times), padding_value, dtype=pitch_data.dtype)
+
+            # Insert pitch data into correct slice
+            start_idx = len(pad_start_times)
+            padded_data[start_idx: start_idx + len(pitch_data)] = pitch_data
+
+            # Now resample padded_data onto audio_times
+            samples, timestamps = resample_data(padded_data, padded_times, self.frequency, verbosity=verbosity)
+
+            # samples, timestamps = pad(parselmouth_pitch.selected_array["frequency"], parselmouth_pitch.xs(),
+            #                           self.timestamps, verbosity=verbosity)
 
             if zeros_as_nan:
                 samples[samples == 0] = np.nan

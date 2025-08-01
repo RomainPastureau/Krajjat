@@ -916,14 +916,14 @@ class Subject(object):
                 f"{self.get_number_of_trials()} {trial_text}, {no_sequences} {seq_text}, {no_audios} {aud_text}")
 
     def __len__(self):
-        """Returns the total amount of trials present in the Subject instance.
+        """Returns the total number of trials present in the Subject instance.
 
         .. versionadded:: 2.0
 
         Returns
         -------
         int
-            The amount of trials present in the Subject instance.
+            The number of trials present in the Subject instance.
 
         Example
         -------
