@@ -4,471 +4,307 @@
 import pandas as pd
 import numpy as np
 from scipy import signal
+from tqdm import tqdm
+from datetime import datetime as dt
+from numbers import Number
+import itertools
 
 from krajjat.classes.exceptions import ModuleNotFoundException
 from krajjat.classes.experiment import Experiment
 from krajjat.classes.graph_element import Graph, GraphPlot
+from krajjat.classes.results import Results
+from krajjat.classes.analysis_parameters import AnalysisParameters
 from krajjat.plot_functions import plot_silhouette, plot_body_graphs, _plot_components
-from krajjat.tool_functions import convert_colors, read_pandas_dataframe, find_closest_value_index
+from krajjat.tool_functions import read_pandas_dataframe, find_closest_value_index, set_nested_dict, \
+    has_nested_key
 
-def _common_analysis(experiment_or_dataframe, analysis, method, group, condition, subjects, trials, series, average,
-                     return_values, permutation_level, number_of_randperms, sequence_measure, audio_measure,
-                     target_feature, sampling_frequency, specific_frequency=None, freq_atol=1e-8, include_audio=False,
-                     random_seed=None, color_line_series=None, color_line_perm=None, title=None, width_line=1,
-                     verbosity=1, **kwargs):
-    """
-    Performs a general-purpose analysis across multiple signal types, including power spectrum, correlation,
-    and coherence, for a given dataset or Experiment. The function supports individual- and trial-level analyses,
-    random permutations for significance estimation, and visualization via body or silhouette plots.
+
+def _common_analysis(**kwargs):
+    """Common function to perform a multimodal analysis of the motion capture and audio signals. This function can
+    perform power spectrum, correlation and coherence analyses, at the subject level or the trial level, before
+    plotting a graph or a silhouette and returning the results.
 
     .. versionadded:: 2.0
 
     This internal function is designed to be called by specific analysis wrappers like `power_spectrum()`,
-    `correlation()`, and `coherence()` and is not intended to be called directly by end users.
-
-    Parameters
-    ----------
-    experiment_or_dataframe : Experiment, pandas.DataFrame, str or list(any)
-        The input data to analyse. This can be:
-            • An :class:`Experiment` instance.
-            • A pandas DataFrame (e.g., from :meth:`Experiment.get_dataframe()`).
-            • A file path to a saved DataFrame (from :meth:`Experiment.save_dataframe()`).
-            • A list combining any of the above types. All dataframes will be merged.
-
-    analysis : str
-        The type of analysis to perform. Must be one of: `"power spectrum"`, `"correlation"`, `"coherence"`.
-
-    method : str
-        For `"power spectrum"`: `"fft"` or `"welch"`.
-        For `"correlation"`: `"corr"`, `"rm_corr"` or `"numpy"`.
-        Ignored for `"coherence"`.
-
-    group : str or None
-        Filter the analysis to subjects with the specified group label.
-
-    condition : str or None
-        Filter the analysis to sequences with the specified condition label.
-
-    subjects : list(str), str or None
-        Restrict the analysis to the specified subjects. Can be a string or a list of strings. If `None`, all are used.
-
-    trials : dict(str: list(str)), list(str), str or None
-        Restrict the analysis to specific trials. See `power_spectrum()` or `correlation()` docstring for full format.
-
-    series : str or None
-        A column name from the dataframe to split data into subsets. E.g., `"group"`, `"condition"`.
-
-    average : str or None
-        Defines the level of averaging:
-            • `"subject"`: average across subjects.
-            • `"trial"`: average across trials.
-            • `None`: no averaging; analyse full dataset.
-
-    return_values : str
-        Either `"raw"` or `"z-scores"`. Controls whether to return raw values or Z-scored results based on permutations.
-
-    permutation_level : str
-        This parameter determines how permutations are applied:
-            • `"whole"`: permutations are done on the pooled data.
-            • `"individual"`: permutations are done separately for each subject or trial (depending on the value of
-              `average`).
-            • ``None``: no permutations are calculated. This value is not allowed if `return_values == "z-scores"`.
-
-    number_of_randperms: int, optional
-        How many random permutations to calculate. Only used if `permutation_level` is set to ``"whole"`` or
-        ``"individual"``. An average of the calculated random permutations is then calculated, in order to calculate
-        a Z-score for the correlation.
-
-    sequence_measure : str
-        The column name of the sequence measure to analyse. See `power_spectrum()` or `correlation()` for options.
-
-    audio_measure : str or None
-        The audio feature to include (e.g., `"envelope"`, `"pitch"`). Ignored if `include_audio_in_labels` is `False`.
-
-    target_feature : str
-        The reference signal or label to compare against (for `"correlation"` and `"coherence"` analyses only).
-        Can be either a joint label or an audio measure.
-
-    sampling_frequency : int or float
-        Sampling rate of the signals.
-
-    specific_frequency : float or list of float or None
-        Frequency (or list of frequencies) to extract from the result. If set, silhouette plots are generated.
-
-    freq_atol : float or int
-        Absolute tolerance for matching the specific frequency (default: 1e-8).
-
-    include_audio : bool
-        If `True`, includes audio signals in the set of labels to analyse.
-
-    random_seed : int or None
-        Fixes the seed for reproducible random permutations.
-
-    color_line_series : list or str or None
-        Color(s) to use when plotting time-frequency graphs. If this parameter is a list, a color will be
-        attributed to each series.
-
-    color_line_perm: str or None
-        Color to use for the permutations when plotting time-frequency graphs.
-
-    title: str or None
-        If set, the title will be set to the plot. Otherwise, an automatic title will be generated.
-
-    width_line : int or float
-        Width of plotted lines (for spectral plots).
-
-    verbosity : int
-        Controls console output:
-            • `0`: Silent mode.
-            • `1`: Normal mode (default).
-            • `2`: Chatty mode (prints every step and label).
-
-    **kwargs
-        Additional arguments passed to `plot_silhouette()` or `plot_body_graphs()`.
+    `correlation()`, and `coherence()` and is not intended to be called directly.
 
     Returns
     -------
-    averages : dict
-        Nested dictionary of average values per label and per series.
-        Structure: {series_value: {label: average_value}}
+    Results
+        A Results instance containing the analysis parameters and the results as attributes:
 
-    stds : dict
-        Nested dictionary of standard deviations per label and series.
-        Structure: {series_value: {label: std_value}}
-
-    z_scores or averages_perms : dict
-        Nested dictionary of Z-scores comparing real values to random permutations, or nested dictionary of the
-        averages of the permutations.
-
-    p_values or stds_perms : dict
-        Nested dictionary of empirical p-values for each label and series, or nested dictionary of the standard
-        deviations of the permutations.
+            • ``frequencies`` contains the frequencies corresponding to the results, if the analysis is in the
+               frequency domain.
+            • ``averages`` contains the results of the analysis, averaged across the specified level of averaging.
+            • ``stds`` contains the standard deviations of the results.
+            • ``averages_perm`` contains the averages of the random permutations, if they were computed.
+            • ``stds`` contains the standard deviations of the random permutations.
+            • ``z_scores`` contains the z-scores of the analysis, if ``return_type`` was set on ``z-scores``.
+            • ``p_values`` contains the p-values of the analysis, if ``return_type`` was set on ``z-scores``.
+            • ``plot_dictionary`` contains the plot dictionary that can be directly passed to ``plot_silhouette`` or
+              ``plot_body_graphs``.
     """
+    time_start = dt.now()
+
+    params = AnalysisParameters(**kwargs)
 
     # Load pingouin for correlation
-    if analysis == "correlation" and method in ["corr", "rm_corr"]:
+    pg = None
+    if params.analysis == "correlation" and params.method == "pingouin":
         try:
             import pingouin as pg
         except ImportError:
             raise ModuleNotFoundException("pingouin", "calculate the correlation")
 
-    # Set the random seed for reproducibility on the randperm arrays
-    if random_seed is not None:
-        np.random.seed(random_seed)
+    if params.analysis == "mutual information":
+        try:
+            from sklearn.feature_selection import mutual_info_regression as mi
+            sc = None
+            if params.mi_scale == "standard":
+                from sklearn.preprocessing import StandardScaler
+                sc = StandardScaler()
+            elif params.mi_scale == "minmax":
+                from sklearn.preprocessing import MinMaxScaler
+                sc = MinMaxScaler()
+        except ImportError:
+            raise ModuleNotFoundException("sklearn", "perform a mutual information regression")
 
     # Get the full dataframe
-    if verbosity > 0:
-        print("Preparing the dataframe...")
-    dataframe = _make_dataframe(experiment_or_dataframe, sequence_measure, audio_measure, sampling_frequency,
-                                verbosity)
-    dataframe = _get_dataframe_from_requirements(dataframe, group, condition, subjects, trials)
-    if verbosity > 0:
-        print("Done.")
+    dataframe = _prepare_dataframe(params)
+    params._prepare_values(dataframe)
+    params._validate_lags(dataframe)
 
-    if verbosity > 1:
-        print("Showing the first few rows of the dataframe...")
-        print(dataframe.head(10))
-        print("Done.")
-
-        print("Showing the last few rows of the dataframe...")
-        print(dataframe.tail(10))
-        print("Done.")
-
-    # Get the series of interest
-    if series is not None:
-        series_values = list(dataframe[series].unique())
-    else:
-        series_values = ["Full dataset"]
-
-    # Get the subjects/trials
-    if average == "subject":
-        if isinstance(subjects, str):
-            individuals = [subjects]
-        elif subjects is None:
-            individuals =  dataframe["subject"].unique()
-        else:
-            individuals = subjects
-
-    elif average == "trial":
-        if isinstance(trials, str):
-            individuals = [trials]
-        elif trials is None:
-            individuals = dataframe["trial"].unique()
-        else:
-            individuals = trials
-    else:
-        individuals = ["All"]
-
-    # Get the unique labels (joint labels and audio measure)
-    if include_audio:
-        labels = dataframe["label"].unique()
-    else:
-        labels = dataframe.loc[dataframe["modality"] == "mocap"]["label"].unique()
-
-    # Handle the title
-    if title is None:
-        if analysis == "power spectrum":
-            title = f"Power spectrum of the {sequence_measure}"
-            if include_audio:
-                title += f" and the {audio_measure}"
-            if specific_frequency is not None:
-                if type(specific_frequency) == list:
-                    title += "at " + ", ".join(specific_frequency) + " Hz"
-                else:
-                    title += "at " + str(specific_frequency) + " Hz"
-            settings = []
-            if group is not None:
-                if type(group) == str:
-                    settings.append(f"group: {group}")
-                elif len(group) < 4:
-                    settings.append(f"groups: {', '.join(group)}")
-                else:
-                    settings.append(f"{len(group)} groups")
-            if condition is not None:
-                if type(condition) == str:
-                    settings.append(f"condition: {condition}")
-                elif len(condition) < 4:
-                    settings.append(f"conditions: {', '.join(condition)}")
-                else:
-                    settings.append(f"{len(condition)} conditions")
-            if subjects is not None:
-                if type(subjects) == str:
-                    settings.append(f"subject: {subjects}")
-                elif len(subjects) < 4:
-                    settings.append(f"subjects: {', '.join(subjects)}")
-                else:
-                    settings.append(f"{len(subjects)} subjects")
-            if trials is not None:
-                if type(trials) == str:
-                    settings.append(f"trial: {trials}")
-                elif type(trials) == dict:
-                    settings.append(f"multiple trials")
-                else:
-                    settings.append(f"{len(trials)} trials")
-
-            if len(settings) > 0:
-                title += " (" + "; ".join(settings) + ")"
-                    
-    # Create the plot dictionary
+    # Create the dictionaries that will contain the values
     plot_dictionary = {}
     analysis_values = {}
+    randperm_values = {}
     frequencies = None
 
-    if return_values == "z-scores":
-        if permutation_level is None or number_of_randperms <= 0:
-            raise Exception("If the return_values parameter is set to 'z-scores', the permutation_level parameter "
-                            "must be set, and number_of_randperms has to be more than 0.")
-        else:
-            randperm_values = {}
+    if params.verbosity > 0:
+        print(f"\nComputing the {params.analysis}...")
 
-    if analysis == "coherence":
-        nperseg = sampling_frequency / kwargs.get("step_segments", 0.25)
+    # Precompute tqdm iterations
+    progress_bar = tqdm(total=_count_tqdm_iterations(params, 1), desc=params.analysis.capitalize(), ncols=80,
+                        disable=params.verbosity != 1, colour="#ffcc00",
+                        bar_format="{l_bar}{bar} · {elapsed}<{remaining}")
 
-    if verbosity > 1:
-        print(f"Calculating the {analysis}...")
+    for target_measure in params.target_measures:
 
-    # For each series
-    for series_value in series_values:
-        if verbosity > 1:
-            print("\t" + series_value)
+        # Print of the current analysis
+        if params.verbosity > 1:
+            message = f"\tComputing the {params.analysis}"
+            if params.analysis != "power spectrum":
+                message += f" to the "
+                if target_measure[1] == "Audio":
+                    message += f"{target_measure[1]} of the audio"
+                else:
+                    message += f"{target_measure[1]} of the {target_measure[0]} joint"
+            print(message + "...")
 
-        # We get the corresponding dataframe
-        if series_value == "Full dataset":
-            df_series = dataframe
-        else:
-            df_series = dataframe.loc[dataframe[series] == series_value]
+        for measure in params.measures:
 
-        values_series = {}
-        randperm_series = {ind: {label: [] for label in labels} for ind in individuals}
-
-        # For each subject/trial
-        for individual in individuals:
-
-            if average == series and individual != series_value:
+            if params.measure_to_modality[measure] == "audio" and not params.include_audio:
                 continue
 
-            if verbosity > 1:
-                print("\t\t" + individual)
+            if params.verbosity > 1:
+                print("\t\t" + measure)
 
-            if series == "subject" and average == "subject":
-                df_ind = df_series[df_series["subject"] == individual]
+            # Filter the rows having the proper measures
+            df_measure = dataframe[(dataframe["measure"] == measure)]
+            keys_measure = df_measure[["subject", "trial", "timestamp"]].drop_duplicates()
+
+            # Get the labels depending on the current modality of the measure
+            if params.measure_to_modality[measure] == "audio":
+                labels_modality = ["Audio"]
             else:
-                df_ind = df_series if individual == "All" else df_series[df_series[average] == individual]
+                labels_modality = params.labels_mocap
 
-            values_ind = {}
+            # If the analysis is not power spectrum, we need a target
+            if params.analysis != "power spectrum":
+                df_target = dataframe[(dataframe["measure"] == target_measure[1]) & (dataframe["label"] == target_measure[0])]
+                keys_target = df_target[["subject", "trial", "timestamp"]].drop_duplicates()
 
-            for label in labels:
-                if verbosity > 1:
-                    print("\t\t\t" + label)
+                rows_before = len(df_measure.index) + len(df_target.index)
 
-                df_label = df_ind[df_ind["label"] == label]
-                label_values = df_label["value"]
+                common_keys = pd.merge(keys_measure, keys_target, on=["subject", "trial", "timestamp"], how="inner")
+                df_measure = pd.merge(df_measure, common_keys, on=["subject", "trial", "timestamp"], how="inner")
+                df_target = pd.merge(df_target, common_keys, on=["subject", "trial", "timestamp"], how="inner")
 
-                if analysis == "power spectrum":
+                if params.verbosity > 1:
+                    print(f"\t\tDropped {rows_before - len(df_measure.index) - len(df_target.index)} rows with " +
+                          f"unmatched timestamps.")
 
-                    if method not in ["fft", "welch"]:
-                        raise Exception("""Method must be "fft" or "welch".""")
+            for series_value in params.series_values:
+                if params.verbosity > 1:
+                    print("\t\t\t" + series_value)
 
-                    if frequencies is None:
-                        frequencies, _ = signal.welch(np.zeros(1000), fs=sampling_frequency)
-
-                    if label_values.empty:
-                        values_ind[label] = np.empty(len(frequencies))
-                        values_ind[label][:] = np.nan
-
-                    else:
-                        if method == "fft":
-                            power_spectrum = np.abs(np.fft.fft(label_values)) ** 2
-                            fft_freqs = np.fft.fftfreq(label_values.size, 1 / sampling_frequency)
-                            fft_freqs = fft_freqs[:len(fft_freqs) // 2]
-                            values_ind[label] = power_spectrum[:len(power_spectrum) // 2]
-
-                            interpolated_spectrum = np.interp(frequencies, fft_freqs, values_ind[label])
-                            values_ind[label] = interpolated_spectrum
-
-                        elif method == "welch":
-                            frequencies, values_ind[label] = signal.welch(label_values, fs=sampling_frequency)
-
-                elif analysis in ["correlation", "coherence"]:
-                    if target_feature in labels:
-                        target_values = df_ind.loc[df_ind["label"] == target_feature]["value"].to_numpy()
-                    else:
-                        target_values = df_ind.loc[df_ind["measure"] == target_feature]["value"].to_numpy()
-
-                    if target_values.size == 0:
-                        raise Exception("Please select a correct value for the parameter target_feature.")
-
-                    if analysis == "correlation":
-
-                        if method == "corr":
-                            try:
-                                values_ind[label] = np.abs(pg.corr(x=label_values, y=target_values).values[0][1])
-                            except (ValueError, AssertionError):
-                                values_ind[label] = np.nan
-                        elif method == "rm_corr":
-                            df_temp = pd.DataFrame(
-                                {"value": label_values, "correlation_with": target_values,
-                                 "subject": [individual]})
-                            try:
-                                result = pg.rm_corr(data=df_temp, x="value", y="correlation_with", subject="subject")
-                                values_ind[label] = np.abs(result["r"])
-                            except (ValueError, AssertionError):
-                                values_ind[label] = np.nan
-                        elif method == "numpy":
-                            label_values_mean = np.mean(label_values)
-                            target_values_mean = np.mean(target_values)
-                            num = np.sum((label_values - label_values_mean) * (target_values - target_values_mean))
-                            denom = np.sqrt(np.sum((label_values - label_values_mean) ** 2) *
-                                            np.sum((target_values - target_values_mean) ** 2))
-                            if denom != 0:
-                                values_ind[label] = num / denom
-                            else:
-                                values_ind[label] = np.nan
-                        else:
-                            raise ValueError("Invalid method. Choose either 'corr', 'rm_corr', or 'numpy'.")
-
-                    elif analysis == "coherence":
-                        freqs, coh = signal.coherence(label_values, target_values, fs=sampling_frequency,
-                                                      nperseg=kwargs.get(nperseg))
-
-                        if len(coh) == 0:
-                            coh = np.tile(np.nan, int(nperseg // 2 + 1))
-
-                        if frequencies is None:
-                            frequencies = freqs
-
-                        values_ind[label] = coh
-
+                # We get the corresponding dataframe
+                if series_value == "Full dataset":
+                    df_measure_series = df_measure
+                    if params.analysis != "power spectrum":
+                        df_measure_target = df_target
                 else:
-                    raise Exception("Invalid value for the parameter analysis. Choose either 'power spectrum', "
-                                    "'correlation', or 'coherence'.")
+                    df_measure_series = df_measure.loc[df_measure[params.series] == series_value]
+                    if params.analysis != "power spectrum":
+                        df_measure_target = df_target.loc[df_target[params.series] == series_value]
 
-                if permutation_level is not None:
-                    perm_targets = individuals if permutation_level == "individual" else ["whole"]
-                    for _ in range(number_of_randperms):
+                # For each subject/trial
+                for individual in params.individuals:
 
-                        if analysis == "power spectrum":
-                            perm = np.random.permutation(label_values)
+                    # If the average is set on the same as series, we skip the individuals that are not the series value
+                    if params.average == params.series and individual not in (series_value, "All"):
+                        continue
 
-                            if method == "fft":
-                                power_spectrum = np.abs(np.fft.fft(perm)) ** 2
-                                fft_freqs = np.fft.fftfreq(perm.size, 1 / sampling_frequency)
-                                fft_freqs = fft_freqs[:len(fft_freqs) // 2]
-                                perm_values = power_spectrum[:len(power_spectrum) // 2]
+                    if params.verbosity > 1:
+                        print("\t\t\t\t" + individual)
 
-                                interpolated_spectrum = np.interp(frequencies, fft_freqs, perm_values)
-                                perm_values = interpolated_spectrum
-
-                            elif method == "welch":
-                                frequencies, perm_values = signal.welch(perm, fs=sampling_frequency)
-
-                        elif analysis == "correlation":
-                            perm = np.random.permutation(target_values)
-
-                            if method == "corr":
-                                try:
-                                    perm_values = np.abs(pg.corr(x=label_values, y=perm).values[0][1])
-                                except (ValueError, AssertionError):
-                                    perm_values = np.nan
-                            elif method == "rm_corr":
-                                df_temp["correlation_with"] = perm
-                                try:
-                                    perm_values = np.abs(pg.rm_corr(data=df_temp, x="value", y="correlation_with",
-                                                          subject="subject")["r"])
-                                except (ValueError, AssertionError):
-                                    perm_values = np.nan
-                            elif method == "numpy":
-                                label_values_mean = np.mean(label_values)
-                                perm_mean = np.mean(perm)
-                                num = np.sum((label_values - label_values_mean) * (perm - perm_mean))
-                                denom = np.sqrt(np.sum((label_values - label_values_mean) ** 2) *
-                                                np.sum((perm - perm_mean) ** 2))
-                                if denom != 0:
-                                    perm_values = num / denom
-                                else:
-                                    perm_values = np.nan
-
-                        elif analysis == "coherence":
-                            perm = np.random.permutation(target_values)
-                            freqs, perm_values = signal.coherence(perm, target_values, fs=sampling_frequency,
-                                                                  nperseg=nperseg)
-
-                        for tgt in perm_targets:
-                            if permutation_level == "individual":
-                                randperm_values.setdefault(series_value, {}).setdefault(individual,
-                                {}).setdefault(label, []).append(perm_values)
+                    # We select the rows with the subject if average is set the same as the series
+                    if params.series == "subject" and params.average == "subject":
+                        df_measure_ind = df_measure_series[df_measure_series["subject"] == individual]
+                        if params.analysis != "power spectrum":
+                            df_target_ind = df_measure_target[df_measure_target["subject"] == individual]
+                    else:
+                        if individual == "All":
+                            df_measure_ind = df_measure_series
+                        else:
+                            df_measure_ind = df_measure_series[df_measure_series[params.average] == individual]
+                        if params.analysis != "power spectrum":
+                            if individual == "All":
+                                df_target_ind = df_measure_target
                             else:
-                                randperm_values.setdefault(series_value, {}).setdefault("whole",
-                                {}).setdefault(label, []).append(perm_values)
+                                df_target_ind = df_measure_target[df_measure_target[params.average] == individual]
 
-            values_series[individual] = values_ind
+                    # Mappings for the label permutations
+                    if params.compute_permutations and params.permutation_method == "label":
+                        labels_mappings = []
+                        for _ in range(params.number_of_randperms):
+                            shuffled_labels = params.rng.permutation(labels_modality)  # e.g. ["HandLeft", "Head", "HandRight"]
+                            labels_mappings.append(dict(zip(labels_modality, shuffled_labels)))
 
-        analysis_values[series_value] = values_series
+                    for label in labels_modality:
+                        if params.verbosity > 1:
+                            print("\t\t\t\t\t" + label)
 
-    color_series = {}
+                        measure_values = df_measure_ind[df_measure_ind["label"] == label]["value"].to_numpy()
 
-    if color_line_series is not None:
-        if type(color_line_series) is not list:
-            color_line_series = [color_line_series]
-        color_line_series = convert_colors(color_line_series, "hex")
-        for s in range(len(series_values)):
-            if s < len(color_line_series):
-                color_series[series_values[s]] = color_line_series[s]
-            else:
-                color_series[series_values[s]] = None
+                        if params.analysis != "power spectrum":
+                            target_values = df_target_ind["value"].to_numpy()
+                            if target_values.size == 0:
+                                raise Exception("The target values are empty. Please ensure that the target measure "
+                                                "is valid, and that all subjects have an entry for the each series.")
+                            if target_values.size != measure_values.size:
+                                raise ValueError(f"The length of the measure values {measure_values.size} is not "
+                                                 f"equal to the length of the target values {target_values.size}. "
+                                                 f"Please check the dataframe.")
+                        else:
+                            target_values = None
 
-    else:
-        color_line_series = {series_value: None for series_value in series_values}
+                        for lag in params.lags:
 
-    if color_line_perm is not None:
-        color_line_perm = convert_colors(color_line_perm, "hex")
+                            if params.verbosity > 1:
+                                print("\t\t\t\t\t\tLag: " + str(lag) + " s")
 
-    if return_values == "z-scores":
-        if verbosity > 1:
-            print("Calculating the z-scores...")
-    elif return_values == "raw":
-        if verbosity > 1:
-            print("Calculating the averages...")
+                            sample = int(np.round(lag * params.sampling_rate))
+                            n = measure_values.size
+
+                            if sample > 0 :
+                                measure_values_lag = measure_values[:n - sample]
+                            elif sample == 0:
+                                measure_values_lag = measure_values
+                            else:
+                                measure_values_lag = measure_values[-sample:]
+
+                            if target_values is not None:
+                                if sample > 0:
+                                    target_values_lag = target_values[sample:]
+                                elif sample == 0:
+                                    target_values_lag = target_values
+                                else:
+                                    target_values_lag = target_values[:n + sample]
+
+                            if params.analysis == "power spectrum":
+                                frequencies, results = _compute_power_spectrum(params.method, measure_values_lag, frequencies,
+                                                                               params.sampling_rate)
+
+                            elif params.analysis == "correlation":
+                                results = _compute_correlation(pg, params.method, measure_values_lag, target_values_lag)
+
+                            elif params.analysis == "coherence":
+                                frequencies, results = _compute_coherence(measure_values_lag, target_values_lag,
+                                                                          frequencies, params.sampling_rate, params.nperseg)
+
+                            elif params.analysis == "mutual information":
+                                results = _compute_mutual_information(mi, sc, measure_values_lag, target_values_lag,
+                                                                      params.random_seed, params.n_neighbors,
+                                                                      params.mi_scale, params.mi_direction)
+
+                            else:
+                                raise Exception("Invalid value for the parameter analysis. Choose either 'power spectrum', "
+                                                "'correlation', 'coherence' or 'mutual information'.")
+
+                            # noinspection PyUnboundLocalVariable
+                            set_nested_dict(analysis_values, [target_measure, measure, series_value, individual, label, lag],
+                                            results)
+
+                            if params.compute_permutations:
+                                if not has_nested_key(randperm_values, [target_measure, measure, series_value, individual, label, lag]):
+                                    set_nested_dict(randperm_values, [target_measure, measure, series_value, individual, label, lag], [], False)
+
+                                for p in range(params.number_of_randperms):
+
+                                    if params.permutation_method == "value":
+                                        perm = params.rng.permutation(measure_values_lag)
+                                    elif params.permutation_method == "label":
+                                        random_label = labels_mappings[p][label]
+                                        perm = df_measure_ind[df_measure_ind["label"] == random_label]["value"].to_numpy()
+                                        if sample > 0:
+                                            perm = perm[:n - sample]
+                                        elif sample == 0:
+                                            perm = perm
+                                        else:
+                                            perm = perm[-sample:]
+                                    elif params.permutation_method == "shift":
+                                        if len(measure_values_lag) <= 1:
+                                            perm = measure_values_lag.copy()
+                                        else:
+                                            shift = params.rng.integers(1, len(measure_values_lag))
+                                            perm = np.roll(measure_values_lag, shift)
+                                    elif params.permutation_method == "phase":
+                                        perm = _phase_randomize(measure_values_lag, params.rng)
+
+                                    if params.analysis == "power spectrum":
+                                        _, perm_values = _compute_power_spectrum(params.method, perm, frequencies,
+                                                                                 params.sampling_rate)
+
+                                    elif params.analysis == "correlation":
+                                        perm_values = _compute_correlation(pg, params.method, perm, target_values_lag)
+
+                                    elif params.analysis == "coherence":
+                                        _, perm_values = _compute_coherence(perm, target_values_lag, frequencies,
+                                                                            params.sampling_rate, params.nperseg)
+
+                                    elif params.analysis == "mutual information":
+                                        perm_values = _compute_mutual_information(mi, sc, perm, target_values_lag,
+                                                                                  params.random_seed, params.n_neighbors,
+                                                                                  params.mi_scale, params.mi_direction)
+
+                                    set_nested_dict(randperm_values,
+                                                    [target_measure, measure, series_value, individual, label, lag],
+                                                    perm_values, True)
+
+                            progress_bar.update(1)
+
+    progress_bar.close()
+
+    params._get_specific_frequencies(frequencies)
+    params._generate_silhouette_titles(frequencies)
+
+    if params.verbosity > 1:
+        if params.result_type == "z-scores":
+            print("\nCalculating the z-scores...")
+        elif params.result_type == "average":
+            print("\nCalculating the averages...")
 
     averages = {}
     stds = {}
@@ -478,151 +314,307 @@ def _common_analysis(experiment_or_dataframe, analysis, method, group, condition
     stds_perm = {}
     max_value = 0
 
-    index_freqs = []
-    if specific_frequency is not None:
-        for freq in specific_frequency:
-            close_freq_index = int(find_closest_value_index(frequencies, freq, atol=freq_atol))
-            if close_freq_index is not None:
-                index_freqs.append(close_freq_index)
-            else:
-                raise Exception(f"The frequency {specific_frequency} was not found among the available "
-                                f"frequencies. Please select a value among {frequencies}.")
+    tqdm_title = "Z-scores computation" if params.result_type == "z-scores" else "Averages computation"
+    progress_bar = tqdm(total=_count_tqdm_iterations(params, 2), desc=tqdm_title, ncols=80,
+                        disable=params.verbosity != 1, colour="#ff8800",
+                        bar_format="{l_bar}{bar} · {elapsed}<{remaining}")
 
-        if len(specific_frequency) == 1:
-            if verbosity > 0:
-                print("Selected frequency: " + str(frequencies[index_freqs[0]]) + " Hz.")
+    for target_measure in params.target_measures:
+
+        if params.verbosity > 1:
+            message = f"\tComputing the {params.result_type}"
+            if params.analysis != "power spectrum":
+                message += f" to the "
+                if target_measure[1] == "Audio":
+                    message += f"{target_measure[0]} of the audio"
+                else:
+                    message += f"{target_measure[1]} of the {target_measure[0]} joint"
+            print(message + "...")
+
+        for measure in params.measures:
+
+            if params.measure_to_modality[measure] == "audio" and not params.include_audio:
+                continue
+
+            if params.verbosity > 1:
+                print("\t\t" + measure)
+
+            # For each series
+            for series_value in params.series_values:
+                if params.verbosity > 1:
+                    print("\t\t\t" + series_value)
+
+                if params.measure_to_modality[measure] == "audio":
+                    labels_modality = ["Audio"]
+                else:
+                    labels_modality = params.labels_mocap
+
+                for label in labels_modality:
+                    if params.verbosity > 1:
+                        print("\t\t\t\t" + label)
+
+                    for lag in params.lags:
+                        if params.verbosity > 1:
+                            print("\t\t\t\t\tLag: " + str(lag) + " s")
+
+                        if params.specific_frequency is None and params.analysis not in ["correlation", "mutual information"] and label not in plot_dictionary.keys():
+                            plot_dictionary[label] = Graph()
+
+                        if params.average == params.series and params.average is not None:
+                            vals = [analysis_values[target_measure][measure][series_value][series_value][label][lag]]
+                        else:
+                            vals = [analysis_values[target_measure][measure][series_value][ind][label][lag] for ind in params.individuals]
+
+                        expected_length = None
+                        for val in vals:
+                            if expected_length is None:
+                                if isinstance(val, Number):
+                                    expected_length = 1
+                                else:
+                                    expected_length = len(val)
+                            else:
+                                if ((isinstance(val, Number) and expected_length != 1) or
+                                        (not(isinstance(val, Number)) and len(val) != expected_length)):
+                                    raise Exception("At least one element does not have the same length as the others.")
+
+                        avg = np.nanmean(vals, axis=0)
+                        std = np.nanstd(vals, axis=0)
+
+                        if params.compute_permutations:
+                            if params.analysis in ["correlation", "mutual information"]:
+                                perms_stack = np.stack([np.asarray(randperm_values[target_measure][measure][series_value][ind][label][lag]) for ind in params.individuals], axis=0)
+                                perms = np.nanmean(perms_stack, axis=0)
+                            else:
+                                perms_stack = np.stack([np.stack(randperm_values[target_measure][measure][series_value][ind][label][lag], axis=0) for ind in params.individuals], axis=0)
+                                perms = np.nanmean(perms_stack, axis=0)
+                                perms = perms[np.all(np.isfinite(perms), axis=1)]
+
+                            if params.result_type == "z-scores":
+
+                                if perms.size == 0:
+                                    p = np.full_like(avg, np.nan)
+                                    z = np.full_like(avg, np.nan)
+
+                                else:
+                                    avg_perms = np.nanmean(perms, axis=0)
+                                    sd_perms = np.nanstd(perms, axis=0)
+                                    sd_perms_safe = np.where(sd_perms == 0, np.inf, sd_perms)
+                                    z = (avg - avg_perms) / sd_perms_safe
+                                    p = (np.sum(np.abs(perms - avg_perms) >= np.abs(avg - avg_perms), axis=0) + 1) / (perms.shape[0] + 1)
+
+                                set_nested_dict(z_scores, [target_measure, measure, series_value, label, lag], z)
+                                set_nested_dict(p_values, [target_measure, measure, series_value, label, lag], p)
+
+                            else:
+                                set_nested_dict(averages_perm, [target_measure, measure, series_value, label, lag], np.nanmean(perms, axis=0))
+                                set_nested_dict(stds_perm, [target_measure, measure, series_value, label, lag], np.nanstd(perms, axis=0))
+
+                        else:
+                            perms = []
+
+                        set_nested_dict(averages, [target_measure, measure, series_value, label, lag], avg)
+                        set_nested_dict(stds, [target_measure, measure, series_value, label, lag], std)
+
+                        if params.plot_type == "silhouette":
+                            key = label if params.measure_to_modality[measure] == "mocap" else "Audio"
+
+                            if key != "Audio":
+                                if key not in plot_dictionary.keys():
+                                    plot_dictionary[key] = []
+                                for i in range(params.nb_silhouettes_per_series):
+                                    if params.specific_frequency is not None:
+                                        if params.result_type == "z-scores":
+                                            plot_dictionary[key].append(z_scores[target_measure][measure][series_value][label][lag][params.index_freqs[i]])
+                                        else:
+                                            plot_dictionary[key].append(averages[target_measure][measure][series_value][label][lag][params.index_freqs[i]])
+                                    else:
+                                        if params.result_type == "z-scores":
+                                            plot_dictionary[key].append(z_scores[target_measure][measure][series_value][label][lag])
+                                        else:
+                                            plot_dictionary[key].append(averages[target_measure][measure][series_value][label][lag])
+
+                        else:
+                            graph_labels = []
+                            if len(params.target_measures) > 1:
+                                graph_labels.append(target_measure.title())
+                            if len(params.measures) > 1:
+                                graph_labels.append(measure.title())
+                            graph_labels.append(series_value.title())
+
+                            graph_label = " ".join(graph_labels)
+
+                            if params.result_type == "z-scores":
+                                graph_plot = GraphPlot(frequencies, z_scores[target_measure][measure][series_value][label][lag], line_width=params.width_line,
+                                                       color=params.color_line_series[target_measure][measure][series_value][lag], label=graph_label)
+                                plot_dictionary[label].add_graph_plot(graph_plot)
+                            else:
+                                graph_plot = GraphPlot(frequencies, averages[target_measure][measure][series_value][label][lag],
+                                                       stds[target_measure][measure][series_value][label][lag], line_width=params.width_line,
+                                                       color=params.color_line_series[target_measure][measure][series_value][lag],
+                                                       label=graph_label)
+                                plot_dictionary[label].add_graph_plot(graph_plot)
+
+                                if params.compute_permutations:
+                                    graph_plot = GraphPlot(frequencies, averages_perm[target_measure][measure][series_value][label][lag],
+                                                           stds_perm[target_measure][measure][series_value][label][lag], line_width=params.width_line,
+                                                           color=params.color_line_perm[target_measure][measure][series_value][lag],
+                                                           label=graph_label + " (avg. perm.)")
+                                    plot_dictionary[label].add_graph_plot(graph_plot)
+
+                        progress_bar.update(1)
+
+            for label in plot_dictionary.keys():
+                if isinstance(plot_dictionary[label], Graph):
+                    if params.label_to_modality[label] == "mocap":
+                        for plot in plot_dictionary[label].plots:
+                            if plot.sd is None:
+                                max_value = max(max_value, np.nanmax(plot.y), np.nanmax(plot.y))
+                            else:
+                                max_value = max(max_value, np.nanmax(plot.y - plot.sd), np.nanmax(plot.y + plot.sd))
+                else:
+                    max_value = max(max_value, max(plot_dictionary[label]))
+
+    progress_bar.close()
+
+    series_p_values = {}
+    series_z_scores = {}
+
+    if params.signif_target == "series":
+        series_a, series_b = params.series_values
+        for target_measure in params.target_measures:
+            for measure in params.measures:
+                if params.measure_to_modality[measure] == "audio" and not params.include_audio:
+                    continue
+                labels_modality = ["Audio"] if params.measure_to_modality[measure] == "audio" else params.labels_mocap
+                for label in labels_modality:
+                    for lag in params.lags:
+                        vals_series_a = []
+                        vals_series_b = []
+                        inds_series_a = []
+                        inds_series_b = []
+                        for ind in params.individuals:
+                            if has_nested_key(analysis_values, [target_measure, measure, series_a, ind, label, lag]):
+                                vals_series_a.append(analysis_values[target_measure][measure][series_a][ind][label][lag])
+                                inds_series_a.append(ind)
+                            if has_nested_key(analysis_values, [target_measure, measure, series_b, ind, label, lag]):
+                                vals_series_b.append(analysis_values[target_measure][measure][series_b][ind][label][lag])
+                                inds_series_b.append(ind)
+
+                        # match pairing
+                        common = [ind for ind in inds_series_a if ind in inds_series_b]
+                        paired = len(common) > 0
+
+                        # If some individuals are in common between the two series, it's a paired test
+                        if paired:
+                            vals_inds_series_a = np.stack([analysis_values[target_measure][measure][series_a][ind][label][lag] for ind in common])
+                            vals_inds_series_b = np.stack([analysis_values[target_measure][measure][series_b][ind][label][lag] for ind in common])
+                            ind_diffs = (vals_inds_series_a - vals_inds_series_b)
+                            obs = np.nanmean(ind_diffs, axis=0)
+                            perms = []
+                            for _ in range(params.number_of_randperms):
+                                flip = params.rng.integers(0, 2, size=ind_diffs.shape[0]) * 2 - 1
+                                perms.append(
+                                    np.nanmean(ind_diffs * flip[:, None] if hasattr(obs, "__len__") else ind_diffs * flip, axis=0))
+                            perms = np.stack(perms, axis=0)
+
+                        # Otherwise, unpaired test
+                        else:
+                            vals_inds_series_a = np.stack(vals_series_a) if len(vals_series_a) > 0 else np.empty((0,))
+                            vals_inds_series_b = np.stack(vals_series_b) if len(vals_series_b) > 0 else np.empty((0,))
+                            if vals_inds_series_a.size == 0 or vals_inds_series_b.size == 0: continue
+                            obs = np.nanmean(vals_inds_series_a, axis=0) - np.nanmean(vals_inds_series_b, axis=0)
+                            perms = []
+                            n_inds_series_a = vals_inds_series_a.shape[0]
+                            n_inds_series_b = vals_inds_series_b.shape[0]
+                            pool = np.concatenate([vals_inds_series_a, vals_inds_series_b], axis=0)
+                            for _ in range(params.number_of_randperms):
+                                idx = params.rng.permutation(pool.shape[0])
+                                series_a_idx, series_b_idx = idx[:n_inds_series_a], idx[n_inds_series_a:]
+                                perms.append(np.nanmean(pool[series_a_idx], axis=0) - np.nanmean(pool[series_b_idx], axis=0))
+                            perms = np.stack(perms, axis=0)
+
+                        # p and z for difference
+                        if perms.size == 0:
+                            p = np.full_like(obs, np.nan)
+                            z = np.full_like(obs, np.nan)
+                        else:
+                            avg_perms = np.nanmean(perms, axis=0)
+                            sd_perms = np.nanstd(perms, axis=0)
+                            sd_perms_safe = np.where(sd_perms == 0, np.inf, sd_perms)
+                            z = (obs - avg_perms) / sd_perms_safe
+                            p = (np.sum(np.abs(perms - avg_perms) >= np.abs(obs - avg_perms), axis=0) + 1) / (perms.shape[0] + 1)
+                        set_nested_dict(series_p_values, [target_measure, measure, (series_a, series_b), label, lag], p)
+                        set_nested_dict(series_z_scores, [target_measure, measure, (series_a, series_b), label, lag], z)
+
+        # Build contrast_ticks for plotting
+        if params.plot_type == "body":
+            alpha = params.signif_alpha[0] if isinstance(params.signif_alpha, list) else float(params.signif_alpha)
+            contrast_ticks = {}
+            for label, g in plot_dictionary.items():
+                # pick any available target/measure/lag to source the p mask (first one is fine for overlay)
+                # you can refine later; minimal viable overlay
+                tm = list(series_p_values.keys())[0]
+                meas = list(series_p_values[tm].keys())[0]
+                pair = list(series_p_values[tm][meas].keys())[0]
+                for lag in params.lags:
+                    p = series_p_values[tm][meas][pair][label][lag]
+                    if isinstance(p, np.ndarray) and p.size > 1:
+                        mask = p < alpha
+                        contrast_ticks.setdefault(label, {"x": frequencies, "mask": mask, "height_frac": 0.97})
+            params.kwargs["contrast_ticks"] = contrast_ticks
+
+    params._set_signif_graph_params()
+
+    analysis_parameters = {"analysis": params.analysis, "method": params.method, "groups": params.groups,
+                           "conditions": params.conditions, "subjects": params.subjects, "trials": params.trials,
+                           "sequence_measures": params.sequence_measures, "audio_measures": params.audio_measures,
+                           "target_measures": params.target_measures, "series": params.series,
+                           "average": params.average, "series_values": params.series_values, "lags": params.lags,
+                           "individuals": params.individuals, "labels": params.labels,
+                           "labels_mocap": params.labels_mocap, "result_type": params.result_type,
+                           "permutation_method": params.permutation_method,
+                           "number_of_randperms": params.number_of_randperms, "random_seed": params.random_seed,
+                           "specific_frequency": params.specific_frequency, "freq_atol": params.freq_atol,
+                           "include_audio": params.include_audio, "color_line_series": params.color_line_series,
+                           "color_line_perm": params.color_line_perm, "title": params.title,
+                           "width_line": params.width_line, "verbosity": params.verbosity, "kwargs": params.kwargs}
+
+    if params.plot_type == "silhouette":
+        if params.verbosity > 0:
+            print("\nShowing the silhouette plot...")
+        plot_silhouette(plot_dictionary, title=params.title, max_scale=max_value, verbosity=params.verbosity,
+                        **params.kwargs)
+
+    else:
+        if params.verbosity > 0:
+            print("\nShowing the body graph...")
+        plot_body_graphs(plot_dictionary, title=params.title, max_scale=max_value, **params.kwargs)
+
+    if params.result_type == "z-scores":
+        analysis_results = {"frequencies": frequencies, "averages": averages, "stds": stds, "z_scores": z_scores,
+                            "p_values": p_values}
+    else:
+        if params.permutation_method is not None:
+            analysis_results = {"frequencies": frequencies, "averages": averages, "stds": stds, "averages_perm":
+                                averages_perm, "stds_perm": stds_perm, "z_scores": z_scores, "p_values": p_values}
         else:
-            freqs = [str(np.round(frequencies[index_freqs[i]], 2)) for i in range(len(index_freqs))]
-            if verbosity > 0:
-                print("Selected frequencies: " + " Hz, ".join(freqs) + " Hz.")
+            analysis_results = {"frequencies": frequencies, "averages": averages, "stds": stds}
 
-    # For each series
-    for series_value in series_values:
-        if verbosity > 1:
-            print("\t" + series_value)
+    if params.signif_target == "series":
+        analysis_results.update({
+            "series_p_values": series_p_values,
+            "series_z_scores": series_z_scores
+        })
 
-        averages[series_value] = {}
-        stds[series_value] = {}
-        z_scores[series_value] = {}
-        p_values[series_value] = {}
-        averages_perm[series_value] = {}
-        stds_perm[series_value] = {}
-
-        # For each label
-        for label in labels:
-            if verbosity > 1:
-                print("\t\t" + label)
-
-            if specific_frequency is None and label not in plot_dictionary.keys():
-                plot_dictionary[label] = Graph()
-
-            if average == series:
-                vals = [analysis_values[series_value][series_value][label]]
-            else:
-                vals = [analysis_values[series_value][ind][label] for ind in individuals]
-
-            if analysis in ["power spectrum", "correlation"]:
-                axis = 0
-            else:
-                axis = 1
-
-            expected_length = None
-            for val in vals:
-                if expected_length is None:
-                    expected_length = len(val)
-                elif len(val) != expected_length:
-                    raise Exception("At least one element does not have the same length as the others.")
-
-            avg = np.nanmean(vals, axis=axis)
-            std = np.nanstd(vals, axis=axis)
-            p = np.nan
-
-            if permutation_level is not None:
-                perm_keys = individuals if permutation_level == "individual" else ["whole"]
-                perms = [r for key in perm_keys for r in randperm_values.get(series_value, {}).get(key, {}).get(label, [])]
-                perms = np.stack(perms)
-                perms = perms[np.all(np.isfinite(perms), axis=1)]
-                # perms = np.array(perms)
-                # perms = perms[np.isfinite(perms)]
-
-                if return_values == "z-scores":
-                    # p-value: proportion of permuted correlations >= real average
-
-                    if perms.size == 0:
-                        p = np.full_like(avg, np.nan)
-                        z = np.full_like(avg, np.nan)
-
-                    else:
-                        p = np.mean(perms >= avg, axis=0)
-                        z = (avg - np.nanmean(perms, axis=0)) / np.nanstd(perms, axis=0)
-
-                    # if len(perms) > 0:
-                    #     p = np.mean(perms >= avg)
-                    # else:
-                    #     p = np.nan
-                    #
-                    # z = ((avg - np.nanmean(perms)) / np.nanstd(perms)) if np.nanstd(perms) > 0 else np.nan
-                    z_scores[series_value][label] = z
-                    p_values[series_value][label] = p
-                    if np.any(np.isfinite(z)):
-                        max_value = max(max_value, np.nanmax(z))
-
-                else:
-                    averages_perm[series_value][label] = np.nanmean(perms)
-                    stds_perm[series_value][label] = np.nanstd(perms)
-
-            else:
-                perms = []
-                max_value = max(max_value, np.max(avg), np.max(avg+std))
-
-            averages[series_value][label] = avg
-            stds[series_value][label] = std
-
-            if specific_frequency is not None:
-                if label not in plot_dictionary.keys():
-                    plot_dictionary[label] = []
-                for index_freq in index_freqs:
-                    if return_values == "z-scores":
-                        plot_dictionary[label].append(z_scores[series_value][label][index_freq])
-                    else:
-                        plot_dictionary[label].append(averages[series_value][label][index_freq])
-
-            else:
-                if return_values == "z-scores":
-                    graph_plot = GraphPlot(frequencies, z_scores[series_value][label], line_width=width_line,
-                                           color=color_line_series[series_value], label=series_value)
-                    plot_dictionary[label].add_graph_plot(graph_plot)
-                else:
-                    graph_plot = GraphPlot(frequencies, averages[series_value][label],
-                                           stds[series_value][label], line_width=width_line,
-                                           color=color_line_series[series_value], label=series_value)
-                    plot_dictionary[label].add_graph_plot(graph_plot)
-
-                    if permutation_level is not None:
-                        graph_plot = GraphPlot(frequencies, averages_perm[series_value][label],
-                                               stds_perm[series_value][label], line_width=width_line,
-                                               color=color_line_perm, label=series_value)
-                        plot_dictionary[label].add_graph_plot(graph_plot)
-
-    if specific_frequency is not None:
-        plot_silhouette(plot_dictionary, title=title, max_scale=max_value, verbosity=verbosity, **kwargs)
-
-    else:
-        plot_body_graphs(plot_dictionary, title=title, max_scale=max_value, verbosity=verbosity, **kwargs)
-
-    if return_values == "z-scores":
-        return frequencies, averages, stds, z_scores, p_values
-    else:
-        if permutation_level is not None:
-            return frequencies, averages, stds, averages_perm, stds_perm
-        return frequencies, averages, stds
+    return Results(analysis_parameters, analysis_results, plot_dictionary, dt.now(), dt.now() - time_start)
 
 
-def power_spectrum(experiment_or_dataframe, method="welch", group=None, condition=None, subjects=None, trials=None,
-                   series=None, average="subject", return_values="raw", permutation_level=None, number_of_randperms=0,
-                   sequence_measure="distance", audio_measure="envelope",
-                   sampling_frequency=50, specific_frequency=None, freq_atol=1e-8,
-                   include_audio=False, width_line=1, color_line=None, verbosity=1, **kwargs):
+def power_spectrum(experiment_or_dataframe, method="welch", sampling_rate="auto", groups=None, conditions=None,
+                   subjects=None, trials=None, sequence_measure="auto", audio_measure="auto", series=None, average=None,
+                   lags=None, result_type="average", permutation_method=None, number_of_randperms=0, random_seed=None,
+                   specific_frequency=None, freq_atol=0.1, include_audio=False, signif_style="threshold",
+                   signif_alpha=0.05, signif_tail="1", signif_direction="up", color_line_series=None,
+                   color_line_perm=None, title=None, width_line=1, verbosity=1, **kwargs):
     """Returns the power spectrum values for all the variables (joints and audio) of the given dataframe or experiment.
     The function also plots these power spectrum values.
 
@@ -630,10 +622,15 @@ def power_spectrum(experiment_or_dataframe, method="welch", group=None, conditio
 
     Parameters
     ----------
-    experiment_or_dataframe: Experiment, pandas.DataFrame, str or list(any)
-        This parameter can be:
 
-            • A :class:`Experiment` instance, containing the full dataset to be analyzed.
+    General parameters
+    ~~~~~~~~~~~~~~~~~~
+    .. rubric:: Parameters
+
+    experiment_or_dataframe: Experiment, pandas.DataFrame, str or list(any)
+        The input data to analyse. This parameter can be:
+
+            • A :class:`Experiment` instance, containing the full dataset to be analysed.
             • A `pandas DataFrame <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html>`_,
               generally generated from :meth:`Experiment.get_dataframe()`.
             • The path of a file containing a pandas DataFrame, generally generated from
@@ -642,120 +639,210 @@ def power_spectrum(experiment_or_dataframe, method="welch", group=None, conditio
 
     method: str, optional
         The method to use to calculate the power spectrum. It can be either:
+
             • ``"fft"``: in that case, the power spectrum will be calculated using the Fast Fourier Transform algorithm
               from `numpy <https://numpy.org/doc/stable/reference/generated/numpy.fft.fft.html>`_.
             • ``"welch"`` (default): in that case, the power spectrum will be calculated using the Welch algorithm
               from `scipy <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.welch.html>`_. This method
               is more robust to noise than the FFT.
 
-    group: str or None
-        If specified, the analysis will focus exclusively on subjects whose
-        :attr:`~krajjat.classes.subject.Subject.group` attribute matches the value provided for this parameter.
-        Otherwise, if this parameter is set on `None` (default), subjects from all groups will be considered.
+    sampling_rate : int|str|float, optional
+        Sampling rate of the signals. By default, this value is set on ``"auto"``: in that case, the sampling rate
+        is inferred from the dataframes. Otherwise, this value must be equal to the one of the dataframe or the
+        experiment object.
 
-    condition: str or None
-        If specified, the analysis will focus exclusively on sequences whose
-        :attr:`~krajjat.classes.sequence.Sequence.condition` attribute matches the value provided for this parameter.
-        Otherwise, if this parameter is set on `None` (default), all sequences will be considered.
+    Dataframe filtering
+    ~~~~~~~~~~~~~~~~~~~
+    .. rubric:: Parameters
 
-    subjects: list(str), str or None
-        If specified, the analysis will focus exclusively on subjects whose
-        :attr:`~krajjat.classes.subject.Subject.name` attribute matches the value(s) provided for this parameter.
-        This parameter can be a string (for one subject), or a list of strings (for multiple subjects).
-        Otherwise, if this parameter is set on `None`, all subjects will be considered. This parameter can be combined
-        with the parameter ``group`` (default), to perform the analysis on certain subjects from a certain group.
+    groups : list(str)|str|None, optional
+        Restricts the analysis to subjects with the specified groups. This parameter can be:
 
-    trials: dict(str: list(str)), list(str), str or None
-        If specified, the analysis will discard the trials whose
-        :attr:`~krajjat.classes.trial.Trial.name` attribute does not match the value(s) provided for this parameter.
-        This parameter can be:
+            • A single group.
+            • A list of groups.
+            • ``None`` (default): the dataframe will not be filtered by group.
 
-            • A dictionary where each key is a subject name, and each value is a list containing trial names. This
-              allows discarding or select specific trials for individual subjects.
-            • A list where each element is a trial name. This will select only the trials matching the given name,
-              for each subject.
-            • The name of a single trial. This will select the given trial for all subjects.
-            • `None` (default). In that case, all trials will be considered.
+    conditions : list(str)|str|None, optional
+        Restricts the analysis to trials with the specified conditions. This parameter can be:
 
-        This parameter can be combined with the other parameters to select specific subjects or conditions.
+            • A single condition.
+            • A list of conditions.
+            • ``None`` (default): the dataframe will not be filtered by condition.
 
-        ..note ::
-            In the case where at least two of the parameters `group`, `condition`, `subjects` or `trials` are set,
-            the selected trials will be the ones that match all the selected categories. For example, if `subjects`
-            is set on `["sub_001", "sub_002", "sub_003"]` and `trials` is set on `{"sub_001": ["trial_001",
-            "trial_002"], "sub_004": ["trial_001"]}`, the analysis will run on the trials that intersect both
-            requirements, i.e., trials 1 and 2 for subject 1. Trials from subjects 2, 3 and 4 will be discarded.
+    subjects : list(str)|str|None, optional
+        Restricts the analysis to the specified subjects. This parameter can be:
 
-    series: str, optional
-        Defines the series that divide the data for comparison. This value can take any of the column names from the
-        dataframe (apart from the values indicated in sequence_measure and audio_measure). For instance, if `group` is
-        selected, the correlation will be calculated and plotted for each individual group of the dataframe.
-        Alternatively, setting this parameter on `None` (default) or `"Full dataset"` will not perform any comparison,
-        but rather run the analysis on all the data.
+            • A single subject.
+            • A list of subjects.
+            • ``None`` (default): all subjects will be considered.
 
-    average: str or None, optional
-        Defines if an average power spectrum is computed. This parameter can be:
-            • ``"subject"``: the power spectrum is calculated for each subject and averaged across all subjects.
-            • ``"trial"``: the power spectrum is calculated for each trial and averaged across all trials.
-            • ``None``: the power spectrum is calculated for the whole dataset.
+    trials : dict(str: list(str))|list(str)|str|None, optional
+        Restricts the analysis to the specified trials. This parameter can be:
 
-    sequence_measure: str, optional
-        The measure used for each sequence instance, can be either:
+            • A single trial.
+            • A list of trials.
+            • A dictionary mapping subjects or groups to a list of trials.
+            • ``None`` (default): all trials will be considered.
 
-            • ``"x"``, for the values on the x-axis (in meters)
-            • ``"y"``, for the values on the y-axis (in meters)
-            • ``"z"``, for the values on the z axis (in meters)
-            • ``"distance_hands"``, for the distance between the hands (in meters)
-            • ``"distance"``, for the distance travelled (in meters, default)
-            • ``"distance_x"`` for the distance travelled on the x-axis (in meters)
-            • ``"distance_y"`` for the distance travelled on the y-axis (in meters)
-            • ``"distance_z"`` for the distance travelled on the z axis (in meters)
-            • ``"velocity"`` for the velocity (in meters per second)
-            • ``"acceleration"`` for the acceleration (in meters per second squared)
-            • ``"acceleration_abs"`` for the absolute acceleration (in meters per second squared)
+    Targets
+    ~~~~~~~
+    .. rubric:: Parameters
 
-        .. note::
-            This parameter will be used to generate a dataframe if the parameter `experiment_or_dataframe` is an
-            Experiment instance. In any other case, this parameter **has to be equal** to the title of the column
-            containing the sequence data in the dataframe.
+    sequence_measure : list(str)|str, optional
+        The sequence measure(s) from the mocap modalities to include in the analysis (e.g., ``"velocity"``,
+        ``"acceleration"``). If experiment_or_dataframe is or contains a dataframe, the specified measures must appear
+        in its measure column. When provided as a list, each sequence measure is paired with each audio_measure to
+        generate separate entries in both the results and the plot dictionary. By default, the value of this parameter
+        is ``"auto"``: the function will automatically detect the values in the column ``measure`` when the value in
+        the column ``modality`` is ``"mocap"``. This parameter can also take the following values:
 
-    audio_measure: str|None, optional
-        The audio measure, among:
+            • For the x-coordinate: ``"x"``, ``"x_coord"``, ``"coord_x"``, or ``"x_coordinate"``.
+            • For the y-coordinate: ``"y"``, ``"y_coord"``, ``"coord_y"``, or ``"y_coordinate"``.
+            • For the z-coordinate: ``"z"``, ``"z_coord"``, ``"coord_z"``, or ``"z_coordinate"``.
+            • For all the coordinates: ``"xyz"``, ``"coordinates"``, ``"coord"``, ``"coords"``, or ``"coordinate"``.
+            • For the consecutive distances: ``"d"``, ``"distances"``, ``"dist"``, ``"distance"``,  or ``0``.
+            • For the consecutive distances on the x-axis: ``"dx"``, ``"distance_x"``, ``"x_distance"``, ``"dist_x"``,
+              or ``"x_dist"``.
+            • For the consecutive distances on the y-axis: ``"dy"``, ``"distance_y"``, ``"y_distance"``, ``"dist_y"``,
+              or ``"y_dist"``.
+            • For the consecutive distances on the z-axis: ``"dz"``, ``"distance_z"``, ``"z_distance"``, ``"dist_z"``,
+              or ``"z_dist"``.
+            • For the velocity: ``"v"``, ``"vel"``, ``"velocity"``, ``"velocities"``, ``"speed"``, or ``1``.
+            • For the acceleration: ``"a"``, ``"acc"``, ``"acceleration"``, ``"accelerations"``, or ``2``.
+            • For the jerk: ``"j"``, ``"jerk"``, or ``3``.
+            • For the snap: ``"s"``, ``"snap"``, ``"joust"`` or ``4``.
+            • For the crackle: ``"c"``, ``"crackle"``, or ``5``.
+            • For the pop: ``"p"``, ``"pop"``, or ``6``.
+
+    audio_measure : list(str)|str, optional
+        The audio measure(s) from the audio modality to include in the analysis (e.g., "envelope", "pitch"). If
+        experiment_or_dataframe is or contains a dataframe, the specified measures must appear in its measure column.
+        When provided as a list, each sequence measure is paired with each sequence_measure to generate separate
+        entries in both the results and the plot dictionary. By default, the value of this parameter is ``"auto"``:
+        the function will automatically detect the values in the column ``measure`` when the value in
+        the column ``modality`` is ``"audio"``. The parameter can also be set on ``None`` if your Experiment does not
+        have AudioDerivatives, or if you wish to ignore them. This parameter can also take the following values:
 
             • ``"audio"``, for the original sample values.
-            • ``"envelope"`` (default)
-            • ``"pitch"``
+            • ``"envelope"``.
+            • ``"pitch"``.
             • ``"f1"``, ``"f2"``, ``"f3"``, ``"f4"``, ``"f5"`` for the values of the corresponding formant.
-            • ``"intensity"``
-            • ``None`` (default): in that case, the power spectrum of the audio will not be computed.
+            • ``"intensity"``.
 
-        .. note::
-            In the case where the value is an audio value, this parameter will be used to generate a dataframe if the
-            parameter `experiment_or_dataframe` is an Experiment instance.
+    series : str|None, optional
+        A column name from the dataframe to split data into subsets (e.g., `"group"`, `"condition"`, `"trial"`). Each
+        subset will create a new entry in the results and the plot dictionary.
 
-    sampling_frequency: int or float, optional
-        The sampling frequency of the sequence and audio measures, used to resample the data when generating the
-        dataframe, if the parameter `experiment_or_dataframe` is an Experiment instance. If the parameter
-        `experiment_or_dataframe` is a dataframe, this parameter is ignored.
+    average : str|None, optional
+        Defines the level of averaging:
 
-    specific_frequency: float|list|None, optional
-        If set, the function will return the power spectrum of the specified frequency, (or the specific frequencies,
-        as a list) and plot a silhouette graph rather than a body graph.
+            • ``"subject"``: average across subjects.
+            • ``"trial"``: average across trials.
+            • ``None``: no averaging; the full dataset is used.
 
-    freq_atol: float|int, optional
-        The absolute tolerance of the frequency set on ``specific_frequency`` (default: 1e-8). If set, the function
-        will look for the closest matching frequency in the range ``[specific_frequency - freq_atol,
-        specific_frequency + freq_atol]``.
+    lags: int|float|list(int|float)|None, optional
+        Defines one or more lags (in seconds) to apply to the target feature in the analysis. A lag can be positive or
+        negative. Provided lags are rounded to the closest timestamp value given the sampling rate (e.g., specifying
+        a lag of 0.11 for a sampling rate of 10 Hz will result in the lag being rounded to 0.1).
 
-    include_audio: bool, optional
-        Whether to include the audio in the power spectrum calculation and plot. Default: `False`.
+    Result format
+    ~~~~~~~~~~~~~
+    .. rubric:: Parameters
 
-    width_line: int or float, optional
-        Defines the width of the plotted lines (default: 1).
+    result_type : str, optional
+        The type of the results computed and returned by the function. This parameter can be:
 
-    color_line: list or None, optional
-        A list containing the colors for the different variables of interest. If the number of colors is inferior to
-        the plotted series, the colors loop through the list.
+            • ``"average"`` (alternatives: ``"raw"``, ``"avg"``, default): in that case, the values plotted and
+              returned will be the values computed during the analysis, averaged if ``"average"`` is set.
+            • ``"z-scores"` (alternatives: ``"z"``, ``"zscores"``, ``"z-score"``, ``"zscore"``, ``"zeta"``): in that
+              case, the values plotted will be the z-scores computed against the randomly permuted values. The
+              parameters ``permutation_method`` and ``number_of_randperms`` must be set. Note that the returned Result
+              instance will contain both the raw/average results and the z-scores.
+
+    permutation_method: str|None, optional
+        This parameter determines how permutations are applied:
+
+            • `"value"`: the values of each time series are permuted, allowing to compare the signal against random
+              noise.
+            • `"label"`: permutations are done by randomly selecting values matching a label, to compare the labels
+              between each other.
+            • `"shift"`: permutations are done by shifting the time series values (rolling the last values to the
+              beginning), allowing to preserve the phase spectrum but without the temporal alignment.
+            • `"phase"`: permutations are done by randomizing each Fourier coefficient's phase, which keeps the
+              amplitude spectrum but destroys the phase relationships.
+            • ``None`` (default): no permutations are calculated. This value is not allowed if ``return_values ==
+              "z-scores"``.
+
+    number_of_randperms: int, optional
+        How many random permutations to calculate. Only used if `permutation_method` is set. An average of the
+        calculated random permutations is then calculated, in order to calculate a z-score.
+
+    random_seed : int|None, optional
+        Fixes the seed for reproducible random permutations. Default: ``None``: the random permutations will change
+        on each execution.
+
+    specific_frequency : float|list(float)|None, optional
+        Frequency (or list of frequencies) to extract from the result. If set, silhouette plots are generated.
+
+    freq_atol : float|int, optional
+        Absolute tolerance for matching the specific frequency (default: 0.1).
+
+    include_audio : bool, optional
+        If ``True``, includes audio signals in the set of labels to analyse.
+
+    Significance parameters
+    ~~~~~~~~~~~~~~~~~~~~~~~
+    .. rubric:: Parameters
+
+    signif_style: list(str) | str | None, optional
+        The style of significance to show on the plot. This parameter can be one or more of the following:
+
+            • ``"threshold"``: if ``result_type`` is equal to ``"z-scores"``, the plot will show horizontal lines
+              matching the significance threshold.
+            • ``"shade"``: if ``result_type`` is equal to ``"z-scores"``, the plot will show shades
+              matching the significance threshold.
+            • ``"markers"``: if ``result_type`` is equal to ``"z-scores"``, the plot will show markers on the
+              frequencies showing significance. This option is compatible with silhouette plots.
+            • ``None`` (default): the significant values aren't shown.
+
+    signif_alpha: list(float) | float, optional
+        Significance threshold(s). Can be a single value (default: 0.05) or a list of values. If multiple thresholds
+        are provided, each level is shown with a different marker according to ``signif_marker``.
+
+    signif_tail: str | int, optional
+        Whether the z-score test is one-tailed or two-tailed. This affects the significance threshold. Default: "1".
+
+    signif_direction: str, optional
+        The direction of the significance, if signif_tail is 1. By default, this value is set on ``"up"``, but it also
+        can be set on ``"down"``.
+
+    Plot parameters
+    ~~~~~~~~~~~~~~~
+    .. rubric:: Parameters
+
+    color_line_series : list|str|None, optional
+        Color(s) to use when plotting time-frequency graphs. If this parameter is a list, a color will be
+        attributed to each series. If this parameter is a string, the same color is attributed to all series. Each
+        color can take a number of forms:
+
+            • The `HTML/CSS name of a color <https://en.wikipedia.org/wiki/X11_color_names>`_ (e.g. ``"red"`` or
+              ``"blanched almond"``),
+            • The hexadecimal code of a color, starting with a number sign (``#``, e.g. ``"#ffcc00"`` or ``"#c0ffee"``).
+            • The RGB or RGBA tuple of a color (e.g. ``(153, 204, 0)`` or ``(77, 77, 77, 255)``).
+
+    color_line_perm: list|str|None, optional
+        Color to use for the permutations when plotting time-frequency graphs. If this parameter is a list, a color
+        will be attributed to each series. If this parameter is a string, the same color is attributed to all series.
+
+    title: str|None, optional
+        If set, the title of the plot. Otherwise, an automatic title will be generated.
+
+    width_line : int|float
+        Width of plotted lines.
+
+    Other parameters
+    ~~~~~~~~~~~~~~~~
+    .. rubric:: Parameters
 
     verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
@@ -767,35 +854,42 @@ def power_spectrum(experiment_or_dataframe, method="welch", group=None, conditio
           may clutter the output and slow down the execution.
 
     **kwargs: optional
-        Any parameter accepted by either :func:`plot_functions.plot_silhouette` or
+        Additional arguments passed to :func:`plot_functions.plot_silhouette` or
         :func:`plot_functions.plot_body_graphs`.
 
     Returns
     -------
-    frequencies : np.ndarray
-        Frequency bins.
+    Results
+        A Results instance containing the analysis parameters and the results as attributes:
 
-    averages : dict
-        Average power per label and series.
-
-    stds : dict
-        Standard deviations of the power per label and series.
+            • ``frequencies`` contains the frequencies corresponding to the results, if the analysis is in the
+               frequency domain.
+            • ``averages`` contains the results of the analysis, averaged across the specified level of averaging.
+            • ``stds`` contains the standard deviations of the results.
+            • ``averages_perm`` contains the averages of the random permutations, if they were computed.
+            • ``stds`` contains the standard deviations of the random permutations.
+            • ``z_scores`` contains the z-scores of the analysis, if ``return_type`` was set on ``z-scores``.
+            • ``p_values`` contains the p-values of the analysis, if ``return_type`` was set on ``z-scores``.
+            • ``plot_dictionary`` contains the plot dictionary that can be directly passed to ``plot_silhouette`` or
+              ``plot_body_graphs``.
     """
 
     return _common_analysis(experiment_or_dataframe=experiment_or_dataframe, analysis="power spectrum", method=method,
-                            group=group, condition=condition, subjects=subjects, trials=trials, series=series,
-                            average=average, return_values=return_values, permutation_level=permutation_level,
-                            number_of_randperms=number_of_randperms,
-                            sequence_measure=sequence_measure, audio_measure=audio_measure, target_feature=None,
-                            sampling_frequency=sampling_frequency, specific_frequency=specific_frequency,
-                            freq_atol=freq_atol, include_audio=include_audio, random_seed=None,
-                            color_line=color_line, width_line=width_line, verbosity=verbosity, **kwargs)
+                            sampling_rate=sampling_rate, groups=groups, conditions=conditions, subjects=subjects,
+                            trials=trials, sequence_measure=sequence_measure, audio_measure=audio_measure,
+                            series=series, average=average, lags=lags, result_type=result_type,
+                            permutation_method=permutation_method, number_of_randperms=number_of_randperms,
+                            random_seed=random_seed, specific_frequency=specific_frequency, freq_atol=freq_atol,
+                            include_audio=include_audio,  signif_style=signif_style,
+                            signif_alpha=signif_alpha, signif_tail=signif_tail, signif_direction=signif_direction, color_line_series=color_line_series,
+                            color_line_perm=color_line_perm, title=title, width_line=width_line, verbosity=verbosity,
+                            **kwargs)
 
-def correlation(experiment_or_dataframe, method="corr", group=None, condition=None, subjects=None, trials=None,
-                series=None, average="subject", sequence_measure="distance", audio_measure="envelope",
-                correlation_with="envelope", return_values="z-scores", permutation_level="whole",
-                number_of_randperms=1000, sampling_frequency=50, include_audio=False, random_seed=None,
-                verbosity=1, **kwargs):
+def correlation(experiment_or_dataframe, method="pingouin", sampling_rate="auto", groups=None, conditions=None,
+                subjects=None, trials=None, sequence_measure="auto", audio_measure="auto", correlation_with="envelope",
+                series=None, average=None, lags=None, result_type="average", permutation_method=None,
+                number_of_randperms=0, random_seed=None, include_audio=False, signif_style="threshold",
+                signif_alpha=0.05, signif_tail="1", signif_direction="up", verbosity=1, **kwargs):
     """Calculates and plots the correlation between one metric derived from the sequences, and the same metric from a
     given joint, or another metric derived from the corresponding audio clips.
 
@@ -803,10 +897,15 @@ def correlation(experiment_or_dataframe, method="corr", group=None, condition=No
 
     Parameters
     ----------
+
+    General parameters
+    ~~~~~~~~~~~~~~~~~~
+    .. rubric:: Parameters
+
     experiment_or_dataframe: Experiment, pandas.DataFrame, str or list(any)
-        This parameter can be:
-        
-            • A :class:`Experiment` instance, containing the full dataset to be analyzed.
+        The input data to analyse. This parameter can be:
+
+            • A :class:`Experiment` instance, containing the full dataset to be analysed.
             • A `pandas DataFrame <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html>`_,
               generally generated from :meth:`Experiment.get_dataframe()`.
             • The path of a file containing a pandas DataFrame, generally generated from
@@ -814,318 +913,183 @@ def correlation(experiment_or_dataframe, method="corr", group=None, condition=No
             • A list combining any of the above types. In that case, all the dataframes will be merged sequentially.
 
     method: str, optional
-        Can be either `"corr"` (default, uses
-        `pingouin_corr <https://pingouin-stats.org/build/html/generated/pingouin.corr.html>`__), `"rm_corr"` (uses
-        `pingouin_corr <https://pingouin-stats.org/build/html/generated/pingouin.rm_corr.html>`__), or ``"numpy"``
-        (manual Pearson correlation).
+        The method to use to calculate the correlation. Can be either:
+            • ``"pingouin"`` (default, alternative: ``"pg"``), uses
+              `pingouin_corr <https://pingouin-stats.org/build/html/generated/pingouin.corr.html>`_
+            • ``"numpy"``, uses a Pearson correlation calculated with numpy.
 
-    group: str or None
-        If specified, the analysis will focus exclusively on subjects whose
-        :attr:`~krajjat.classes.subject.Subject.group` attribute matches the value provided for this parameter.
-        Otherwise, if this parameter is set on `None` (default), subjects from all groups will be considered.
+    sampling_rate : int|str|float, optional
+        Sampling rate of the signals. By default, this value is set on ``"auto"``: in that case, the sampling rate
+        is inferred from the dataframes. Otherwise, this value must be equal to the one of the dataframe or the
+        experiment object.
 
-    condition: str or None
-        If specified, the analysis will focus exclusively on sequences whose
-        :attr:`~krajjat.classes.sequence.Sequence.condition` attribute matches the value provided for this parameter.
-        Otherwise, if this parameter is set on `None` (default), all sequences will be considered.
+    Dataframe filtering
+    ~~~~~~~~~~~~~~~~~~~
+    .. rubric:: Parameters
 
-    subjects: list(str), str or None
-        If specified, the analysis will focus exclusively on subjects whose
-        :attr:`~krajjat.classes.subject.Subject.name` attribute matches the value(s) provided for this parameter.
-        This parameter can be a string (for one subject), or a list of strings (for multiple subjects).
-        Otherwise, if this parameter is set on `None`, all subjects will be considered. This parameter can be combined
-        with the parameter ``group`` (default), to perform the analysis on certain subjects from a certain group.
+    groups : list(str)|str|None, optional
+        Restricts the analysis to subjects with the specified groups. This parameter can be:
 
-    trials: dict(str: list(str)), list(str), str or None
-        If specified, the analysis will discard the trials whose
-        :attr:`~krajjat.classes.trial.Trial.name` attribute does not match the value(s) provided for this parameter.
-        This parameter can be:
+            • A single group.
+            • A list of groups.
+            • ``None`` (default): the dataframe will not be filtered by group.
 
-            • A dictionary where each key is a subject name, and each value is a list containing trial names. This
-              allows discarding or select specific trials for individual subjects.
-            • A list where each element is a trial name. This will select only the trials matching the given name,
-              for each subject.
-            • The name of a single trial. This will select the given trial for all subjects.
-            • `None` (default). In that case, all trials will be considered.
+    conditions : list(str)|str|None, optional
+        Restricts the analysis to trials with the specified conditions. This parameter can be:
 
-        This parameter can be combined with the other parameters to select specific subjects or conditions.
+            • A single condition.
+            • A list of conditions.
+            • ``None`` (default): the dataframe will not be filtered by condition.
 
-        ..note ::
-            In the case where at least two of the parameters `group`, `condition`, `subjects` or `trials` are set,
-            the selected trials will be the ones that match all the selected categories. For example, if `subjects`
-            is set on `["sub_001", "sub_002", "sub_003"]` and `trials` is set on `{"sub_001": ["trial_001", "trial_002"],
-            "sub_004": ["trial_001"]}`, the analysis will run on the trials that intersect both requirements, i.e..
-            trials 1 and 2 for subject 1. Trials from subjects 2, 3 and 4 will be discarded.
+    subjects : list(str)|str|None, optional
+        Restricts the analysis to the specified subjects. This parameter can be:
 
-    series: str, optional
-        Defines the series that divide the data for comparison. This value can take any of the column names from the
-        dataframe (apart from the values indicated in sequence_measure and audio_measure). For instance, if `group` is
-        selected, the correlation will be calculated and plotted for each individual group of the dataframe.
+            • A single subject.
+            • A list of subjects.
+            • ``None`` (default): all subjects will be considered.
 
-    average: str or None, optional
-        Defines if an average correlation is returned. This parameter can be:
-            • ``"subject"``: the correlation is calculated for each subject and averaged across all subjects.
-            • ``"trial"``: the correlation is calculated for each trial and averaged across all trials.
-            • ``None``: the correlation is calculated for the whole dataset.
+    trials : dict(str: list(str))|list(str)|str|None, optional
+        Restricts the analysis to the specified trials. This parameter can be:
 
-    sequence_measure: str, optional
-        The measure used for each sequence instance, can be either:
+            • A single trial.
+            • A list of trials.
+            • A dictionary mapping subjects or groups to a list of trials.
+            • ``None`` (default): all trials will be considered.
 
-            • ``"x"``, for the values on the x-axis (in meters)
-            • ``"y"``, for the values on the y-axis (in meters)
-            • ``"z"``, for the values on the z axis (in meters)
-            • ``"distance_hands"``, for the distance between the hands (in meters)
-            • ``"distance"``, for the distance travelled (in meters, default)
-            • ``"distance_x"`` for the distance travelled on the x-axis (in meters)
-            • ``"distance_y"`` for the distance travelled on the y-axis (in meters)
-            • ``"distance_z"`` for the distance travelled on the z axis (in meters)
-            • ``"velocity"`` for the velocity (in meters per second)
-            • ``"acceleration"`` for the acceleration (in meters per second squared)
-            • ``"acceleration_abs"`` for the absolute acceleration (in meters per second squared)
+    Targets
+    ~~~~~~~
+    .. rubric:: Parameters
 
-        .. note::
-            This parameter will be used to generate a dataframe if the parameter `experiment_or_dataframe` is an
-            Experiment instance. In any other case, this parameter **has to be equal** to the title of the column
-            containing the sequence data in the dataframe.
+    sequence_measure : list(str)|str, optional
+        The sequence measure(s) from the mocap modalities to include in the analysis (e.g., ``"velocity"``,
+        ``"acceleration"``). If experiment_or_dataframe is or contains a dataframe, the specified measures must appear
+        in its measure column. When provided as a list, each sequence measure is paired with each audio_measure to
+        generate separate entries in both the results and the plot dictionary. By default, the value of this parameter
+        is ``"auto"``: the function will automatically detect the values in the column ``measure`` when the value in
+        the column ``modality`` is ``"mocap"``. This parameter can also take the following values:
 
-    audio_measure: str, optional
-        The measure of the audio, can be either:
+            • For the x-coordinate: ``"x"``, ``"x_coord"``, ``"coord_x"``, or ``"x_coordinate"``.
+            • For the y-coordinate: ``"y"``, ``"y_coord"``, ``"coord_y"``, or ``"y_coordinate"``.
+            • For the z-coordinate: ``"z"``, ``"z_coord"``, ``"coord_z"``, or ``"z_coordinate"``.
+            • For all the coordinates: ``"xyz"``, ``"coordinates"``, ``"coord"``, ``"coords"``, or ``"coordinate"``.
+            • For the consecutive distances: ``"d"``, ``"distances"``, ``"dist"``, ``"distance"``,  or ``0``.
+            • For the consecutive distances on the x-axis: ``"dx"``, ``"distance_x"``, ``"x_distance"``, ``"dist_x"``,
+              or ``"x_dist"``.
+            • For the consecutive distances on the y-axis: ``"dy"``, ``"distance_y"``, ``"y_distance"``, ``"dist_y"``,
+              or ``"y_dist"``.
+            • For the consecutive distances on the z-axis: ``"dz"``, ``"distance_z"``, ``"z_distance"``, ``"dist_z"``,
+              or ``"z_dist"``.
+            • For the velocity: ``"v"``, ``"vel"``, ``"velocity"``, ``"velocities"``, ``"speed"``, or ``1``.
+            • For the acceleration: ``"a"``, ``"acc"``, ``"acceleration"``, ``"accelerations"``, or ``2``.
+            • For the jerk: ``"j"``, ``"jerk"``, or ``3``.
+            • For the snap: ``"s"``, ``"snap"``, ``"joust"`` or ``4``.
+            • For the crackle: ``"c"``, ``"crackle"``, or ``5``.
+            • For the pop: ``"p"``, ``"pop"``, or ``6``.
 
-            • ``"audio"``, for the original sample values.
-            • ``"envelope"`` (default)
-            • ``"pitch"``
-            • ``"f1"``, ``"f2"``, ``"f3"``, ``"f4"``, ``"f5"`` for the values of the corresponding formant.
-            • ``"intensity"``
-
-        .. note::
-            This parameter will be used to generate a dataframe if the parameter `experiment_or_dataframe` is an
-            Experiment instance. In any other case, this parameter **has to be equal** to the title of the column
-            containing the audio data in the dataframe.
-
-    correlation_with : str
-        The joint label or audio measure to correlate against (default: ``"envelope"``).
-
-    return_values : str
-        Defines which values are returned and plotted. This parameter can be:
-
-            • ``"average"`` or ``"raw"``: the correlation is returned, averaged across subjects, trials or the whole
-              dataset, depending on the value for the parameter ``average``.
-            • ``"z-score"`` (default): z-scores are returned, calculated against an average of randomly permuted
-              arrays.
-
-    permutation_level : str
-        This determines how permutations are applied:
-            • `"whole"`: permutations are done on the pooled data.
-            • `"individual"`: permutations are done separately for each subject or trial.
-            • ``None``: no permutations are calculated. This value is not allowed if `return_values == "z-scores"`.
-
-    number_of_randperms: int, optional
-        How many random permutations to calculate. Only used if `permutation_level` is set to ``"whole"`` or
-        ``"individual"``. An average of the calculated random permutations is then calculated, in order to calculate
-        a Z-score for the correlation.
-
-    sampling_frequency: int or float, optional
-        The sampling frequency of the sequence and audio measures, used to resample the data when generating the
-        dataframe, if the parameter `experiment_or_dataframe` is an Experiment instance, and to perform the correlation.
-
-    include_audio: bool, optional
-        Whether to include the audio in the power spectrum calculation and plot. Default: `False`.
-
-    random_seed: int, optional
-        Sets a fixed seed for the random number generator. Only used if random permutations are computed.
-
-    verbosity: int, optional
-        Sets how much feedback the code will provide in the console output:
-
-        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
-        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
-          current steps.
-        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
-          may clutter the output and slow down the execution.
-
-    Returns
-    -------
-    dict
-        A nested dictionary containing the average correlation values for each series and each joint.
-        Structure: {series_value: {joint_label: average_correlation_value}}.
-
-    dict
-        A nested dictionary containing the standard deviation of correlation values for each series and joint.
-        Structure: {series_value: {joint_label: std_deviation_value}}.
-
-    dict, optional
-        A nested dictionary containing the Z-scores of the correlation values, computed as:
-        (average - mean of random permutations) / std of permutations.
-        Structure: {series_value: {joint_label: z_score_value}}.
-
-    dict, optional
-        A nested dictionary containing the p-values of the z-scores.
-    """
-
-    return _common_analysis(experiment_or_dataframe=experiment_or_dataframe, analysis="correlation", method=method,
-                            group=group, condition=condition, subjects=subjects, trials=trials, series=series,
-                            average=average, return_values=return_values, permutation_level=permutation_level,
-                            number_of_randperms=number_of_randperms, sequence_measure=sequence_measure,
-                            audio_measure=audio_measure, target_feature=correlation_with,
-                            sampling_frequency=sampling_frequency, include_audio=include_audio,
-                            random_seed=random_seed, verbosity=verbosity, **kwargs)
-
-def coherence(experiment_or_dataframe, group=None, condition=None, subjects=None, trials=None, series=None,
-              average="subject", sequence_measure="distance", audio_measure="envelope", coherence_with="envelope",
-              return_values="z-scores", permutation_level="whole", number_of_randperms=1000, sampling_frequency=50,
-              specific_frequency=None, freq_atol=1e-8, step_segments=0.25, include_audio=False, random_seed=None,
-              color_line=None, width_line=1, verbosity=1, **kwargs):
-    """Calculates and plots the coherence between one metric derived from the sequences, and the same metric from a
-    given joint, or another metric derived from the corresponding audio clips.
-
-    ..versionadded:: 2.0
-
-    Parameters
-    ----------
-    experiment_or_dataframe: Experiment, pandas.DataFrame, str or list(any).
-        This parameter can be:
-
-            • A :class:`Experiment` instance, containing the full dataset to be analyzed.
-            • A `pandas DataFrame <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html>`_,
-              generally generated from :meth:`Experiment.get_dataframe()`.
-            • The path of a file containing a pandas DataFrame, generally generated from
-              :class:`Experiment.save_dataframe()`.
-            • A list combining any of the above types. In that case, all the dataframes will be merged sequentially.
-
-    group: str or None
-        If specified, the analysis will focus exclusively on subjects whose
-        :attr:`~krajjat.classes.subject.Subject.group` attribute matches the value provided for this parameter.
-        Otherwise, if this parameter is set on `None` (default), subjects from all groups will be considered.
-
-    condition: str or None
-        If specified, the analysis will focus exclusively on sequences whose
-        :attr:`~krajjat.classes.sequence.Sequence.condition` attribute matches the value provided for this parameter.
-        Otherwise, if this parameter is set on `None` (default), all sequences will be considered.
-
-    subjects: list(str), str or None
-        If specified, the analysis will focus exclusively on subjects whose
-        :attr:`~krajjat.classes.subject.Subject.name` attribute matches the value(s) provided for this parameter.
-        This parameter can be a string (for one subject), or a list of strings (for multiple subjects).
-        Otherwise, if this parameter is set on `None`, all subjects will be considered. This parameter can be combined
-        with the parameter ``group`` (default), to perform the analysis on certain subjects from a certain group.
-
-    trials: dict(str: list(str)), list(str), str or None
-        If specified, the analysis will discard the trials whose
-        :attr:`~krajjat.classes.trial.Trial.name` attribute does not match the value(s) provided for this parameter.
-        This parameter can be:
-
-            • A dictionary where each key is a subject name, and each value is a list containing trial names. This
-              allows discarding or select specific trials for individual subjects.
-            • A list where each element is a trial name. This will select only the trials matching the given name,
-              for each subject.
-            • The name of a single trial. This will select the given trial for all subjects.
-            • `None` (default). In that case, all trials will be considered.
-
-        This parameter can be combined with the other parameters to select specific subjects or conditions.
-
-        ..note ::
-            In the case where at least two of the parameters `group`, `condition`, `subjects` or `trials` are set,
-            the selected trials will be the ones that match all the selected categories. For example, if `subjects`
-            is set on `["sub_001", "sub_002", "sub_003"]` and `trials` is set on `{"sub_001": ["trial_001",
-            "trial_002"], "sub_004": ["trial_001"]}`, the analysis will run on the trials that intersect both
-            requirements, i.e., trials 1 and 2 for subject 1. Trials from subjects 2, 3 and 4 will be discarded.
-
-    series: str, optional
-        Defines the series that divide the data for comparison. This value can take any of the column names from the
-        dataframe (apart from the values indicated in sequence_measure and audio_measure). For instance, if `group` is
-        selected, the coherence will be calculated and plotted for each individual group of the dataframe.
-
-    average: str or None, optional
-        Defines if an average coherence is returned. This parameter can be:
-            • ``"subject"``: the coherence is calculated for each subject and averaged across all subjects.
-            • ``"trial"``: the coherence is calculated for each trial and averaged across all trials.
-            • ``None``: the coherence is calculated for the whole dataset.
-
-    sequence_measure: str, optional
-        The measure used for each sequence instance, can be either:
-
-            • ``"x"``, for the values on the x-axis (in meters)
-            • ``"y"``, for the values on the y-axis (in meters)
-            • ``"z"``, for the values on the z axis (in meters)
-            • ``"distance_hands"``, for the distance between the hands (in meters)
-            • ``"distance"``, for the distance travelled (in meters, default)
-            • ``"distance_x"`` for the distance travelled on the x-axis (in meters)
-            • ``"distance_y"`` for the distance travelled on the y-axis (in meters)
-            • ``"distance_z"`` for the distance travelled on the z axis (in meters)
-            • ``"velocity"`` for the velocity (in meters per second)
-            • ``"acceleration"`` for the acceleration (in meters per second squared)
-            • ``"acceleration_abs"`` for the absolute acceleration (in meters per second squared)
-
-        .. note::
-            This parameter will be used to generate a dataframe if the parameter `experiment_or_dataframe` is an
-            Experiment instance. In any other case, this parameter **has to be equal** to the title of the column
-            containing the sequence data in the dataframe.
-
-    audio_measure: str, optional
-        The measure of the audio, can be either:
+    audio_measure : list(str)|str|None, optional
+        The audio measure(s) from the audio modality to include in the analysis (e.g., "envelope", "pitch"). If
+        experiment_or_dataframe is or contains a dataframe, the specified measures must appear in its measure column.
+        When provided as a list, each sequence measure is paired with each sequence_measure to generate separate
+        entries in both the results and the plot dictionary. By default, the value of this parameter is ``"auto"``:
+        the function will automatically detect the values in the column ``measure`` when the value in
+        the column ``modality`` is ``"audio"``. The parameter can also be set on ``None`` if your Experiment does not
+        have AudioDerivatives, or if you wish to ignore them. This parameter can also take the following values:
 
             • ``"audio"``, for the original sample values.
-            • ``"envelope"`` (default)
-            • ``"pitch"``
+            • ``"envelope"``.
+            • ``"pitch"``.
             • ``"f1"``, ``"f2"``, ``"f3"``, ``"f4"``, ``"f5"`` for the values of the corresponding formant.
-            • ``"intensity"``
+            • ``"intensity"``.
 
-        .. note::
-            This parameter will be used to generate a dataframe if the parameter `experiment_or_dataframe` is an
-            Experiment instance. In any other case, this parameter **has to be equal** to the title of the column
-            containing the audio data in the dataframe.
+    correlation_with : str|tuple, optional
+        The reference signal or label to correlate against. This value can be:
 
-    coherence_with : str
-        The joint label or audio measure to correlate against (default: ``"envelope"``).
+            • A joint label (if only one `sequence_measure` is specified)
+            • A tuple containing a sequence measure and a joint label
+            • An audio measure
+            • A list containing any of the above types.
 
-    return_values : str
-        Defines which values are returned and plotted. This parameter can be:
+    series : str|None, optional
+        A column name from the dataframe to split data into subsets (e.g., `"group"`, `"condition"`, `"trial"`). Each
+        subset will create a new entry in the results and the plot dictionary.
 
-            • ``"average"`` or ``"raw"``: the coherence is returned, averaged across subjects, trials or the whole
-              dataset, depending on the value for the parameter ``average``.
-            • ``"z-score"`` (default): z-scores are returned, calculated against an average of randomly permuted
-              arrays.
+    average : str|None, optional
+        Defines the level of averaging:
 
-    permutation_level : str
+            • ``"subject"``: average across subjects.
+            • ``"trial"``: average across trials.
+            • ``None``: no averaging; the full dataset is used.
+
+    lags: int|float|list(int|float)|None, optional
+        Defines one or more lags (in seconds) to apply to the target feature in the analysis. A lag can be positive or
+        negative. Provided lags are rounded to the closest timestamp value given the sampling rate (e.g., specifying
+        a lag of 0.11 for a sampling rate of 10 Hz will result in the lag being rounded to 0.1).
+
+    Result format
+    ~~~~~~~~~~~~~
+    .. rubric:: Parameters
+
+    result_type : str, optional
+        The type of the results computed and returned by the function. This parameter can be:
+
+            • ``"average"`` (alternatives: ``"raw"``, ``"avg"``, default): in that case, the values plotted and
+              returned will be the values computed during the analysis, averaged if ``"average"`` is set.
+            • ``"z-scores"` (alternatives: ``"z"``, ``"zscores"``, ``"z-score"``, ``"zscore"``, ``"zeta"``): in that
+              case, the values plotted will be the z-scores computed against the randomly permuted values. The
+              parameters ``permutation_method`` and ``number_of_randperms`` must be set. Note that the returned Result
+              instance will contain both the raw/average results and the z-scores.
+
+    permutation_method: str|None, optional
         This parameter determines how permutations are applied:
-            • `"whole"`: permutations are done on the pooled data.
-            • `"individual"`: permutations are done separately for each subject or trial.
-            • ``None``: no permutations are calculated. This value is not allowed if `return_values == "z-scores"`.
+
+            • `"value"`: the values of each time series are permuted, allowing to compare the signal against random
+              noise.
+            • `"label"`: permutations are done by randomly selecting values matching a label, to compare the labels
+              between each other.
+            • `"shift"`: permutations are done by shifting the time series values (rolling the last values to the
+              beginning), allowing to preserve the phase spectrum but without the temporal alignment.
+            • `"phase"`: permutations are done by randomizing each Fourier coefficient's phase, which keeps the
+              amplitude spectrum but destroys the phase relationships.
+            • ``None`` (default): no permutations are calculated. This value is not allowed if ``return_values ==
+              "z-scores"``.
 
     number_of_randperms: int, optional
-        How many random permutations to calculate. Only used if `permutation_level` is set to ``"whole"`` or
-        ``"individual"``. An average of the calculated random permutations is then calculated, in order to calculate
-        a Z-score for the coherence.
+        How many random permutations to calculate. Only used if `permutation_method` is set. An average of the
+        calculated random permutations is then calculated, in order to calculate a z-score.
 
-    sampling_frequency: int or float, optional
-        The sampling frequency of the sequence and audio measures, used to resample the data when generating the
-        dataframe, if the parameter `experiment_or_dataframe` is an Experiment instance, and to perform the coherence.
+    random_seed : int|None, optional
+        Fixes the seed for reproducible random permutations. Default: ``None``: the random permutations will change
+        on each execution.
 
-    specific_frequency: int or float, optional
-        If specified, the function will return the coherence values for the specified frequency alone, and will display
-        a silhouette plot instead of a body graph.
+    include_audio : bool, optional
+        If ``True``, includes audio signals in the set of labels to analyse.
 
-    freq_atol: float|int, optional
-        The absolute tolerance of the frequency set on ``specific_frequency`` (default: 1e-8). If set, the function
-        will look for the closest matching frequency in the range ``[specific_frequency - freq_atol,
-        specific_frequency + freq_atol]``.
+    Significance parameters
+    ~~~~~~~~~~~~~~~~~~~~~~~
+    .. rubric:: Parameters
 
-    step_segments: int or float, optional
-        Defines how large each frequency segment will be for the analysis. If set on 0.25 (default), the coherence
-        will be calculated at intervals of 0.25 Hz.
+    signif_style: list(str) | str | None, optional
+        The style of significance to show on the plot. This parameter can be one or more of the following:
 
-    include_audio: bool, optional
-        Whether to include the audio in the power spectrum calculation and plot. Default: `False`.
+            • ``"threshold"``: if ``result_type`` is equal to ``"z-scores"``, the plot will show horizontal lines
+              matching the significance threshold.
+            • ``"shade"``: if ``result_type`` is equal to ``"z-scores"``, the plot will show shades
+              matching the significance threshold.
+            • ``None`` (default): the significant values aren't shown.
 
-    random_seed: int, optional
-        Sets a fixed seed for the random number generator. Only used if ``permutation_level`` is set.
+    signif_alpha: float, optional
+        The alpha value for the significance (default: 0.05).
 
-    color_line: list or None, optional
-        A list containing the colors for the different variables of interest. If the number of colors is inferior to
-        the plotted series, the colors loop through the list.
+    signif_tail: str | int, optional
+        Whether the z-score test is one-tailed or two-tailed. This affects the significance threshold. Default: "1".
 
-    width_line: int or float, optional
-        Defines the width of the plotted lines (default: 1).
+    signif_direction: str, optional
+        The direction of the significance, if signif_tail is 1. By default, this value is set on ``"up"``, but it also
+        can be set on ``"down"``.
+
+    Other parameters
+    ~~~~~~~~~~~~~~~~
+    .. rubric:: Parameters
 
     verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
@@ -1137,30 +1101,587 @@ def coherence(experiment_or_dataframe, group=None, condition=None, subjects=None
           may clutter the output and slow down the execution.
 
     **kwargs: optional
-        Any parameter accepted by either :func:`plot_functions.plot_silhouette` or
+        Additional arguments passed to :func:`plot_functions.plot_silhouette` or
         :func:`plot_functions.plot_body_graphs`.
 
     Returns
     -------
-    np.ndarray(float)
-        A list of all the frequencies at which the coherence was computed.
-    dict(str: np.ndarray(float))
-        A dictionary containing joint labels as keys, and coherence averages (or raw coherence, if no average was
-        requested) as values.
-    dict(str: np.ndarray(float))
-        A dictionary containing the standard deviations matching the averages from the previous one. If no average was
-        requested, this dictionary will only contain zeros.
+    Results
+        A Results instance containing the correlation parameters and the results as attributes:
+
+            • ``averages`` contains the results of the correlation, averaged across the specified level of averaging.
+            • ``stds`` contains the standard deviations of the correlation.
+            • ``averages_perm`` contains the averages of the random permutations, if they were computed.
+            • ``stds`` contains the standard deviations of the random permutations.
+            • ``z_scores`` contains the z-scores of the correlation, if ``return_type`` was set on ``z-scores``.
+            • ``p_values`` contains the p-values of the correlation, if ``return_type`` was set on ``z-scores``.
+            • ``plot_dictionary`` contains the plot dictionary that can be directly passed to ``plot_silhouette`` or
+              ``plot_body_graphs``.
     """
 
-    return _common_analysis(experiment_or_dataframe=experiment_or_dataframe, analysis="coherence", method=None,
-                            group=group, condition=condition, subjects=subjects, trials=trials, series=series,
-                            average=average, return_values=return_values, permutation_level=permutation_level,
-                            number_of_randperms=number_of_randperms, sequence_measure=sequence_measure,
-                            audio_measure=audio_measure, target_feature=coherence_with,
-                            sampling_frequency=sampling_frequency, specific_frequency=specific_frequency,
-                            freq_atol=freq_atol, include_audio=include_audio, random_seed=random_seed,
-                            color_line=color_line, width_line=width_line, verbosity=verbosity,
-                            step_segments=step_segments, **kwargs)
+    return _common_analysis(experiment_or_dataframe=experiment_or_dataframe, analysis="correlation", method=method,
+                            sampling_rate=sampling_rate, groups=groups, conditions=conditions, subjects=subjects,
+                            trials=trials, sequence_measure=sequence_measure, audio_measure=audio_measure,
+                            target_measure=correlation_with, series=series, average=average, result_type=result_type,
+                            permutation_method=permutation_method, number_of_randperms=number_of_randperms,
+                            random_seed=random_seed, include_audio=include_audio, verbosity=verbosity, **kwargs)
+
+def coherence(experiment_or_dataframe, sampling_rate="auto", groups=None, conditions=None,
+              subjects=None, trials=None, sequence_measure="distance", audio_measure="envelope",
+              coherence_with="envelope", series=None, average=None, lags=None, result_type="z-scores",
+              permutation_method="value", number_of_randperms=1000, specific_frequency=None, freq_atol=1e-8,
+              freq_resolution_hz=0.25, include_audio=False, random_seed=None,
+              signif_style="threshold", signif_alpha=0.05, signif_tail="1", signif_direction="up",
+              color_line_series=None, color_line_perm=None, title=None, width_line=1, verbosity=1, **kwargs):
+    """Calculates and plots the coherence between measures.
+
+    ..versionadded:: 2.0
+
+    Parameters
+    ----------
+
+    General parameters
+    ~~~~~~~~~~~~~~~~~~
+    .. rubric:: Parameters
+
+    experiment_or_dataframe: Experiment, pandas.DataFrame, str or list(any)
+        The input data to analyse. This parameter can be:
+
+            • A :class:`Experiment` instance, containing the full dataset to be analysed.
+            • A `pandas DataFrame <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html>`_,
+              generally generated from :meth:`Experiment.get_dataframe()`.
+            • The path of a file containing a pandas DataFrame, generally generated from
+              :class:`Experiment.save_dataframe()`.
+            • A list combining any of the above types. In that case, all the dataframes will be merged sequentially.
+
+    sampling_rate : int|str|float, optional
+        Sampling rate of the signals. By default, this value is set on ``"auto"``: in that case, the sampling rate
+        is inferred from the dataframes. Otherwise, this value must be equal to the one of the dataframe or the
+        experiment object.
+
+    Dataframe filtering
+    ~~~~~~~~~~~~~~~~~~~
+    .. rubric:: Parameters
+
+    groups : list(str)|str|None, optional
+        Restricts the analysis to subjects with the specified groups. This parameter can be:
+
+            • A single group.
+            • A list of groups.
+            • ``None`` (default): the dataframe will not be filtered by group.
+
+    conditions : list(str)|str|None, optional
+        Restricts the analysis to trials with the specified conditions. This parameter can be:
+
+            • A single condition.
+            • A list of conditions.
+            • ``None`` (default): the dataframe will not be filtered by condition.
+
+    subjects : list(str)|str|None, optional
+        Restricts the analysis to the specified subjects. This parameter can be:
+
+            • A single subject.
+            • A list of subjects.
+            • ``None`` (default): all subjects will be considered.
+
+    trials : dict(str: list(str))|list(str)|str|None, optional
+        Restricts the analysis to the specified trials. This parameter can be:
+
+            • A single trial.
+            • A list of trials.
+            • A dictionary mapping subjects or groups to a list of trials.
+            • ``None`` (default): all trials will be considered.
+
+    Targets
+    ~~~~~~~
+    .. rubric:: Parameters
+
+    sequence_measure : list(str)|str, optional
+        The sequence measure(s) from the mocap modalities to include in the analysis (e.g., ``"velocity"``,
+        ``"acceleration"``). If experiment_or_dataframe is or contains a dataframe, the specified measures must appear
+        in its measure column. When provided as a list, each sequence measure is paired with each audio_measure to
+        generate separate entries in both the results and the plot dictionary. By default, the value of this parameter
+        is ``"auto"``: the function will automatically detect the values in the column ``measure`` when the value in
+        the column ``modality`` is ``"mocap"``. This parameter can also take the following values:
+
+            • For the x-coordinate: ``"x"``, ``"x_coord"``, ``"coord_x"``, or ``"x_coordinate"``.
+            • For the y-coordinate: ``"y"``, ``"y_coord"``, ``"coord_y"``, or ``"y_coordinate"``.
+            • For the z-coordinate: ``"z"``, ``"z_coord"``, ``"coord_z"``, or ``"z_coordinate"``.
+            • For all the coordinates: ``"xyz"``, ``"coordinates"``, ``"coord"``, ``"coords"``, or ``"coordinate"``.
+            • For the consecutive distances: ``"d"``, ``"distances"``, ``"dist"``, ``"distance"``,  or ``0``.
+            • For the consecutive distances on the x-axis: ``"dx"``, ``"distance_x"``, ``"x_distance"``, ``"dist_x"``,
+              or ``"x_dist"``.
+            • For the consecutive distances on the y-axis: ``"dy"``, ``"distance_y"``, ``"y_distance"``, ``"dist_y"``,
+              or ``"y_dist"``.
+            • For the consecutive distances on the z-axis: ``"dz"``, ``"distance_z"``, ``"z_distance"``, ``"dist_z"``,
+              or ``"z_dist"``.
+            • For the velocity: ``"v"``, ``"vel"``, ``"velocity"``, ``"velocities"``, ``"speed"``, or ``1``.
+            • For the acceleration: ``"a"``, ``"acc"``, ``"acceleration"``, ``"accelerations"``, or ``2``.
+            • For the jerk: ``"j"``, ``"jerk"``, or ``3``.
+            • For the snap: ``"s"``, ``"snap"``, ``"joust"`` or ``4``.
+            • For the crackle: ``"c"``, ``"crackle"``, or ``5``.
+            • For the pop: ``"p"``, ``"pop"``, or ``6``.
+
+    audio_measure : list(str)|str, optional
+        The audio measure(s) from the audio modality to include in the analysis (e.g., "envelope", "pitch"). If
+        experiment_or_dataframe is or contains a dataframe, the specified measures must appear in its measure column.
+        When provided as a list, each sequence measure is paired with each sequence_measure to generate separate
+        entries in both the results and the plot dictionary. By default, the value of this parameter is ``"auto"``:
+        the function will automatically detect the values in the column ``measure`` when the value in
+        the column ``modality`` is ``"audio"``. The parameter can also be set on ``None`` if your Experiment does not
+        have AudioDerivatives, or if you wish to ignore them. This parameter can also take the following values:
+
+            • ``"audio"``, for the original sample values.
+            • ``"envelope"``.
+            • ``"pitch"``.
+            • ``"f1"``, ``"f2"``, ``"f3"``, ``"f4"``, ``"f5"`` for the values of the corresponding formant.
+            • ``"intensity"``.
+
+    coherence_with : str|tuple, optional
+        The reference signal or label to calculate the correlation against. This value can be:
+
+            • A joint label (if only one `sequence_measure` is specified)
+            • A tuple containing a sequence measure and a joint label
+            • An audio measure
+            • A list containing any of the above types.
+
+    series : str|None, optional
+        A column name from the dataframe to split data into subsets (e.g., `"group"`, `"condition"`, `"trial"`). Each
+        subset will create a new entry in the results and the plot dictionary.
+
+    average : str|None, optional
+        Defines the level of averaging:
+
+            • ``"subject"``: average across subjects.
+            • ``"trial"``: average across trials.
+            • ``None``: no averaging; the full dataset is used.
+
+    lags: int|float|list(int|float)|None, optional
+        Defines one or more lags (in seconds) to apply to the target feature in the analysis. A lag can be positive or
+        negative. Provided lags are rounded to the closest timestamp value given the sampling rate (e.g., specifying
+        a lag of 0.11 for a sampling rate of 10 Hz will result in the lag being rounded to 0.1).
+
+    Result format
+    ~~~~~~~~~~~~~
+    .. rubric:: Parameters
+
+    result_type : str, optional
+        The type of the results computed and returned by the function. This parameter can be:
+
+            • ``"average"`` (alternatives: ``"raw"``, ``"avg"``, default): in that case, the values plotted and
+              returned will be the values computed during the analysis, averaged if ``"average"`` is set.
+            • ``"z-scores"` (alternatives: ``"z"``, ``"zscores"``, ``"z-score"``, ``"zscore"``, ``"zeta"``): in that
+              case, the values plotted will be the z-scores computed against the randomly permuted values. The
+              parameters ``permutation_method`` and ``number_of_randperms`` must be set. Note that the returned Result
+              instance will contain both the raw/average results and the z-scores.
+
+    permutation_method: str|None, optional
+        This parameter determines how permutations are applied:
+
+            • `"value"`: the values of each time series are permuted, allowing to compare the signal against random
+              noise.
+            • `"label"`: permutations are done by randomly selecting values matching a label, to compare the labels
+              between each other.
+            • `"shift"`: permutations are done by shifting the time series values (rolling the last values to the
+              beginning), allowing to preserve the phase spectrum but without the temporal alignment.
+            • `"phase"`: permutations are done by randomizing each Fourier coefficient's phase, which keeps the
+              amplitude spectrum but destroys the phase relationships.
+            • ``None`` (default): no permutations are calculated. This value is not allowed if ``return_values ==
+              "z-scores"``.
+
+    number_of_randperms: int, optional
+        How many random permutations to calculate. Only used if `permutation_method` is set. An average of the
+        calculated random permutations is then calculated, in order to calculate a z-score.
+
+    random_seed : int|None, optional
+        Fixes the seed for reproducible random permutations. Default: ``None``: the random permutations will change
+        on each execution.
+
+    specific_frequency : float|list(float)|None, optional
+        Frequency (or list of frequencies) to extract from the result. If set, silhouette plots are generated. This
+        parameter is ignored if ``analysis == "correlation"``.
+
+    freq_atol : float|int, optional
+        Absolute tolerance for matching the specific frequency (default: 0.1).
+
+    freq_resolution_hz: int or float, optional
+        Defines how large each frequency segment will be for the analysis. If set on 0.25 (default), the coherence
+        will be calculated at intervals of 0.25 Hz.
+
+    include_audio : bool, optional
+        If ``True``, includes audio signals in the set of labels to analyse.
+
+    Significance parameters
+    ~~~~~~~~~~~~~~~~~~~~~~~
+    .. rubric:: Parameters
+
+    signif_style: list(str) | str | None, optional
+        The style of significance to show on the plot. This parameter can be one or more of the following:
+
+            • ``"threshold"``: if ``result_type`` is equal to ``"z-scores"``, the plot will show horizontal lines
+              matching the significance threshold.
+            • ``"shade"``: if ``result_type`` is equal to ``"z-scores"``, the plot will show shades
+              matching the significance threshold.
+            • ``None`` (default): the significant values aren't shown.
+
+    signif_alpha: float, optional
+        The alpha value for the significance (default: 0.05).
+
+    signif_tail: str | int, optional
+        Whether the z-score test is one-tailed or two-tailed. This affects the significance threshold. Default: "1".
+
+    signif_direction: str, optional
+        The direction of the significance, if signif_tail is 1. By default, this value is set on ``"up"``, but it also
+        can be set on ``"down"``.
+
+    Plot parameters
+    ~~~~~~~~~~~~~~~
+    .. rubric:: Parameters
+
+    color_line_series : list|str|None, optional
+        Color(s) to use when plotting time-frequency graphs. If this parameter is a list, a color will be
+        attributed to each series. If this parameter is a string, the same color is attributed to all series. Each
+        color can take a number of forms:
+
+            • The `HTML/CSS name of a color <https://en.wikipedia.org/wiki/X11_color_names>`_ (e.g. ``"red"`` or
+              ``"blanched almond"``),
+            • The hexadecimal code of a color, starting with a number sign (``#``, e.g. ``"#ffcc00"`` or ``"#c0ffee"``).
+            • The RGB or RGBA tuple of a color (e.g. ``(153, 204, 0)`` or ``(77, 77, 77, 255)``).
+
+    color_line_perm: list|str|None, optional
+        Color to use for the permutations when plotting time-frequency graphs. If this parameter is a list, a color
+        will be attributed to each series. If this parameter is a string, the same color is attributed to all series.
+
+    title: str|None, optional
+        If set, the title of the plot. Otherwise, an automatic title will be generated.
+
+    width_line : int|float
+        Width of plotted lines.
+
+    Other parameters
+    ~~~~~~~~~~~~~~~~
+    .. rubric:: Parameters
+
+    verbosity: int, optional
+        Sets how much feedback the code will provide in the console output:
+
+        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+          current steps.
+        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+          may clutter the output and slow down the execution.
+
+    **kwargs: optional
+        Additional arguments passed to :func:`plot_functions.plot_silhouette` or
+        :func:`plot_functions.plot_body_graphs`.
+
+    Returns
+    -------
+    Results
+        A Results instance containing the analysis parameters and the results as attributes:
+
+            • ``frequencies`` contains the frequencies corresponding to the results, if the analysis is in the
+               frequency domain.
+            • ``averages`` contains the results of the analysis, averaged across the specified level of averaging.
+            • ``stds`` contains the standard deviations of the results.
+            • ``averages_perm`` contains the averages of the random permutations, if they were computed.
+            • ``stds`` contains the standard deviations of the random permutations.
+            • ``z_scores`` contains the z-scores of the analysis, if ``return_type`` was set on ``z-scores``.
+            • ``p_values`` contains the p-values of the analysis, if ``return_type`` was set on ``z-scores``.
+            • ``plot_dictionary`` contains the plot dictionary that can be directly passed to ``plot_silhouette`` or
+              ``plot_body_graphs``.
+    """
+
+    return _common_analysis(experiment_or_dataframe=experiment_or_dataframe, analysis="coherence",
+                            sampling_rate=sampling_rate, groups=groups, conditions=conditions, subjects=subjects,
+                            trials=trials, sequence_measure=sequence_measure, audio_measure=audio_measure,
+                            target_measure=coherence_with, series=series, average=average, result_type=result_type,
+                            permutation_method=permutation_method, number_of_randperms=number_of_randperms,
+                            specific_frequency=specific_frequency, freq_atol=freq_atol, freq_resolution_hz=freq_resolution_hz,
+                            include_audio=include_audio, random_seed=random_seed, signif_style=signif_style,
+                            signif_alpha=signif_alpha, signif_tail=signif_tail, signif_direction=signif_direction,
+                            color_line_series=color_line_series, color_line_perm=color_line_perm, title=title,
+                            width_line=width_line, verbosity=verbosity, **kwargs)
+
+def mutual_information(experiment_or_dataframe, sampling_rate="auto", groups=None, conditions=None, subjects=None,
+                       trials=None, sequence_measure="distance", audio_measure="envelope", regression_with="envelope",
+                       series=None, average=None, lags=None, result_type="z-scores", permutation_method="value",
+                       number_of_randperms=1000, scale="standard", n_neighbors=3, direction="target",
+                       include_audio=False, random_seed=None, signif_style="threshold", signif_alpha=0.05,
+                       signif_tail="1", signif_direction="up", color_line_series=None, color_line_perm=None, title=None,
+                       width_line=1, verbosity=1, **kwargs):
+    """Calculates and plots the mutual information between measures.
+
+    ..versionadded:: 2.0
+
+    Parameters
+    ----------
+
+    General parameters
+    ~~~~~~~~~~~~~~~~~~
+    .. rubric:: Parameters
+
+    experiment_or_dataframe: Experiment, pandas.DataFrame, str or list(any)
+        The input data to analyse. This parameter can be:
+
+            • A :class:`Experiment` instance, containing the full dataset to be analysed.
+            • A `pandas DataFrame <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html>`_,
+              generally generated from :meth:`Experiment.get_dataframe()`.
+            • The path of a file containing a pandas DataFrame, generally generated from
+              :class:`Experiment.save_dataframe()`.
+            • A list combining any of the above types. In that case, all the dataframes will be merged sequentially.
+
+    sampling_rate : int|str|float, optional
+        Sampling rate of the signals. By default, this value is set on ``"auto"``: in that case, the sampling rate
+        is inferred from the dataframes. Otherwise, this value must be equal to the one of the dataframe or the
+        experiment object.
+
+    Dataframe filtering
+    ~~~~~~~~~~~~~~~~~~~
+    .. rubric:: Parameters
+
+    groups : list(str)|str|None, optional
+        Restricts the analysis to subjects with the specified groups. This parameter can be:
+
+            • A single group.
+            • A list of groups.
+            • ``None`` (default): the dataframe will not be filtered by group.
+
+    conditions : list(str)|str|None, optional
+        Restricts the analysis to trials with the specified conditions. This parameter can be:
+
+            • A single condition.
+            • A list of conditions.
+            • ``None`` (default): the dataframe will not be filtered by condition.
+
+    subjects : list(str)|str|None, optional
+        Restricts the analysis to the specified subjects. This parameter can be:
+
+            • A single subject.
+            • A list of subjects.
+            • ``None`` (default): all subjects will be considered.
+
+    trials : dict(str: list(str))|list(str)|str|None, optional
+        Restricts the analysis to the specified trials. This parameter can be:
+
+            • A single trial.
+            • A list of trials.
+            • A dictionary mapping subjects or groups to a list of trials.
+            • ``None`` (default): all trials will be considered.
+
+    Targets
+    ~~~~~~~
+    .. rubric:: Parameters
+
+    sequence_measure : list(str)|str, optional
+        The sequence measure(s) from the mocap modalities to include in the analysis (e.g., ``"velocity"``,
+        ``"acceleration"``). If experiment_or_dataframe is or contains a dataframe, the specified measures must appear
+        in its measure column. When provided as a list, each sequence measure is paired with each audio_measure to
+        generate separate entries in both the results and the plot dictionary. By default, the value of this parameter
+        is ``"auto"``: the function will automatically detect the values in the column ``measure`` when the value in
+        the column ``modality`` is ``"mocap"``. This parameter can also take the following values:
+
+            • For the x-coordinate: ``"x"``, ``"x_coord"``, ``"coord_x"``, or ``"x_coordinate"``.
+            • For the y-coordinate: ``"y"``, ``"y_coord"``, ``"coord_y"``, or ``"y_coordinate"``.
+            • For the z-coordinate: ``"z"``, ``"z_coord"``, ``"coord_z"``, or ``"z_coordinate"``.
+            • For all the coordinates: ``"xyz"``, ``"coordinates"``, ``"coord"``, ``"coords"``, or ``"coordinate"``.
+            • For the consecutive distances: ``"d"``, ``"distances"``, ``"dist"``, ``"distance"``,  or ``0``.
+            • For the consecutive distances on the x-axis: ``"dx"``, ``"distance_x"``, ``"x_distance"``, ``"dist_x"``,
+              or ``"x_dist"``.
+            • For the consecutive distances on the y-axis: ``"dy"``, ``"distance_y"``, ``"y_distance"``, ``"dist_y"``,
+              or ``"y_dist"``.
+            • For the consecutive distances on the z-axis: ``"dz"``, ``"distance_z"``, ``"z_distance"``, ``"dist_z"``,
+              or ``"z_dist"``.
+            • For the velocity: ``"v"``, ``"vel"``, ``"velocity"``, ``"velocities"``, ``"speed"``, or ``1``.
+            • For the acceleration: ``"a"``, ``"acc"``, ``"acceleration"``, ``"accelerations"``, or ``2``.
+            • For the jerk: ``"j"``, ``"jerk"``, or ``3``.
+            • For the snap: ``"s"``, ``"snap"``, ``"joust"`` or ``4``.
+            • For the crackle: ``"c"``, ``"crackle"``, or ``5``.
+            • For the pop: ``"p"``, ``"pop"``, or ``6``.
+
+    audio_measure : list(str)|str, optional
+        The audio measure(s) from the audio modality to include in the analysis (e.g., "envelope", "pitch"). If
+        experiment_or_dataframe is or contains a dataframe, the specified measures must appear in its measure column.
+        When provided as a list, each sequence measure is paired with each sequence_measure to generate separate
+        entries in both the results and the plot dictionary. By default, the value of this parameter is ``"auto"``:
+        the function will automatically detect the values in the column ``measure`` when the value in
+        the column ``modality`` is ``"audio"``. The parameter can also be set on ``None`` if your Experiment does not
+        have AudioDerivatives, or if you wish to ignore them. This parameter can also take the following values:
+
+            • ``"audio"``, for the original sample values.
+            • ``"envelope"``.
+            • ``"pitch"``.
+            • ``"f1"``, ``"f2"``, ``"f3"``, ``"f4"``, ``"f5"`` for the values of the corresponding formant.
+            • ``"intensity"``.
+
+    regression_with : str|tuple, optional
+        The target signal or label to calculate the mutual information with the predictors. This value can be:
+
+            • A joint label (if only one `sequence_measure` is specified)
+            • A tuple containing a sequence measure and a joint label
+            • An audio measure
+            • A list containing any of the above types.
+
+    series : str|None, optional
+        A column name from the dataframe to split data into subsets (e.g., `"group"`, `"condition"`, `"trial"`). Each
+        subset will create a new entry in the results and the plot dictionary.
+
+    average : str|None, optional
+        Defines the level of averaging:
+
+            • ``"subject"``: average across subjects.
+            • ``"trial"``: average across trials.
+            • ``None``: no averaging; the full dataset is used.
+
+    lags: int|float|list(int|float)|None, optional
+        Defines one or more lags (in seconds) to apply to the target feature in the analysis. A lag can be positive or
+        negative. Provided lags are rounded to the closest timestamp value given the sampling rate (e.g., specifying
+        a lag of 0.11 for a sampling rate of 10 Hz will result in the lag being rounded to 0.1).
+
+    Result format
+    ~~~~~~~~~~~~~
+    .. rubric:: Parameters
+
+    result_type : str, optional
+        The type of the results computed and returned by the function. This parameter can be:
+
+            • ``"average"`` (alternatives: ``"raw"``, ``"avg"``, default): in that case, the values plotted and
+              returned will be the values computed during the analysis, averaged if ``"average"`` is set.
+            • ``"z-scores"` (alternatives: ``"z"``, ``"zscores"``, ``"z-score"``, ``"zscore"``, ``"zeta"``): in that
+              case, the values plotted will be the z-scores computed against the randomly permuted values. The
+              parameters ``permutation_method`` and ``number_of_randperms`` must be set. Note that the returned Result
+              instance will contain both the raw/average results and the z-scores.
+
+    permutation_method: str|None, optional
+        This parameter determines how permutations are applied:
+
+            • `"value"`: the values of each time series are permuted, allowing to compare the signal against random
+              noise.
+            • `"label"`: permutations are done by randomly selecting values matching a label, to compare the labels
+              between each other.
+            • `"shift"`: permutations are done by shifting the time series values (rolling the last values to the
+              beginning), allowing to preserve the phase spectrum but without the temporal alignment.
+            • `"phase"`: permutations are done by randomizing each Fourier coefficient's phase, which keeps the
+              amplitude spectrum but destroys the phase relationships.
+            • ``None`` (default): no permutations are calculated. This value is not allowed if ``return_values ==
+              "z-scores"``.
+
+    number_of_randperms: int, optional
+        How many random permutations to calculate. Only used if `permutation_method` is set. An average of the
+        calculated random permutations is then calculated, in order to calculate a z-score.
+
+    n_neighbors: int, optional
+        Number of neighbors to use for mutual information estimation. This parameter is directly passed to
+        `sklearn <https://scikit-learn.org/1.5/modules/generated/sklearn.feature_selection.mutual_info_regression.html>`_.
+
+    scale: str | None, optional
+        The scale to apply to the data before estimating the distances, or None. This value can be:
+            • `"standard"`: the values are scaled using `StandardScaler <https://sklearn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html>`_
+            • `"minmax"`:  the values are scaled using `MinMaxScaler <https://sklearn.org/stable/modules/generated/sklearn.preprocessing.MinMaxScaler.html>`_
+            • ``None``: the values are not scaled.
+
+    direction: str, optional
+        How to consider the target variable ``regression_with`` in the calculation:
+            • `"target"`: all the other variables are considered as predictors
+            • `"predictor"`: all the other variables are considered as targets
+            • ``symmetric``: the average of the two previous calculations is returned.
+
+    random_seed : int|None, optional
+        Fixes the seed for reproducible random permutations. Default: ``None``: the random permutations will change
+        on each execution.
+
+    include_audio : bool, optional
+        If ``True``, includes audio signals in the set of labels to analyse.
+
+    Significance parameters
+    ~~~~~~~~~~~~~~~~~~~~~~~
+    .. rubric:: Parameters
+
+    signif_style: list(str) | str | None, optional
+        The style of significance to show on the plot. This parameter can be one or more of the following:
+
+            • ``"threshold"``: if ``result_type`` is equal to ``"z-scores"``, the plot will show horizontal lines
+              matching the significance threshold.
+            • ``"shade"``: if ``result_type`` is equal to ``"z-scores"``, the plot will show shades
+              matching the significance threshold.
+            • ``None`` (default): the significant values aren't shown.
+
+    signif_alpha: float, optional
+        The alpha value for the significance (default: 0.05).
+
+    signif_tail: str | int, optional
+        Whether the z-score test is one-tailed or two-tailed. This affects the significance threshold. Default: "1".
+
+    signif_direction: str, optional
+        The direction of the significance, if signif_tail is 1. By default, this value is set on ``"up"``, but it also
+        can be set on ``"down"``.
+
+    Plot parameters
+    ~~~~~~~~~~~~~~~
+    .. rubric:: Parameters
+
+    color_line_series : list|str|None, optional
+        Color(s) to use when plotting time-frequency graphs. If this parameter is a list, a color will be
+        attributed to each series. If this parameter is a string, the same color is attributed to all series. Each
+        color can take a number of forms:
+
+            • The `HTML/CSS name of a color <https://en.wikipedia.org/wiki/X11_color_names>`_ (e.g. ``"red"`` or
+              ``"blanched almond"``),
+            • The hexadecimal code of a color, starting with a number sign (``#``, e.g. ``"#ffcc00"`` or ``"#c0ffee"``).
+            • The RGB or RGBA tuple of a color (e.g. ``(153, 204, 0)`` or ``(77, 77, 77, 255)``).
+
+    color_line_perm: list|str|None, optional
+        Color to use for the permutations when plotting time-frequency graphs. If this parameter is a list, a color
+        will be attributed to each series. If this parameter is a string, the same color is attributed to all series.
+
+    title: str|None, optional
+        If set, the title of the plot. Otherwise, an automatic title will be generated.
+
+    width_line : int|float
+        Width of plotted lines.
+
+    Other parameters
+    ~~~~~~~~~~~~~~~~
+    .. rubric:: Parameters
+
+    verbosity: int, optional
+        Sets how much feedback the code will provide in the console output:
+
+        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+          current steps.
+        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+          may clutter the output and slow down the execution.
+
+    **kwargs: optional
+        Additional arguments passed to :func:`plot_functions.plot_silhouette` or
+        :func:`plot_functions.plot_body_graphs`.
+
+    Returns
+    -------
+    Results
+        A Results instance containing the analysis parameters and the results as attributes:
+
+            • ``frequencies`` contains the frequencies corresponding to the results, if the analysis is in the
+               frequency domain.
+            • ``averages`` contains the results of the analysis, averaged across the specified level of averaging.
+            • ``stds`` contains the standard deviations of the results.
+            • ``averages_perm`` contains the averages of the random permutations, if they were computed.
+            • ``stds`` contains the standard deviations of the random permutations.
+            • ``z_scores`` contains the z-scores of the analysis, if ``return_type`` was set on ``z-scores``.
+            • ``p_values`` contains the p-values of the analysis, if ``return_type`` was set on ``z-scores``.
+            • ``plot_dictionary`` contains the plot dictionary that can be directly passed to ``plot_silhouette`` or
+              ``plot_body_graphs``.
+    """
+    return _common_analysis(experiment_or_dataframe=experiment_or_dataframe, analysis="mutual information",
+                            sampling_rate=sampling_rate, groups=groups, conditions=conditions, subjects=subjects,
+                            trials=trials, sequence_measure=sequence_measure, audio_measure=audio_measure,
+                            target_measure=regression_with, series=series, average=average, result_type=result_type,
+                            permutation_method=permutation_method, number_of_randperms=number_of_randperms,
+                            n_neighbors=n_neighbors, mi_scale=scale, mi_direction=direction,
+                            include_audio=include_audio, random_seed=random_seed, color_line_series=color_line_series,
+                            color_line_perm=color_line_perm, title=title, width_line=width_line, verbosity=verbosity,
+                            **kwargs)
 
 
 def pca(experiment_or_dataframe, n_components, group=None, condition=None, subjects=None, trials=None,
@@ -1310,7 +1831,7 @@ def pca(experiment_or_dataframe, n_components, group=None, condition=None, subje
     if verbosity > 0:
         print("Preparing the dataframe...")
     dataframe = _make_dataframe(experiment_or_dataframe, sequence_measure, audio_measure, sampling_frequency)
-    dataframe = _get_dataframe_from_requirements(dataframe, group, condition, subjects, trials)
+    dataframe = _filter_dataframe(dataframe, group, condition, subjects, trials)
     if verbosity > 0:
         print("Done.")
 
@@ -1507,7 +2028,7 @@ def ica(experiment_or_dataframe, n_components, group=None, condition=None, subje
     if verbosity > 0:
         print("Preparing the dataframe...")
     dataframe = _make_dataframe(experiment_or_dataframe, sequence_measure, audio_measure, sampling_frequency)
-    dataframe = _get_dataframe_from_requirements(dataframe, group, condition, subjects, trials)
+    dataframe = _filter_dataframe(dataframe, group, condition, subjects, trials)
     if verbosity > 0:
         print("Done.")
 
@@ -1559,350 +2080,35 @@ def ica(experiment_or_dataframe, n_components, group=None, condition=None, subje
     return ica_result
 
 
-def mutual_information(experiment_or_dataframe, group=None, condition=None, subjects=None, trials=None,
-                       series=None, average="subject", include_randperm="whole", sequence_measure="distance",
-                       regression_with="envelope", sampling_frequency=50, nan_behaviour="ignore", verbosity=1,
-                       **kwargs):
-    """Performs a mutual information regression between the sequence measure and the audio. Relies on
-    `scikit <https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.mutual_info_regression.html>`__.
+def _prepare_dataframe(params):
+    """Prepares the dataframe by creating it if necessary, and filtering it.
 
-    ..versionadded:: 2.0
-
-    Parameters
-    ----------
-    experiment_or_dataframe: Experiment, pandas.DataFrame, str or list(any).
-        This parameter can be:
-
-        • A :class:`Experiment` instance, containing the full dataset to be analyzed.
-        • A `pandas DataFrame <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html>`_,
-          generally generated from :meth:`Experiment.get_dataframe()`.
-        • The path of a file containing a pandas DataFrame, generally generated from
-          :class:`Experiment.save_dataframe()`.
-        • A list combining any of the above types. In that case, all the dataframes will be merged sequentially.
-
-    group: str or None
-        If specified, the analysis will discard the trials whose
-        :attr:`~krajjat.classes.subject.Subject.group` attribute does not match the value provided for this parameter.
-        Otherwise, if this parameter is set on `None` (default), subjects from all groups will be considered.
-
-    condition: str or None
-        If specified, the analysis will discard the trials whose
-        :attr:`~krajjat.classes.trial.Trial.condition` attribute does not match the value provided for this parameter.
-        Otherwise, if this parameter is set on `None` (default), all trials will be considered.
-
-    subjects: list(str), str or None
-        If specified, the analysis will discard the subjects whose
-        :attr:`~krajjat.classes.subject.Subject.name` attribute does not match the value(s) provided for this parameter.
-        This parameter can be a string (for one subject), or a list of strings (for multiple subjects).
-        Otherwise, if this parameter is set on `None`, all subjects will be considered. This parameter can be combined
-        with the parameter ``group`` (default), to perform the analysis on certain subjects from a certain group.
-
-    trials: dict(str: list(str)), list(str), str or None
-        If specified, the analysis will discard the trials whose
-        :attr:`~krajjat.classes.trial.Trial.name` attribute does not match the value(s) provided for this parameter.
-        This parameter can be:
-
-            • A dictionary where each key is a subject name, and each value is a list containing trial names. This
-              allows discarding or select specific trials for individual subjects.
-            • A list where each element is a trial name. This will select only the trials matching the given name,
-              for each subject.
-            • The name of a single trial. This will select the given trial for all subjects.
-            • `None` (default). In that case, all trials will be considered.
-
-        This parameter can be combined with the other parameters to select specific subjects or conditions.
-
-        ..note ::
-            In the case where at least two of the parameters `group`, `condition`, `subjects` or `trials` are set,
-            the selected trials will be the ones that match all the selected categories. For example, if `subjects`
-            is set on `["sub_001", "sub_002", "sub_003"]` and `trials` is set on `{"sub_001": ["trial_001",
-            "trial_002"], "sub_004": ["trial_001"]}`, the analysis will run on the trials that intersect both
-            requirements, i.e., trials 1 and 2 for subject 1. Trials from subjects 2, 3 and 4 will be discarded.
-
-    series: str, optional
-        Defines the series that divide the data for comparison. This value can take any of the column names from the
-        dataframe (apart from the values indicated in sequence_measure and audio_measure). For instance, if `group` is
-        selected, the correlation will be calculated and plotted for each individual group of the dataframe.
-
-    average: str or None, optional
-        Defines if an average regression is returned. This parameter can be:
-            • ``"subject"``: the regression is calculated for each subject and averaged across all subjects.
-            • ``"trial"``: the regression is calculated for each trial and averaged across all trials.
-            • ``None``: the regression is calculated for the whole dataset.
-
-    include_randperm: bool or str, optional
-        Defines if to include the calculation of the regression for the randomly permuted data. This parameter can be:
-            • ``False``: in that case, no regression on a random permutation of the data will be calculated.
-            • ``"whole"``: calculates a random permutation on the whole data.
-            • ``"individual"``: calculates a random permutation for each series.
-
-    sequence_measure: str, optional
-        The measure used for each sequence instance, can be either:
-
-            • ``"x"``, for the values on the x-axis (in meters)
-            • ``"y"``, for the values on the y-axis (in meters)
-            • ``"z"``, for the values on the z axis (in meters)
-            • ``"distance_hands"``, for the distance between the hands (in meters)
-            • ``"distance"``, for the distance travelled (in meters, default)
-            • ``"distance_x"`` for the distance travelled on the x-axis (in meters)
-            • ``"distance_y"`` for the distance travelled on the y-axis (in meters)
-            • ``"distance_z"`` for the distance travelled on the z axis (in meters)
-            • ``"velocity"`` for the velocity (in meters per second)
-            • ``"acceleration"`` for the acceleration (in meters per second squared)
-            • ``"acceleration_abs"`` for the absolute acceleration (in meters per second squared)
-
-        .. note::
-            This parameter will be used to generate a dataframe if the parameter `experiment_or_dataframe` is an
-            Experiment instance. In any other case, this parameter **has to be equal** to the title of the column
-            containing the sequence data in the dataframe.
-
-    regression_with: str, optional
-        The measure used for the coherence. It can be either a joint label (in that case, the coherence uses the
-        sequence measure of that joint), or an audio measure, among:
-
-            • ``"audio"``, for the original sample values.
-            • ``"envelope"`` (default)
-            • ``"pitch"``
-            • ``"f1"``, ``"f2"``, ``"f3"``, ``"f4"``, ``"f5"`` for the values of the corresponding formant.
-            • ``"intensity"``
-
-        .. note::
-            In the case where the value is an audio value, this parameter will be used to generate a dataframe if the
-            parameter `experiment_or_dataframe` is an Experiment instance.
-
-    sampling_frequency: int or float, optional
-        The sampling frequency of the sequence and audio measures, use to resample the data when generating the
-        dataframe, if the parameter `experiment_or_dataframe` is an Experiment instance (otherwise, the parameter
-        `sampling_frequency` is unused).
-
-    nan_behaviour: str
-        If `"ignore"` (default), the labels containing values equal to numpy.NaN will be removed from the ICA. If
-        `"zero"`, all the numpy.NaN will be turned to zero.
-
-    verbosity: int, optional
-        Sets how much feedback the code will provide in the console output:
-
-        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
-        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
-          current steps.
-        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
-          may clutter the output and slow down the execution.
+    .. versionadded:: 2.0
     """
-
-    try:
-        from sklearn.feature_selection import mutual_info_regression
-    except ImportError:
-        raise ModuleNotFoundException("sklearn", "perform a mutual information regression")
-
-    try:
-        import pandas as pd
-    except ImportError:
-        raise ModuleNotFoundException("pandas", "perform a mutual information regression")
-
-    # Get the full dataframe
-    if verbosity > 0:
+    if params.verbosity > 0:
         print("Preparing the dataframe...")
+    dataframe = _make_dataframe(params.experiment_or_dataframe, params.sequence_measure, params.audio_measure,
+                                params.sampling_rate, params.verbosity, 1)
+    dataframe = _filter_dataframe(dataframe, params.groups, params.conditions, params.subjects,
+                                  params.trials, params.verbosity, 1)
+    if dataframe.empty:
+        raise ValueError("The provided dataframe is empty, or the dataframe after applying the required filters ("
+                         "group, condition, subjects, trials) is empty. Please check your input parameters.")
+    if params.verbosity > 0:
+        print("Dataframe ready.")
 
-    dataframe = _make_dataframe(experiment_or_dataframe, sequence_measure, regression_with, sampling_frequency,
-                                verbosity)
-    dataframe = _get_dataframe_from_requirements(dataframe, group, condition, subjects, trials)
+    # Showing the first and last 10 rows of the dataframe
+    if params.verbosity > 1:
+        print("\nShowing the first few rows of the dataframe...")
+        print(dataframe.head(10))
+        print("\nShowing the last few rows of the dataframe...")
+        print(dataframe.tail(10))
 
-    if verbosity > 0:
-        print("Done.")
-
-    # Get the series of interest
-    if series is not None:
-        series_values = list(dataframe[series].unique())
-    else:
-        series_values = ["Full dataset"]
-
-    # Get if to calculate the random permutation
-    if include_randperm == "whole":
-        series_values.append("Full dataset (randomly permuted)")
-    elif include_randperm == "individual":
-        for s in range(len(series_values)):
-            series_values.append(series_values[s] + "(randomly permuted)")
-
-    # Get the subjects/trials
-    if average == "subject":
-        if type(subjects) == str:
-            individuals = [subjects]
-        elif subjects is None:
-            individuals = dataframe["subject"].unique()
-        else:
-            individuals = subjects
-    elif average == "trial":
-        if type(trials) == str:
-            individuals = [trials]
-        elif subjects is None:
-            individuals = dataframe["trial"].unique()
-        else:
-            individuals = trials
-    else:
-        individuals = ["All"]
-
-    plot_dictionary = {}
-
-    # Get the unique joint labels
-    joint_labels = dataframe.loc[dataframe["modality"] == "mocap"]["label"].unique()
-
-    regression_values = {}
-
-    if verbosity > 1:
-        print("Calculating the regression...")
-
-    for series_value in series_values:
-
-        # We get the corresponding dataframe
-        value = series_value
-        if series_value.endswith(" (randomly permuted)"):
-            value = series_value.replace(" (randomly permuted)", "")
-
-        if value == "Full dataset":
-            dataframe_series_value = dataframe
-        else:
-            dataframe_series_value = dataframe.loc[dataframe[series] == value]
-
-        if verbosity > 1:
-            print("\t" + series_value)
-
-        regression_values_series = {}
-
-        # For each subject/trial
-        for individual in individuals:
-            if individual == "All":
-                dataframe_individual = dataframe_series_value
-            else:
-                dataframe_individual = dataframe_series_value.loc[dataframe_series_value[average] == individual]
-
-            if verbosity > 1:
-                print("\t\t" + individual)
-
-            data_matrix = {}
-            regression_values_ind = {}
-            values_to_correlate_joints = {}
-
-            joint_labels = dataframe.loc[dataframe["modality"] == "mocap"]["label"].unique()
-            ignored = []
-            i = 0
-
-            for joint_label in joint_labels:
-
-                if verbosity > 1:
-                    print("\t\t\t" + joint_label)
-
-                dataframe_joint = dataframe_individual.loc[dataframe_individual["label"] == joint_label]
-                dataframe_joint = dataframe_joint.copy()
-
-                if dataframe_joint["value"].shape[0] == 0:
-                    print(f"\t\t\t\tIgnoring {joint_label} as it doesn't contain any value for {individual}.")
-                    ignored.append(i)
-
-                else:
-
-                    if dataframe_joint["value"].hasnans and nan_behaviour == "ignore":
-                        if verbosity > 0:
-                            print(f"\t\t\t\tIgnoring {joint_label} as it contains nan values.")
-                        ignored.append(i)
-
-                    elif dataframe_joint["value"].hasnans and nan_behaviour == "zero":
-                        if verbosity > 0:
-                            print(f"\t\t\t\tReplacing some nan values from joint label {joint_label} by 0.")
-                        data_matrix[joint_label] = dataframe_joint["value"].mask(dataframe_joint["value"] == np.nan, 0)
-
-                    else:
-                        data_matrix[joint_label] = np.array(dataframe_joint["value"])
-
-                if regression_with in ["audio", "envelope", "intensity", "pitch", "f1", "f2", "f3", "f4", "f5"]:
-                    values_to_correlate = dataframe_individual.loc[dataframe_individual["measure"] == regression_with]
-                    values_to_correlate = pd.merge(values_to_correlate,
-                                                   dataframe_joint[["subject", "trial", "timestamp"]],
-                                                   on=["subject", "trial", "timestamp"], how="inner")["value"]
-
-                    if series_value.endswith(" (randomly permuted)"):
-                        values_to_correlate = np.random.permutation(values_to_correlate)
-                    values_to_correlate_joints[joint_label] = values_to_correlate
-
-                elif regression_with in joint_labels:
-                    values_to_correlate = dataframe_individual.loc[dataframe_individual["label"] ==
-                                                                   regression_with]["value"]
-                    if series_value.endswith(" (randomly permuted)"):
-                        values_to_correlate = np.random.permutation(values_to_correlate)
-                    values_to_correlate_joints[joint_label] = values_to_correlate
-
-                else:
-                    raise Exception("Please select a correct value for the parameter regression_with.")
-
-                i += 1
-
-            data_matrix = pd.DataFrame(data_matrix)
-            joint_labels = np.delete(joint_labels, ignored)
-
-            # values_to_correlate_matrix = pd.DataFrame(values_to_correlate_joints)
-            # np.delete(values_to_correlate_joints, ignored)
-
-            selected_joint_label = None
-            for joint_label in values_to_correlate_joints:
-                if joint_label in joint_labels:
-                    #print(joint_label)
-                    if selected_joint_label is None:
-                        selected_joint_label = joint_label
-                    elif values_to_correlate_joints[joint_label].shape != \
-                            values_to_correlate_joints[selected_joint_label].shape:
-                        raise Exception("The joint labels do not all have the same amount of values in the dataframe.")
-
-            values_to_correlate = values_to_correlate_joints[selected_joint_label]
-
-            #print(data_matrix.shape)
-            #print(values_to_correlate.shape)
-
-            results_regression = mutual_info_regression(data_matrix, values_to_correlate, discrete_features=False)
-
-            for i in range(len(joint_labels)):
-                regression_values_ind[joint_labels[i]] = results_regression[i]
-
-            regression_values_series[individual] = regression_values_ind
-
-        regression_values[series_value] = regression_values_series
-
-    # Calculate the averages
-    average_regression = {}
-    sd_regression = {}
-
-    max_value = 0
-
-    # For each series
-    for series_value in series_values:
-
-        average_regression_series_value = {}
-        sd_regression_series_value= {}
-
-        # For each joint
-        for joint_label in joint_labels:
-
-            regression_values_joint = []
-
-            # For each individual
-            for individual in individuals:
-                if joint_label in regression_values[series_value][individual].keys():
-                    regression_values_joint.append(regression_values[series_value][individual][joint_label])
-
-            average_regression_series_value[joint_label] = np.mean(regression_values_joint)
-            sd_regression_series_value[joint_label] = np.std(regression_values_joint)
-
-            plot_dictionary[joint_label] = average_regression_series_value[joint_label]
-
-            if average_regression_series_value[joint_label] > max_value:
-                max_value = average_regression_series_value[joint_label]
-
-        average_regression[series_value] = average_regression_series_value
-        sd_regression[series_value] = sd_regression_series_value
-
-        plot_silhouette(plot_dictionary, title=series_value, max_scale=max_value, verbosity=verbosity, **kwargs)
-
-    return average_regression, sd_regression
+    return dataframe
 
 
-def _make_dataframe(experiment_or_dataframe, sequence_measure, audio_measure, sampling_frequency, verbosity=1):
+def _make_dataframe(experiment_or_dataframe, sequence_measure, audio_measure, sampling_frequency, verbosity=1,
+                    add_tabs=1):
     """Loads a dataframe from a variety of inputs.
 
     .. versionadded:: 2.0
@@ -1966,19 +2172,25 @@ def _make_dataframe(experiment_or_dataframe, sequence_measure, audio_measure, sa
         • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
           may clutter the output and slow down the execution.
 
+    add_tabs: int, optional
+        Adds the specified amount of tabulations to the verbosity outputs. This parameter may be used by other
+        functions to encapsulate the verbosity outputs by indenting them. In a normal use, it shouldn't be set
+        by the user.
+
     Returns
     -------
     dataframe: pandas.DataFrame
         A dataframe containing the loaded data.
     """
+    t = add_tabs * "\t"
     dataframe = None
 
     # Get the full dataframe
     if type(experiment_or_dataframe) is not list:
         experiment_or_dataframe = [experiment_or_dataframe]
 
-    if verbosity > 1:
-        print(f"\tFound {len(experiment_or_dataframe)} input element(s).")
+    if verbosity > 0:
+        print(t+f"Loading {len(experiment_or_dataframe)} input dataframe(s) or experiment(s)...")
 
     i = 1
 
@@ -1986,10 +2198,13 @@ def _make_dataframe(experiment_or_dataframe, sequence_measure, audio_measure, sa
         if type(item) is Experiment:
             if audio_measure not in ["audio", "envelope", "intensity", "pitch", "f1", "f2", "f3", "f4", "f5"]:
                 audio_measure = None
+            if sequence_measure == "auto":
+                raise ValueError("The parameter sequence_measure cannot be set to 'auto' when one of the elements "
+                                 "in experiment_or_dataframe is an Experiment instance.")
             dataframe_item = item.get_dataframe(sequence_measure, audio_measure,
                                                 audio_resampling_frequency=sampling_frequency)
         elif type(item) is str:
-            dataframe_item = read_pandas_dataframe(item)
+            dataframe_item = read_pandas_dataframe(item, verbosity, add_tabs + 1)
         elif type(item) is pd.DataFrame:
             dataframe_item = item
         else:
@@ -1997,7 +2212,7 @@ def _make_dataframe(experiment_or_dataframe, sequence_measure, audio_measure, sa
                             "path to a Pandas Dataframe.")
 
         if verbosity > 1:
-            print(f"\t\tDataframe {i} with {dataframe_item.shape[1]} columns and {dataframe_item.shape[0]} rows.")
+            print(t+f"\tDataframe {i} with {dataframe_item.shape[1]} columns and {dataframe_item.shape[0]} rows.")
 
         if dataframe is None:
             dataframe = dataframe_item
@@ -2006,13 +2221,14 @@ def _make_dataframe(experiment_or_dataframe, sequence_measure, audio_measure, sa
 
         i += 1
 
-    if verbosity > 1:
-        print(f"\tGlobal dataframe generated with {dataframe.shape[1]} columns and {dataframe.shape[0]} rows.")
+    if verbosity > 0:
+        print(t+f"\tGlobal dataframe generated with {dataframe.shape[1]} columns and {dataframe.shape[0]} rows.")
 
     return dataframe
 
 
-def _get_dataframe_from_requirements(dataframe, group=None, condition=None, subjects=None, trials=None, verbosity=1):
+def _filter_dataframe(dataframe, group=None, condition=None, subjects=None, trials=None, verbosity=1,
+                      add_tabs=1):
     """Returns a sub-dataframe containing only the data where the group, condition, subjects and trails match
     the given parameters.
 
@@ -2071,57 +2287,243 @@ def _get_dataframe_from_requirements(dataframe, group=None, condition=None, subj
         • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
           may clutter the output and slow down the execution.
 
+    add_tabs: int, optional
+        Adds the specified amount of tabulations to the verbosity outputs. This parameter may be used by other
+        functions to encapsulate the verbosity outputs by indenting them. In a normal use, it shouldn't be set
+        by the user.
+
     Returns
     -------
     dataframe: pandas.DataFrame
         A dataframe, containing a subset from the original dataframe.
     """
+    t = add_tabs * "\t"
 
     original_size = len(dataframe.index)
     removed = []
 
+    if verbosity > 0:
+        print(t + "Reducing the dataframe to discard the unused rows...")
+
     if group is not None:
-        if type(group) is list:
+        if isinstance(group, (tuple, list)):
             dataframe = dataframe.loc[dataframe["group"].isin(group)]
             removed.append("groups")
-        elif type(group) is str:
+            if verbosity > 1:
+                print(t + f"\tRemoved the rows with a group that is not part of {', '.join(group)}.")
+        elif isinstance(group, str):
             dataframe = dataframe.loc[dataframe["group"] == group]
             removed.append("group")
+            if verbosity > 1:
+                print(t + f"\tRemoved the rows with a group that is not {group}.")
+        else:
+            raise ValueError("The parameter group must be either a string or a list of strings.")
 
     if condition is not None:
-        if type(condition) is list:
+        if isinstance(condition, (tuple, list)):
             dataframe = dataframe.loc[dataframe["condition"].isin(condition)]
             removed.append("conditions")
-        elif type(condition) is str:
+            if verbosity > 1:
+                print(t + f"\tRemoved the rows with a condition that is not part of {', '.join(condition)}.")
+        elif isinstance(condition, str):
             dataframe = dataframe.loc[dataframe["condition"] == condition]
             removed.append("condition")
+            removed.append("conditions")
+            if verbosity > 1:
+                print(t + f"\tRemoved the rows with a condition that is not {condition}.")
+        else:
+            raise ValueError("The parameter condition must be a string or a list of strings.")
 
     if subjects is not None:
-        if type(subjects) is list:
+        if isinstance(subjects, (tuple, list)):
             dataframe = dataframe.loc[dataframe["subject"].isin(subjects)]
             removed.append("subjects")
-        elif type(subjects) is str:
+            if verbosity > 1:
+                print(t + f"\tRemoved the rows with a subject that is not part of {', '.join(subjects)}.")
+        elif isinstance(subjects, str):
             dataframe = dataframe.loc[dataframe["subject"] == subjects]
             removed.append("subject")
+            if verbosity > 1:
+                print(t + f"\tRemoved the rows with a condition that is not {subjects}.")
+        else:
+            raise ValueError("The parameter subjects must be a string or a list of strings.")
 
     if trials is not None:
-        if type(trials) is dict:
+        if isinstance(trials, dict):
             new_dataframe = []
-            for subject in trials.keys():
-                dataframe_subject = dataframe.loc[dataframe["subject"] == subject]
-                if type(trials[subject]) is str:
-                    trials[subject] = [trials[subject]]
-                dataframe_trials = dataframe_subject[dataframe_subject["trial"].isin(trials[subject])]
+            for key, trial_list in trials.items():
+                if isinstance(trial_list, str):
+                    trial_list = [trial_list]
+                if key in dataframe["subject"].values:
+                    dataframe_subject = dataframe.loc[dataframe["subject"] == key]
+                    dataframe_trials = dataframe_subject[dataframe_subject["trial"].isin(trial_list)]
+                    level = "subject"
+                elif key in dataframe["group"].values:
+                    dataframe_group = dataframe.loc[dataframe["group"] == key]
+                    dataframe_trials = dataframe_group[dataframe_group["trial"].isin(trial_list)]
+                    level = "group"
+                else:
+                    raise ValueError(f"In the specified trials, '{key}' is neither a subject nor a group in the "
+                                     f"dataframe.")
                 new_dataframe.append(dataframe_trials)
+                if verbosity > 1:
+                    if len(trial_list) == 1:
+                        print(t + f"\tRemoved the rows for {level} {key} with a trial that is not {trial_list[0]}")
+                    else:
+                        print(t + f"\tRemoved the rows for {level} {key} with a trial that is not part of"
+                                  f" {', '.join(trial_list)}.")
             dataframe = pd.concat(new_dataframe, ignore_index=True)
-        elif type(trials) is list:
+        elif isinstance(trials, (tuple, list)):
             dataframe = dataframe.loc[dataframe["trial"].isin(trials)]
-        elif type(trials) is str:
+            if verbosity > 1:
+                print(t + f"\tRemoved the rows with a trial that is not part of {', '.join(trials)}.")
+        elif isinstance(trials, str):
             dataframe = dataframe.loc[dataframe["trial"] == trials]
+            if verbosity > 1:
+                print(t + f"\tRemoved the rows with a trial that is not {trials}.")
+        else:
+            raise ValueError("The parameter trials must be either a dictionary, a list or a string.")
         removed.append("trials")
 
+    if dataframe.empty:
+        raise Exception("The requested filtering options reduced the dataframe to an empty one.")
+
     if verbosity > 0 and len(removed) > 0:
-        print(f"\tThe dataframe was reduced to preserve the requested {','.join(removed)}.\n\tThe dataframe "
-              f"originally had {original_size} rows, and now has {len(dataframe.index)} rows.")
+        print(t+f"\tThe dataframe was reduced to preserve the requested {', '.join(removed)}.\n\t\tThe dataframe "
+              f"originally had {original_size} rows, and now has {len(dataframe.index)} rows ("
+              f"{np.round(len(dataframe.index)/original_size * 100, 2)} %).")
 
     return dataframe
+
+def _compute_power_spectrum(method, measure_values, frequencies, sampling_rate):
+
+    if frequencies is None:
+        frequencies, _ = signal.welch(np.zeros(1000), fs=sampling_rate)
+
+    if measure_values.size == 0:
+        results = np.empty(len(frequencies))
+        results[:] = np.nan
+
+    else:
+        if method == "fft":
+            power_spectrum = np.abs(np.fft.fft(measure_values)) ** 2
+            fft_freqs = np.fft.fftfreq(measure_values.size, 1 / sampling_rate)
+            fft_freqs = fft_freqs[:len(fft_freqs) // 2]
+            results = power_spectrum[:len(power_spectrum) // 2]
+
+            interpolated_spectrum = np.interp(frequencies, fft_freqs, results)
+            results = interpolated_spectrum
+
+        elif method == "welch":
+            frequencies, results = signal.welch(measure_values, fs=sampling_rate)
+
+        else:
+            raise ValueError(f"""When computing the power spectrum, the parameter method (current value: {method} must 
+                             be "fft" or "welch".""")
+
+    return frequencies, results
+
+def _compute_correlation(pg, method, measure_values, target_values):
+    if method == "pingouin":
+        try:
+            results = np.abs(pg.corr(x=measure_values, y=target_values).values[0][1])
+        except (ValueError, AssertionError):
+            results = np.nan
+    elif method == "numpy":
+        measure_values_mean = np.mean(measure_values)
+        target_values_mean = np.mean(target_values)
+        num = np.sum((measure_values - measure_values_mean) * (target_values - target_values_mean))
+        denom = np.sqrt(np.sum((measure_values - measure_values_mean) ** 2) *
+                        np.sum((measure_values - target_values_mean) ** 2))
+        if denom != 0:
+            results = num / denom
+        else:
+            results = np.nan
+    else:
+        raise ValueError(f"""When computing a correlation, the parameter method (current value: {method} must 
+                         be "pingouin" or "numpy".""")
+
+    return results
+
+def _compute_coherence(measure_values, target_values, frequencies, sampling_rate, nperseg):
+    freqs, coh = signal.coherence(measure_values, target_values, fs=sampling_rate,
+                                  nperseg=int(nperseg))
+
+    if len(coh) == 0:
+        coh = np.tile(np.nan, int(nperseg // 2 + 1))
+
+    if frequencies is None:
+        frequencies = freqs
+
+    results = coh
+
+    return frequencies, results
+
+def _compute_mutual_information(mi, sc, measure_values, target_values, random_state, n_neighbors, scale, direction):
+
+    if scale:
+        x = sc.fit_transform(measure_values.reshape(-1, 1)).reshape(-1)
+        y = sc.fit_transform(target_values.reshape(-1, 1)).reshape(-1)
+
+    else:
+        x = measure_values
+        y = target_values
+
+    x_pred = x.reshape(-1, 1)
+    y_pred = y.reshape(-1, 1)
+    x_targ = x
+    y_targ = y
+
+    if direction == "target":
+        result = mi(x_pred, y_targ, random_state=random_state, n_neighbors=n_neighbors)[0]
+    elif direction == "predictor":
+        result = mi(y_pred, x_targ, random_state=random_state, n_neighbors=n_neighbors)[0]
+    else:
+        result_target = mi(x_pred, y_targ, random_state=random_state, n_neighbors=n_neighbors)[0]
+        result_predictor = mi(y_pred, x_targ, random_state=random_state, n_neighbors=n_neighbors)[0]
+        result = (result_target + result_predictor) / 2
+
+    return result
+
+def _phase_randomize(array, rng):
+    """Return a phase-randomized surrogate of a real-valued signal."""
+    # FFT
+    fft_vals = np.fft.rfft(array)           # one-sided spectrum
+    amplitudes = np.abs(fft_vals)
+    phases = np.angle(fft_vals)
+
+    # Generate random phases for the non-DC, non-Nyquist bins
+    n_freqs = len(phases)
+    random_phases = rng.uniform(0, 2*np.pi, n_freqs)
+    # keep DC (0 Hz) and Nyquist (if present) unchanged
+    random_phases[0] = phases[0]
+    if len(array) % 2 == 0:  # Nyquist exists only for even length
+        random_phases[-1] = phases[-1]
+
+    # Construct new spectrum
+    new_fft = amplitudes * np.exp(1j * random_phases)
+
+    # Back to time domain
+    surrogate = np.fft.irfft(new_fft, n=len(array))
+    return surrogate
+
+
+def _count_tqdm_iterations(params, loop_number):
+    total = 0
+    for target_measure in params.target_measures:
+        for measure in params.measures:
+            if params.measure_to_modality[measure] == "audio" and not params.include_audio:
+                continue
+            labels_modality = ["Audio"] if params.measure_to_modality[measure] == "audio" else params.labels_mocap
+
+            for series_value in params.series_values:
+
+                if loop_number == 1:
+                    for individual in params.individuals:
+                        if params.average == params.series and individual != series_value and individual != "All":
+                            continue
+                        total += len(labels_modality) * len(params.lags)
+                else:
+                    total += len(labels_modality) * len(params.lags)
+
+    return total

@@ -294,6 +294,25 @@ class Audio(AudioDerivative):
         """
         return super().get_frequency()
 
+    def get_sampling_rate(self):
+        """Returns the frequency of the audio clip, in hertz. This function
+        is identical to :meth:`get_frequency`.
+
+        .. versionadded:: 2.0
+
+        Returns
+        -------
+        int or float
+            The frequency of the audio clip, in hertz.
+
+        Example
+        -------
+        >>> audio = Audio("Recordings/MacQuayle/recording_10.wav")
+        >>> audio.get_frequency()
+        44100
+        """
+        return super().get_frequency()
+
     def get_info(self, return_type="dict", include_path=True):
         """Returns information regarding the Audio clip.
 

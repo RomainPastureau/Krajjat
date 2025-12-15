@@ -13,3 +13,4 @@ find-delay >= 2.8
 praat-parselmouth >= 0.4
 PyAudio >= 0.2.14
 pytaglib >= 2.0.0
+tqdm >= 4.67.1

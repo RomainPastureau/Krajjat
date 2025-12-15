@@ -31,7 +31,8 @@ dependencies = [
     "pygame >= 2.5",
     "find-delay >= 2.8",
     "praat-parselmouth > 0.4",
-    "pytaglib >= 2.0.0"
+    "pytaglib >= 2.0.0",
+    "tqdm >= 4.67.1"
 ]
 
 [project.optional-dependencies]

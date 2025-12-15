@@ -6,15 +6,24 @@ import copy
 import pickle
 from collections import OrderedDict
 from bisect import bisect
+import json
 
-from scipy.signal import butter, lfilter, filtfilt
-from scipy.io import savemat
+from scipy.signal import butter, filtfilt, savgol_filter
+from scipy.io import loadmat, savemat
+import numpy as np
+import pandas as pd
 
 from krajjat.classes.pose import Pose
 from krajjat.classes.audio import Audio
+from krajjat.classes.joint import Joint
 from krajjat.classes.exceptions import *
 from krajjat.classes.time_series import TimeSeries
-from krajjat.tool_functions import *
+from krajjat.tool_functions import (convert_timestamp_to_seconds, show_progression, read_json, read_xlsx,
+                                    read_text_table, write_xlsx, write_text_table, get_system_csv_separator,
+                                    load_joint_labels, load_qualisys_to_kinect, calculate_distance,
+                                    calculate_derivative, calculate_delay, resample_data, interpolate_data,
+                                    generate_random_joints, UNITS,
+                                    CLEAN_DERIV_NAMES)
 
 from statistics import stdev
 from datetime import datetime
@@ -1116,7 +1125,7 @@ class Sequence(TimeSeries):
         seq_15
         >>> sequence = Sequence("test_sequence_individual/*.tsv", name="seq_15")
         >>> sequence.get_name()
-        test_sequence_indiviual
+        test_sequence_individual
         >>> sequence = Sequence()
         >>> sequence.get_name()
         Unnamed sequence
@@ -1652,7 +1661,7 @@ class Sequence(TimeSeries):
         return stats
 
     def get_fill_level(self, joint_label=None):
-        """Returns the ratio of poses for which a coordinates of one or multiple joints are not equal to ``(0, 0, 0)``,
+        """Returns the ratio of poses for which a coordinate of one or multiple joints are not equal to ``(0, 0, 0)``,
         or ``(None, None, None)``. If  the ratio is 1, the joint was tracked correctly for the whole duration of the
         sequence.
 
@@ -2047,7 +2056,7 @@ class Sequence(TimeSeries):
         return np.allclose(framerates, np.ones(framerates.size) * framerates[0])
 
     def get_measure(self, measure, joint_label=None, timestamp_start=None, timestamp_end=None, window_length=7,
-                    poly_order=None, absolute=False, use_relative_timestamps=True, verbosity=1):
+                    poly_order=None, absolute=False, use_relative_timestamps=False, verbosity=1):
         """Returns an array of coordinates, distances, or derivatives of the distance for one or multiple joints
         from the Sequence instance.
 
@@ -2245,19 +2254,19 @@ class Sequence(TimeSeries):
                     if measure in ["x", "y", "z"]:
                         measures[joint_label][p] = pose.joints[joint_label].get_coordinate(measure)
                         if verbosity > 1:
-                            print(f"· Value: {measures[joint_label][p]}")
+                            print(f"· Value: {measures[joint_label][p]}", end=" ")
 
                     elif measure in ["coordinates"]:
                         measures[joint_label][p] = pose.joints[joint_label].get_position()
                         if verbosity > 1:
-                            print(f"· Value: {measures[joint_label][p]}")
+                            print(f"· Value: {measures[joint_label][p]}", end=" ")
 
                     elif measure in ["distance x", "distance y", "distance z"]:
                         measures[joint_label][p] = calculate_distance(self.poses[p - 1].joints[joint_label],
                                                                       self.poses[p].joints[joint_label],
                                                                       measure[-1])
                         if verbosity > 1:
-                            print(f"· Value: {measures[joint_label][p]}")
+                            print(f"· Value: {measures[joint_label][p]}", end=" ")
 
                 else:
                     if start is not None and end is None:
@@ -2444,6 +2453,7 @@ class Sequence(TimeSeries):
                     return np.min(list(values.values())), np.max(list(values.values()))
                 else:
                     return np.min(values), np.max(values)
+            return None
 
     def get_sum_measure(self, measure, joint_label=None, per_joint=True, timestamp_start=None, timestamp_end=None,
                         window_length=7, poly_order=None, absolute=False, verbosity=1):
@@ -3033,6 +3043,101 @@ class Sequence(TimeSeries):
 
         return x, y, z
 
+    def correct_jitter_savgol(self, window_length="default", poly_order=5, name=None, verbosity=1):
+        """Corrects the jitter of the joints of a sequence using the Savitzky-Golay filter.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        window_length: int|str, optional
+            The length of the window for the Savitzky–Golay filter (default: the ceiling of the amount of poses in
+            500 ms of data). See
+            `scipy.signal.savgol_filter <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.savgol_filter.html>`_
+            for more info.
+
+        poly_order: int, optional
+            The order of the polynomial for the Savitzky–Golay filter (default: 5). See
+            `scipy.signal.savgol_filter <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.savgol_filter.html>`_
+            for more info.
+
+        name: str or None, optional
+            Defines the name of the output sequence. If set on ``None``, the name will be the same as the input
+            sequence, with the suffix ``"+CJ"``.
+
+        verbosity: int, optional
+            Sets how much feedback the code will provide in the console output:
+
+            • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+            • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+              current steps.
+            • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+              may clutter the output and slow down the execution.
+
+        Returns
+        -------
+        Sequence
+            A new sequence having the same amount of poses and timestamps as the original, but with corrected joints
+            coordinates.
+
+        Example
+        -------
+        >>> sequence = Sequence("Ellie/sequence_40.xlsx")
+        >>> sequence_cj = sequence.correct_jitter_savgol()
+        """
+        if verbosity > 0:
+            print("Correcting jitter using a Savitzky-Golay filter...", end=" ")
+
+        if not self.has_stable_sampling_rate():
+            raise Exception("The Savitzky-Golay filter cannot be applied for a sequence that has a non-stable sampling "
+                            "rate.")
+
+        # Create an empty sequence, the same length in poses as the original, just keeping the timestamp information
+        # for each pose.
+        new_sequence = self._create_new_sequence_with_timestamps(verbosity, add_tabs=1)
+
+        # Defining the name
+        if name is None:
+            new_sequence.name = self.name + " +CJ"
+        else:
+            new_sequence.name = name
+
+        if window_length == "default":
+            window_length = np.ceil(self.get_sampling_rate() / 2)
+
+        if window_length <= poly_order:
+            raise ValueError(f"window_length ({window_length}) must be greater than poly_order ({poly_order}).")
+
+        x_smoothed = {}
+        y_smoothed = {}
+        z_smoothed = {}
+
+        for joint_label in self.get_joint_labels():
+            x_coord = self.get_measure("x", joint_label)
+            y_coord = self.get_measure("y", joint_label)
+            z_coord = self.get_measure("z", joint_label)
+
+            x_smoothed[joint_label] = savgol_filter(x_coord, window_length, poly_order)
+            y_smoothed[joint_label] = savgol_filter(y_coord, window_length, poly_order)
+            z_smoothed[joint_label] = savgol_filter(z_coord, window_length, poly_order)
+
+        for p in range(len(new_sequence.poses)):
+            pose = new_sequence.poses[p]
+            for joint_label in self.get_joint_labels():
+                x = x_smoothed[joint_label][p]
+                y = y_smoothed[joint_label][p]
+                z = z_smoothed[joint_label][p]
+                j = Joint(joint_label, x, y, z)
+                j.joint_label = joint_label
+                pose.add_joint(j, True)
+
+        new_sequence._calculate_relative_timestamps()
+        new_sequence._set_attributes_from_other_sequence(self)
+        new_sequence.metadata["processing_steps"].append({"processing_type": "correct_jitter_savgol",
+                                                          "window_length": window_length,
+                                                          "poly_order": poly_order})
+        return new_sequence
+
     def re_reference(self, reference_joint_label="auto", place_at_zero=True, name=None, verbosity=1):
         """Changes the position of all the joints of a sequence to be relative to the position of a reference joint,
         across all poses.
@@ -3174,7 +3279,7 @@ class Sequence(TimeSeries):
         return new_sequence
 
     def trim(self, start=None, end=None, use_relative_timestamps=False, name=None, error_if_out_of_bounds=False,
-             verbosity=1, add_tabs=0):
+             rtol=1e-07, verbosity=1, add_tabs=0):
         """Trims a sequence according to a starting timestamp (by default the beginning of the original sequence) and
         an ending timestamp (by default the end of the original sequence). Timestamps must be provided in seconds.
 
@@ -3201,6 +3306,10 @@ class Sequence(TimeSeries):
         error_if_out_of_bounds: bool, optional
             Defines if to return an error if the timestamps are out of bounds. If set on ``True``, the function will
             raise an Exception if `start` is below 0, or if `end` is above the length of the audio.
+
+        rtol: float, optional
+            The relative tolerance for the timestamps (default: 1e-07). The timestamps will be considered as part of
+            the trimmed sequence if they are between start - rtol and end + rtol.
 
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
@@ -3267,7 +3376,7 @@ class Sequence(TimeSeries):
             print(tabs + "\tStarting timestamp: " + str(start) + " seconds")
             print(tabs + "\tEnding timestamp: " + str(end) + " seconds")
             print(tabs + "\tOriginal duration: " + str(self.get_duration()) + " seconds")
-            print(tabs + "\tDuration after trimming: " + str(end - start) + " seconds")
+            print(tabs + "\tDuration after trimming: " + str(min(self.get_duration(), end - start)) + " seconds")
         if verbosity == 1:
             print(tabs + "Starting the trimming...", end=" ")
 
@@ -3294,7 +3403,7 @@ class Sequence(TimeSeries):
             if verbosity > 1:
                 print(tabs + "\t\tPose " + str(p + 1) + " of " + str(len(self.poses)) + ": " + str(t), end=" ")
 
-            if start <= t <= end:
+            if start - rtol <= t <= end + rtol:
                 pose = self.poses[p].copy()
                 new_sequence.poses.append(pose)
                 if verbosity > 1:
@@ -3315,12 +3424,12 @@ class Sequence(TimeSeries):
         new_sequence._set_attributes_from_other_sequence(self)
         new_sequence.joint_labels = self.joint_labels
         new_sequence.metadata["processing_steps"].append({"processing_type": "trim",
-                                                          "start": start,
-                                                          "end": end,
+                                                          "start": float(start),
+                                                          "end": float(end),
                                                           "use_relative_timestamps": use_relative_timestamps})
         return new_sequence
 
-    def trim_to_audio(self, delay=0, audio=None, name=None, error_if_out_of_bounds=False, verbosity=1):
+    def trim_to_audio(self, delay=0, audio=None, name=None, error_if_out_of_bounds=False, rtol=1e-07, verbosity=1):
         """Synchronizes the timestamps to the duration of an audio file.
 
         .. versionadded:: 2.0
@@ -3345,6 +3454,10 @@ class Sequence(TimeSeries):
         error_if_out_of_bounds: bool, optional
             Defines if to return an error if the timestamps are out of bounds. If set on ``True``, the function will
             raise an Exception if `start` is below 0, or if `end` is above the length of the audio.
+
+        rtol: float, optional
+            The relative tolerance for the timestamps (default: 1e-07). The timestamps will be considered as part of
+            the trimmed sequence if they are between start - rtol and end + rtol.
 
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
@@ -3411,7 +3524,7 @@ class Sequence(TimeSeries):
                   " s at the end of the sequence.")
 
         new_sequence = self.trim(delay, audio_duration + delay, True, name, error_if_out_of_bounds,
-                                 verbosity)
+                                 rtol, verbosity)
 
         if abs(audio_duration - new_sequence.get_duration()) > 1:
             raise Exception("The duration of the audio is different of more than one second with the duration of the " +
@@ -3510,9 +3623,9 @@ class Sequence(TimeSeries):
             if verbosity > 1:
                 print(f"\t{joint_label}")
 
-            x_positions = self.get_measure("x", joint_label)
-            y_positions = self.get_measure("y", joint_label)
-            z_positions = self.get_measure("z", joint_label)
+            x_positions = self.get_measure("x", joint_label, verbosity=verbosity-1)
+            y_positions = self.get_measure("y", joint_label, verbosity=verbosity-1)
+            z_positions = self.get_measure("z", joint_label, verbosity=verbosity-1)
 
             a, b = None, None
             # Band-pass filter
@@ -3536,6 +3649,11 @@ class Sequence(TimeSeries):
                 filtered_x_positions = filtfilt(b, a, x_positions, padtype=padtype, padlen=padlen)
                 filtered_y_positions = filtfilt(b, a, y_positions, padtype=padtype, padlen=padlen)
                 filtered_z_positions = filtfilt(b, a, z_positions, padtype=padtype, padlen=padlen)
+
+            if len(filtered_x_positions) != len(new_sequence.poses):
+                raise ValueError(f"Length mismatch for joint '{joint_label}': filtered series has "
+                                 f"{len(filtered_x_positions)} samples, but sequence has {len(new_sequence.poses)} "
+                                 f"poses.")
 
             for p in range(len(new_sequence.poses)):
                 new_sequence.poses[p].joints[joint_label] = Joint(joint_label, filtered_x_positions[p],
@@ -4713,7 +4831,7 @@ class Sequence(TimeSeries):
             Defines the name of the file or files where to save the sequence. If set on ``None``, the name will be set
             on the attribute :attr:`name` of the sequence; if that attribute is also set on ``None``, the name will be
             set on ``"out"``. If ``individual`` is set on ``True``, each pose will be saved as a different file, having
-            the index of the pose as a suffix after the name (e.g. if the name is ``"pose"`` and the file format is
+            the index of the pose as a suffix after the name (e.g., if the name is ``"pose"`` and the file format is
             ``"txt"``, the poses will be saved as ``pose_0.txt``, ``pose_1.txt``, ``pose_2.txt``, etc.).
 
         file_format: str or None, optional
@@ -4961,7 +5079,7 @@ class Sequence(TimeSeries):
 
     def save_json(self, folder_out, name=None, individual=False, include_metadata=True,
                   encoding="utf-8", use_relative_timestamps=False, verbosity=1):
-        """Saves a sequence as a json file or files. This function is called by the :meth:`Sequence.save`
+        """Saves a sequence as a JSON file or files. This function is called by the :meth:`Sequence.save`
         method, and saves the Sequence instance as ``folder_out/name.file_format``.
 
         .. versionadded:: 2.0
@@ -5218,7 +5336,7 @@ class Sequence(TimeSeries):
                 write_xlsx(data, op.join(folder_out, f"{name}_{p}.xlsx"), sheet_name, verbosity=0)
 
     def save_pickle(self, folder_out, name=None, individual=False, verbosity=1):
-        """Saves a sequence by pickling it. This allows to reopen the sequence as a Sequence object.
+        """Saves a sequence by pickling it. This allows reopening the sequence as a Sequence object.
 
         .. versionadded:: 2.0
 

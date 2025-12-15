@@ -366,7 +366,7 @@ class Joint(object):
     # === Predicate functions ===
 
     def has_velocity_over_threshold(self):
-        """Returns the value of the attribute :attr:`_has_velocity_over_threshold`, which will be `True` if the
+        """Returns the value of the attribute :attr:`_velocity_over_threshold`, which will be `True` if the
         distance travelled by this joint over time, compared to the previous joint, has been found to be over threshold
         defined in the parameters of :meth:`Sequence.correct_jitter()`. This value allows to show the joint in color
         when displaying the sequence in the function :meth:`display_functions.compare_sequences()`.
@@ -376,12 +376,12 @@ class Joint(object):
         Returns
         -------
         bool
-            Value of the attribute :attr:`_has_velocity_over_threshold`.
+            Value of the attribute :attr:`_velocity_over_threshold`.
         """
         return self._velocity_over_threshold
 
     def is_corrected(self):
-        """Returns `True` if at least one of the values of the attributes :attr:`_zero_corrected`,
+        """Returns `True` if at least one of the values of the attributes :attr:`_interpolated`,
         :attr:`_dejittered`, or :attr:`_rereferenced` is `True`. These parameters will be `True` if they have been
         modified by either :meth:`Sequence.correct_zeros()`, :meth:`Sequence.correct_jitter()`, or
         :meth:`.Sequence.re_reference()` respectively.
@@ -437,7 +437,7 @@ class Joint(object):
     def is_none(self):
         """Returns `True` if the coordinates of the joint are (None, None, None).
 
-        ... versionadded:: 2.0
+        .. versionadded:: 2.0
 
         Returns
         -------
@@ -524,7 +524,7 @@ class Joint(object):
             self.z * (cos(yaw) * sin(pitch) * cos(roll) - sin(yaw) * sin(roll))
         y = self.x * sin(yaw) * cos(pitch) + \
             self.y * (sin(yaw) * sin(pitch) * sin(roll) + cos(yaw) * cos(roll)) + \
-            self.z * (sin(yaw) * sin(pitch) * sin(roll) * cos(yaw) * sin(roll))
+            self.z * (sin(yaw) * sin(pitch) * cos(roll) + cos(yaw) * sin(roll))
         z = self.x * -sin(pitch) + \
             self.y * cos(pitch) * sin(roll) + \
             self.z * cos(pitch) * cos(roll)
@@ -575,7 +575,7 @@ class Joint(object):
 
     def __repr__(self):
         """Returns a string containing the joint label, the x, y ans z coordinates, and adds information if one or more
-        of the private attributes :attr:`_has_velocity_over_threshold`, :attr:`_is_corrected` or :attr:`_is_randomized`
+        of the private attributes :attr:`_velocity_over_threshold`, :attr:`_is_corrected` or :attr:`_is_randomized`
         are `True`.
 
         Returns

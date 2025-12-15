@@ -578,10 +578,12 @@ class GraphicSequence(object):
         self.show_lines = kwargs.get("show_lines", True)
         self.color_background = kwargs.get("color_background", "black")
 
+        print("JOINT COLOR", kwargs.get("color_joint", "white"))
+
         self.joint_surfaces = {}
         self.shape_joint = kwargs.get("shape_joint", "circle")
         self.color_joint_default = convert_color(kwargs.get("color_joint", "white"), "RGB", True)
-        self.color_joint_default = convert_color(kwargs.get("color_joint_default", "white"), "RGB", True)
+        self.color_joint_default = convert_color(kwargs.get("color_joint_default", self.color_joint_default), "RGB", True)
         self.color_joint_corrected = convert_color(kwargs.get("color_joint_corrected", "sheen green"), "RGB", True)
         self.color_line = convert_color(kwargs.get("color_line", "grey"), "RGB", True)
         self.width_line = kwargs.get("width_line", 1)

@@ -574,6 +574,19 @@ class AudioDerivative(TimeSeries):
         """
         return self.frequency
 
+    def get_sampling_rate(self):
+        """Returns the attribute :attr:`frequency` of the audio derivative. This function is identical
+        to the function :meth:`AudioDerivative.get_frequency`.
+
+        .. versionadded:: 2.0
+
+        Returns
+        -------
+        int or float
+            The frequency, in Hertz, at which the values in attr:`samples` are sampled.
+        """
+        return self.frequency
+
     def get_info(self, return_type="dict", include_path=True):
         """Returns information regarding the Audio derivative.
 
@@ -841,7 +854,7 @@ class AudioDerivative(TimeSeries):
             start_index = 0
         if end is None:
             end = self.timestamps[-1]
-            end_index = -1
+            end_index = len(self.timestamps) - 1
 
         if end < start:
             raise Exception("End timestamp should be inferior to beginning timestamp.")
@@ -885,6 +898,7 @@ class AudioDerivative(TimeSeries):
 
         new_audio_derivative = type(self)(self.samples[start_index:end_index + 1], frequency=self.frequency, name=name,
                                           condition=self.condition, verbosity=verbosity)
+        new_audio_derivative._calculate_timestamps()
         new_audio_derivative._set_attributes_from_other_object(self)
 
         new_audio_derivative.metadata["processing_steps"].append({"processing_type": "trim",

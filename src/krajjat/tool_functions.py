@@ -1056,7 +1056,7 @@ def read_xlsx(path, sheet=0, read_metadata=True, metadata_sheet=1, verbosity=1):
     return table, metadata_dict
 
 
-def read_pandas_dataframe(path, verbosity=1):
+def read_pandas_dataframe(path, verbosity=1, add_tabs=0):
     """Reads a file, and turns it into a Pandas dataframe.
 
     .. versionadded:: 2.0
@@ -1080,32 +1080,39 @@ def read_pandas_dataframe(path, verbosity=1):
         • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
           may clutter the output and slow down the execution.
 
+    add_tabs: int, optional
+        Adds the specified amount of tabulations to the verbosity outputs. This parameter may be used by other
+        functions to encapsulate the verbosity outputs by indenting them. In a normal use, it shouldn't be set
+        by the user.
+
     Returns
     -------
     `pandas.Dataframe <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html>`_
         A pandas dataframe.
     """
 
+    t = add_tabs * "\t"
+
     if path.split(".")[-1] == "json":
         if verbosity > 0:
-            print("Reading a dataframe contained in a JSON file...")
+            print(t + "Reading a dataframe contained in a JSON file...")
         return pd.read_json(path)
     elif path.split(".")[-1] == "csv":
         if verbosity > 0:
-            print("Reading a dataframe contained in a CSV file...")
+            print(t + "Reading a dataframe contained in a CSV file...")
         return pd.read_csv(path, sep=SEPARATOR)
     elif path.split(".")[-1] == "xlsx":
         if verbosity > 0:
-            print("Reading a dataframe contained in an Excel file...")
+            print(t + "Reading a dataframe contained in an Excel file...")
         while True:
             try:
                 return pd.read_excel(path)
             except PermissionError:
-                print("The Excel file is currently opened.")
-                _ = input("Press Enter to try again.")
+                print(t + "\tThe Excel file is currently opened.")
+                _ = input(t + "\tPress Enter to try again.")
     elif path.split(".")[-1] == "mat":
         if verbosity > 0:
-            print("Reading a dataframe contained in a MAT file...")
+            print(t + "Reading a dataframe contained in a MAT file...")
         data = loadmat(path)["data"]
         headers = data.dtype
         ndata = {}
@@ -1118,15 +1125,15 @@ def read_pandas_dataframe(path, verbosity=1):
         return df
     elif path.split(".")[-1] == "pkl":
         if verbosity > 0:
-            print("Reading a dataframe contained in an Pickle file...")
+            print(t + "Reading a dataframe contained in an Pickle file...")
         return pd.read_pickle(path)
     elif path.split(".")[-1] == "gzip":
         if verbosity > 0:
-            print("Reading a dataframe contained in an GZIP file...")
+            print(t + "Reading a dataframe contained in an GZIP file...")
         return pd.read_parquet(path)
     elif path.split(".")[-1] in ["tsv", "txt"]:
         if verbosity > 0:
-            print("Reading a dataframe contained in an text file...")
+            print(t + "Reading a dataframe contained in an text file...")
         return pd.read_table(path, sep="\t")
     return None
 
@@ -2576,8 +2583,8 @@ def convert_colors(color_scheme_or_colors, color_format="RGB", include_alpha=Tru
 
     Returns
     -------
-    tuple(int, int, int) or tuple(int, int, int, int) or string
-        A RGB or RGBA value, or a hexadecimal string with a leading number sign.
+    list(tuple(int, int, int)) | list(tuple(int, int, int, int)) | list(str)
+        A list of tuples of RGB or RGBA values, or hexadecimal strings with a leading number sign.
 
     Examples
     --------
@@ -2601,8 +2608,9 @@ def convert_colors(color_scheme_or_colors, color_format="RGB", include_alpha=Tru
             if color_scheme_or_colors not in colors_dict.keys():
                 raise Exception("Invalid color scheme: " + str(color_scheme_or_colors) + ".")
             else:
-                warnings.warn("The string entered is not a valid color scheme, but is a valid color name. The value of "
-                              "the color will be returned, but convert_color should be used instead of convert_colors.")
+                warnings.warn(f"The string entered ({color_scheme_or_colors}) is not a valid color scheme, but is a "
+                              f"valid color name. The value of the color will be returned, but convert_color should be "
+                              f"used instead of convert_colors.")
 
             return colors_dict[color_scheme_or_colors]
 
@@ -3538,3 +3546,65 @@ def kwargs_parser(dictionary, suffix):
             new_dictionary[key] = dictionary[key]
 
     return new_dictionary
+
+
+def set_nested_dict(dictionary, keys, value, append=False):
+    """Sets a series of nested keys in a dictionary to a given value. If a given key doesn't exist, this function
+    creates it.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    dictionary: dict
+        A dictionary.
+    keys: list(str)|tuple(str)
+        A collection of nested keys.
+    value: any
+        The value to set.
+    append: bool, optional
+        If True, appends the value to a list at the last key. Default: False.
+
+    Examples
+    --------
+    >>> d = {"Kevin": {"Groceries": 23.21, "Video games": 12.49}}
+    >>> set_nested_dict(d, ["Anna", "Groceries"], 7.27)
+    >>> print(d)
+    {"Kevin": {"Groceries": 23.21, "Video games": 12.49}, "Anna": {"Groceries": 7.27}}
+
+    >>> e = {"Kevin": {"Groceries": [4.08, 15.16]}
+    >>> set_nested_dict(e, ["Anna", "Groceries"], 23.42, append=True)
+    >>> print(e)
+    {"Kevin": {"Groceries": [4.08, 15.16]}, "Anna": {"Groceries": [23.42]}}
+    """
+    for key in keys[:-1]:
+        dictionary = dictionary.setdefault(key, {})
+    if append:
+        dictionary.setdefault(keys[-1], []).append(value)
+    else:
+        dictionary[keys[-1]] = value
+
+def has_nested_key(dictionary, keys):
+    """Checks if a given collection of keys exists in a nested dictionary.
+
+    versionadded:: 2.0
+
+    Parameters
+    ----------
+    dictionary: dict
+        A dictionary.
+    keys: list(str)|tuple(str)
+        A collection of nested keys.
+
+    Returns
+    -------
+    bool
+        Whether the nested key entry exists or not.
+    """
+    current = dictionary
+    for key in keys:
+        if isinstance(current, dict) and key in current:
+            current = current[key]
+        else:
+            return False
+    return True

@@ -1,4 +1,6 @@
 """Functions to display and compare sequences graphically."""
+from pathlib import Path
+
 from krajjat.classes.sequence import Sequence
 from krajjat.tool_functions import *
 from krajjat.classes.graphic_classes import *
@@ -13,7 +15,7 @@ def common_displayer(sequence1, sequence2=None, path_audio=None, path_video=None
                      position_video="superimposed", timestamp_video_start=None, resolution=0.5,
                      height_window_in_meters=3.0, full_screen=False, manual=False, start_pose=0,
                      x_axis="x", y_axis="y", verbosity=1, **kwargs):
-    """Common displayer function wrapped in all the other graphic functions. Allows to display one or two sequences,
+    """Common displayer function wrapped in all the other graphic functions. Allows displaying one or two sequences,
     in a Pygame window, in a highly customizable way. A sequence can be displayed jointly with an audio file or a
     video file.
 
@@ -114,7 +116,7 @@ def common_displayer(sequence1, sequence2=None, path_audio=None, path_video=None
     if verbosity > 0:
         print("Window resolution: " + str(resolution))
 
-    # Setting up the full screen mode
+    # Setting up the fullscreen mode
     if full_screen:
         window = pygame.display.set_mode(resolution, pygame.FULLSCREEN)
     else:
@@ -947,8 +949,10 @@ def save_video_sequence(sequence1, path_output, fps=25, sequence2=None, path_aud
             animation2 = GraphicSequence(sequence2, window_areas[1], 0, x_axis, y_axis, verbosity,
                                          **kwargs_parser(kwargs, "_seq2"))
 
-    directory_output = "/".join(path_output.split("/")[:-1])
-    os.makedirs(directory_output, exist_ok=True)
+    directory_output = Path(path_output).parent
+    directory_output.mkdir(parents=True, exist_ok=True)
+    # directory_output = "/".join(path_output.split("/")[:-1])
+    # os.makedirs(directory_output, exist_ok=True)
 
     # Load the video
     video = None
@@ -1065,4 +1069,4 @@ def save_video_sequence(sequence1, path_output, fps=25, sequence2=None, path_aud
     print("100% - Done.")
 
     pygame.quit()
-    sys.exit()
+    # sys.exit()

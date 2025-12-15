@@ -4,9 +4,10 @@ import os
 from os import path as op
 from collections import OrderedDict
 from scipy.io import savemat
+from tqdm import tqdm
 
 from krajjat.classes import Audio
-from krajjat.tool_functions import get_system_csv_separator, show_progression
+from krajjat.tool_functions import get_system_csv_separator, show_progression, CLEAN_DERIV_NAMES
 
 import pandas as pd
 import numpy as np
@@ -514,12 +515,11 @@ class Experiment(object):
                                                  method=kwargs.get("method", "cubic"),
                                                  window_size=kwargs.get("window_size", 1e7),
                                                  overlap_ratio=kwargs.get("overlap_ratio", 0.5),
-                                                 verbosity=verbosity)
+                                                 verbosity=verbosity-1)
 
                 # For each measure (mocap)
                 for measure in sequence_measure:
-
-                    perc = show_progression(verbosity, i, number_of_iterations, perc)
+                    # perc = show_progression(verbosity, i, number_of_iterations, perc)
 
                     if verbosity > 1:
                         print(f"\t\t\tMeasure {measure}")
@@ -529,7 +529,7 @@ class Experiment(object):
                                                            timestamp_end=timestamp_end,
                                                            window_length=kwargs.get("window_length", 7),
                                                            poly_order=kwargs.get("poly_order", None),
-                                                           verbosity=verbosity)
+                                                           verbosity=verbosity-1)
 
                     timestamps = sequence.get_timestamps(relative=True,
                                                          timestamp_start=timestamp_start,
@@ -545,7 +545,7 @@ class Experiment(object):
                                             "condition": trial.condition,
                                             "modality": "mocap",
                                             "label": joint_label,
-                                            "measure": measure}
+                                            "measure": CLEAN_DERIV_NAMES[measure]}
 
                         for column in columns:
 
@@ -597,8 +597,9 @@ class Experiment(object):
                                                      filter_below=kwargs.get("filter_below", None),
                                                      timestamp_start=timestamp_start,
                                                      timestamp_end=timestamp_end,
-                                                     verbosity=verbosity)
-                    elif type(audio).__name__ != measure.title():
+                                                     verbosity=verbosity-1)
+                    elif (type(audio).__name__ != measure.title() and
+                          (type(audio).__name__ == "Formant" and measure not in ["f1", "f2", "f3", "f4", "f5"])):
                         raise Exception(f"Impossible to derive the measure {measure} from a {type(audio).__name__} "
                                         f"object.")
 
@@ -607,7 +608,7 @@ class Experiment(object):
                                                method=kwargs.get("resampling_mode", "cubic"),
                                                window_size=kwargs.get("res_window_size", 1e7),
                                                overlap_ratio=kwargs.get("res_overlap_ratio", 0.5),
-                                               verbosity=verbosity)
+                                               verbosity=verbosity-1)
 
                     audio_values = audio.get_samples()
                     timestamps = audio.timestamps

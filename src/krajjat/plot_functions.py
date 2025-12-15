@@ -1,7 +1,5 @@
 """These various functions allow to plot the data from the Sequence and Audio instances on graphs, or to plot
 statistics calculated using the analysis_functions."""
-import numbers
-
 import pygame
 from parselmouth import Sound
 from pygame.locals import *
@@ -938,6 +936,7 @@ def audio_plotter(audio, filter_below=None, filter_over=None, number_of_formants
             print(f"Getting the formant f{f}...", end=" ")
         formant = audio.get_formant(f, filter_over=filter_over, filter_below=filter_below, zeros_as_nan=False,
                                     verbosity=verbosity - 1)
+        formants.append(formant)
         if verbosity > 0:
             print("Done.")
 
@@ -973,6 +972,7 @@ def audio_plotter(audio, filter_below=None, filter_over=None, number_of_formants
     plt.subplot(3, 2, 5)
     for i in range(len(formants)):
         plt.plot(formants[i].timestamps, formants[i].samples, label="f" + str(i + 1))
+
     plt.legend()
     plt.title("Formants")
 
@@ -981,6 +981,7 @@ def audio_plotter(audio, filter_below=None, filter_over=None, number_of_formants
     plt.ylim([spectrogram.ymin, spectrogram.ymax])
     plt.xlabel("time [s]")
     plt.ylabel("frequency [Hz]")
+    plt.title("Spectrogram")
 
     if show:
         plt.show()
@@ -994,9 +995,12 @@ def audio_plotter(audio, filter_below=None, filter_over=None, number_of_formants
     return fig
 
 def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale=None, max_scale=None, show_scale=False,
-                     title_scale=None, xlim=None, ylim=None, shaded_error_bars=True,
-                     alpha_shade=0.4, color_scheme="default", title_audio="Audio",
-                     full_screen=False, show=True, path_save=None, **kwargs):
+                     title_scale=None, xlim=None, ylim=None, shaded_error_bars=True, horizontal_lines=None,
+                     horizontal_lines_colors="red", horizontal_lines_styles="--", horizontal_shades=None,
+                     horizontal_shades_colors="red", horizontal_shades_alphas=0.3, alpha_shade=0.4,
+                     signif_marker=None, signif_marker_values=None, signif_marker_size=10, signif_marker_color="black",
+                     signif_marker_offset=0.02, color_scheme="default", title_audio="Audio", full_screen=False,
+                     show=True, path_save=None):
     """Creates multiple subplots placed so that each joint is roughly placed where it is located on the body. The
     values of each subplot are taken from the parameter ``plot_dictionary``, and the positions from the layout
     differ between Kinect and Kualisys systems.
@@ -1045,8 +1049,52 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
     shaded_error_bars: bool, optional
         Shows shaded error bars for each plot if the standard deviation is part of the plot_dictionary. Default: True.
 
+    horizontal_lines: list(float) | float | None, optional
+        If set, adds one or more horizontal lines to the plot (e.g. to signify significance). Default: None.
+
+    horizontal_lines_colors: list(color) | color, optional
+        The color or colors to apply to each horizontal line. If a list is provided, the length of the list must be
+        equal to the length of ``horizontal_lines``. If a single color is provided, it will be applied to all lines.
+
+    horizontal_lines_styles: list(str) | str, optional
+        The line style to apply to each horizontal line. If a list is provided, the length of the list must be equal
+        to the length of ``horizontal_lines``. If a single line style is provided, it will be applied to all lines.
+
+    horizontal_shades: list(tuple(float, float)) | (float, float) | None, optional
+        If set, adds one or more horizontal shades to the plot (e.g. to signify significance). Each shade must be two
+        values, starting from the lowest. Setting ``"inf"`` or ``"-inf"`` will change set the color until the
+        corresponding vertical limit of the graph. Default: None.
+
+    horizontal_shades_colors: list(color) | color, optional
+        The color or colors to apply to each horizontal shade. If a list is provided, the length of the list must be
+        equal to the length of ``horizontal_shades``. If a single color is provided, it will be applied to all shades.
+
+    horizontal_shades_alphas: list(str) | str, optional
+        The alpha value to apply to each horizontal shade. If a list is provided, the length of the list must be equal
+        to the length of ``horizontal_shades``. If a single alpha value is provided, it will be applied to all shades.
+
     alpha_shade: float, optional
         The alpha value for the color of the shaded error bars. Default: 0.4.
+
+    signif_marker: str, optional
+        Marker(s) to display for significant values. If a single character is given (default: ``"*"``), it will be
+        repeated according to the number of thresholds in ``signif_alpha`` (e.g., ``"*"``, ``"**"``, ``"***"``
+        for three levels). Alternatively, a list of symbols can be provided, in which case its length must match the
+        number of alpha values.
+        
+    signif_marker_values: tuple(float, float) | list(tuple(float, float)) | None, optional
+        A list of tuples containing the lower and upper bounds of the thresholds for the ``signif_marker`` parameter.
+        If a value is strictly over or below a bound, set numpy.inf or -numpy.inf as the other bound. This parameter
+        must be set if ``signif_marker`` is set on ``True``.
+
+    signif_marker_size: float|int, optional
+        The size of the significance marker(s). Default: 10.
+
+    signif_marker_color: str|list(str), optional
+        The color(s) of the significance marker(s). Default: ``"black"``.
+
+    signif_marker_offset: float, optional
+        The vertical offset of the significance marker(s), as a fraction of the height of the plot. Default: 0.02.
 
     color_scheme: str or list, optional
         The color scheme to use for the color scale. This color scheme should be coherent with the colors defined in
@@ -1067,10 +1115,6 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
 
     path_save: str or None
         If not `None`, the function saves the obtained graph at the given path.
-
-    **kwargs: dict
-        Any of the parameters accepted by
-        `matplotlib.pyplot.plot <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html>`_.
 
     Example
     -------
@@ -1119,13 +1163,88 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
 
     if min_scale is not None:
         min_value = min_scale
-    if max_scale is not None:
+    if isinstance(max_scale, (int, float)):
         max_value = max_scale
-    if max_scale == "auto":
-        max_scale = max_value
+
+    # Horizontal lines
+    if horizontal_lines is not None:
+        if not isinstance(horizontal_lines, (tuple, list)):
+            horizontal_lines = (horizontal_lines,)
+        if min_scale is None and min(horizontal_lines) < min_value:
+            min_value = min(horizontal_lines)
+        if max_scale is None and max(horizontal_lines) > max_value:
+            max_value = max(horizontal_lines)
+
+        if horizontal_lines_colors is None or isinstance(horizontal_lines_colors, str):
+            horizontal_lines_colors = [horizontal_lines_colors] * len(horizontal_lines)
+        if len(horizontal_lines_colors) != len(horizontal_lines):
+            raise ValueError(f"The length of the horizontal_lines_colors list ({horizontal_lines_colors}) must be equal "
+                             f"to the length of horizontal_lines ({horizontal_lines}).")
+        horizontal_lines_colors = convert_colors(horizontal_lines_colors, "HEX")
+
+        if horizontal_lines_styles is None or isinstance(horizontal_lines_styles, str):
+            horizontal_lines_styles = [horizontal_lines_styles] * len(horizontal_lines)
+        if len(horizontal_lines_styles) != len(horizontal_lines):
+            raise ValueError(f"The length of the horizontal_lines_styles list ({horizontal_lines_styles}) must be equal "
+                             f"to the length of horizontal_lines ({horizontal_lines}).")
+
+    # Horizontal shades
+    if horizontal_shades is not None:
+        if not isinstance(horizontal_shades, list):
+            horizontal_shades = [horizontal_shades]
+        for s in range(len(horizontal_shades)):
+            if not isinstance(horizontal_shades[s], (tuple, list)):
+                raise ValueError("Error: each value in horizontal_shades must be a list or a tuple.")
+            if horizontal_shades[s][0] == -np.inf:
+                horizontal_shades[s] = (min_value, horizontal_shades[s][1])
+            if horizontal_shades[s][1] == np.inf:
+                horizontal_shades[s] = (horizontal_shades[s][0], max_value)
+
+        if horizontal_shades_colors is None or isinstance(horizontal_shades_colors, str):
+            horizontal_shades_colors = [horizontal_shades_colors] * len(horizontal_shades)
+        if len(horizontal_shades_colors) != len(horizontal_shades):
+            raise ValueError(f"The length of the horizontal_shades_colors list ({horizontal_shades_colors}) must be equal "
+                             f"to the length of horizontal_shades ({horizontal_shades}).")
+
+        if horizontal_shades_alphas is None or isinstance(horizontal_shades_alphas, (int, float)):
+            horizontal_shades_alphas = [horizontal_shades_alphas] * len(horizontal_shades)
+        if len(horizontal_shades_alphas) != len(horizontal_shades):
+            raise ValueError(f"The length of the horizontal_shades_alphas list ({horizontal_shades_alphas}) must be equal "
+                             f"to the length of horizontal_shades ({horizontal_shades}).")
+
+        horizontal_shades_colors = convert_colors(horizontal_shades_colors, "HEX", False)
+
+    # Markers
+    if signif_marker is not None:
+        if isinstance(signif_marker, str):
+            signif_marker = [signif_marker]
+        if not isinstance(signif_marker_color, list):
+            signif_marker_color = [signif_marker_color]
+        signif_marker_color = convert_colors(signif_marker_color, "HEX", False)
+
+        if len(signif_marker_values) != len(signif_marker):
+            if len(signif_marker) == 1:
+                signif_marker = [signif_marker[0] * i for i in range(len(signif_marker_values), 0, -1)]
+            else:
+                raise ValueError(f"The length of the parameter signif_marker_value ({len(signif_marker_values)}) must "
+                                 f"be equal to the length of signif_marker ({len(signif_marker)}).")
+
+        if len(signif_marker) != 1 and len(signif_marker_color) == 1:
+            signif_marker_color = signif_marker_color * len(signif_marker)
+        elif len(signif_marker) != len(signif_marker_color):
+            raise ValueError(f"The length of the signif_marker list ({len(signif_marker)}) must be equal to the "
+                             f"length of signif_marker_color ({len(signif_marker_color)}).")
+
+        if signif_marker_values is None:
+            raise ValueError("The parameter signif_marker_value must be set if signif_marker is set.")
+        elif isinstance(signif_marker_values, tuple):
+            signif_marker_values = [signif_marker_values]
+        elif not isinstance(signif_marker_values, list):
+            raise ValueError("The parameter signif_marker_values must be a tuple or a list.")
+
+    print(signif_marker, signif_marker_values, signif_marker_color)
 
     # Plot the subplots
-
     for key in plot_dictionary.keys():
         plt.subplot(rows, cols, joints_positions[key])
         if key != "Audio":  # We want to scale everything apart from the audio
@@ -1137,14 +1256,29 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
             plt.xlim(xlim)
         if ylim is not None:
             plt.ylim(ylim)
-        i = 0
+
+        if key != "Audio":
+            if horizontal_shades is not None:
+                for line, color, alpha in zip(horizontal_shades, horizontal_shades_colors, horizontal_shades_alphas):
+                    plt.axhspan(line[0], line[1], color=color, alpha=alpha)
+
+            if horizontal_lines is not None:
+                for line, color, linestyle in zip(horizontal_lines, horizontal_lines_colors, horizontal_lines_styles):
+                    plt.axhline(y=line, color=color, linestyle=linestyle)
+
         for subplot in plot_dictionary[key].plots:
-            p = plt.plot(subplot.x, subplot.y, linewidth=subplot.line_width, color=subplot.color, label=subplot.label)
+            line, = plt.plot(subplot.x, subplot.y, linewidth=subplot.line_width, color=subplot.color, label=subplot.label)
+            if signif_marker is not None and key != "Audio":
+                for x, y in zip(subplot.x, subplot.y):
+                    for marker, v, color in zip(signif_marker, signif_marker_values, signif_marker_color):
+                        if v[0] < y < v[1]:
+                            plt.text(x, y + signif_marker_offset, marker, fontsize=signif_marker_size, color=color,
+                                     ha="center", va="bottom")
+                            break
+
             if subplot.sd is not None and shaded_error_bars:
-                line_color = list(p[i].get_color())
                 plt.fill_between(subplot.x, subplot.y - subplot.sd, subplot.y + subplot.sd,
-                                 alpha=alpha_shade, facecolor=tuple(line_color))
-                i += 0
+                                 alpha=alpha_shade, facecolor=line.get_color())
 
     # Delete unused axes
     if "Audio" not in plot_dictionary.keys():
@@ -1173,19 +1307,33 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
         cbax = fig.add_axes([0.91, 0.15, 0.02, 0.7])
         plt.colorbar(cm.ScalarMappable(norm=norm, cmap=cmap), cax=cbax, orientation='vertical', label=title_scale)
 
-    handles, labels = plt.gca().get_legend_handles_labels()
-    fig.legend(handles, labels, loc='upper right')
+    # Build a figure-level legend from ALL subplots
+    all_handles = []
+    all_labels = []
+    for ax in fig.get_axes():
+        h, l = ax.get_legend_handles_labels()
+        if h:  # skip axes with nothing labeled (e.g., empty slots or colorbar)
+            all_handles.extend(h)
+            all_labels.extend(l)
 
-    if path_save is not None:
-        os.makedirs(os.path.split(path_save)[0], exist_ok=True)
-        plt.savefig(path_save)
+    # Deduplicate while preserving order
+    seen = set()
+    uniq_handles, uniq_labels = [], []
+    for h, l in zip(all_handles, all_labels):
+        if l and l not in seen:
+            seen.add(l)
+            uniq_handles.append(h)
+            uniq_labels.append(l)
 
-    if show:
-        plt.show()
+    # Unified legend
+    fig.legend(uniq_handles, uniq_labels, loc="upper right", bbox_to_anchor=(0.98, 0.98), frameon=True, ncol=1)
 
     if path_save is not None:
         os.makedirs(op.split(path_save)[0], exist_ok=True)
         plt.savefig(path_save)
+
+    if show:
+        plt.show()
 
     plt.close()
 
@@ -1196,23 +1344,23 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, title_silh
                     scale_silhouette=0.9, min_scale="auto", max_scale="auto", show_scale=True, title_scale=None,
                     color_scheme="default", color_background="white", color_silhouette="black",
                     pixels_between_silhouettes=100, path_font=None, font_size=1, resolution=0.5,
-                    full_screen=False, show=True, path_save=None, verbosity=1, **kwargs):
+                    full_screen=False, show=True, path_save=None, verbosity=1):
     """Plots one or multiple silhouettes with circles representing the different joints, colored according to their
     values in the ``plot_dictionary``. Passing the mouse on the different joints shows, in the bottom right corner, the
-    value associated to the joint the mouse is on.
+    value associated with the joint the mouse is on.
 
     .. versionadded:: 2.0
 
     Parameters
     ----------
     plot_dictionary: dict(str: float|np.array)
-        A dictionary containing the title of the sub-graphs as keys, and values as elements. The number of silhouettes
+        A dictionary containing the title of the subgraphs as keys, and values as elements. The number of silhouettes
         displayed will depend on the number of values in each value of the plot dictionary: if there is only one value,
         one silhouette is displayed; if the value is an array, the function will display as many silhouettes as the
         size of the arrays.
 
     joint_layout: str, optional
-        Defines the layout to use for the sub-plots of the joints: ``"kinect"`` or ``"qualisys"``/``"kualisys"``. If
+        Defines the layout to use for the subplots of the joints: ``"kinect"`` or ``"qualisys"``/``"kualisys"``. If
         set on ``"auto"`` (default), the function will automatically assign the layout depending on if the joint label
         ``"Chest"`` is among the keys of the ``plot_dictionary``. In order to create a personalized layout, it is
         possible to click on the figure to print in the console a specific position. Pressing the CTRL key at the same
@@ -1319,10 +1467,6 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, title_silh
         • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
           may clutter the output and slow down the execution.
 
-    **kwargs: dict
-        Any of the parameters accepted by
-        `matplotlib.pyplot.plot <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html>`_.
-
     Example
     -------
     >>> plot_dictionary = {"Head": 0.1, "HandRight": 0.48, "HandLeft": 0.88}
@@ -1330,6 +1474,7 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, title_silh
     ...                 show_scale=True, title_scale="Coherence scale (A.U.)", color_scheme="horizon",
     ...                 color_background="black", color_silhouette="#303030", verbosity=0)
     """
+
     pygame.init()
 
     if verbosity > 0:
@@ -1368,6 +1513,8 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, title_silh
         if key != "Audio":
             number_of_silhouettes = len(plot_dictionary[key])
 
+    print(number_of_silhouettes)
+
     # Load silhouette picture, color it and resize it
     silhouette = pygame.image.load(SILHOUETTE_PATH)
     color_background = convert_color(color_background, "rgb", False)
@@ -1387,12 +1534,13 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, title_silh
     silhouette_y = (resolution[1] - silhouette_height) // 2
 
     # Create the surfaces around the silhouette
-    width_surface_side = (resolution[0] - (silhouette.get_width() * number_of_silhouettes) - (pixels_between_silhouettes
-                          * (number_of_silhouettes - 1))) / 2
+    width_surface_side = (resolution[0] - (silhouette.get_width() * number_of_silhouettes) -
+                          (pixels_between_silhouettes * (number_of_silhouettes - 1))) / 2
     surface_horizontal = pygame.Surface((resolution[0], resolution[1] * (1 - scale_silhouette) / 2 + 1))
-    surface_left = pygame.Surface((width_surface_side + 1, resolution[1]))
+
+    surface_left = pygame.Surface((max(0, width_surface_side + 1), resolution[1]))
     surface_between = pygame.Surface((pixels_between_silhouettes + 1, resolution[1]))
-    surface_right = pygame.Surface((width_surface_side, resolution[1]))
+    surface_right = pygame.Surface((max(0, width_surface_side), resolution[1]))
     surface_horizontal.fill(color_background)
     surface_left.fill(color_background)
     surface_between.fill(color_background)
@@ -1507,7 +1655,8 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, title_silh
         if type(title_silhouette) is str:
             title_silhouette = [title_silhouette]
         if len(title_silhouette) != number_of_silhouettes:
-            raise ValueError("The number of silhouette titles must be equal to the number of silhouettes.")
+            raise ValueError(f"The number of silhouette titles ({len(title_silhouette)}) must be equal to the number "
+                             f"of silhouettes ({number_of_silhouettes}).")
         for i in range(len(title_silhouette)):
             silhouette_titles.append(font_silhouette_title.render(str(title_silhouette[i]), True, font_color))
             pos_x = (silhouette_x + silhouette_width // 2 - silhouette_titles[i].get_width() // 2 +
@@ -1577,7 +1726,7 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, title_silh
             window.blit(silhouette, (silhouette_x + i * (silhouette_width + pixels_between_silhouettes), silhouette_y))
 
         window.blit(surface_horizontal, (0, 0))
-        window.blit(surface_horizontal, (0, resolution[1] * (1 - ((1 - scale_silhouette) / 2))))
+        window.blit(surface_horizontal, (0, resolution[1] * (1 - ((1 - scale_silhouette) / 2)) - 1))
         window.blit(surface_left, (0, 0))
         window.blit(surface_right, (resolution[0] - width_surface_side, 0))
 
