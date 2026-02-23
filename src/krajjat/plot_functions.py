@@ -1059,6 +1059,7 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
     horizontal_lines_styles: list(str) | str, optional
         The line style to apply to each horizontal line. If a list is provided, the length of the list must be equal
         to the length of ``horizontal_lines``. If a single line style is provided, it will be applied to all lines.
+        See `linestyles <https://matplotlib.org/stable/gallery/lines_bars_and_markers/linestyles.html>`_ for more info.
 
     horizontal_shades: list(tuple(float, float)) | (float, float) | None, optional
         If set, adds one or more horizontal shades to the plot (e.g. to signify significance). Each shade must be two
@@ -1242,7 +1243,7 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
         elif not isinstance(signif_marker_values, list):
             raise ValueError("The parameter signif_marker_values must be a tuple or a list.")
 
-    print(signif_marker, signif_marker_values, signif_marker_color)
+    # print(signif_marker, signif_marker_values, signif_marker_color)
 
     # Plot the subplots
     for key in plot_dictionary.keys():
@@ -1513,8 +1514,6 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, title_silh
         if key != "Audio":
             number_of_silhouettes = len(plot_dictionary[key])
 
-    print(number_of_silhouettes)
-
     # Load silhouette picture, color it and resize it
     silhouette = pygame.image.load(SILHOUETTE_PATH)
     color_background = convert_color(color_background, "rgb", False)
@@ -1783,7 +1782,8 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, title_silh
     return img
 
 
-def _plot_components(pca_or_ica, components, joint_labels, title, selected_components=None):
+def _plot_components(pca_or_ica, components, joint_labels, title, selected_components=None, show=True, path_save=None,
+                     verbosity=1, **kwargs):
     """Plots the components of a PCA or an ICA.
 
     .. versionadded:: 2.0
@@ -1792,15 +1792,36 @@ def _plot_components(pca_or_ica, components, joint_labels, title, selected_compo
     ----------
     pca_or_ica: numpy.ndarray
         The components returned by a Principal Component Analysis.
+
     components: numpy.ndarray
         The components attribute of the PCA, containing the directions of maximum variance in the data for each feature
         (the joint labels).
+
     joint_labels: list(str)
         The labels of each feature.
+
     title: str
         The title of the figure.
+
     selected_components: int, list(int) or None
         If set, plots only the selected component(s). The components start at index 0.
+
+    show: bool, optional
+        If set on `False`, the function does not show the graph. This parameter can be set if the purpose of the
+        function is to save the graph in a file, without having to halt the execution of the code when opening a window.
+
+    path_save: str or None optional
+        If provided, the function will save the silhouette as a picture. The path should contain the folder, the name
+        file, and one of the following extensions: ``".png"``, ``".jpeg"`` or ``".bmp"``.
+
+    verbosity: int, optional
+        Sets how much feedback the code will provide in the console output:
+
+        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+          current steps.
+        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+          may clutter the output and slow down the execution.
     """
     n_components = np.shape(components)[0]
     max_components = np.max(components)
@@ -1815,7 +1836,8 @@ def _plot_components(pca_or_ica, components, joint_labels, title, selected_compo
 
     for i in range(len(selected_components)):
         dict_plot = {joint_labels[j]: components[selected_components[i]][j] for j in range(len(joint_labels))}
-        img = plot_silhouette(dict_plot, show=False, max_scale=max_components, resolution=(300, 300))
+        img = plot_silhouette(dict_plot, show=False, max_scale=max_components, resolution=(300, 300),
+                              verbosity=verbosity, **kwargs)
         img = np.transpose(img, (1, 0, 2))
         ax[i][0].imshow(img)
         ax[i][0].xaxis.set_visible(False)
@@ -1824,7 +1846,15 @@ def _plot_components(pca_or_ica, components, joint_labels, title, selected_compo
         ax[i][0].set_ylabel(f"Component {selected_components[i]}")
         ax[i][1].plot(pca_or_ica[:, i])
 
-    plt.show()
+    if path_save is not None:
+        os.makedirs(op.split(path_save)[0], exist_ok=True)
+        plt.savefig(path_save)
+
+    if show:
+        plt.show()
+
+    plt.close()
+    return fig
 
 
 def _prepare_plot_timestamps(sequence_or_sequences, align, verbosity):

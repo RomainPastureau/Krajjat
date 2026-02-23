@@ -342,6 +342,16 @@ class TestsAudio(unittest.TestCase):
         audio = Audio(samples, freq, verbosity=0)
         assert audio.get_frequency() == 44100
 
+    def test_get_sampling_rate(self):
+        audio = Audio("test_audios/test_audio_1.wav", verbosity=0)
+        assert np.allclose(audio.get_timestamps()[0:8], np.array([0, 1, 2, 3, 4, 5, 6, 7]) / 44100)
+        assert audio.get_sampling_rate() == 44100
+
+        freq = 44100
+        samples = np.array([0, 1, 2, 3, 4, 5, 6, 7])
+        audio = Audio(samples, freq, verbosity=0)
+        assert audio.get_sampling_rate() == 44100
+
     def test_get_info(self):
         audio = Audio("test_audios/test_audio_1.wav", verbosity=0)
         info = audio.get_info()
@@ -406,7 +416,6 @@ class TestsAudio(unittest.TestCase):
         assert pitch.metadata["processing_steps"][1]["processing_type"] == "filter_frequencies"
         assert pitch.metadata["processing_steps"][1]["filter_below"] is None
         assert pitch.metadata["processing_steps"][1]["filter_over"] == 50
-
 
     def test_get_intensity(self):
         audio = Audio("test_audios/test_audio_1.wav", verbosity=0)

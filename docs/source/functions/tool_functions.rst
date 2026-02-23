@@ -43,6 +43,7 @@ File writing functions
 
 Calculation functions
 ^^^^^^^^^^^^^^^^^^^^^
+.. autofunction:: krajjat.tool_functions.find_closest_value_index
 .. autofunction:: krajjat.tool_functions.resample_data
 .. autofunction:: krajjat.tool_functions.resample_window
 .. autofunction:: krajjat.tool_functions.interpolate_data
@@ -99,3 +100,5 @@ Miscellaneous functions
 .. autofunction:: krajjat.tool_functions.show_progression
 .. autofunction:: krajjat.tool_functions.get_min_max_values_from_plot_dictionary
 .. autofunction:: krajjat.tool_functions.kwargs_parser
+.. autofunction:: krajjat.tool_functions.set_nested_dict
+.. autofunction:: krajjat.tool_functions.has_nested_key

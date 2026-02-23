@@ -80,6 +80,7 @@ Correction functions
 ^^^^^^^^^^^^^^^^^^^^
 .. _correct_jitter:
 .. automethod:: krajjat.classes.sequence.Sequence.correct_jitter
+.. automethod:: krajjat.classes.sequence.Sequence.correct_jitter_savgol
 .. _re_reference:
 .. automethod:: krajjat.classes.sequence.Sequence.re_reference
 .. _trim:
@@ -99,6 +100,7 @@ Conversion functions
 .. automethod:: krajjat.classes.sequence.Sequence.to_json
 .. automethod:: krajjat.classes.sequence.Sequence.to_dict
 .. automethod:: krajjat.classes.sequence.Sequence.to_dataframe
+.. automethod:: krajjat.classes.sequence.Sequence.to_analysis_dataframe
 
 Saving functions
 ^^^^^^^^^^^^^^^^

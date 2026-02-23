@@ -2032,8 +2032,9 @@ def calculate_euclidian_distances(x_array, y_array, z_array=None):
         distances_z = np.power(calculate_consecutive_distances(z_array), 2)
         return np.sqrt(distances_x + distances_y + distances_z)
 
-def calculate_derivative(array, derivative="velocity", window_length=7, poly_order=None, freq=1):
+def calculate_derivative(array, derivative="velocity", window_length="auto", poly_order="auto", freq=1, mode="interp"):
     """
+    Using a Savitzky-Golay filter, calculates the derivative of a given array.
 
     .. versionadded:: 2.0
 
@@ -2054,36 +2055,56 @@ def calculate_derivative(array, derivative="velocity", window_length=7, poly_ord
         • Though probably unnecessary, any higher derivative can be referred to by an integer.
 
     window_length: int, optional
-        The length of the window for the Savitzky–Golay filter (default: 7). See
+        The length of the window for the Savitzky–Golay filter. See
         `scipy.signal.savgol_filter <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.savgol_filter.html>`_
-        for more info.
+        for more info. If set on ``"auto"`` (default), the length of the window is defined to aim a number of samples
+        equal to around 100 ms (min. 5 samples) for a derivative of order 1, with a scaling up of this timespan by 30%
+        for each higher order.
 
     poly_order: int|None, optional
-        The order of the polynomial for the Savitzky–Golay filter. If set on None, the polynomial will be set to one
-        over the derivative rank. See
+        The order of the polynomial for the Savitzky–Golay filter. If set on ``"auto"`` (default), the polynomial will
+        be set to two over the derivative rank. See
         `scipy.signal.savgol_filter <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.savgol_filter.html>`_
         for more info.
 
     freq: int|float, optional
         The frequency of the original data, in Hz (default: 1).
+
+    mode: str, optional
+        The type of extension for the padded signal, must be one of the values accepted by the function
+        scipy.signal.savgol_filter <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.savgol_filter.html>`_
     """
 
-    derivatives = {"velocity": 1, "speed": 1, "acceleration": 2, "jerk": 3, "jounce": 4, "snap": 4, "crackle": 5,
-                   "pop": 6}
+    derivatives = {"distance": 0, "velocity": 1, "speed": 1, "acceleration": 2, "jerk": 3, "jounce": 4, "snap": 4,
+                   "crackle": 5, "pop": 6}
 
-    if type(derivative) is str:
-
+    if isinstance(derivative, str):
         if derivative in derivatives.keys():
             derivative = derivatives[derivative]
         else:
             raise InvalidParameterValueException("derivative", derivative, list(derivatives.keys()))
 
-    if poly_order is None:
-        poly_order = derivative + 1
-        if poly_order >= window_length:
-            poly_order = window_length - 1
+    poly_order_auto = False
+    if poly_order == "auto" or poly_order is None:
+        poly_order_auto = True
+        poly_order = derivative + 2 + (derivative // 3)
 
-    return savgol_filter(array, window_length, poly_order, derivative, mode="interp") * np.power(freq, derivative)
+    if window_length == "auto":
+        target_seconds = 0.1 * (1 + 0.3 * (derivative - 1))
+        n_samples = freq * target_seconds
+
+        window_length = int(2 * round(n_samples / 2) + 1)
+        min_window = max(poly_order + 2, 5)
+        window_length = max(window_length, min_window)
+
+    if poly_order >= window_length and poly_order_auto:
+        poly_order = window_length - 1
+
+    if poly_order > window_length:
+        raise Exception("The order of the polynomial must be lower than the window length.")
+
+    return savgol_filter(array, window_length, poly_order, derivative, 1/freq, mode=mode)
+    return savgol_filter(array, window_length, poly_order, derivative, mode=mode) * np.power(freq, derivative)
 
 
 def calculate_delay(pose1, pose2, absolute=False):

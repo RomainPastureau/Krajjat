@@ -487,6 +487,25 @@ class TestsAudioDerivatives(unittest.TestCase):
         intensity = Intensity("test_intensities/test_audio_4_intensity.xlsx", verbosity=0)
         assert np.isclose(intensity.get_frequency(), 44100)
 
+    def test_get_sampling_rate(self):
+        extensions = ["wav", "json", "mat", "pkl", "txt", "csv", "tsv", "aaa"]
+        random.shuffle(extensions)
+        types = [Envelope, Pitch, Intensity, Formant, Envelope, Pitch, Intensity, Formant]
+        folders = ["envelopes", "pitches", "intensities", "formants", "envelopes", "pitches", "intensities", "formants"]
+        kinds = ["envelope", "pitch", "intensity", "formant", "envelope", "pitch", "intensity", "formant"]
+
+        for ext, typ, folder, kind in zip(extensions, types, folders, kinds):
+            obj = typ(f"test_{folder}/test_audio_1_{kind}.{ext}", verbosity=0)
+            assert np.isclose(obj.get_sampling_rate(), 44100)
+
+            freq = 44100
+            samples = np.array([0, 1, 2, 3, 4, 5, 6, 7])
+            obj = typ(samples, freq, verbosity=0)
+            assert np.isclose(obj.get_sampling_rate(), freq)
+
+        intensity = Intensity("test_intensities/test_audio_4_intensity.xlsx", verbosity=0)
+        assert np.isclose(intensity.get_sampling_rate(), 44100)
+
     def test_get_info(self):
         extensions = ["wav", "json", "mat", "pkl", "txt", "csv", "tsv", "aaa"]
         random.shuffle(extensions)
@@ -585,6 +604,9 @@ class TestsAudioDerivatives(unittest.TestCase):
     def test_to_dataframe(self):
         pass
 
+    def test_to_analysis_dataframe(self):
+        pass
+
     def test_save(self):
         pass
 
@@ -637,3 +659,10 @@ class TestsAudioDerivatives(unittest.TestCase):
     def test_load_formant_number(self):
         # See test_init
         pass
+
+    def test_set_attributes_from_other_object(self):
+        formant_1 = Formant("test_formants/test_audio_1_formant.wav", verbosity=0)
+        formant_2 = Formant("test_formants/test_audio_1_f2.wav", verbosity=0)
+        formant_1._set_attributes_from_other_object(formant_2)
+        assert formant_1.frequency == formant_2.frequency
+        assert formant_1.formant_number == formant_2.formant_number

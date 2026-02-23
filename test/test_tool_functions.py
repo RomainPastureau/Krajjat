@@ -308,8 +308,17 @@ class TestsToolFunctions(unittest.TestCase):
         assert table == new_table
         assert metadata == new_metadata
 
-    def test_resample_data(self):
+    def test_find_closest_value_index(self):
+        a = np.array([1, 2, 3, 4, 5])
+        assert find_closest_value_index(a, 3) == 2
+        assert find_closest_value_index(a, 3.1) is None
+        assert find_closest_value_index(a, 3.5) is None
+        assert find_closest_value_index(a, 3.1, rtol=0.1) == 2
 
+        b = np.array([3, 5, 1, 4, 2])
+        assert find_closest_value_index(b, 3) == 0
+
+    def test_resample_data(self):
         # Linear resampling
         array = np.linspace(1, 0, 11)
         original_timestamps = np.linspace(0, 2, 11)
@@ -460,13 +469,12 @@ class TestsToolFunctions(unittest.TestCase):
         nb_points = 10000
         timestamps = np.linspace(0, 4*np.pi, nb_points)
         sin = np.sin(timestamps)
-        sin_v = calculate_derivative(sin, 1, 7, None, freq=1/timestamps[1])
-        sin_a = calculate_derivative(sin, 2, 7, None, freq=1/timestamps[1])
-        sin_j = calculate_derivative(sin, 3, 7, None, freq=1/timestamps[1])
-        sin_s = calculate_derivative(sin, 4, 7, None, freq=1/timestamps[1])
+        sin_v = calculate_derivative(sin, 1, 7, 2, freq=1/timestamps[1], mode="interp")
+        sin_a = calculate_derivative(sin, 2, 7, 3, freq=1/timestamps[1], mode="interp")
+        sin_j = calculate_derivative(sin, 3, 7, 4, freq=1/timestamps[1], mode="interp")
+        sin_s = calculate_derivative(sin, 4, 7, 5, freq=1/timestamps[1], mode="interp")
 
-        assert np.allclose(sin_s, sin, atol=0.005)
-
+        # import matplotlib.pyplot as plt
         # fig = plt.figure()
         # ax = plt.subplot(5, 1, 1)
         # ax.plot(np.linspace(0, np.pi, nb_points), sin)
@@ -480,45 +488,46 @@ class TestsToolFunctions(unittest.TestCase):
         # ax.plot(np.linspace(0, np.pi, nb_points), sin_s)
         # plt.show()
 
+        assert np.allclose(sin_v, np.cos(timestamps), atol=0.005)
+        assert np.allclose(sin_a, -np.sin(timestamps), atol=0.005)
+        assert np.allclose(sin_j, -np.cos(timestamps), atol=0.005)
+        assert np.allclose(sin_s, np.sin(timestamps), atol=0.005)
+
         # Test with sequence
-        path = "D:/OneDrive/Documents/BCBL/05_BodyLingual/Stimuli/Recordings/Lund/Gesture/02 - Preprocessed/S003/R003.tsv"
+        path = "test_sequences/sequence_ainhoa.json"
         sequence = Sequence(path, name="seq1", verbosity=0)
-        x_array = sequence.get_measure("x", "HandInRight")
-        y_array = sequence.get_measure("y", "HandInRight")
-        z_array = sequence.get_measure("z", "HandInRight")
-        distances = calculate_euclidian_distances(x_array, y_array, z_array)
+        sequence = sequence.resample(100)
+        x_array = sequence.get_measure("x", "HandRight")
+        y_array = sequence.get_measure("y", "HandRight")
+        z_array = sequence.get_measure("z", "HandRight")
+        distances = np.sqrt(np.diff(x_array) ** 2 + np.diff(y_array) ** 2 + np.diff(z_array) ** 2)
 
         freq = sequence.get_sampling_rate()
 
-        velocity = calculate_derivative(distances, "velocity", 7, freq=freq)
-        acceleration = calculate_derivative(distances, "acceleration", 7, freq=freq)
-        jerk = calculate_derivative(distances, "jerk", 7, freq=freq)
-        snap = calculate_derivative(distances, "snap", 7, freq=freq)
-
         # fig = plt.figure()
         # ax = plt.subplot(4, 2, 1)
-        # ax.plot(sequence.get_timestamps_for_metric("x"), sequence.get_time_series_as_list("x")["HandInRight"])
+        # ax.plot(sequence.get_timestamps(), sequence.get_measure("x", "HandRight"))
         # ax.set_title("x")
         # ax = plt.subplot(4, 2, 3)
-        # ax.plot(sequence.get_timestamps_for_metric("y"), sequence.get_time_series_as_list("y")["HandInRight"])
+        # ax.plot(sequence.get_timestamps(), sequence.get_measure("y", "HandRight"))
         # ax.set_title("y")
         # ax = plt.subplot(4, 2, 5)
-        # ax.plot(sequence.get_timestamps_for_metric("z"), sequence.get_time_series_as_list("z")["HandInRight"])
+        # ax.plot(sequence.get_timestamps(), sequence.get_measure("z", "HandRight"))
         # ax.set_title("z")
         # ax = plt.subplot(4, 2, 7)
-        # ax.plot(sequence.get_timestamps_for_metric("distance"), distances)
+        # ax.plot(sequence.get_timestamps()[1:], sequence.get_measure("distance", "HandRight"))
         # ax.set_title("distance")
         # ax = plt.subplot(4, 2, 2)
-        # ax.plot(sequence.get_timestamps_for_metric("velocity"), velocity)
+        # ax.plot(sequence.get_timestamps(), sequence.get_measure("velocity", "HandRight"))
         # ax.set_title("velocity")
         # ax = plt.subplot(4, 2, 4)
-        # ax.plot(sequence.get_timestamps_for_metric("velocity"), acceleration)
+        # ax.plot(sequence.get_timestamps(), sequence.get_measure("acceleration", "HandRight"))
         # ax.set_title("acceleration")
         # ax = plt.subplot(4, 2, 6)
-        # ax.plot(sequence.get_timestamps_for_metric("velocity"), jerk)
+        # ax.plot(sequence.get_timestamps(), sequence.get_measure("jerk", "HandRight"))
         # ax.set_title("jerk")
         # ax = plt.subplot(4, 2, 8)
-        # ax.plot(sequence.get_timestamps_for_metric("velocity"), snap)
+        # ax.plot(sequence.get_timestamps(), sequence.get_measure("snap", "HandRight"))
         # ax.set_title("snap")
         # plt.tight_layout()
         # plt.show()
@@ -885,17 +894,17 @@ class TestsToolFunctions(unittest.TestCase):
 
     def test_load_joints_silhouette_layout(self):
         positions, layout = load_joints_silhouette_layout("kinect")
-        assert positions["Head"] == (960, 60, 120)
-        assert positions["SpineMid"] == (960, 355, 150)
-        assert positions["FootLeft"] == (900, 1040, 150)
+        assert positions["Head"] == (233, 60, 120)
+        assert positions["SpineMid"] == (233, 355, 150)
+        assert positions["FootLeft"] == (173, 1040, 150)
         assert layout[19] == "Head"
         assert layout[1] == "SpineMid"
         assert layout[18] == "FootLeft"
 
         positions, layout = load_joints_silhouette_layout("qualisys")
-        assert positions["HeadTop"] == (960, 10, 50)
-        assert positions["SpineTop"] == (960, 160, 100)
-        assert positions["ForefootOutLeft"] == (1045, 1030, 50)
+        assert positions["HeadTop"] == (233, 10, 50)
+        assert positions["SpineTop"] == (233, 160, 100)
+        assert positions["ForefootOutLeft"] == (318, 1030, 50)
         assert layout[0] == "HeadTop"
         assert layout[4] == "SpineTop"
         assert layout[41] == "ForefootOutLeft"
@@ -960,3 +969,29 @@ class TestsToolFunctions(unittest.TestCase):
 
         assert parsed_kwargs["size"] == 2
         assert parsed_kwargs["color"] == "red"
+
+    def test_set_nested_dict(self):
+        a = {}
+        set_nested_dict(a, ["A", "AA", "AAA"], 1)
+        print(a)
+        assert a["A"]["AA"]["AAA"] == 1
+
+        set_nested_dict(a, ["B", "BA"], 2)
+        assert a["A"]["AA"]["AAA"] == 1
+        assert a["B"]["BA"] == 2
+
+        set_nested_dict(a, ["A", "AA", "AAB"], 3)
+        assert a["A"]["AA"]["AAA"] == 1
+        assert a["B"]["BA"] == 2
+        assert a["A"]["AA"]["AAB"] == 3
+
+        set_nested_dict(a, ["A", "AA", "AAB"], 4)
+        assert a["A"]["AA"]["AAA"] == 1
+        assert a["B"]["BA"] == 2
+        assert a["A"]["AA"]["AAB"] == 4
+
+    def test_has_nested_key(self):
+        a = {}
+        set_nested_dict(a, ["A", "AA", "AAA"], 1)
+        assert has_nested_key(a, ["A", "AA", "AAA"])
+        assert not has_nested_key(a, ["A", "AA", "AAB"])

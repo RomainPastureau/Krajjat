@@ -9,6 +9,7 @@ from datetime import datetime as dt
 from numbers import Number
 import itertools
 
+from krajjat import Sequence, Trial, Subject
 from krajjat.classes.exceptions import ModuleNotFoundException
 from krajjat.classes.experiment import Experiment
 from krajjat.classes.graph_element import Graph, GraphPlot
@@ -1683,128 +1684,159 @@ def mutual_information(experiment_or_dataframe, sampling_rate="auto", groups=Non
                             color_line_perm=color_line_perm, title=title, width_line=width_line, verbosity=verbosity,
                             **kwargs)
 
-
-def pca(experiment_or_dataframe, n_components, group=None, condition=None, subjects=None, trials=None,
-        sequence_measure="distance", audio_measure="envelope", include_audio=False, sampling_frequency=50,
-        show_graph=True, selected_components=None, nan_behaviour="ignore", verbosity=1):
+def pca(data, n_components=0.95, groups=None, conditions=None, subjects=None, trials=None, labels="all",
+        sequence_measure="auto", audio_measure="auto", selected_components=None, random_seed=None, nan_behaviour=0.1,
+        verbosity=1, **kwargs):
     """Performs a principal component analysis (PCA) on the measures from the experiment, reducing the dimensionality
     of the data. Each joint_label is used as a feature for the PCA, and, if specified, the audio measure too.
     Relies on the PCA function from
-    `scikit <https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html>`__.
+    `scikit <https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html>`_.
 
     ..versionadded:: 2.0
 
     Parameters
     ----------
-    experiment_or_dataframe: Experiment, pandas.DataFrame, str or list(any).
-        This parameter can be:
 
+    General parameters
+    ~~~~~~~~~~~~~~~~~~
+    .. rubric:: Parameters
+
+    data: Experiment|pandas.DataFrame|str|list(any)|Subject|Trial|Sequence
+        The data to include in the PCA. The sequences and audio measures will be included, if present. This parameter
+        can be:
         • A :class:`Experiment` instance, containing the full dataset to be analyzed.
         • A `pandas DataFrame <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html>`_,
           generally generated from :meth:`Experiment.get_dataframe()`.
         • The path of a file containing a pandas DataFrame, generally generated from
           :class:`Experiment.save_dataframe()`.
         • A list combining any of the above types. In that case, all the dataframes will be merged sequentially.
+        • A Subject instance, containing the data for a single subject.
+        • A Trial instance, containing both Sequence and Audio data.
+        • A Sequence instance, containing the data for a single sequence.
 
-    n_components: int, optional
-        The number of components to generate from the PCA.
+    n_components: int|float|str|None, optional
+        This parameter is passed to `scikit <https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html>`_.
+        As such, the same rules apply:
+        • If set on an integer, the parameter represents the number of components to generate from the PCA. This value
+          must be at least 1, but lower than the number of samples of the data, and lower than the number of channels
+          (joint labels + audio measures).
+        • If set on a string, the parameter must be equal to `"mle"`. In that case, Thomas P. Minka's method for
+          automatically choosing the dimensionality of the PCA is applied.
+        • If set on a float between 0 and 1, the parameter represents the proportion of variance explained by the PCA.
+          By default, this value is set on **0.95**.
+        • `None` sets the parameter on ``min(n_samples, n_features) - 1``.
 
-    group: str or None
-        If specified, the analysis will discard the trials whose
-        :attr:`~krajjat.classes.subject.Subject.group` attribute does not match the value provided for this parameter.
-        Otherwise, if this parameter is set on `None` (default), subjects from all groups will be considered.
+    Dataframe filtering
+    ~~~~~~~~~~~~~~~~~~~
+    .. rubric:: Parameters
 
-    condition: str or None
-        If specified, the analysis will discard the trials whose
-        :attr:`~krajjat.classes.trial.Trial.condition` attribute does not match the value provided for this parameter.
-        Otherwise, if this parameter is set on `None` (default), all trials will be considered.
+    groups : list(str)|str|None, optional
+        Restricts the analysis to subjects with the specified groups. This parameter can be:
 
-    subjects: list(str), str or None
-        If specified, the analysis will discard the subjects whose
-        :attr:`~krajjat.classes.subject.Subject.name` attribute does not match the value(s) provided for this parameter.
-        This parameter can be a string (for one subject), or a list of strings (for multiple subjects).
-        Otherwise, if this parameter is set on `None`, all subjects will be considered. This parameter can be combined
-        with the parameter ``group`` (default), to perform the analysis on certain subjects from a certain group.
+            • A single group.
+            • A list of groups.
+            • ``None`` (default): the dataframe will not be filtered by group.
 
-    trials: dict(str: list(str)), list(str), str or None
-        If specified, the analysis will discard the trials whose
-        :attr:`~krajjat.classes.trial.Trial.name` attribute does not match the value(s) provided for this parameter.
-        This parameter can be:
+    conditions : list(str)|str|None, optional
+        Restricts the analysis to trials with the specified conditions. This parameter can be:
 
-            • A dictionary where each key is a subject name, and each value is a list containing trial names. This
-              allows discarding or select specific trials for individual subjects.
-            • A list where each element is a trial name. This will select only the trials matching the given name,
-              for each subject.
-            • The name of a single trial. This will select the given trial for all subjects.
-            • `None` (default). In that case, all trials will be considered.
+            • A single condition.
+            • A list of conditions.
+            • ``None`` (default): the dataframe will not be filtered by condition.
 
-        This parameter can be combined with the other parameters to select specific subjects or conditions.
+    subjects : list(str)|str|None, optional
+        Restricts the analysis to the specified subjects. This parameter can be:
 
-        ..note ::
-            In the case where at least two of the parameters `group`, `condition`, `subjects` or `trials` are set,
-            the selected trials will be the ones that match all the selected categories. For example, if `subjects`
-            is set on `["sub_001", "sub_002", "sub_003"]` and `trials` is set on `{"sub_001": ["trial_001",
-            "trial_002"], "sub_004": ["trial_001"]}`, the analysis will run on the trials that intersect both
-            requirements, i.e., trials 1 and 2 for subject 1. Trials from subjects 2, 3 and 4 will be discarded.
+            • A single subject.
+            • A list of subjects.
+            • ``None`` (default): all subjects will be considered.
 
-    sequence_measure: str, optional
-        The measure used for each sequence instance, can be either:
+    trials : dict(str: list(str))|list(str)|str|None, optional
+        Restricts the analysis to the specified trials. This parameter can be:
 
-            • ``"x"``, for the values on the x-axis (in meters)
-            • ``"y"``, for the values on the y-axis (in meters)
-            • ``"z"``, for the values on the z axis (in meters)
-            • ``"distance_hands"``, for the distance between the hands (in meters)
-            • ``"distance"``, for the distance travelled (in meters, default)
-            • ``"distance_x"`` for the distance travelled on the x-axis (in meters)
-            • ``"distance_y"`` for the distance travelled on the y-axis (in meters)
-            • ``"distance_z"`` for the distance travelled on the z axis (in meters)
-            • ``"velocity"`` for the velocity (in meters per second)
-            • ``"acceleration"`` for the acceleration (in meters per second squared)
-            • ``"acceleration_abs"`` for the absolute acceleration (in meters per second squared)
+            • A single trial.
+            • A list of trials.
+            • A dictionary mapping subjects or groups to a list of trials.
+            • ``None`` (default): all trials will be considered.
 
-        .. note::
-            This parameter will be used to generate a dataframe if the parameter `experiment_or_dataframe` is an
-            Experiment instance. In any other case, this parameter **has to be equal** to the title of the column
-            containing the sequence data in the dataframe.
+    Measures
+    ~~~~~~~~
+    .. rubric:: Parameters
 
-    audio_measure: str, optional
-        The measure used for each audio instance, can be either:
+    labels: str | list(str), optional
+        Which labels to include in the PCA. This parameter can be ``"all"`` (default), or a list of labels.
+
+    sequence_measure : list(str)|str, optional
+        The sequence measure(s) from the mocap modalities to include in the analysis (e.g., ``"velocity"``,
+        ``"acceleration"``). If experiment_or_dataframe is or contains a dataframe, the specified measures must appear
+        in its measure column. When provided as a list, each sequence measure is paired with each audio_measure to
+        generate separate entries in both the results and the plot dictionary. By default, the value of this parameter
+        is ``"auto"``: the function will automatically detect the values in the column ``measure`` when the value in
+        the column ``modality`` is ``"mocap"``. This parameter can also take the following values:
+
+            • For the x-coordinate: ``"x"``, ``"x_coord"``, ``"coord_x"``, or ``"x_coordinate"``.
+            • For the y-coordinate: ``"y"``, ``"y_coord"``, ``"coord_y"``, or ``"y_coordinate"``.
+            • For the z-coordinate: ``"z"``, ``"z_coord"``, ``"coord_z"``, or ``"z_coordinate"``.
+            • For all the coordinates: ``"xyz"``, ``"coordinates"``, ``"coord"``, ``"coords"``, or ``"coordinate"``.
+            • For the consecutive distances: ``"d"``, ``"distances"``, ``"dist"``, ``"distance"``,  or ``0``.
+            • For the consecutive distances on the x-axis: ``"dx"``, ``"distance_x"``, ``"x_distance"``, ``"dist_x"``,
+              or ``"x_dist"``.
+            • For the consecutive distances on the y-axis: ``"dy"``, ``"distance_y"``, ``"y_distance"``, ``"dist_y"``,
+              or ``"y_dist"``.
+            • For the consecutive distances on the z-axis: ``"dz"``, ``"distance_z"``, ``"z_distance"``, ``"dist_z"``,
+              or ``"z_dist"``.
+            • For the velocity: ``"v"``, ``"vel"``, ``"velocity"``, ``"velocities"``, ``"speed"``, or ``1``.
+            • For the acceleration: ``"a"``, ``"acc"``, ``"acceleration"``, ``"accelerations"``, or ``2``.
+            • For the jerk: ``"j"``, ``"jerk"``, or ``3``.
+            • For the snap: ``"s"``, ``"snap"``, ``"joust"`` or ``4``.
+            • For the crackle: ``"c"``, ``"crackle"``, or ``5``.
+            • For the pop: ``"p"``, ``"pop"``, or ``6``.
+
+    audio_measure : list(str)|str|None, optional
+        The audio measure(s) from the audio modality to include in the analysis (e.g., "envelope", "pitch"). If
+        experiment_or_dataframe is or contains a dataframe, the specified measures must appear in its measure column.
+        When provided as a list, each sequence measure is paired with each sequence_measure to generate separate
+        entries in both the results and the plot dictionary. By default, the value of this parameter is ``"auto"``:
+        the function will automatically detect the values in the column ``measure`` when the value in
+        the column ``modality`` is ``"audio"``. The parameter can also be set on ``None`` if your Experiment does not
+        have AudioDerivatives, or if you wish to ignore them. This parameter can also take the following values:
 
             • ``"audio"``, for the original sample values.
-            • ``"envelope"`` (default)
-            • ``"pitch"``
+            • ``"envelope"``.
+            • ``"pitch"``.
             • ``"f1"``, ``"f2"``, ``"f3"``, ``"f4"``, ``"f5"`` for the values of the corresponding formant.
-            • ``"intensity"``
+            • ``"intensity"``.
 
-        .. note::
-            This parameter will be used to generate a dataframe if the parameter `experiment_or_dataframe` is an
-            Experiment instance. In any other case, this parameter **has to be equal** to the title of the column
-            containing the audio data in the dataframe.
-
-    include_audio: bool, optional
-        If set on `True`, includes the audio channel as one of the features for the PCA. By default, this parameter
-        is set on `False`.
-
-    sampling_frequency: int or float, optional
-        The sampling frequency of the sequence and audio measures, use to resample the data when generating the
-        dataframe, if the parameter `experiment_or_dataframe` is an Experiment instance (otherwise, the parameter
-        `sampling_frequency` is unused).
-
-    show_graph: bool, optional
-        If set on `True` (default), shows the selected components (see next parameter) and the contribution of each
-        joint to the components.
-
-        .. note::
-            Even if `include_audio` is set on True, the audio will not appear on the contribution silhouette
-            on the left of each graph.
+    Analysis parameters
+    ~~~~~~~~~~~~~~~~~~~
+    .. rubric:: Parameters
 
     selected_components: list, int or None, optional
         Defines the components to plot. It can be a single component (e.g. `2`) or a list of components
         (e.g. [0, 2, 5]). If set on `None` (default), all the components are plotted.
 
-    nan_behaviour: str
-        If `"ignore"` (default), the labels containing values equal to numpy.NaN will be removed from the PCA. If
-        `"zero"`, all the numpy.NaN will be turned to zero.
+    random_seed : int|None, optional
+        Fixes the seed for reproducible PCA. Default: ``None``: the PCA will change on each execution.
+
+    nan_behaviour: str|int|float|None, optional
+        This parameter sets the behaviour to adopt if NaN values are encountered in the dataframe:
+
+            • ``"drop_timestamps"`` or ``drop_rows`` : the rows of the dataframe containing NaN values are removed.
+              This can result in a loss of data for the labels that contain values, and render the sampling rate non-
+              constant. Use this option if you are using data that is not perfectly the same length (e.g. velocity
+              mocap doesn't have a value at timestamp 0, while audio samples do).
+            • ``"drop_labels"`` or ``drop_columns``: the labels containing NaN values are removed. This can result in
+              the loss of a lot of channels if each contains at least one NaN value. Use this option if you know that
+              a few channels contain NaN values.
+            • A float 0 < x <= 1: the labels containing more than a certain percentage of NaN values are removed.
+              For instance, if the parameter is set on 0.1 (default value), the labels containing more than 10% of NaN
+              values are removed. Then, the timestamps where NaNs occur are dropped (similarly to ``drop_timestamps``).
+            • ``"zero"``: the NaN values are replaced with 0.
+            • ``None``: nothing is done. This will result in an error if NaN values are encountered.
+
+    Other parameters
+    ~~~~~~~~~~~~~~~~
+    .. rubric:: Parameters
 
     verbosity: int, optional
         Sets how much feedback the code will provide in the console output:
@@ -1814,73 +1846,131 @@ def pca(experiment_or_dataframe, n_components, group=None, condition=None, subje
           current steps.
         • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
           may clutter the output and slow down the execution.
-    """
 
-    # Import sklearn and pandas
+    **kwargs: optional
+        Additional arguments passed to :func:`_plot_components`.
+    """
+    if isinstance(data, Sequence):
+        df = data.to_analysis_dataframe(measure=sequence_measure)
+    elif isinstance(data, Trial):
+        df = pd.DataFrame()
+        if data.has_sequence():
+            df = data.sequence.to_analysis_dataframe(measure=sequence_measure, trial=data.trial_id)
+        if data.has_audio():
+            if type(data.audio).__name__.lower() != audio_measure.lower():
+                raise Exception(f"The selected audio measure {audio_measure} does not match with the audio measure "
+                                f"present in the Trial instance ({type(data.audio)}.")
+            df = pd.concat([df, data.audio.to_analysis_dataframe(measure=audio_measure, trial=data.trial_id)],
+                           axis=0, ignore_index=True)
+    elif isinstance(data, Subject):
+        df = pd.DataFrame()
+        for trial in data.trials:
+            if trial.has_sequence():
+                df_seq = trial.sequence.to_analysis_dataframe(measure=sequence_measure, subject=data.name,
+                                                              trial=trial.trial_id)
+                df = pd.concat([df, df_seq], axis=0, ignore_index=True)
+            if trial.has_audio():
+                if type(trial.audio).__name__.lower() != audio_measure.lower():
+                    raise Exception(f"The selected audio measure {audio_measure} does not match with the audio measure "
+                                    f"present in the Trial instance ({type(trial.audio)}.")
+                df = pd.concat([df, trial.audio.to_analysis_dataframe(measure=audio_measure,
+                                                                      trial=trial.trial_id)], axis=0, ignore_index=True)
+    else:
+        df = pd.DataFrame()
+
+    params = AnalysisParameters(analysis="pca", experiment_or_dataframe=df, groups=groups, conditions=conditions,
+                                trials = trials, sequence_measure=sequence_measure, audio_measure=audio_measure,
+                                result_type="pca", random_seed=random_seed, nan_behaviour=nan_behaviour,
+                                selected_components=selected_components, verbosity=verbosity, **kwargs)
+
     try:
         from sklearn.decomposition import PCA
     except ImportError:
         raise ModuleNotFoundException("sklearn", "calculate a PCA")
 
-    try:
-        import pandas as pd
-    except ImportError:
-        raise ModuleNotFoundException("pandas", "calculate a PCA")
+    dataframe = _prepare_dataframe(params)
+    if labels == "all":
+        labels = list(dataframe["label"].unique())
 
-    # Get the full dataframe
-    if verbosity > 0:
-        print("Preparing the dataframe...")
-    dataframe = _make_dataframe(experiment_or_dataframe, sequence_measure, audio_measure, sampling_frequency)
-    dataframe = _filter_dataframe(dataframe, group, condition, subjects, trials)
-    if verbosity > 0:
-        print("Done.")
+    # Keep only the labels of interest
+    dataframe_filtered = dataframe[dataframe["label"].isin(labels)].copy()
 
-    # Get the unique joint labels
-    joint_labels = list(dataframe.loc[dataframe["modality"] == "mocap"]["label"].unique())
+    pca_model = PCA(n_components=n_components, random_state=params.random_seed)
 
-    ignored = []
-    pca_ = PCA(n_components=n_components)
-    i = 0
-
-    data_matrix = {}
-
-    for joint_label in joint_labels:
-
-        if verbosity > 1:
-            print("\t"+joint_label)
-
-        dataframe_joint = dataframe.loc[dataframe["label"] == joint_label]
-
-        if i == 0 and include_audio:
-            dataframe_audio = dataframe.loc[dataframe["measure"] == audio_measure]
-            data_matrix[audio_measure] = pd.merge(dataframe_audio, dataframe_joint[["subject", "trial", "timestamp"]],
-                                         on=["subject", "trial", "timestamp"], how="inner")["value"]
-
-        if dataframe_joint["value"].hasnans and nan_behaviour == "ignore":
-            if verbosity > 0:
-                print(f"Ignoring {joint_label} as it contains nan values.")
-            ignored.append(i)
-
-        elif dataframe_joint["value"].hasnans and nan_behaviour == "zero":
-            if verbosity > 0:
-                print(f"Replacing some nan values from joint label {joint_label} by 0.")
-            data_matrix[joint_label] = dataframe_joint["value"].mask(dataframe_joint["value"] == np.nan, 0)
-
+    # Single subject/trial: fill the default columns
+    for col, default in [("subject", "_single_subject"), ("trial", "_single_trial")]:
+        if col not in dataframe_filtered.columns:
+            dataframe_filtered[col] = default
         else:
-            data_matrix[joint_label] = np.array(dataframe_joint["value"])
+            if dataframe_filtered[col].isna().all():
+                dataframe_filtered[col] = default
+            else:
+                dataframe_filtered[col] = dataframe_filtered[col].fillna(default)
 
-        i += 1
+    data_matrix = dataframe_filtered.pivot_table(index=["subject", "trial", "timestamp"],
+                                                columns="label",
+                                                values="value",
+                                                aggfunc="mean").sort_index()
 
-    joint_labels = np.delete(joint_labels, ignored)
+    # NaN handling
+    if isinstance(nan_behaviour, str):
+        if nan_behaviour in ["drop_timestamps", "drop_rows"]:
+            n_rows_before = len(data_matrix)
+            data_matrix = data_matrix.dropna(axis=0, how="any")
+            n_rows_after = len(data_matrix)
+            if verbosity > 0 and n_rows_before != n_rows_after:
+                print(f"Dropped {n_rows_before - n_rows_after} row(s) containing NaNs (drop_timestamps).")
+            elif verbosity > 0:
+                print(f"No NaNs found (drop_timestamps).")
+        elif nan_behaviour in ["drop_labels", "drop_columns"]:
+            keep_cols = ~data_matrix.isna().any(axis=0)
+            dropped_cols = data_matrix.columns[~keep_cols].to_list()
+            data_matrix = data_matrix.loc[:, keep_cols]
+            if verbosity > 0 and dropped_cols:
+                print(f"Dropped {len(dropped_cols)} label(s) containing NaNs (drop_labels): {', '.join(dropped_cols[:10])}"
+                      f"{'...' if len(dropped_cols) > 10 else ''}")
+            elif verbosity > 0:
+                print(f"No NaNs found (drop_labels).")
+        elif nan_behaviour in ["zero", "0"]:
+            n_nans = int(data_matrix.isna().sum().sum())
+            data_matrix = data_matrix.fillna(0)
+            if verbosity > 0:
+                print(f"Replacing {n_nans} NaN value(s) with 0 (nan_behaviour='zero').")
+        else:
+            raise ValueError(f"Invalid value for nan_behaviour: {nan_behaviour}.")
 
-    data_matrix = pd.DataFrame(data_matrix)
-    pca_result = pca_.fit_transform(data_matrix)
+    elif isinstance(nan_behaviour, (int, float)):
+        if not (0 < nan_behaviour <= 1):
+            raise ValueError("nan_behaviour as a number must satisfy 0 < x <= 1.")
 
-    if show_graph:
-        _plot_components(pca_result, pca_.components_, joint_labels, "PCA", selected_components)
+        # Drop labels with more than x proportion of NaNs
+        nan_ratio = data_matrix.isna().mean(axis=0)
+        keep_cols = nan_ratio <= nan_behaviour
+        dropped_cols = data_matrix.columns[~keep_cols].to_list()
+        data_matrix = data_matrix.loc[:, keep_cols]
 
-    return pca_result
+        # Then drop timestamps where NaNs remain
+        n_rows_before = len(data_matrix)
+        data_matrix = data_matrix.dropna(axis=0, how="any")
+        n_rows_after = len(data_matrix)
 
+        if verbosity > 0:
+            if dropped_cols:
+                print(f"Dropped {len(dropped_cols)} label(s) with NaN ratio > {nan_behaviour}: {', '.join(dropped_cols[:10])}"
+                      f"{'...' if len(dropped_cols) > 10 else ''}")
+            else:
+                print(f"No labels dropped.")
+            if n_rows_before != n_rows_after:
+                print(f"Dropped {n_rows_before - n_rows_after} row(s) containing NaNs after label filtering.")
+            else:
+                print("No timestamps dropped.")
+
+    pca_result = pca_model.fit_transform(data_matrix)
+
+    _plot_components(pca_result, pca_model.components_, labels, "PCA", selected_components, verbosity=verbosity, **kwargs)
+
+    pca_comps = [{l: c for l, c in zip(labels, comp)} for comp in pca_model.components_]
+    return pca_result, pca_comps
 
 def ica(experiment_or_dataframe, n_components, group=None, condition=None, subjects=None, trials=None,
         sequence_measure="distance", audio_measure="envelope", include_audio=False, sampling_frequency=50,

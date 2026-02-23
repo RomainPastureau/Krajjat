@@ -36,6 +36,7 @@ Getter functions
 .. automethod:: krajjat.classes.audio.Audio.get_timestamps
 .. automethod:: krajjat.classes.audio.Audio.get_duration
 .. automethod:: krajjat.classes.audio.Audio.get_frequency
+.. automethod:: krajjat.classes.audio.Audio.get_sampling_rate
 .. automethod:: krajjat.classes.audio.Audio.get_info
 
 Transformation functions

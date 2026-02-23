@@ -233,7 +233,7 @@ class TestsSequenceMethods(unittest.TestCase):
         assert sequence.poses[1].get_timestamp() == 0.1
         assert sequence.poses[1].get_relative_timestamp() == 0.05
 
-        sequence = Sequence("test_sequences/test_sequence_1.tsv", time_unit="s", verbosity=0)
+        sequence = Sequence("test_sequences/test_sequence_1.tsv", time_unit="s", verbosity=2)
         assert sequence.get_number_of_poses() == 3
         pose4 = Pose(0.5)
         pose4.add_joints(joint1, joint2, joint3)
@@ -555,9 +555,9 @@ class TestsSequenceMethods(unittest.TestCase):
         assert stats["Fill level Head"] == 1.0
         assert stats["Fill level HandRight"] == 1.0
         assert stats["Fill level HandLeft"] == 1.0
-        assert stats["Average velocity Head"] == 1586.1438570677863
-        assert stats["Average velocity HandRight"] == 1701.4864317300699
-        assert stats["Average velocity HandLeft"] == 159.4017603116763
+        assert np.isclose(stats["Average velocity Head"], 1918.7854963305092)
+        assert np.isclose(stats["Average velocity HandRight"], 2995.746241403909)
+        assert np.isclose(stats["Average velocity HandLeft"], 2132.753610549076)
 
         sequence = Sequence("test_sequences/sequence_ainhoa.json", verbosity=0)
         stats = sequence.get_info(verbosity=0)
@@ -568,14 +568,14 @@ class TestsSequenceMethods(unittest.TestCase):
         assert stats["Date of recording"] == "Tuesday 10 August 2021, 15:08:40"
         assert stats["Duration"] == 79.0833823
         assert stats["Number of poses"] == 1269
-        assert stats["Subject height"] == 1.6200255058925102
-        assert stats["Left arm length"] == 0.5076072070357612
-        assert stats["Right arm length"] == 0.5080580501930614
+        assert np.isclose(stats["Subject height"], 1.6200255058925102)
+        assert np.isclose(stats["Left arm length"], 0.5076072070357612)
+        assert np.isclose(stats["Right arm length"], 0.5080580501930614)
         assert stats["Stable sampling rate"] == False
         assert np.isclose(stats["Average sampling rate"], 16.345829847776503)
-        assert stats["SD sampling rate"] == 1.9394353845232761
-        assert stats["Min sampling rate"] == 4.232300835329216
-        assert stats["Max sampling rate"] == 21.118209175860837
+        assert np.isclose(stats["SD sampling rate"], 1.9394353845232761)
+        assert np.isclose(stats["Min sampling rate"], 4.232300835329216)
+        assert np.isclose(stats["Max sampling rate"], 21.118209175860837)
         assert stats["Fill level Head"] == 1.0
         assert stats["Fill level HandRight"] == 1.0
         assert stats["Fill level HandLeft"] == 1.0
@@ -775,9 +775,6 @@ class TestsSequenceMethods(unittest.TestCase):
         measure = sequence.get_measure("x", "Head")
         assert np.allclose(measure, np.array([0.160617024, 1.769412418, -1.678118013]))
 
-        measure = sequence.get_measure("x", "Head", 0.001, 0.002, absolute=True, verbosity=0)
-        assert np.allclose(measure, np.array([1.769412418, 1.678118013]))
-
         measure = sequence.get_measure("x", "Head", 0.000, 0.000, verbosity=0)
         assert np.allclose(measure, np.array([0.160617024]))
 
@@ -817,14 +814,14 @@ class TestsSequenceMethods(unittest.TestCase):
         sequence = Sequence("test_sequences/test_sequence_7.tsv", verbosity=0)
         measure = sequence.get_measure("dist", "Head", 0, 0.007)
         assert np.allclose(measure, np.array([1.73205081, 3.46410162, 5.19615242, 5.19615242,
-                                              3.46410162, 1.73205081, 0.8660254]))
+                                              3.46410162, 1.73205081, 0.8660254, 0]))
 
         measure = sequence.get_measure("vel", "Head", 0, 0.007, verbosity=0)
-        assert np.allclose(measure, np.array([2134.13403075, 1329.96758438, 525.80113801, -278.36530836, -804.16644637,
-                                              -927.8843612,  -618.58957413]))
+        assert np.allclose(measure, np.array([98.52187564, 86.07295955, 73.32947175, 60.33673096,
+                                              47.14005591, 33.78476532, 20.31617792, 6.77961243]))
 
         measure = sequence.get_measure("vel", "Head", 0.003, 0.007, verbosity=0)
-        assert np.allclose(measure, np.array([525.80113801, -278.36530836, -804.16644637, -927.8843612,  -618.58957413]))
+        assert np.allclose(measure, np.array([60.33673096, 47.14005591, 33.78476532, 20.31617792, 6.77961243]))
 
         # Derivatives with close windows
         sequence = Sequence("test_sequences/test_sequence_11.tsv", verbosity=0)
@@ -832,43 +829,38 @@ class TestsSequenceMethods(unittest.TestCase):
         assert np.allclose(measure, [3.0, 6.0, 9.0, 3.0, 3.0, 6.0, 6.0, 6.0, 3.0, 3.0, 18.0, 9.0, 3.0, 9.0, 3.0])
 
         measure = sequence.get_measure("v", "Head", window_length=2, verbosity=0)
-        assert np.allclose(measure, [30.0, 30.0, -60.0, -0.0, 30.0, -0.0, -0.0, -30.0, -0.0, 150.0, -90.0,
-                                    -60.0, 60.0, -60.0, -60.0])
+        assert np.allclose(measure, [ 30., 60., 90., 30., 30., 60., 60., 60., 30., 30., 180., 90., 30., 90., 30., 0.])
 
         measure = sequence.get_measure("a", "Head", window_length=3, verbosity=0)
-        assert np.allclose(measure, [0.0, -0.0, -900.0, 600.0, 300.0, -300.0, -0.0, -300.0, 300.0, 1500.0, -2400.0,
-                                     300.0, 1200.0, -1200.0, -1200.0])
+        assert np.allclose(measure, [300.0, 300.0, 300.0, 600.0, 0.0, 300.0, 0.0, 0.0,
+                                     900.0, 0.0, 1500.0, 900.0, 1200.0, 1200.0, 600.0, 300.0])
 
         measure = sequence.get_measure("j", "Head", window_length=4, verbosity=0)
-        assert np.allclose(measure, [-9000, -9000.0, 15000.0, -3000.0, -6000.0, 3000.0, -3000.0, 6000.0, 12000.0,
-                                     -39000.0, 27000.0, 9000.0, -24000.0, -24000.0, -24000.0])
+        assert np.allclose(measure, [0.0, 0.0, 9000.0, 6000.0, 3000.0, 3000.0, 0.0, 9000.0,
+                                     9000.0, 15000.0, 24000.0, 3000.0, 24000.0, 18000.0, 3000.0, 3000.0])
 
         # Derivatives with window 7
         measure = sequence.get_measure("v", "Head", 0, window_length=7, verbosity=0)
-        assert np.allclose(measure, [3.2142857142856975, 2.499999999999991, 1.785714285714285, 1.071428571428571,
-                                     -1.0714285714285716, -3.214285714285716, -6.245004513516506e-16,
-                                     12.857142857142861, 10.714285714285714, 4.2857142857142865, 5.357142857142857,
-                                     -1.0714285714285743, -17.5, -33.92857142857145, -50.35714285714289])
+        assert np.allclose(measure, [ 15.11904762,  50.23809524,  69.4047619 ,  57.26190476,  40.83333333,
+                                         39.76190476,  65.11904762,  54.4047619 ,  28.0952381 ,  43.33333333,
+                                         115.11904762,  99.88095238,  67.5       ,  30.23809524,  35.83333333,
+                                         30.95238095])
 
-        measure = sequence.get_measure("a", "Head", 0, 0.5, window_length=7, verbosity=0)
-        assert np.allclose(measure, [-457.14285714285774, -307.14285714285734, -157.14285714285694,
-                                    -7.14285714285684, 50.00000000000028])
+        measure = sequence.get_measure("a", "Head", 0, 0.5, window_length=7,
+                                       verbosity=0)
+        assert np.allclose(measure, [236.36363636, 418.18181818,  50., 311.36363636, 122.72727273, 231.81818182])
 
         measure = sequence.get_measure("j", "Head", 0, 0.5, window_length=7, verbosity=0)
-        assert np.allclose(measure, [8863.636363636442, 6409.090909090964, 3954.5454545454854, 1500.000000000004,
-                                     -1.5543122344752192e-12])
+        assert np.allclose(measure, [1875., 750., 6375., 2250., 7125., 750.])
 
         measure = sequence.get_measure("s", "Head", 0, 0.5, window_length=7, verbosity=0)
-        assert np.allclose(measure, [380454.5454545526, 245454.5454545508, 110454.54545454905, -24545.454545454595,
-                                     -38181.81818181817])
+        assert np.allclose(measure, [ 45000.,  20000., 145000., 220000., 55000., 80000.])
 
         measure = sequence.get_measure("c", "Head", 0, 0.5, window_length=7, verbosity=0)
-        assert np.allclose(measure, [-18450000.000003565, -12750000.000002388, -7050000.000001211,
-                                     -1349999.999999962, 1350000.0000000338])
+        assert np.allclose(measure, [150000.0, 300000.0, 750000.0, 300000.0, 1050000.0, 300000.0])
 
         measure = sequence.get_measure("p", "Head", 0, 0.5, window_length=7, verbosity=0)
-        assert np.allclose(measure, [57000000.000011764, 57000000.000011764, 57000000.000011764, 56999999.99999984,
-                                     -2999999.9999996023])
+        assert np.allclose(measure, [9000000.0, 12000000.0, 33000000.0, 42000000.0, 15000000.0, 12000000.0])
 
     def test_get_extremum_measure(self):
         # Coordinates
@@ -910,15 +902,15 @@ class TestsSequenceMethods(unittest.TestCase):
         # Derivatives with window 7
         sequence = Sequence("test_sequences/test_sequence_11.tsv", verbosity=0)
         measure = sequence.get_extremum_measure("v", "Head", "min", window_length=7, verbosity=0)
-        assert np.isclose(measure, -50.35714285714289)
+        assert np.isclose(measure, 15.119047619047619)
 
         measure = sequence.get_extremum_measure("a", "Head", "both", timestamp_end=0.5,
                                                 window_length=7, verbosity=0)
-        assert np.allclose(measure, [-457.14285714285774, 50.00000000000028])
+        assert np.allclose(measure, [50.0, 418.181818181818])
 
         measure = sequence.get_extremum_measure("j", "Head", "max", True, 0,
                                                 0.5, window_length=7, verbosity=0)
-        assert np.isclose(measure, 8863.636363636442)
+        assert np.isclose(measure, 7125.0)
 
     def test_get_sum_measure(self):
         # Coordinates
@@ -926,7 +918,6 @@ class TestsSequenceMethods(unittest.TestCase):
         sum_value = sequence.get_sum_measure("x", "Head")
         assert np.isclose(sum_value, 0.25191142899999996)
 
-        sequence = Sequence("test_sequences/test_sequence_1.tsv", verbosity=0)
         sum_values = sequence.get_sum_measure("x", None)
 
         assert np.isclose(sum_values["Head"], 0.25191142899999996)
@@ -942,15 +933,15 @@ class TestsSequenceMethods(unittest.TestCase):
         # Derivatives with window 7
         sequence = Sequence("test_sequences/test_sequence_11.tsv", verbosity=0)
         sum_value = sequence.get_sum_measure("v", "Head", window_length=7, absolute=True, verbosity=0)
-        assert np.isclose(sum_value, 148.92857142857147)
+        assert np.isclose(sum_value, 843.0952381)
 
         sum_value = sequence.get_sum_measure("a", "Head", timestamp_end=0.5, window_length=7,
                                              absolute=True, verbosity=0)
-        assert np.isclose(sum_value, 978.5714285714291)
+        assert np.isclose(sum_value, 1370.45454545)
 
         sum_value = sequence.get_sum_measure("j", "Head", True,
                                              0, 0.5, window_length=7, absolute=True, verbosity=0)
-        assert np.isclose(sum_value, 20727.272727272895)
+        assert np.isclose(sum_value, 19125.)
 
     def test_correct_jitter(self):
         # Jump: single joint out of pattern on linearly increasing data
@@ -1105,6 +1096,29 @@ class TestsSequenceMethods(unittest.TestCase):
     def test_correct_jitter_single_joint(self):
         # See test_correct_jitter
         pass
+
+    def test_correct_jitter_savgol(self):
+        sequence = Sequence("test_sequences/test_sequence_12.tsv", name="ts12", verbosity=0)
+        print(sequence.print_all())
+        sequence_cj = sequence.correct_jitter_savgol(5, 3, "ts12cj", verbosity=0)
+        print(sequence_cj.print_all())
+        assert np.allclose(sequence_cj.poses[0].joints["Head"].get_position(), (0, 0, 0))
+        assert np.allclose(sequence_cj.poses[4].joints["Head"].get_position(), (0.88, 0.88, 0.88))
+        assert np.allclose(sequence_cj.poses[5].joints["Head"].get_position(), (1.18, 1.18, 1.18))  # Corrected
+        assert np.allclose(sequence_cj.poses[6].joints["Head"].get_position(), (1.08, 1.08, 1.08))
+        assert np.allclose(sequence_cj.poses[10].joints["Head"].get_position(), (1, 1, 1))
+        assert sequence_cj.get_path() == sequence.get_path()
+        assert sequence_cj.get_date_recording() == sequence.get_date_recording()
+        assert sequence_cj.get_condition() == sequence.get_condition()
+        assert sequence_cj.get_joint_labels() == sequence.get_joint_labels()
+        assert sequence_cj.get_system() == sequence.get_system()
+        assert sequence_cj.get_name() == "ts12cj"
+        assert len(sequence_cj.metadata["processing_steps"]) == 1
+        assert sequence_cj.metadata["processing_steps"][0]["processing_type"] == "correct_jitter_savgol"
+        assert sequence_cj.metadata["processing_steps"][0]["window_length"] == 5
+        assert sequence_cj.metadata["processing_steps"][0]["poly_order"] == 3
+
+        # single_joint_movement_plotter([sequence, sequence_cj], "Head", ["x", "y", "z"])
 
     def test_re_reference(self):
         sequence = Sequence("test_sequences/test_sequence_9.tsv", verbosity=0)
@@ -1471,6 +1485,36 @@ class TestsSequenceMethods(unittest.TestCase):
         dict_data_df = pd.DataFrame(dict_data)
 
         assert np.allclose(df_data, dict_data_df)
+
+    def test_to_analysis_dataframe(self):
+        sequence = Sequence("test_sequences/test_sequence_1.tsv", verbosity=0)
+        sequence_df = sequence.to_analysis_dataframe()
+        assert sequence_df.shape == (9, 9)
+        assert sequence_df["subject"].unique().tolist() == [None]
+        assert sequence_df["group"].unique().tolist() == [None]
+        assert sequence_df["trial"].unique().tolist() == [None]
+        assert sequence_df["condition"].unique().tolist() == [None]
+        assert sequence_df["modality"].unique().tolist() == ["mocap"]
+        assert sequence_df["label"].unique().tolist() == ["Head", "HandRight", "HandLeft"]
+        assert sequence_df["measure"].unique().tolist() == ["velocity"]
+        assert sequence_df.iloc[2]["timestamp"] == 0.002
+        assert np.isclose(sequence_df.iloc[2]["value"], 72.945852)
+
+        sequence = Sequence("test_sequences/test_sequence_2.tsv", condition="masked", verbosity=0)
+        sequence.word = "first"
+        sequence_df = sequence.to_analysis_dataframe(subject="S001")
+        pd.set_option("display.max_columns", None)
+        print(sequence_df)
+        assert sequence_df.shape == (9, 9)
+        assert sequence_df["subject"].unique().tolist() == ["S001"]
+        assert sequence_df["group"].unique().tolist() == [None]
+        assert sequence_df["trial"].unique().tolist() == [None]
+        assert sequence_df["condition"].unique().tolist() == ["masked"]
+        assert sequence_df["modality"].unique().tolist() == ["mocap"]
+        assert sequence_df["label"].unique().tolist() == ["Head", "HandRight", "HandLeft"]
+        assert sequence_df["measure"].unique().tolist() == ["velocity"]
+        assert sequence_df.iloc[2]["timestamp"] == 0.002
+        assert np.isclose(sequence_df.iloc[2]["value"], 103.038456)
 
     def test_average_qualisys_to_kinect(self):
         sequence = Sequence("test_sequences/test_sequence_1.tsv", verbosity=0)

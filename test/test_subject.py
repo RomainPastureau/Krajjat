@@ -71,8 +71,7 @@ class TestSubject(unittest.TestCase):
         subject = Subject()
         assert subject.get_age() is None
         subject.set_age_from_dob("1990-01-01")
-        assert subject.get_age() == 35
-
+        assert subject.get_age() == datetime.now().year - 1990
         subject.set_age_from_dob("2000-01-01", "01/01/2010")
         assert subject.get_age() == 10
         subject.set_age_from_dob("2000-01-01", "31/12/2009")

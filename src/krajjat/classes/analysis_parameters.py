@@ -47,6 +47,9 @@ class AnalysisParameters:
     n_neighbors: Number = 3
     mi_scale: str | None = "standard"
     mi_direction: str = "target"
+    n_components: int | float | str | None = None
+    nan_behaviour: int | float | str = 0.1
+    selected_components: list[int] | int | None = None
 
     # Permutation parameters
     permutation_method: str | None = None
@@ -100,7 +103,7 @@ class AnalysisParameters:
     def __post_init__(self):
 
         # Analysis
-        if self.analysis not in ("power spectrum", "correlation", "coherence", "mutual information"):
+        if self.analysis not in ("power spectrum", "correlation", "coherence", "mutual information", "pca"):
             raise ValueError(f"Invalid value for the parameter analysis: {self.analysis}.")
 
         # Method
@@ -129,7 +132,7 @@ class AnalysisParameters:
             self.result_type = "average"
         elif self.result_type in ("z", "zscore", "zscores", "z-score", "zeta", "z-scores"):
             self.result_type = "z-scores"
-        else:
+        elif self.analysis != "pca":
             raise ValueError(f"Invalid value for the parameter result_type: {self.result_type} must be \"average\" "
                              f"or \"z-scores\".")
 

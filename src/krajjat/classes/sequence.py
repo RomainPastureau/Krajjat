@@ -2055,8 +2055,8 @@ class Sequence(TimeSeries):
         framerates = self.get_sampling_rates()
         return np.allclose(framerates, np.ones(framerates.size) * framerates[0])
 
-    def get_measure(self, measure, joint_label=None, timestamp_start=None, timestamp_end=None, window_length=7,
-                    poly_order=None, absolute=False, use_relative_timestamps=False, verbosity=1):
+    def get_measure(self, measure, joint_label=None, timestamp_start=None, timestamp_end=None, window_length="auto",
+                    poly_order="auto", absolute=False, use_relative_timestamps=False, verbosity=1):
         """Returns an array of coordinates, distances, or derivatives of the distance for one or multiple joints
         from the Sequence instance.
 
@@ -2086,9 +2086,6 @@ class Sequence(TimeSeries):
             • For the pop: ``"p"``, ``"pop"``, or ``6``.
             • For any derivative of a higher order, set the corresponding integer.
 
-            The measure can be suffixed by ``_abs`` to obtain its absolute values. In that case, the parameter
-            ``absolute`` is ignored.
-
         joint_label: str|list(str)|None, optional
             The joint labels or joint labels you want to return the measures from. If set on ``None`` (default),
             a dictionary containing all the joints as keys will be returned. If set on a string, an array matching
@@ -2104,18 +2101,17 @@ class Sequence(TimeSeries):
             This parameter is inclusive: if a timestamp is equal to this value, the corresponding pose will be included.
 
         window_length: int, optional
-            The length of the window for the Savitzky–Golay filter when calculating a derivative (default: 7). See
+            The length of the window for the Savitzky–Golay filter. See
             `scipy.signal.savgol_filter <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.savgol_filter.html>`_
-            for more info.
+            for more info. If set on ``"auto"`` (default), the length of the window is defined to aim a number of
+            samples equal to around 100 ms (min. 5 samples) for a derivative of order 1, with a scaling up of this
+            timespan by 30% for each higher order.
 
         poly_order: int|None, optional
-            The order of the polynomial for the Savitzky–Golay filter. If set on `None`, the polynomial will be set to
-            one over the derivative rank. See
+            The order of the polynomial for the Savitzky–Golay filter. If set on ``"auto"`` (default), the polynomial
+            will be set to two over the derivative rank. See
             `scipy.signal.savgol_filter <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.savgol_filter.html>`_
             for more info.
-
-        absolute: bool, optional
-            If set on ``True``, the returned values will be absolute. By default, the parameter is set on ``False``.
 
         use_relative_timestamps: bool, optional
             Defines if the timestamps ``timestamp_start`` and ``timestamp_end`` refer to the original timestamps or
@@ -2190,13 +2186,21 @@ class Sequence(TimeSeries):
                             f"({timestamp_end}).")
 
         # Measures
-        if type(measure) is str:
+        if isinstance(measure, int):
+            if 0 <= measure < 7:
+                measure = str(measure)
+            else:
+                raise InvalidParameterValueException("measure", measure, ["x", "y", "z", "coordinates",
+                                                 "distance", "velocity", "acceleration", "jerk", "snap", "crackle",
+                                                 "pop"])
+        elif type(measure) is str:
             measure = measure.lower()
-            if measure.endswith("_abs"):
-                measure = measure[:-4]
-                absolute = True
-        if not type(measure) is int and measure in CLEAN_DERIV_NAMES:
-            measure = CLEAN_DERIV_NAMES[measure]
+            if measure in CLEAN_DERIV_NAMES:
+                measure = CLEAN_DERIV_NAMES[measure]
+            else:
+                raise InvalidParameterValueException("measure", measure, ["x", "y", "z", "coordinates",
+                                                 "distance", "velocity", "acceleration", "jerk", "snap", "crackle",
+                                                 "pop"])
         else:
             raise InvalidParameterValueException("measure", measure, ["x", "y", "z", "coordinates",
                                                  "distance", "velocity", "acceleration", "jerk", "snap", "crackle",
@@ -2209,6 +2213,20 @@ class Sequence(TimeSeries):
             else:
                 print(f"Getting the {measure} for {len(joint_labels)} joint label(s): {', '.join(joint_labels)}.")
 
+        # Find timestamp range indices
+        start_idx = None
+        end_idx = None
+
+        for i, pose in enumerate(self.poses):
+            timestamp = pose.get_relative_timestamp() if use_relative_timestamps else pose.get_timestamp()
+            if timestamp_start <= timestamp <= timestamp_end:
+                if start_idx is None:
+                    start_idx = i
+                end_idx = i + 1
+
+        if start_idx is None:
+            raise Exception(f"No poses found between timestamps {timestamp_start} and {timestamp_end}")
+
         measures = {}
 
         # Get the measures
@@ -2217,92 +2235,36 @@ class Sequence(TimeSeries):
             if verbosity > 1:
                 print(f"\t{joint_label}")
 
-            # Placeholder arrays
-            if measure == "coordinates":
-                measures[joint_label] = np.zeros((len(self.poses), 3))
+            if measure not in ["y", "z", "distance y", "distance z"]:
+                x_coords = np.array([pose.joints[joint_label].get_x() for pose in self.poses])
+            if measure not in ["x", "z", "distance x", "distance z"]:
+                y_coords = np.array([pose.joints[joint_label].get_y() for pose in self.poses])
+            if measure not in ["x", "y", "distance x", "distance y"]:
+                z_coords = np.array([pose.joints[joint_label].get_z() for pose in self.poses])
+
+            if measure == "x":
+                measures[joint_label] = x_coords[start_idx:end_idx]
+            elif measure == "y":
+                measures[joint_label] = y_coords[start_idx:end_idx]
+            elif measure == "z":
+                measures[joint_label] = z_coords[start_idx:end_idx]
+            elif measure == "coordinates":
+                measures[joint_label] = np.column_stack([x_coords, y_coords, z_coords])[start_idx:end_idx]
+            elif measure == "distance":
+                distances = np.sqrt(np.diff(x_coords) ** 2 + np.diff(y_coords) ** 2 + np.diff(z_coords) ** 2)
+                measures[joint_label] = distances[start_idx:end_idx]
+            elif measure == "distance x":
+                measures[joint_label] = np.abs(np.diff(x_coords))[start_idx:end_idx]
+            elif measure == "distance y":
+                measures[joint_label] = np.abs(np.diff(y_coords))[start_idx:end_idx]
+            elif measure == "distance z":
+                measures[joint_label] = np.abs(np.diff(z_coords))[start_idx:end_idx]
             else:
-                measures[joint_label] = np.zeros(len(self.poses))
-
-            start = None
-            end = None
-
-            for p in range(len(self.poses)):
-
-                if p == 0 and measure not in ["x", "y", "z", "coordinates"]:
-                    if verbosity > 1:
-                        print(f"\t\tPose with index {p} · Ignoring this pose as a distance or derivative is " +
-                              f"calculated.")
-                    continue
-
-                pose = self.poses[p]
-
-                if verbosity > 1:
-                    print(f"\t\tPose with index {p}", end=" ")
-
-                if use_relative_timestamps:
-                    timestamp = pose.get_relative_timestamp()
-                else:
-                    timestamp = pose.get_timestamp()
-
-                if timestamp_start <= timestamp <= timestamp_end:
-
-                    if start is None:
-                        if verbosity > 1:
-                            print(f"· Defining as starting pose", end=" ")
-                        start = p
-
-                    if measure in ["x", "y", "z"]:
-                        measures[joint_label][p] = pose.joints[joint_label].get_coordinate(measure)
-                        if verbosity > 1:
-                            print(f"· Value: {measures[joint_label][p]}", end=" ")
-
-                    elif measure in ["coordinates"]:
-                        measures[joint_label][p] = pose.joints[joint_label].get_position()
-                        if verbosity > 1:
-                            print(f"· Value: {measures[joint_label][p]}", end=" ")
-
-                    elif measure in ["distance x", "distance y", "distance z"]:
-                        measures[joint_label][p] = calculate_distance(self.poses[p - 1].joints[joint_label],
-                                                                      self.poses[p].joints[joint_label],
-                                                                      measure[-1])
-                        if verbosity > 1:
-                            print(f"· Value: {measures[joint_label][p]}", end=" ")
-
-                else:
-                    if start is not None and end is None:
-                        if verbosity > 1:
-                            print(f"· Defining as ending pose", end=" ")
-                        end = p
-
-                if measure not in ["x", "y", "z", "coordinates", "distance x", "distance y", "distance z"]:
-                    measures[joint_label][p] = calculate_distance(self.poses[p - 1].joints[joint_label],
-                                                                  self.poses[p].joints[joint_label])
-                    if verbosity > 1:
-                        print(f"· Distance value: {measures[joint_label][p]}")
-
-                else:
-
-                    if verbosity > 1:
-                        print(f"· No value")
-
-            if start is None:
-                raise Exception(f"There are no poses between the provided timestamps ({timestamp_start} and " +
-                                f"{timestamp_end}) is zero. If you are trying to get a distance or a derivative, "
-                                f"consider that no value will be attributed to the first pose of the sequence.")
-
-            if measure not in ["x", "y", "z", "coordinates", "distance", "distance x", "distance y", "distance z"]:
-                if verbosity > 1:
-                    print(f"\t\tDistances calculated. Now getting the derivative...")
-                measures[joint_label] = calculate_derivative(measures[joint_label][1:], measure, window_length,
-                                                             poly_order, freq=self.get_sampling_rate())
-                start -= 1
-                if end is not None:
-                    end -= 1
-
-            measures[joint_label] = measures[joint_label][start:end]
-
-            if absolute:
-                measures[joint_label] = np.abs(measures[joint_label])
+                freq = self.get_sampling_rate()
+                dx = calculate_derivative(x_coords, measure, window_length, poly_order, freq=freq, mode="nearest")
+                dy = calculate_derivative(y_coords, measure, window_length, poly_order, freq=freq, mode="nearest")
+                dz = calculate_derivative(z_coords, measure, window_length, poly_order, freq=freq, mode="nearest")
+                measures[joint_label] = np.sqrt(dx ** 2 + dy ** 2 + dz ** 2)[start_idx:end_idx]
 
         if len(measures.keys()) == 1:
             return measures[joint_labels[0]]
@@ -2310,8 +2272,8 @@ class Sequence(TimeSeries):
             return measures
 
     def get_extremum_measure(self, measure, joint_label=None, value="both", per_joint=True, timestamp_start=None,
-                             timestamp_end=None, window_length=7, poly_order=None, absolute=False,
-                             verbosity=1):
+                             timestamp_end=None, window_length="auto", poly_order="auto", absolute=False,
+                             use_relative_timestamps=False, verbosity=1):
         """Returns the minimum, maximum or both values of the measure for one or multiple joints from the Sequence.
 
         .. versionadded:: 2.0
@@ -2363,18 +2325,24 @@ class Sequence(TimeSeries):
             This parameter is inclusive: if a timestamp is equal to this value, the corresponding pose will be included.
 
         window_length: int, optional
-            The length of the window for the Savitzky–Golay filter when calculating a derivative (default: 7). See
+            The length of the window for the Savitzky–Golay filter. See
             `scipy.signal.savgol_filter <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.savgol_filter.html>`_
-            for more info.
+            for more info. If set on ``"auto"`` (default), the length of the window is defined to aim a number of
+            samples equal to around 100 ms (min. 5 samples) for a derivative of order 1, with a scaling up of this
+            timespan by 30% for each higher order.
 
         poly_order: int|None, optional
-            The order of the polynomial for the Savitzky–Golay filter. If set on `None`, the polynomial will be set to
-            one over the derivative rank. See
+            The order of the polynomial for the Savitzky–Golay filter. If set on ``"auto"`` (default), the polynomial
+            will be set to two over the derivative rank. See
             `scipy.signal.savgol_filter <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.savgol_filter.html>`_
             for more info.
 
         absolute: bool, optional
             If set on ``True``, the returned values will be absolute. By default, the parameter is set on ``False``.
+
+        use_relative_timestamps: bool, optional
+            Defines if the timestamps ``timestamp_start`` and ``timestamp_end`` refer to the original timestamps or
+            the relative timestamps, and if the returned timestamps should be original or relative.
 
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
@@ -2406,7 +2374,14 @@ class Sequence(TimeSeries):
         """
 
         measures = self.get_measure(measure, joint_label, timestamp_start, timestamp_end, window_length, poly_order,
-                                    absolute, verbosity)
+                                    use_relative_timestamps, verbosity)
+
+        if absolute:
+            if isinstance(measures, (dict, OrderedDict)):
+                for key in measures.keys():
+                    measures[key] = np.abs(measures[key])
+            else:
+                measures = np.abs(measures)
 
         if type(measures) is dict:
             values = {}
@@ -2456,7 +2431,8 @@ class Sequence(TimeSeries):
             return None
 
     def get_sum_measure(self, measure, joint_label=None, per_joint=True, timestamp_start=None, timestamp_end=None,
-                        window_length=7, poly_order=None, absolute=False, verbosity=1):
+                        window_length="auto", poly_order="auto", absolute=False, use_relative_timestamps=False,
+                        verbosity=1):
         """Returns the sum of the values of the measure for one or multiple joints from the Sequence.
 
         .. versionadded:: 2.0
@@ -2504,18 +2480,24 @@ class Sequence(TimeSeries):
             This parameter is inclusive: if a timestamp is equal to this value, the corresponding pose will be included.
 
         window_length: int, optional
-            The length of the window for the Savitzky–Golay filter when calculating a derivative (default: 7). See
+            The length of the window for the Savitzky–Golay filter. See
             `scipy.signal.savgol_filter <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.savgol_filter.html>`_
-            for more info.
+            for more info. If set on ``"auto"`` (default), the length of the window is defined to aim a number of
+            samples equal to around 100 ms (min. 5 samples) for a derivative of order 1, with a scaling up of this
+            timespan by 30% for each higher order.
 
         poly_order: int|None, optional
-            The order of the polynomial for the Savitzky–Golay filter. If set on `None`, the polynomial will be set to
-            one over the derivative rank. See
+            The order of the polynomial for the Savitzky–Golay filter. If set on ``"auto"`` (default), the polynomial
+            will be set to two over the derivative rank. See
             `scipy.signal.savgol_filter <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.savgol_filter.html>`_
             for more info.
 
         absolute: bool, optional
             If set on ``True``, the returned values will be absolute. By default, the parameter is set on ``False``.
+
+        use_relative_timestamps: bool, optional
+            Defines if the timestamps ``timestamp_start`` and ``timestamp_end`` refer to the original timestamps or
+            the relative timestamps, and if the returned timestamps should be original or relative.
 
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
@@ -2544,7 +2526,14 @@ class Sequence(TimeSeries):
         596.36525
         """
         measures = self.get_measure(measure, joint_label, timestamp_start, timestamp_end, window_length, poly_order,
-                                    absolute, verbosity)
+                                    use_relative_timestamps, verbosity)
+
+        if absolute:
+            if isinstance(measures, (dict, OrderedDict)):
+                for key in measures.keys():
+                    measures[key] = np.abs(measures[key])
+            else:
+                measures = np.abs(measures)
 
         if type(measures) is dict:
             values = {}
@@ -4515,6 +4504,124 @@ class Sequence(TimeSeries):
         """
         data_dict = self.to_dict(use_relative_timestamps)
         return pd.DataFrame(data_dict)
+
+    def to_analysis_dataframe(self, joint_label=None, measure="velocity", subject=None, group=None, trial=None,
+                              condition=None):
+        """Returns a Pandas dataframe containing the data from the sequence, ready to parse by an analysis function.
+
+        .. versionadded:: 2.0
+
+        Parameters
+        ----------
+        joint_label: str|list(str)|None, optional
+            The joint labels or joint labels you want the measures from. If set on ``None`` (default),
+            a dictionary containing all the joints as keys will be returned. If set on a string, an array matching
+            the requested measure for the specified joint label will be returned. Finally, if set on a list of joint
+            labels, a dictionary containing the specified subset of joint labels will be returned.
+
+        measure: str|int|list(str|int), optional
+            The measure or measures to return for each of the joints. This parameter can take multiple values:
+
+            • For the x-coordinate: ``"x"``, ``"x_coord"``, ``"coord_x"``, or ``"x_coordinate"``.
+            • For the y-coordinate: ``"y"``, ``"y_coord"``, ``"coord_y"``, or ``"y_coordinate"``.
+            • For the z-coordinate: ``"z"``, ``"z_coord"``, ``"coord_z"``, or ``"z_coordinate"``.
+            • For all the coordinates: ``"xyz"``, ``"coordinates"``, ``"coord"``, ``"coords"``, or ``"coordinate"``.
+            • For the consecutive distances: ``"d"``, ``"distances"``, ``"dist"``, ``"distance"``,  or ``0``.
+            • For the consecutive distances on the x-axis: ``"dx"``, ``"distance_x"``, ``"x_distance"``, ``"dist_x"``,
+              or ``"x_dist"``.
+            • For the consecutive distances on the y-axis: ``"dy"``, ``"distance_y"``, ``"y_distance"``, ``"dist_y"``,
+              or ``"y_dist"``.
+            • For the consecutive distances on the z-axis: ``"dz"``, ``"distance_z"``, ``"z_distance"``, ``"dist_z"``,
+              or ``"z_dist"``.
+            • For the velocity: ``"v"``, ``"vel"``, ``"velocity"``, ``"velocities"``, ``"speed"``, or ``1``.
+            • For the acceleration: ``"a"``, ``"acc"``, ``"acceleration"``, ``"accelerations"``, or ``2``.
+            • For the jerk: ``"j"``, ``"jerk"``, or ``3``.
+            • For the snap: ``"s"``, ``"snap"``, ``"joust"`` or ``4``.
+            • For the crackle: ``"c"``, ``"crackle"``, or ``5``.
+            • For the pop: ``"p"``, ``"pop"``, or ``6``.
+            • For any derivative of a higher order, set the corresponding integer.
+
+            Each measure can be suffixed by ``_abs`` to obtain its absolute values.
+
+        subject: str|None, optional
+            The value to set in the column "subject" in the dataframe.
+
+        group: str|None, optional
+            The value to set in the column "group" in the dataframe.
+
+        trial: str|None, optional
+            The value to set in the column "trial" in the dataframe.
+
+        condition: str|None, optional
+            The value to set in the column "condition" in the dataframe. If set on `None`, the value of the attribute
+            `condition` from the sequence is set.
+
+        Returns
+        -------
+        Pandas.dataframe
+            A dataframe containing data ready to be analysed.
+        """
+
+        # Handle measure parameter
+        if isinstance(measure, (str, int)):
+            measures_list = [measure]
+        elif isinstance(measure, list):
+            measures_list = measure
+        else:
+            raise ValueError("measure must be str, int, or list of str/int")
+
+        timestamps = self.get_timestamps(relative=True)
+        rows = []
+
+        if condition is None and self.condition is not None:
+            condition = self.condition
+
+        # For each measure
+        for m in measures_list:
+            measure_data = self.get_measure(measure=m, joint_label=joint_label, verbosity=0)
+
+            if isinstance(measure_data, dict):
+                joint_data_dict = measure_data
+            else:
+                joint_data_dict = {joint_label: measure_data}
+
+            # Measure name
+            if type(m) is str:
+                m = m.lower()
+                if m.endswith("_abs"):
+                    m = m[:-4]
+                    absolute = True
+            if not type(m) is int and m in CLEAN_DERIV_NAMES:
+                m = CLEAN_DERIV_NAMES[m]
+            else:
+                raise InvalidParameterValueException("measure", m, ["x", "y", "z", "coordinates", "distance",
+                                                                    "velocity", "acceleration", "jerk", "snap",
+                                                                    "crackle", "pop"])
+
+            for label, data_array in joint_data_dict.items():
+                m_timestamps = timestamps[:len(data_array)]
+                for timestamp, value in zip(m_timestamps, data_array):
+                    row = {
+                        'subject': subject,
+                        'group': group,
+                        'trial': trial,
+                        'condition': condition,
+                        'modality': 'mocap',  # Always mocap for motion capture data
+                        'label': label,
+                        'measure': m,
+                        'timestamp': timestamp,
+                        'value': value
+                    }
+                    rows.append(row)
+
+        # Create DataFrame
+        df = pd.DataFrame(rows)
+
+        # Reorder columns to match the expected format
+        column_order = ['subject', 'group', 'trial', 'condition', 'modality', 'label', 'measure', 'timestamp', 'value']
+        df = df[column_order]
+
+        return df
 
     # === Miscellaneous functions ===
     def average_qualisys_to_kinect(self, joints_labels_to_exclude=None, remove_non_kinect_joints=False, verbosity=1):

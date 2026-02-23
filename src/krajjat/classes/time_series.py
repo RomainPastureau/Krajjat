@@ -97,6 +97,7 @@ class TimeSeries(object):
 
         # If the folder does not exist
         if not op.exists(folder):
+            import os
             raise InvalidPathException(self.path, self.kind, "The folder doesn't exist.")
 
         # If the file contains a wildcard

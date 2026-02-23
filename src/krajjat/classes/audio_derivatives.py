@@ -991,6 +991,53 @@ class AudioDerivative(TimeSeries):
         data_dict = self.to_dict(False)
         return pd.DataFrame(data_dict)
 
+    def to_analysis_dataframe(self, subject=None, group=None, trial=None, condition=None):
+        """Returns a Pandas dataframe containing the data from the audio, ready to parse by an analysis function.
+
+        .. versionadded:: 2.0
+
+        subject: str|None, optional
+            The value to set in the column "subject" in the dataframe.
+
+        group: str|None, optional
+            The value to set in the column "group" in the dataframe.
+
+        trial: str|None, optional
+            The value to set in the column "trial" in the dataframe.
+
+        condition: str|None, optional
+            The value to set in the column "condition" in the dataframe.
+
+        Returns
+        -------
+        Pandas.dataframe
+            A dataframe containing data ready to be analysed.
+        """
+
+        rows = []
+        for timestamp, value in zip(self.timestamps, self.samples):
+            row = {
+                'subject': subject,
+                'group': group,
+                'trial': trial,
+                'condition': condition,
+                'modality': 'audio',  # Always mocap for motion capture data
+                'label': 'Audio',
+                'measure': type(self).__name__.lower(),
+                'timestamp': timestamp,
+                'value': value
+            }
+            rows.append(row)
+
+        # Create DataFrame
+        df = pd.DataFrame(rows)
+
+        # Reorder columns to match the expected format
+        column_order = ['subject', 'group', 'trial', 'condition', 'modality', 'label', 'measure', 'timestamp', 'value']
+        df = df[column_order]
+
+        return df
+
     def save(self, folder_out, name=None, file_format="json", encoding="utf-8", individual=False,
              include_metadata=True, verbosity=1):
         """Saves an audio derivative in a file or a folder. The function saves the sequence under

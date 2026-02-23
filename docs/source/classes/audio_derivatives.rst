@@ -63,6 +63,7 @@ Getter functions
 .. automethod:: krajjat.classes.audio_derivatives.AudioDerivative.get_timestamps
 .. automethod:: krajjat.classes.audio_derivatives.AudioDerivative.get_duration
 .. automethod:: krajjat.classes.audio_derivatives.AudioDerivative.get_frequency
+.. automethod:: krajjat.classes.audio_derivatives.AudioDerivative.get_sampling_rate
 .. automethod:: krajjat.classes.audio_derivatives.AudioDerivative.get_info
 
 Correction functions
@@ -77,6 +78,7 @@ Conversion functions
 .. automethod:: krajjat.classes.audio_derivatives.AudioDerivative.to_json
 .. automethod:: krajjat.classes.audio_derivatives.AudioDerivative.to_dict
 .. automethod:: krajjat.classes.audio_derivatives.AudioDerivative.to_dataframe
+.. automethod:: krajjat.classes.audio_derivatives.AudioDerivative.to_analysis_dataframe
 
 Saving function
 ^^^^^^^^^^^^^^^
@@ -106,7 +108,8 @@ Initialisation methods
 .. automethod:: krajjat.classes.audio_derivatives.AudioDerivative._calculate_frequency
 .. automethod:: krajjat.classes.audio_derivatives.AudioDerivative._calculate_timestamps
 
-Special method
-^^^^^^^^^^^^^^
+Special methods
+^^^^^^^^^^^^^^^
 .. automethod:: krajjat.classes.audio_derivatives.Formant._load_formant_number
+.. automethod:: krajjat.classes.audio_derivatives.Formant._set_attributes_from_other_object
 
