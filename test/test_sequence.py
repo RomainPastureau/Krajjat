@@ -1099,9 +1099,7 @@ class TestsSequenceMethods(unittest.TestCase):
 
     def test_correct_jitter_savgol(self):
         sequence = Sequence("test_sequences/test_sequence_12.tsv", name="ts12", verbosity=0)
-        print(sequence.print_all())
         sequence_cj = sequence.correct_jitter_savgol(5, 3, "ts12cj", verbosity=0)
-        print(sequence_cj.print_all())
         assert np.allclose(sequence_cj.poses[0].joints["Head"].get_position(), (0, 0, 0))
         assert np.allclose(sequence_cj.poses[4].joints["Head"].get_position(), (0.88, 0.88, 0.88))
         assert np.allclose(sequence_cj.poses[5].joints["Head"].get_position(), (1.18, 1.18, 1.18))  # Corrected
@@ -1504,7 +1502,6 @@ class TestsSequenceMethods(unittest.TestCase):
         sequence.word = "first"
         sequence_df = sequence.to_analysis_dataframe(subject="S001")
         pd.set_option("display.max_columns", None)
-        print(sequence_df)
         assert sequence_df.shape == (9, 9)
         assert sequence_df["subject"].unique().tolist() == ["S001"]
         assert sequence_df["group"].unique().tolist() == [None]

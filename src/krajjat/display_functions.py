@@ -7,7 +7,6 @@ from krajjat.classes.graphic_classes import *
 import shutil
 import os
 import pygame
-import sys
 import wave
 
 
@@ -187,12 +186,15 @@ def common_displayer(sequence1, sequence2=None, path_audio=None, path_video=None
     if path_audio is not None:
         wavefile = wave.open(path_audio, "rb")
         try:
-            import pyaudio
+            import sounddevice as sd
         except ImportError:
-            raise ModuleNotFoundException("pyaudio", "read a video with sound.")
-        p = pyaudio.PyAudio()
-        audio = p.open(format=p.get_format_from_width(wavefile.getsampwidth()), channels=wavefile.getnchannels(),
-                       rate=wavefile.getframerate(), output=True)
+            raise ModuleNotFoundException("sounddevice", "read a video with sound.")
+        _width_to_dtype = {1: "int8", 2: "int16", 3: "int24", 4: "int32"}
+        audio = sd.RawOutputStream(
+            samplerate = wavefile.getframerate(),
+            channels = wavefile.getnchannels(),
+            dtype = _width_to_dtype.get(wavefile.getsampwidth(), "int16"))
+        audio.start()
 
     timer = Timer(kwargs.get("speed", 1.0))
     timer.set_timer(sequence1.poses[start_pose].relative_timestamp * 1000)
@@ -367,9 +369,14 @@ def common_displayer(sequence1, sequence2=None, path_audio=None, path_video=None
         pygame.display.flip()
         count += 1
 
+    if audio is not None:
+        audio.stop()
+        audio.close()
+    if wavefile is not None:
+        wavefile.close()
+
     pygame.display.quit()
     pygame.quit()
-    # sys.exit()
 
 
 def sequence_reader(sequence, path_audio=None, path_video=None, position_video="superimposed", timestamp_video_start=0,

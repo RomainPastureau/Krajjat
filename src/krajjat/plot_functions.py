@@ -411,9 +411,9 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
 
 def joints_movement_plotter(sequence_or_sequences, measure="velocity", domain="time", window_length=7, poly_order=None,
                             nperseg=None, welch_window="hann", audio_or_derivative=None, overlay_audio=False,
-                            audio_color="#a102db", align=True, timestamp_start=None, timestamp_end=None, xlim=None,
-                            ylim=None, line_width=1.0, color_scheme="default", show_scale=False, show=True,
-                            path_save=None, verbosity=1, **kwargs):
+                            audio_color="#a102db", audio_points=5000, align=True, timestamp_start=None,
+                            timestamp_end=None, xlim=None, ylim=None, line_width=1.0, color_scheme="default",
+                            show_scale=False, show=True, path_save=None, verbosity=1, **kwargs):
     """Plots the distance or velocity across time of the joints, in separate sub-graphs whose localisation roughly
     follows the original body position of the joints.
 
@@ -487,6 +487,10 @@ def joints_movement_plotter(sequence_or_sequences, measure="velocity", domain="t
 
     audio_color: str, optional
         The color of the audio samples if ``overlay_audio`` is set on ``True`` (default: "#a102db").
+
+    audio_points: int or None, optional
+        The amount of points to display for the audio (default: 5000). Setting the parameter on `None` displays all
+        audio samples; however, this may result in memory errors.
 
     align: bool, optional
         If this parameter is set on ``"True"`` (default), and if the parameter ``sequence_or_sequences`` is a list
@@ -610,8 +614,9 @@ def joints_movement_plotter(sequence_or_sequences, measure="velocity", domain="t
         sequence = sequences[i]
 
         if domain == "time":
-            values.append(sequence.get_measure(measure, None, timestamp_start, timestamp_end, window_length, poly_order,
-                                               abs_measure, verbosity))
+            m = sequence.get_measure(measure, None, timestamp_start, timestamp_end, window_length, poly_order,
+                                               abs_measure, verbosity)
+            values.append(m)
             totals.append(
                 sequence.get_sum_measure(measure, None, True, timestamp_start, timestamp_end, window_length, poly_order,
                                          True, verbosity))
@@ -626,9 +631,8 @@ def joints_movement_plotter(sequence_or_sequences, measure="velocity", domain="t
             plot_timestamps.append(timestamps[i][np.where((timestamps[i] >= xlim[0]) & (timestamps[i] <= xlim[1]))])
 
         elif domain == "frequency":
-            values.append(sequence.get_measure(measure, None, None, None, window_length, poly_order,
-                                               abs_measure, verbosity))
-
+            m = sequence.get_measure(measure, None, None, None, window_length, poly_order, abs_measure, verbosity)
+            values.append(m)
             t = []
             for joint_label in values[i]:
 
@@ -706,13 +710,19 @@ def joints_movement_plotter(sequence_or_sequences, measure="velocity", domain="t
 
     # Scale the audio
     scaled_audio_or_derivative = []
-    if audio_or_derivative is not None and overlay_audio:
-        if abs_measure:
-            scaled_audio_or_derivative = scale_audio(audio_or_derivative.get_samples(), max_value,
-                                                     abs_measure, True, 0)
-        else:
-            scaled_audio_or_derivative = scale_audio(audio_or_derivative.get_samples(), max_value,
-                                                     abs_measure, False, 0)
+    if audio_or_derivative is not None:
+        audio_samples = np.asarray(audio_or_derivative.get_samples())
+        audio_timestamps = np.asarray(audio_or_derivative.get_timestamps())
+
+        if overlay_audio:
+            # Downsample
+            if audio_points is not None:
+                if len(audio_samples) > audio_points:
+                    step = len(audio_samples) // audio_points
+                    audio_samples = audio_samples[::step]
+                    audio_timestamps = audio_timestamps[::step]
+
+            scaled_audio_or_derivative = scale_audio(audio_samples, max_value, abs_measure, abs_measure, 0)
 
     if verbosity > 0:
         print("Done.")
@@ -720,8 +730,8 @@ def joints_movement_plotter(sequence_or_sequences, measure="velocity", domain="t
 
     for joint_label in sequences[0].get_joint_labels():
         graph = Graph()
-        if overlay_audio:
-            graph.add_plot(audio_or_derivative.get_timestamps(), scaled_audio_or_derivative, None, line_width,
+        if audio_or_derivative is not None and overlay_audio:
+            graph.add_plot(audio_timestamps, scaled_audio_or_derivative, None, line_width,
                            convert_color(audio_color, "hex", False) + "60")
 
         for s in range(len(sequences)):
@@ -739,7 +749,7 @@ def joints_movement_plotter(sequence_or_sequences, measure="velocity", domain="t
     title_audio = None
     if audio_or_derivative is not None:
         graph = Graph()
-        graph.add_plot(audio_or_derivative.get_timestamps(), audio_or_derivative.get_samples(), None, line_width,
+        graph.add_plot(audio_timestamps, audio_samples, None, line_width,
                        convert_color(audio_color, "hex", True))
         plot_dictionary["Audio"] = graph
         title_audio = audio_or_derivative.kind

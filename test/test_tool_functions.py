@@ -973,7 +973,6 @@ class TestsToolFunctions(unittest.TestCase):
     def test_set_nested_dict(self):
         a = {}
         set_nested_dict(a, ["A", "AA", "AAA"], 1)
-        print(a)
         assert a["A"]["AA"]["AAA"] == 1
 
         set_nested_dict(a, ["B", "BA"], 2)

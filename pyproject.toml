@@ -28,20 +28,22 @@ dependencies = [
     "opencv-python >= 4.8.0.76",
     "openpyxl >= 3.1",
     "pandas >= 2.1.0",
-    "pygame >= 2.5",
+    "pygame-ce >= 2.5",
     "find-delay >= 2.8",
     "praat-parselmouth > 0.4",
     "pytaglib >= 2.0.0",
-    "tqdm >= 4.67.1"
+    "tqdm >= 4.67.1",
 ]
 
 [project.optional-dependencies]
 analysis = [
     "pingouin >= 0.5.5",
-    "scikit-learn >= 1.7.0"
+    "scikit-learn >= 1.7.0",
+    "pyarrow >= 19.0.0",
+    "fastparquet >= 2024.2.0"
 ]
 display = [
-    "PyAudio >= 0.2.13"
+    "sounddevice >= 0.5.0"
 ]
 
 [external]
