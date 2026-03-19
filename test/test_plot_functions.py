@@ -133,20 +133,32 @@ class TestsPlotFunctions(unittest.TestCase):
         show = False
         plot_dictionary = {}
         plot_dictionary["Head"] = Graph()
-        plot_dictionary["Head"].add_plot(np.linspace(0, 10, 11), np.linspace(0, 10, 11), None, 1, "red", "x=y")
+        plot_dictionary["Head"].add_plot(np.linspace(0, 10, 11), np.linspace(0, 10, 11), None, 1, "-", "red", "x=y")
         plot_dictionary["HandRight"] = Graph()
-        plot_dictionary["HandRight"].add_plot(np.linspace(0, 10, 11), np.linspace(0, 10, 11), None, 1, "green", "x=y")
+        plot_dictionary["HandRight"].add_plot(np.linspace(0, 10, 11), np.linspace(0, 10, 11), None, 1, "--", "green", "x=y")
         plot_dictionary["HandLeft"] = Graph()
-        plot_dictionary["HandLeft"].add_plot(np.linspace(0, 10, 11), np.linspace(0, 10, 11), None, 1, "blue", "x=y")
-        plot_dictionary["HandLeft"].add_plot(np.linspace(0, 10, 11), np.linspace(10, 0, 11), None, 2, "orange", "y=x")
+        plot_dictionary["HandLeft"].add_plot(np.linspace(0, 10, 11), np.linspace(0, 10, 11), None, 1, "-.", "blue", "x=y")
+        plot_dictionary["HandLeft"].add_plot(np.linspace(0, 10, 11), np.linspace(10, 0, 11), None, 2, ":", "orange", "y=x")
 
         figure = plot_body_graphs(plot_dictionary, joint_layout="auto", show=show)
         figure = plot_body_graphs(plot_dictionary, joint_layout="auto", title="Graph", min_scale=-10, max_scale=7,
                                   show_scale=True, title_scale="Scale", xlim=[-1, 15], ylim=[0, 7],
-                                  shaded_error_bars=True, horizontal_lines=[1, 2],
-                                  horizontal_lines_colors=["red", "magenta"], horizontal_lines_styles=["-", "-."],
-                                  horizontal_shades=[(0, 1)], horizontal_shades_colors="red",
-                                  horizontal_shades_alphas=0.2, show=show)
+                                  shaded_error_bars=True, overlay_lines=[1, 2], overlay_lines_color="magenta",
+                                  overlay_lines_width=3, overlay_lines_style="--", background_shades=[(0, 1)],
+                                  background_shades_color="#FFFF0080", alpha_error_bars=0.4, show=show)
+        figure = plot_body_graphs(plot_dictionary, joint_layout="auto", title="Graph", min_scale=-10, max_scale=7,
+                                  show_scale=True, title_scale="Scale", xlim=[-1, 15], ylim=[0, 7],
+                                  shaded_error_bars=True, overlay_lines=[1, 2], overlay_lines_color=["blue", "magenta"],
+                                  overlay_lines_width=3, overlay_lines_style=["--", ":"], background_shades=[(0, 1)],
+                                  background_shades_color="#FFFF0080", alpha_error_bars=0.4, show=show)
+
+        overlay_line = GraphPlot(None, 1.5, color="red", line_style="-.", line_width=2)
+        figure = plot_body_graphs(plot_dictionary, joint_layout="auto", title="Graph", min_scale=-10, max_scale=7,
+                                  show_scale=True, title_scale="Scale", xlim=[-1, 15], ylim=[0, 7],
+                                  shaded_error_bars=True, overlay_lines=overlay_line,
+                                  overlay_lines_color=["blue", "magenta"],
+                                  overlay_lines_width=3, overlay_lines_style=["--", ":"], background_shades=[(0, 1)],
+                                  background_shades_color="#FFFF0080", alpha_error_bars=0.4, show=show)
 
     def test_plot_silhouette(self):
         show = False

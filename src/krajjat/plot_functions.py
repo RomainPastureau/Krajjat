@@ -1,10 +1,13 @@
 """These various functions allow to plot the data from the Sequence and Audio instances on graphs, or to plot
 statistics calculated using the analysis_functions."""
+from pathlib import Path
+
 import pygame
 from parselmouth import Sound
 from pygame.locals import *
 from scipy import signal
 
+from krajjat import GraphPlot
 from krajjat.tool_functions import *
 from krajjat.lib import gradients
 import matplotlib.pyplot as plt
@@ -412,8 +415,8 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
 def joints_movement_plotter(sequence_or_sequences, measure="velocity", domain="time", window_length=7, poly_order=None,
                             nperseg=None, welch_window="hann", audio_or_derivative=None, overlay_audio=False,
                             audio_color="#a102db", audio_points=5000, align=True, timestamp_start=None,
-                            timestamp_end=None, xlim=None, ylim=None, line_width=1.0, color_scheme="default",
-                            show_scale=False, show=True, path_save=None, verbosity=1, **kwargs):
+                            timestamp_end=None, xlim=None, ylim=None, line_width=1.0, line_style="-",
+                            color_scheme="default", show_scale=False, show=True, path_save=None, verbosity=1, **kwargs):
     """Plots the distance or velocity across time of the joints, in separate sub-graphs whose localisation roughly
     follows the original body position of the joints.
 
@@ -515,6 +518,10 @@ def joints_movement_plotter(sequence_or_sequences, measure="velocity", domain="t
 
     line_width: float, optional
         The width of the plotted lines, in pixels (default: 1.0).
+
+    line_style: str, optional
+        The style of the line to plot. Any parameter accepted by
+        `matplotlib <https://matplotlib.org/stable/gallery/lines_bars_and_markers/linestyles.html>`_ can be passed.
 
     color_scheme: string or list, optional
         The name of a color scheme or a list of colors to create a gradient. The resulting color gradient will be used
@@ -731,7 +738,7 @@ def joints_movement_plotter(sequence_or_sequences, measure="velocity", domain="t
     for joint_label in sequences[0].get_joint_labels():
         graph = Graph()
         if audio_or_derivative is not None and overlay_audio:
-            graph.add_plot(audio_timestamps, scaled_audio_or_derivative, None, line_width,
+            graph.add_plot(audio_timestamps, scaled_audio_or_derivative, None, line_width, line_style,
                            convert_color(audio_color, "hex", False) + "60")
 
         for s in range(len(sequences)):
@@ -743,13 +750,13 @@ def joints_movement_plotter(sequence_or_sequences, measure="velocity", domain="t
             if start_timestamps not in [0, 1]:
                 raise Exception("The number of timestamps and the number of values must be equal for plotting.")
             graph.add_plot(plot_timestamps[s][start_timestamps:], values[s][joint_label], None, line_width,
-                           joints_colors[s][joint_label], label)
+                           line_style, joints_colors[s][joint_label], label)
         plot_dictionary[joint_label] = graph
 
     title_audio = None
     if audio_or_derivative is not None:
         graph = Graph()
-        graph.add_plot(audio_timestamps, audio_samples, None, line_width,
+        graph.add_plot(audio_timestamps, audio_samples, None, line_width, line_style,
                        convert_color(audio_color, "hex", True))
         plot_dictionary["Audio"] = graph
         title_audio = audio_or_derivative.kind
@@ -1004,13 +1011,13 @@ def audio_plotter(audio, filter_below=None, filter_over=None, number_of_formants
 
     return fig
 
-def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale=None, max_scale=None, show_scale=False,
-                     title_scale=None, xlim=None, ylim=None, shaded_error_bars=True, horizontal_lines=None,
-                     horizontal_lines_colors="red", horizontal_lines_styles="--", horizontal_shades=None,
-                     horizontal_shades_colors="red", horizontal_shades_alphas=0.3, alpha_shade=0.4,
+def plot_body_graphs(plot_dictionary, joint_layout="auto", figsize=(12,9), title=None, min_scale=None, max_scale=None,
+                     show_scale=False, title_scale=None, xlim=None, ylim=None, shaded_error_bars=True,
+                     overlay_lines=None, overlay_lines_width=2, overlay_lines_color="red", overlay_lines_style="-",
+                     background_shades=None, background_shades_color="#ff000080", alpha_error_bars=0.4,
                      signif_marker=None, signif_marker_values=None, signif_marker_size=10, signif_marker_color="black",
-                     signif_marker_offset=0.02, color_scheme="default", title_audio="Audio", full_screen=False,
-                     show=True, path_save=None):
+                     signif_marker_offset=0.02, signif_marker_x_positions=None, color_scheme="default",
+                     title_audio="Audio", full_screen=False, show=True, path_save=None):
     """Creates multiple subplots placed so that each joint is roughly placed where it is located on the body. The
     values of each subplot are taken from the parameter ``plot_dictionary``, and the positions from the layout
     differ between Kinect and Kualisys systems.
@@ -1023,13 +1030,21 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
         A dictionary containing the title of the subgraphs as keys, and Graph objects as elements.
 
     joint_layout: str, optional
-        Defines the layout to use for the subplots of the joints: ``"kinect"``, ``"qualisys"``/``"kualisys"``, or the
-        path to a file containing a custom layout.  If set on ``"auto"`` (default), the function will automatically
-        assign the layout depending on if the joint label ``"Chest"`` is among the keys of the ``plot_dictionary``.
+        Defines the layout to use for the subplots of the joints: ``"kinect"``, ``"qualisys"``/``"kualisys"``, or a
+        custom layout. If set on ``"auto"`` (default), the function will automatically assign the layout to kinect or
+        qualisys depending on if the joint label ``"Chest"`` is among the keys of the ``plot_dictionary``.
 
         The joint layouts are a grid of 7 × 5 subplots for Kinect, and 13 × 7 subplots for Qualisys. The corresponding
         spots for each joint are loaded from ``"res/kinect_joints_subplot_layout.txt"`` and
         ``"res/kualisys_joints_subplot_layout.txt"``.
+
+        This parameter can also accept custom layouts, as a joint label or a list of joint labels: in that case, the
+        sub-plots for each label is displayed in order. A 1D list of joints is displayed vertically. A 2D list of
+        joints displays each sub-list horizontally. ``None`` allows to leave a subplot empty. The custom layout can
+        also be passed as a path to a text file with the joint labels or empty entries separated by tabs on each line.
+
+    figsize: tuple, optional
+        The figure size passed to ``plt.rcParams["figure.figsize"]`` (default: (12, 9))
 
     title: str or None, optional
         The title to display on top of the plot.
@@ -1042,7 +1057,7 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
     max_scale: float or None, optional
         The maximum value to set on the y-axis, for all the elements in the ``plot_dictionary`` that match joint keys
         (i.e., except from the subplot under the ``"Audio"`` key). If set on None (default), the maximum value will be
-        the overall minimum value from the ``plot_dictionary``, with the subgraph ``"Audio"`` excluded.
+        the overall maximum value from the ``plot_dictionary``, with the subgraph ``"Audio"`` excluded.
 
     show_scale: bool, optional
         If set on ``True``, shows a colored scale on the right side of the graph.
@@ -1059,32 +1074,50 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
     shaded_error_bars: bool, optional
         Shows shaded error bars for each plot if the standard deviation is part of the plot_dictionary. Default: True.
 
-    horizontal_lines: list(float) | float | None, optional
-        If set, adds one or more horizontal lines to the plot (e.g. to signify significance). Default: None.
+    overlay_lines: dict(list(GraphPlot|float)) | list(GraphPlot|float) | GraphPlot | float | None, optional
+        If set, adds one or more lines to the plot (e.g., to show significance). Default: None. This parameter can be:
 
-    horizontal_lines_colors: list(color) | color, optional
-        The color or colors to apply to each horizontal line. If a list is provided, the length of the list must be
-        equal to the length of ``horizontal_lines``. If a single color is provided, it will be applied to all lines.
+            • A single float: a horizontal line will be displayed on all subgraphs at the given y coordinate.
+            • A GraphPlot: a curve or line given by the coordinates contained in the GraphPlot, on all subgraphs.
+            • A list containing a mix of the two previous elements, displaying multiple lines or curves on all subgraphs.
+            • A dictionary containing a mix of the three previous elements, displaying different lines or curves
+              on each subplot depending on the joint label (dictionary key).
 
-    horizontal_lines_styles: list(str) | str, optional
-        The line style to apply to each horizontal line. If a list is provided, the length of the list must be equal
-        to the length of ``horizontal_lines``. If a single line style is provided, it will be applied to all lines.
-        See `linestyles <https://matplotlib.org/stable/gallery/lines_bars_and_markers/linestyles.html>`_ for more info.
+    overlay_lines_width: int|float|list(int|float), optional
+        The default overlay line width to use when the line width is not specified by a GraphPlot (default: 2).
+        If a list is provided, the colors will be used in the same order as the elements in the list of
+        ``overlay_lines``, looping to the top of the list.
 
-    horizontal_shades: list(tuple(float, float)) | (float, float) | None, optional
-        If set, adds one or more horizontal shades to the plot (e.g. to signify significance). Each shade must be two
-        values, starting from the lowest. Setting ``"inf"`` or ``"-inf"`` will change set the color until the
-        corresponding vertical limit of the graph. Default: None.
+    overlay_lines_color: color|list(color), optional
+        The default overlay line color to use when the line color is not specified by a GraphPlot (default: "red").
+        If a list is provided, the colors will be used in the same order as the elements in the list of
+        ``overlay_lines``, looping to the top of the list.
 
-    horizontal_shades_colors: list(color) | color, optional
-        The color or colors to apply to each horizontal shade. If a list is provided, the length of the list must be
-        equal to the length of ``horizontal_shades``. If a single color is provided, it will be applied to all shades.
+    overlay_lines_style: str|list(str), optional
+        The default line style to apply to the overlay line when the line style is not specified by a GraphPlot
+        (default: "-"). See `linestyles <https://matplotlib.org/stable/gallery/lines_bars_and_markers/linestyles.html>`_
+        for more info. If a list is provided, the colors will be used in the same order as the elements in the list of
+        ``overlay_lines``, looping to the top of the list.
 
-    horizontal_shades_alphas: list(str) | str, optional
-        The alpha value to apply to each horizontal shade. If a list is provided, the length of the list must be equal
-        to the length of ``horizontal_shades``. If a single alpha value is provided, it will be applied to all shades.
+    background_shades: dict(list(tuple(GraphPlot|float))) | list(tuple(GraphPlot|float)) | tuple(GraphPlot|float) | None, optional
+        If set, adds one or more shades to the plot (e.g. to show areas of significance). Each shade must be
+        characterized by two objects indicating the lower and upper bound. Default: None. This parameter can be:
 
-    alpha_shade: float, optional
+            • A tuple of float: a horizontal shade will be displayed on all subgraphs between the given y coordinates.
+            • A tuple of GraphPlot: a shade will follow the interval between the two curves or lines given by the
+              coordinates contained in the GraphPlot, on all subgraphs.
+            • A list containing a mix of the two previous elements, displaying multiple shades all subgraphs.
+            • A dictionary containing a mix of the three previous elements, displaying multiple shades
+              on each subplot depending on the joint label (dictionary key).
+
+        .. note::
+            Setting ``"inf"`` or ``"-inf"`` will set the shade until the corresponding vertical limit of the graph.
+
+    background_shades_color: color|list(color), optional
+        The default color to apply to each background shade. If a list is provided, the colors will be used in the same
+        order as the elements in the list of ``background_shades``, looping to the top of the list.
+
+    alpha_error_bars: float, optional
         The alpha value for the color of the shaded error bars. Default: 0.4.
 
     signif_marker: str, optional
@@ -1106,6 +1139,9 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
 
     signif_marker_offset: float, optional
         The vertical offset of the significance marker(s), as a fraction of the height of the plot. Default: 0.02.
+
+    signif_marker_x_positions: dict(str, list)|None, optional
+        If set, defines the horizontal position of the markers.
 
     color_scheme: str or list, optional
         The color scheme to use for the color scale. This color scheme should be coherent with the colors defined in
@@ -1141,23 +1177,46 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
     """
 
     # Getting the joint layout
-    if joint_layout == "auto":
-        if "Chest" in plot_dictionary.keys():
-            joint_layout = "qualisys"
+    if (isinstance(joint_layout, str) and (joint_layout in plot_dictionary or joint_layout.lower() in ["audio",
+        "envelope", "pitch", "intensity", "f1", "f2"])) or isinstance(joint_layout, list):
+        if isinstance(joint_layout, str):
+            joints_positions = [joint_layout]
         else:
-            joint_layout = "kinect"
-    joints_positions = load_joints_subplot_layout(joint_layout)
+            joints_positions = joint_layout
+        joint_layout = "custom"
+
+    elif (isinstance(joint_layout, str)) and Path(joint_layout).exists():
+        joints_positions = load_joints_subplot_layout(joint_layout)
+        joint_layout = "custom"
+
+    else:
+        if joint_layout == "auto":
+            if "Chest" in plot_dictionary.keys():
+                joint_layout = "qualisys"
+            else:
+                joint_layout = "kinect"
+        if joint_layout == "kualisys":
+            joint_layout = "qualisys"
+        joints_positions = load_joints_subplot_layout(joint_layout)
 
     # Figure parameters
     sns.set_theme(font_scale=0.8)
-    plt.rcParams["figure.figsize"] = (12, 9)
+    plt.rcParams["figure.figsize"] = figsize
 
     # plt.rcParams["font.size"] = 7
-    if joint_layout == "kinect":
-        rows, cols = 7, 5
+    rows = len(joints_positions)
+    if isinstance(joints_positions[0], list):
+        cols = max(map(len, joints_positions), default=0)
     else:
-        rows, cols = 13, 7
-    fig, axes = plt.subplots(nrows=rows, ncols=cols)  # constrained_layout=True)
+        joints_positions = [[joint_position] for joint_position in joints_positions]
+        cols = 1
+
+    for i in range(len(joints_positions)):
+        for j in range(len(joints_positions[i])):
+            if joints_positions[i][j].lower() in ["audio", "envelope", "pitch", "intensity", "f1", "f2"]:
+                joints_positions[i][j] = "Audio"
+
+    fig, axes = plt.subplots(nrows=rows, ncols=cols, squeeze=False)  # constrained_layout=True)
     if title is not None:
         plt.subplots_adjust(left=0.03, bottom=0.03, right=0.97, top=0.93, wspace=0.3, hspace=0.8)
         fig.suptitle(title, fontsize="x-large", fontweight="bold")
@@ -1177,53 +1236,81 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
     if isinstance(max_scale, (int, float)):
         max_value = max_scale
 
-    # Horizontal lines
-    if horizontal_lines is not None:
-        if not isinstance(horizontal_lines, (tuple, list)):
-            horizontal_lines = (horizontal_lines,)
-        if min_scale is None and min(horizontal_lines) < min_value:
-            min_value = min(horizontal_lines)
-        if max_scale is None and max(horizontal_lines) > max_value:
-            max_value = max(horizontal_lines)
+    def _to_graphplot(item, kind, ii):
+        if isinstance(item, (int, float)):
+            if kind == "line":
+                return GraphPlot(None, item, None, overlay_lines_width[ii[1]], overlay_lines_style[ii[2]],
+                                 overlay_lines_color[ii[0]])
+            elif kind == "shade":
+                return GraphPlot(None, item, color=background_shades_color[ii])
+        return item
 
-        if horizontal_lines_colors is None or isinstance(horizontal_lines_colors, str):
-            horizontal_lines_colors = [horizontal_lines_colors] * len(horizontal_lines)
-        if len(horizontal_lines_colors) != len(horizontal_lines):
-            raise ValueError(f"The length of the horizontal_lines_colors list ({horizontal_lines_colors}) must be equal "
-                             f"to the length of horizontal_lines ({horizontal_lines}).")
-        horizontal_lines_colors = convert_colors(horizontal_lines_colors, "HEX")
+    # Overlay lines
+    color_i = 0
+    width_i = 0
+    style_i = 0
+    if not(isinstance(overlay_lines_color, list)):
+        overlay_lines_color = [overlay_lines_color]
+    if not(isinstance(overlay_lines_width, list)):
+        overlay_lines_width = [overlay_lines_width]
+    if not(isinstance(overlay_lines_style, list)):
+        overlay_lines_style = [overlay_lines_style]
 
-        if horizontal_lines_styles is None or isinstance(horizontal_lines_styles, str):
-            horizontal_lines_styles = [horizontal_lines_styles] * len(horizontal_lines)
-        if len(horizontal_lines_styles) != len(horizontal_lines):
-            raise ValueError(f"The length of the horizontal_lines_styles list ({horizontal_lines_styles}) must be equal "
-                             f"to the length of horizontal_lines ({horizontal_lines}).")
+    overlay_lines_dict = {}
+    if isinstance(overlay_lines, dict):
+        for label, value in overlay_lines.items():
+            if not isinstance(value, list):
+                value = [value]
+            overlay_lines_dict[label] = []
+            for line in value:
+                overlay_lines_dict[label].append(_to_graphplot(line, "line", (color_i, width_i, style_i)))
+                color_i = (color_i + 1) % len(overlay_lines_color)
+                width_i = (width_i + 1) % len(overlay_lines_width)
+                style_i = (style_i + 1) % len(overlay_lines_style)
+    elif not overlay_lines is None:
+        if not isinstance(overlay_lines, list):
+            overlay_lines = [overlay_lines]
+        for label in plot_dictionary:
+            color_i = 0
+            width_i = 0
+            style_i = 0
+            overlay_lines_dict[label] = []
+            for line in overlay_lines:
+                overlay_lines_dict[label].append(_to_graphplot(line, "line", (color_i, width_i, style_i)))
+                color_i = (color_i + 1) % len(overlay_lines_color)
+                width_i = (width_i + 1) % len(overlay_lines_width)
+                style_i = (style_i + 1) % len(overlay_lines_style)
 
-    # Horizontal shades
-    if horizontal_shades is not None:
-        if not isinstance(horizontal_shades, list):
-            horizontal_shades = [horizontal_shades]
-        for s in range(len(horizontal_shades)):
-            if not isinstance(horizontal_shades[s], (tuple, list)):
-                raise ValueError("Error: each value in horizontal_shades must be a list or a tuple.")
-            if horizontal_shades[s][0] == -np.inf:
-                horizontal_shades[s] = (min_value, horizontal_shades[s][1])
-            if horizontal_shades[s][1] == np.inf:
-                horizontal_shades[s] = (horizontal_shades[s][0], max_value)
+    # Background shades
+    color_i = 0
+    if not(isinstance(background_shades_color, list)):
+        background_shades_color = [background_shades_color]
 
-        if horizontal_shades_colors is None or isinstance(horizontal_shades_colors, str):
-            horizontal_shades_colors = [horizontal_shades_colors] * len(horizontal_shades)
-        if len(horizontal_shades_colors) != len(horizontal_shades):
-            raise ValueError(f"The length of the horizontal_shades_colors list ({horizontal_shades_colors}) must be equal "
-                             f"to the length of horizontal_shades ({horizontal_shades}).")
+    background_shades_dict = {}
+    if isinstance(background_shades, dict):
+        for label, value in background_shades.items():
+            if not isinstance(value, list):
+                value = [value]
+            background_shades_dict[label] = []
+            for shade in value:
+                if not isinstance(shade, tuple):
+                    raise Exception("Each background shade must be a tuple of two bounds (float or GraphPlot).")
+                else:
+                    background_shades_dict[label].append((_to_graphplot(shade[0], "shade", color_i),
+                                                          _to_graphplot(shade[1], "shade", color_i)))
+                    color_i = (color_i + 1) % len(background_shades_color)
 
-        if horizontal_shades_alphas is None or isinstance(horizontal_shades_alphas, (int, float)):
-            horizontal_shades_alphas = [horizontal_shades_alphas] * len(horizontal_shades)
-        if len(horizontal_shades_alphas) != len(horizontal_shades):
-            raise ValueError(f"The length of the horizontal_shades_alphas list ({horizontal_shades_alphas}) must be equal "
-                             f"to the length of horizontal_shades ({horizontal_shades}).")
-
-        horizontal_shades_colors = convert_colors(horizontal_shades_colors, "HEX", False)
+    elif not background_shades is None:
+        if not isinstance(background_shades, list):
+            background_shades = [background_shades]
+        background_shades_normalized = []
+        for shade in background_shades:
+            if not isinstance(shade, tuple):
+                raise Exception("Each background shade must be a tuple of two bounds (float or GraphPlot).")
+            background_shades_normalized.append((_to_graphplot(shade[0], "shade", color_i), _to_graphplot(shade[1], "shade", color_i)))
+            color_i = (color_i + 1) % len(background_shades_color)
+        for label in plot_dictionary:
+            background_shades_dict[label] = background_shades_normalized
 
     # Markers
     if signif_marker is not None:
@@ -1233,78 +1320,116 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", title=None, min_scale
             signif_marker_color = [signif_marker_color]
         signif_marker_color = convert_colors(signif_marker_color, "HEX", False)
 
-        if len(signif_marker_values) != len(signif_marker):
-            if len(signif_marker) == 1:
-                signif_marker = [signif_marker[0] * i for i in range(len(signif_marker_values), 0, -1)]
-            else:
-                raise ValueError(f"The length of the parameter signif_marker_value ({len(signif_marker_values)}) must "
-                                 f"be equal to the length of signif_marker ({len(signif_marker)}).")
+        if signif_marker_values is not None:  # only validate if y-band mode
+            if len(signif_marker_values) != len(signif_marker):
+                if len(signif_marker) == 1:
+                    signif_marker = [signif_marker[0] * i for i in range(len(signif_marker_values), 0, -1)]
+                else:
+                    raise ValueError(
+                        f"The length of the parameter signif_marker_value ({len(signif_marker_values)}) must "
+                        f"be equal to the length of signif_marker ({len(signif_marker)}).")
 
-        if len(signif_marker) != 1 and len(signif_marker_color) == 1:
-            signif_marker_color = signif_marker_color * len(signif_marker)
-        elif len(signif_marker) != len(signif_marker_color):
-            raise ValueError(f"The length of the signif_marker list ({len(signif_marker)}) must be equal to the "
-                             f"length of signif_marker_color ({len(signif_marker_color)}).")
+            if len(signif_marker) != 1 and len(signif_marker_color) == 1:
+                signif_marker_color = signif_marker_color * len(signif_marker)
+            elif len(signif_marker) != len(signif_marker_color):
+                raise ValueError(f"The length of the signif_marker list ({len(signif_marker)}) must be equal to the "
+                                 f"length of signif_marker_color ({len(signif_marker_color)}).")
 
-        if signif_marker_values is None:
-            raise ValueError("The parameter signif_marker_value must be set if signif_marker is set.")
-        elif isinstance(signif_marker_values, tuple):
-            signif_marker_values = [signif_marker_values]
-        elif not isinstance(signif_marker_values, list):
-            raise ValueError("The parameter signif_marker_values must be a tuple or a list.")
+            if isinstance(signif_marker_values, tuple):
+                signif_marker_values = [signif_marker_values]
+            elif not isinstance(signif_marker_values, list):
+                raise ValueError("The parameter signif_marker_values must be a tuple or a list.")
 
     # print(signif_marker, signif_marker_values, signif_marker_color)
 
+    joints_subplot_no = {}
+    for i in range(rows):
+        for j in range(len(joints_positions[i])):
+            if joints_positions[i][j] is not None and joints_positions[i][j] != "":
+                joints_subplot_no[joints_positions[i][j]] = i * cols + j + 1
+
     # Plot the subplots
     for key in plot_dictionary.keys():
-        plt.subplot(rows, cols, joints_positions[key])
-        if key != "Audio":  # We want to scale everything apart from the audio
-            plt.ylim([min_value, max_value])
-            plt.title(key)
-        else:
-            plt.title(title_audio)
-        if xlim is not None:
-            plt.xlim(xlim)
-        if ylim is not None:
-            plt.ylim(ylim)
+        if key in joints_subplot_no:
+            plt.subplot(rows, cols, joints_subplot_no[key])
+            if key != "Audio":  # We want to scale everything apart from the audio
+                plt.ylim([min_value, max_value])
+                plt.title(key)
+            else:
+                plt.title(title_audio)
+            if xlim is not None:
+                plt.xlim(xlim)
+            if ylim is not None:
+                plt.ylim(ylim)
 
-        if key != "Audio":
-            if horizontal_shades is not None:
-                for line, color, alpha in zip(horizontal_shades, horizontal_shades_colors, horizontal_shades_alphas):
-                    plt.axhspan(line[0], line[1], color=color, alpha=alpha)
+            if key == "Audio":
+                # Scale to the data range, not the background curve
+                audio_plots = plot_dictionary[key].plots
+                if audio_plots:
+                    audio_min = min(np.nanmin(p.y) for p in audio_plots)
+                    audio_max = max(np.nanmax(p.y) for p in audio_plots)
+                    margin = (audio_max - audio_min) * 0.1
+                    plt.ylim([audio_min - margin, audio_max + margin])
+            else:
+                plt.ylim([min_value, max_value])
 
-            if horizontal_lines is not None:
-                for line, color, linestyle in zip(horizontal_lines, horizontal_lines_colors, horizontal_lines_styles):
-                    plt.axhline(y=line, color=color, linestyle=linestyle)
+            # Background shades
+            if key in background_shades_dict:
+                for lower_bound, upper_bound in background_shades_dict[key]:
+                    color = lower_bound.color
+                    if lower_bound.x is None and upper_bound.x is None:
+                        lower_y = float(lower_bound.y) if lower_bound.y != -np.inf else min_value
+                        upper_y = float(upper_bound.y) if upper_bound.y != np.inf else max_value
+                        plt.axhspan(lower_y, upper_y, color=color)
+                    else:
+                        x = lower_bound.x if not lower_bound.x is None else upper_bound.x
+                        lower_y = np.full_like(x, float(lower_bound.y)) if lower_bound.x is None else lower_bound.y
+                        upper_y = np.full_like(x, float(upper_bound.y)) if upper_bound.x is None else upper_bound.y
+                        plt.fill_between(x, lower_y, upper_y, color=color)
 
-        for subplot in plot_dictionary[key].plots:
-            line, = plt.plot(subplot.x, subplot.y, linewidth=subplot.line_width, color=subplot.color, label=subplot.label)
-            if signif_marker is not None and key != "Audio":
-                for x, y in zip(subplot.x, subplot.y):
-                    for marker, v, color in zip(signif_marker, signif_marker_values, signif_marker_color):
-                        if v[0] < y < v[1]:
-                            plt.text(x, y + signif_marker_offset, marker, fontsize=signif_marker_size, color=color,
+            # Overlay lines
+            if key in overlay_lines_dict:
+                for line in overlay_lines_dict[key]:
+                    if line.x is None:
+                        plt.axhline(y=float(line.y), color=line.color, linestyle=line.line_style, linewidth=line.line_width,
+                                    label=line.label)
+                    else:
+                        plt.plot(line.x, line.y, color=line.color, linestyle=line.line_style, linewidth=line.line_width,
+                                 label=line.label)
+
+            for subplot in plot_dictionary[key].plots:
+                line, = plt.plot(subplot.x, subplot.y, linewidth=subplot.line_width, linestyle=subplot.line_style,
+                                 color=subplot.color, label=subplot.label)
+                if signif_marker is not None:
+                    # x-position based (fit_background case)
+                    if signif_marker_x_positions is not None and key in signif_marker_x_positions:
+                        for peak_x, peak_level in signif_marker_x_positions[key]:
+                            idx = np.argmin(np.abs(np.array(subplot.x) - peak_x))
+                            peak_y = subplot.y[idx]
+                            marker_idx = min(int(peak_level) - 1, len(signif_marker) - 1)
+                            y_offset = signif_marker_offset * (max_value - min_value)
+                            plt.text(peak_x, peak_y + y_offset, signif_marker[marker_idx],
+                                     fontsize=signif_marker_size, color=signif_marker_color[marker_idx],
                                      ha="center", va="bottom")
-                            break
+                    # y-band based (z-score case)
+                    elif signif_marker_values is not None:
+                        for x, y in zip(subplot.x, subplot.y):
+                            for marker, v, color in zip(signif_marker, signif_marker_values, signif_marker_color):
+                                if v[0] < y < v[1]:
+                                    plt.text(x, y + signif_marker_offset, marker, fontsize=signif_marker_size,
+                                             color=color, ha="center", va="bottom")
+                                    break
 
-            if subplot.sd is not None and shaded_error_bars:
-                plt.fill_between(subplot.x, subplot.y - subplot.sd, subplot.y + subplot.sd,
-                                 alpha=alpha_shade, facecolor=line.get_color())
+                if subplot.sd is not None and shaded_error_bars:
+                    plt.fill_between(subplot.x, subplot.y - subplot.sd, subplot.y + subplot.sd,
+                                     alpha=alpha_error_bars, facecolor=line.get_color())
 
     # Delete unused axes
-    if "Audio" not in plot_dictionary.keys():
-        fig.delaxes(axes[0][0])
-    if joint_layout == "kinect":
-        axes_to_delete = [(0, 1), (0, 3), (0, 4), (1, 0), (1, 1), (1, 3), (1, 4), (3, 1), (3, 3), (5, 0), (5, 2),
-                          (5, 4), (6, 2)]
-    else:
-        axes_to_delete = [(0, 1), (0, 2), (0, 4), (0, 5), (0, 6), (1, 0), (1, 1), (1, 5), (1, 6), (3, 1), (3, 5),
-                          (4, 1), (4, 3), (4, 5), (5, 1), (5, 3), (5, 5), (6, 1), (6, 3), (6, 5), (7, 0), (7, 1),
-                          (7, 3), (7, 5), (7, 6), (8, 0), (8, 1), (8, 3), (8, 5), (8, 6), (9, 0), (9, 1), (9, 3),
-                          (9, 5), (9, 6), (10, 0), (10, 1), (10, 3), (10, 5), (10, 6), (11, 0), (11, 3), (11, 6),
-                          (12, 0), (12, 3), (12, 6)]
-    for axis_to_delete in axes_to_delete:
-        fig.delaxes(axes[axis_to_delete[0]][axis_to_delete[1]])
+    for i in range(rows):
+        for j in range(cols):
+            if j >= len(joints_positions[i]) or joints_positions[i][j] == "" or joints_positions[i][j] is None or \
+               joints_positions[i][j] not in joints_subplot_no or joints_positions[i][j] not in plot_dictionary:
+                fig.delaxes(axes[i][j])
 
     # Get colors
     color_list = calculate_color_points_on_gradient(color_scheme, 100)

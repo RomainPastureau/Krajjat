@@ -883,14 +883,15 @@ class TestsToolFunctions(unittest.TestCase):
 
     def test_load_joints_subplot_layout(self):
         layout = load_joints_subplot_layout("kinect")
-        assert layout["Head"] == 3
-        assert layout["SpineMid"] == 18
-        assert layout["FootLeft"] == 35
+        assert layout[0] == ["Audio", "", "Head"]
+        assert layout[2] == ['ElbowRight', 'ShoulderRight', 'SpineShoulder', 'ShoulderLeft', 'ElbowLeft']
+        assert len(layout) == 7
 
         layout = load_joints_subplot_layout("qualisys")
-        assert layout["HeadTop"] == 4
-        assert layout["SpineTop"] == 18
-        assert layout["ForefootOutLeft"] == 83
+        assert layout[0] == ["Audio", "", "", "HeadTop"]
+        assert layout[2] == ['ElbowRight', 'ArmRight', 'ShoulderTopRight', 'SpineTop', 'ShoulderTopLeft', 'ArmLeft',
+                             'ElbowLeft']
+        assert len(layout) == 13
 
     def test_load_joints_silhouette_layout(self):
         positions, layout = load_joints_silhouette_layout("kinect")

@@ -336,7 +336,8 @@ class Experiment(object):
         return joint_labels
 
     def get_dataframe(self, sequence_measure="distance", audio_measure="envelope", sampling_frequency=None,
-                      exclude_columns=None, include_columns=None, use_categoricals=True, verbosity=1, **kwargs):
+                      exclude_columns=None, include_columns=None, subjects="all", use_categoricals=True, verbosity=1,
+                      **kwargs):
         """Returns the data from the experiment as a Pandas dataframe containing multiple columns.
 
         .. versionadded:: 2.0
@@ -379,6 +380,10 @@ class Experiment(object):
             the audio derivative will be calculated, which can take some time. If the audio measure is set on an
             AudioDerivative and the subjects' trials contain the same AudioDerivative, the data will be taken as-is.
             Any other case will return an error.
+
+        subjects: str|list, optional
+            A subject, a list of subjects or ``"all"`` (in that last case, the dataframe will be generated with all
+            the subjects from the experiment).
 
         sampling_frequency: float, optional
             The frequency at which to resample the two measures before adding them to the dataframe. By default,
@@ -476,7 +481,12 @@ class Experiment(object):
         timestamp_start = kwargs.get("timestamp_start", None)
         timestamp_end = kwargs.get("timestamp_end", None)
 
-        all_trials = [(subject_name, trial_id) for subject_name in self.subjects
+        if subjects == "all":
+            subjects = list(self.subjects.keys())
+        elif isinstance(subjects, str):
+            subjects = [subjects]
+
+        all_trials = [(subject_name, trial_id) for subject_name in subjects
                       for trial_id in self.subjects[subject_name].trials]
 
         if verbosity > 0:
@@ -520,9 +530,11 @@ class Experiment(object):
                 sequence_values = sequence.get_measure(measure,
                                                        timestamp_start=timestamp_start,
                                                        timestamp_end=timestamp_end,
-                                                       window_length=kwargs.get("window_length", 7),
-                                                       poly_order=kwargs.get("poly_order", None),
+                                                       window_length=kwargs.get("window_length", "auto"),
+                                                       poly_order=kwargs.get("poly_order", "auto"),
                                                        verbosity=verbosity-1)
+
+
 
                 timestamps = sequence.get_timestamps(relative=True,
                                                      timestamp_start=timestamp_start,
@@ -544,7 +556,7 @@ class Experiment(object):
 
                         # Repeat the value for the first columns
                         if column in values_to_append.keys():
-                            repeated_values = np.array([values_to_append[column] for _ in range(len(timestamps))])
+                            repeated_values = np.repeat(values_to_append[column], len(timestamps))
                             data[column].append(repeated_values)
 
                         # Timestamps
@@ -560,12 +572,12 @@ class Experiment(object):
 
                         # Subject attribute
                         elif hasattr(subject, column):
-                            repeated_values = [getattr(subject, column) for _ in range(len(timestamps))]
+                            repeated_values = np.repeat(getattr(subject, column), len(timestamps))
                             data[column].append(repeated_values)
 
                         # Trial attribute
                         elif hasattr(trial, column):
-                            repeated_values = [getattr(trial, column) for _ in range(len(timestamps))]
+                            repeated_values = np.repeat(getattr(trial, column), len(timestamps))
                             data[column].append(repeated_values)
 
                         # Attribute not found (nan)
@@ -643,6 +655,7 @@ class Experiment(object):
             print("Done.")
 
         df = pd.DataFrame({col: np.concatenate(chunks) for col, chunks in data.items()})
+        del data
 
         if use_categoricals:
             categorical_columns = [column for column in columns if column not in ["timestamp", "value"]]
@@ -773,7 +786,6 @@ class Experiment(object):
             • :meth:`Audio.get_formant`
             • :meth:`Audio.get_intensity`
         """
-
         dataframe = self.get_dataframe(sequence_measure, audio_measure, sampling_frequency, exclude_columns,
                                        include_columns, use_categoricals, verbosity, **kwargs)
 
@@ -810,6 +822,7 @@ class Experiment(object):
             dataframe.to_parquet(path_out)
         elif file_format == "mat":
             savemat(path_out, {"data": {name: col.values for name, col in dataframe.items()}})
+        del dataframe
 
     def __len__(self):
         """Returns the total amount of subjects present in the Experiment instance.

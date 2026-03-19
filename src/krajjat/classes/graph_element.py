@@ -17,7 +17,7 @@ class Graph(object):
     def __init__(self):
         self.plots = []
 
-    def add_plot(self, x, y, sd=None, line_width=1.0, color="#000000", label=None):
+    def add_plot(self, x, y, sd=None, line_width=1.0, line_style="-", color="#000000", label=None):
         """Creates and adds a :class:`classes.graph_element.GraphPlot` element to the :attr:`plots` attribute.
 
         .. versionadded:: 2.0
@@ -32,13 +32,16 @@ class Graph(object):
             A list containing the standard deviations of x.
         line_width: float, optional
             The width of the line to plot on the graph, in pixels. By default, the line width is 1 pixel.
+        line_style: str, optional
+            The style of the line to plot. Any parameter accepted by
+            `matplotlib <https://matplotlib.org/stable/gallery/lines_bars_and_markers/linestyles.html>`_ can be passed.
         color: str, optional
             The hexadecimal value of the color of the line, prefixed by a number sign (``#``). By default, the color is
             black.
         label: str, optional
             The label of the series.
         """
-        self.plots.append(GraphPlot(x, y, sd, line_width, color, label))
+        self.plots.append(GraphPlot(x, y, sd, line_width, line_style, color, label))
 
     def add_graph_plot(self, graph_plot):
         """Adds an already created :class:`classes.graph_element.GraphPlot` element to the :attr:`plots` attribute.
@@ -69,7 +72,14 @@ class Graph(object):
         else:
             string = str(len(self.plots))+" plots ("
         for plot in self.plots:
-            string += f"{plot.label} · {len(plot.x)} × {len(plot.y)}"
+            if plot.x is None and plot.y is not None:
+                string += f"{plot.label} · Horizontal line: {plot.y}"
+            elif plot.x is not None and plot.y is None:
+                string += f"{plot.label} · Vertical line: {plot.x}"
+            elif plot.x is None and plot.y is None:
+                string += f"{plot.label} · Empty plot"
+            else:
+                string += f"{plot.label} · {len(plot.x)} × {len(plot.y)}"
             if plot.sd is not None:
                 string += " (with SD)"
             string += ", "
@@ -94,6 +104,9 @@ class GraphPlot(object):
         A list containing the standard deviations of x.
     line_width: float, optional
         The width of the line to plot on the graph, in pixels. By default, the line width is 1 pixel.
+    line_style: str, optional
+        The style of the line to plot. Any parameter accepted by
+        `matplotlib <https://matplotlib.org/stable/gallery/lines_bars_and_markers/linestyles.html>`_ can be passed.
     color: str, optional
         The hexadecimal value of the color of the line, prefixed by a number sign (``#``). By default, the color is
         black.
@@ -110,20 +123,29 @@ class GraphPlot(object):
         The array containing the standard deviations of x.
     line_width: float
         The width of the line to plot on the graph, in pixels.
+    line_style: str
+        The style of the line.
     color: str
         The hexadecimal value of the color of the line, prefixed by a number sign (``#``).
     label: str, optional
         The label of the series.
     """
 
-    def __init__(self, x, y, sd=None, line_width=1.0, color="#000000", label=None):
-        self.x = np.array(x)
-        self.y = np.array(y)
+    def __init__(self, x, y, sd=None, line_width=1.0, line_style="-", color="#000000", label=None):
+        if x is not None:
+            self.x = np.array(x)
+        else:
+            self.x = None
+        if y is not None:
+            self.y = np.array(y)
+        else:
+            self.y = None
         self.sd = None
         if sd is not None:
             self.sd = np.array(sd)
         assert isinstance(line_width, (int, float))
         self.line_width = line_width
+        self.line_style = line_style
         self.color = color
         assert isinstance(label, (str, type(None)))
         self.label = label

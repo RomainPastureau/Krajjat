@@ -12,7 +12,67 @@ from krajjat.display_functions import common_displayer
 class TestsAnalysisFunctions(unittest.TestCase):
 
     def test_power_spectrum(self):
-        pass
+
+        # Create a test signal
+        def make_test_signal(duration=60, sampling_rate=30, peak_freqs=(2.0, 5.0),
+                             peak_amplitudes=None, noise_slope=-2.0, snr=5.0, seed=42):
+            rng = np.random.default_rng(seed)
+            n_samples = int(duration * sampling_rate)
+            t = np.arange(n_samples) / sampling_rate
+
+            # 1/f noise via spectral shaping
+            freqs = np.fft.rfftfreq(n_samples, d=1 / sampling_rate)
+            freqs[0] = 1  # avoid division by zero at DC
+            power = freqs ** (noise_slope / 2)
+            phases = rng.uniform(0, 2 * np.pi, len(freqs))
+            spectrum = power * np.exp(1j * phases)
+            noise = np.fft.irfft(spectrum, n=n_samples)
+            noise /= np.std(noise)  # normalise
+
+            # Add sinusoidal peaks
+            signal = noise.copy()
+            noise_std = np.std(noise)
+            for i, freq in enumerate(peak_freqs):
+                if peak_amplitudes is not None:
+                    amp = peak_amplitudes[i]
+                else:
+                    amp = snr * noise_std
+                signal += amp * np.sin(2 * np.pi * freq * t)
+
+            return t, signal
+
+        # Create an experiment
+        duration = 60
+        sampling_rate = 30
+        subject = "S001"
+        trial = "T001"
+
+        t, signal_head = make_test_signal(duration, sampling_rate, [2.0, 5.5], noise_slope=-2.0, snr=5.0)
+        t, signal_hand_right = make_test_signal(duration, sampling_rate, [3.0, 4.5], noise_slope=-2.0, snr=5.0)
+        t, signal_hand_left = make_test_signal(duration, sampling_rate, [1, 2, 3], noise_slope=-2.0, snr=5.0)
+        t, signal_envelope = make_test_signal(duration, sampling_rate, [2.0, 5.5], noise_slope=-2.0, snr=5.0)
+
+        rows = []
+        for mocap_label, signal in [("Head", signal_head), ("HandRight", signal_hand_right), ("HandLeft", signal_hand_left)]:
+            for timestamp, value in zip(t, signal):
+                rows.append({"subject": subject, "trial": trial, "modality": "mocap", "label": mocap_label,
+                             "measure": "velocity", "timestamp": timestamp, "value": value})
+
+        for timestamp, value in zip(t, signal_envelope):
+            rows.append({"subject": subject, "trial": trial, "modality": "audio", "label": "Audio",
+                         "measure": "envelope", "timestamp": timestamp, "value": value})
+
+        df = pd.DataFrame(rows)
+
+        out = power_spectrum(df, method="welch", sequence_measure="velocity", audio_measure="envelope",
+                             fit_background=True, signif_style="markers", include_audio=True,
+                             joint_layout=[["Head", "HandRight"], ["HandLeft", "Audio"]], show=False)
+
+        fit_head = out.background_fits["power spectrum"]["velocity"]["Full dataset"]["Head"][0]
+        assert len(fit_head["peak_freqs"]) > 0, "Expected peaks in Head signal"
+        for peak in fit_head["peak_freqs"]:
+            assert any(abs(peak - target) < 0.5 for target in [2.0, 5.5]), f"Unexpected peak at {peak:.2f} Hz"
+
         # sequence = Sequence("test_sequences/sequence_ainhoa_trimmed.tsv", verbosity=0)
         # audio = Audio("test_audios/audio_ainhoa_trimmed.wav", verbosity=0)
         # sequence_cj = sequence.correct_jitter(1, 0.25, "s", verbosity=0)

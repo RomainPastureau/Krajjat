@@ -1,5 +1,9 @@
 """Default class for analysis results."""
+import json
+import os
 import numpy as np
+from datetime import datetime, timedelta
+from pathlib import Path
 
 
 class Results(object):
@@ -42,18 +46,237 @@ class Results(object):
         self.verbosity = analysis_parameters.get("verbosity", None)
         self.kwargs = analysis_parameters.get("kwargs", {})
 
-        self.frequencies = analysis_results.get("frequencies",[])
+        # Parameters needed to fully reproduce the plot after loading
+        self.sampling_rate = analysis_parameters.get("sampling_rate", None)
+        self.freq_resolution_hz = analysis_parameters.get("freq_resolution_hz", None)
+        self.fit_background = analysis_parameters.get("fit_background", False)
+        self.background_lower_freq = analysis_parameters.get("background_lower_freq", None)
+        self.signif_alpha = analysis_parameters.get("signif_alpha", 0.05)
+        self.signif_tail = analysis_parameters.get("signif_tail", "1")
+        self.signif_direction = analysis_parameters.get("signif_direction", "up")
+        self.signif_style = analysis_parameters.get("signif_style", None)
+        self.signif_target = analysis_parameters.get("signif_target", "z-scores")
+
+        self.frequencies = analysis_results.get("frequencies", [])
         self.averages = analysis_results.get("averages", {})
         self.stds = analysis_results.get("stds", {})
         self.averages_perm = analysis_results.get("averages_perm", {})
         self.stds_perm = analysis_results.get("stds_perm", {})
         self.z_scores = analysis_results.get("z_scores", {})
         self.p_values = analysis_results.get("p_values", {})
+        self.background_fits = analysis_results.get("background_fits", {})
 
         self.plot_dictionary = plot_dictionary
 
         self.timestamp = timestamp
         self.duration = duration
+
+    # ── Serialization helpers ─────────────────────────────────────────────────
+
+    @staticmethod
+    def _encode(obj):
+        """Recursively convert an object to a JSON-serialisable structure.
+
+        Handles: numpy arrays/scalars, tuples (including as dict keys), datetime,
+        timedelta, and Graph/GraphPlot objects.
+        """
+        if isinstance(obj, np.ndarray):
+            return {"__type__": "ndarray", "data": obj.tolist(), "dtype": str(obj.dtype)}
+        elif isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.bool_):
+            return bool(obj)
+        elif isinstance(obj, datetime):
+            return {"__type__": "datetime", "data": obj.isoformat()}
+        elif isinstance(obj, timedelta):
+            return {"__type__": "timedelta", "seconds": obj.total_seconds()}
+        elif isinstance(obj, tuple):
+            return {"__type__": "tuple", "data": [Results._encode(v) for v in obj]}
+        elif isinstance(obj, dict):
+            return {
+                "__type__": "dict",
+                "items": [[Results._encode(k), Results._encode(v)] for k, v in obj.items()]
+            }
+        elif isinstance(obj, list):
+            return [Results._encode(v) for v in obj]
+        elif hasattr(obj, "__dict__"):
+            # Graph and GraphPlot — serialise by class name + attributes
+            return {
+                "__type__": "object",
+                "class": type(obj).__name__,
+                "attrs": Results._encode(obj.__dict__)
+            }
+        return obj
+
+    @staticmethod
+    def _decode(obj):
+        """Recursively restore a JSON-decoded structure to its original Python types."""
+        if isinstance(obj, list):
+            return [Results._decode(v) for v in obj]
+        if not isinstance(obj, dict):
+            return obj
+
+        t = obj.get("__type__")
+
+        if t == "ndarray":
+            return np.array(obj["data"], dtype=obj["dtype"])
+        elif t == "datetime":
+            return datetime.fromisoformat(obj["data"])
+        elif t == "timedelta":
+            return timedelta(seconds=obj["seconds"])
+        elif t == "tuple":
+            return tuple(Results._decode(v) for v in obj["data"])
+        elif t == "dict":
+            return {Results._decode(k): Results._decode(v) for k, v in obj["items"]}
+        elif t == "object":
+            return Results._restore_object(obj["class"], Results._decode(obj["attrs"]))
+
+        # Plain JSON dict with no __type__ tag (e.g. from older saves) — decode values
+        return {k: Results._decode(v) for k, v in obj.items()}
+
+    @staticmethod
+    def _restore_object(class_name, attrs):
+        """Reconstruct a Graph or GraphPlot from its serialised attributes."""
+        try:
+            from krajjat.classes.graph_element import Graph, GraphPlot
+        except ImportError:
+            # Return a plain namespace if krajjat is unavailable
+            obj = type(class_name, (), {})()
+            obj.__dict__.update(attrs)
+            return obj
+
+        if class_name == "Graph":
+            obj = Graph.__new__(Graph)
+        elif class_name == "GraphPlot":
+            obj = GraphPlot.__new__(GraphPlot)
+        else:
+            # Unknown class — keep as plain dict rather than silently losing data
+            return attrs
+        obj.__dict__.update(attrs)
+        return obj
+
+    def _build_payload(self):
+        """Assemble the full serialisable payload from self."""
+        analysis_parameters = {
+            "analysis":             self.analysis,
+            "method":               self.method,
+            "groups":               self.groups,
+            "conditions":           self.conditions,
+            "subjects":             self.subjects,
+            "trials":               self.trials,
+            "individuals":          list(self.individuals),
+            "labels":               list(self.labels),
+            "series_values":        list(self.series_values),
+            "sequence_measures":    list(self.sequence_measures),
+            "audio_measures":       list(self.audio_measures),
+            "target_measures":      self.target_measures,
+            "series":               self.series,
+            "average":              self.average,
+            "lags":                 list(self.lags),
+            "labels_mocap":         list(self.labels_mocap),
+            "result_type":          self.result_type,
+            "permutation_method":   self.permutation_method,
+            "number_of_randperms":  self.number_of_randperms,
+            "random_seed":          self.random_seed,
+            "specific_frequency":   self.specific_frequency,
+            "freq_atol":            self.freq_atol,
+            "include_audio":        self.include_audio,
+            "color_line_series":    self.color_line_series,
+            "color_line_perm":      self.color_line_perm,
+            "title":                self.title,
+            "width_line":           self.width_line,
+            "verbosity":            self.verbosity,
+            "kwargs":               self.kwargs,
+            "sampling_rate":        self.sampling_rate,
+            "freq_resolution_hz":   self.freq_resolution_hz,
+            "fit_background":       self.fit_background,
+            "background_lower_freq": self.background_lower_freq,
+            "signif_alpha":         self.signif_alpha,
+            "signif_tail":          self.signif_tail,
+            "signif_direction":     self.signif_direction,
+            "signif_style":         self.signif_style,
+            "signif_target":        self.signif_target,
+        }
+        analysis_results = {
+            "frequencies":      self.frequencies,
+            "averages":         self.averages,
+            "stds":             self.stds,
+            "averages_perm":    self.averages_perm,
+            "stds_perm":        self.stds_perm,
+            "z_scores":         self.z_scores,
+            "p_values":         self.p_values,
+            "background_fits":  self.background_fits,
+        }
+        return {
+            "krajjat_results_version": 1,
+            "analysis_parameters": Results._encode(analysis_parameters),
+            "analysis_results":    Results._encode(analysis_results),
+            "plot_dictionary":     Results._encode(self.plot_dictionary),
+            "timestamp":           Results._encode(self.timestamp),
+            "duration":            Results._encode(self.duration),
+        }
+
+    def save(self, path):
+        """Save the Results object to a JSON file.
+
+        Parameters
+        ----------
+        path : str or Path
+            Destination file path. The appropriate extension is added automatically
+            if not already present.
+
+        Examples
+        --------
+        >>> out.save("results/coherence_velocity.json")           # JSON, lossless
+        """
+        path = Path(path)
+        if path.suffix != ".json":
+            path = path.with_suffix(".json")
+        os.makedirs(path.parent, exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(self._build_payload(), f, indent=2, ensure_ascii=False)
+        print(f"Results saved to {path}")
+
+    @classmethod
+    def load(cls, path):
+        """Load a Results object previously saved with :meth:`Results.save`.
+        The loaded object includes the full plot dictionary and can be passed directly to :func:`plot_body_graphs`.
+
+        Parameters
+        ----------
+        path : str or Path
+            Path to the ``.json`` file.
+
+        Returns
+        -------
+        Results
+
+        Examples
+        --------
+        >>> out = Results.load("results/coherence_velocity.json")
+        >>> print(out)
+        >>> plot_body_graphs(out.plot_dictionary, ...)
+        """
+        path = Path(path)
+        if path.suffix != ".json":
+            path = path.with_suffix(".json")
+
+        with open(path, "r", encoding="utf-8") as f:
+            raw = json.load(f)
+
+        version = raw.get("krajjat_results_version", 1)
+        if version != 1:
+            raise ValueError(f"Unsupported results file version: {version}")
+
+        analysis_parameters = cls._decode(raw["analysis_parameters"])
+        analysis_results    = cls._decode(raw["analysis_results"])
+        plot_dictionary     = cls._decode(raw["plot_dictionary"])
+        timestamp           = cls._decode(raw["timestamp"])
+        duration            = cls._decode(raw["duration"])
+
+        return cls(analysis_parameters, analysis_results, plot_dictionary, timestamp, duration)
 
     def __repr__(self):
         out = []
@@ -97,13 +320,13 @@ class Results(object):
         if self.lags == [0]:
             out.append(f"No lag specified")
         else:
-            out.append(f"Specified lags: {", ".join([str(lag) for lag in self.lags])}")
+            out.append(f"Specified lags: {', '.join([str(lag) for lag in self.lags])}")
         out.append("")
 
         title = "Dataframe filters"
         out.append(title)
         out.append("-" * len(title))
-        
+
         if isinstance(self.groups, (tuple, list)):
             if len(self.groups) == 1:
                 out.append(f"Group: {self.groups[0]}")
@@ -111,7 +334,7 @@ class Results(object):
                 out.append(f"Groups: {', '.join(self.groups)}")
         elif isinstance(self.groups, str):
             out.append(f"Group: {self.groups}")
-            
+
         if isinstance(self.conditions, (tuple, list)):
             if len(self.conditions) == 1:
                 out.append(f"Condition: {self.conditions[0]}")
@@ -119,7 +342,7 @@ class Results(object):
                 out.append(f"Conditions: {', '.join(self.conditions)}")
         elif isinstance(self.conditions, str):
             out.append(f"Condition: {self.conditions}")
-            
+
         if isinstance(self.subjects, (tuple, list)):
             if len(self.subjects) == 1:
                 out.append(f"Subject: {self.subjects[0]}")
@@ -127,9 +350,9 @@ class Results(object):
                 out.append(f"Subjects: {', '.join(self.subjects)}")
         elif isinstance(self.subjects, str):
             out.append(f"Subject: {self.subjects}")
-            
+
         if isinstance(self.trials, dict):
-            if len(self.trials) == 1 and len(self.trials[list(self.trials.keys())[0]] == 1):
+            if len(self.trials) == 1 and len(self.trials[list(self.trials.keys())[0]]) == 1:
                 out.append(f"Trial:")
             else:
                 out.append(f"Trials:")
@@ -259,5 +482,28 @@ class Results(object):
                                                f"{self.z_scores[target_measure][measure][series_value][label][self.lags[0]].size} values")
 
                     out.append("")
+
+        if len(self.background_fits) > 0:
+            title = "Background fits"
+            out.append("\t" + title)
+            out.append("\t" + "~" * len(title))
+            out.append("")
+
+            for target_measure in self.background_fits:
+                for measure in self.background_fits[target_measure]:
+                    for series_value in self.series_values:
+                        for label in self.background_fits[target_measure][measure][series_value]:
+                            for lag in self.background_fits[target_measure][measure][series_value][label]:
+                                fit = self.background_fits[target_measure][measure][series_value][label][lag]
+                                n_peaks = len(fit["peak_indices"])
+                                peak_str = (f"{n_peaks} peak(s) at "
+                                            f"{', '.join([f'{f:.3f} Hz' for f in fit['peak_freqs']])}"
+                                            if n_peaks > 0 else "no significant peaks")
+                                out.append(f"\t\t\t\t {measure.title()} {label}: "
+                                           f"slope={fit['slope']:.2f}, "
+                                           f"R²={fit['r_squared']:.3f}, "
+                                           f"lower bound={fit['lower_freq_used']:.3f} Hz, "
+                                           f"{peak_str}")
+            out.append("")
 
         return "\n".join(out)

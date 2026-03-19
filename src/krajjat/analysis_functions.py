@@ -3,11 +3,12 @@
 
 import pandas as pd
 import numpy as np
-from scipy import signal
+from scipy import signal, stats
 from tqdm import tqdm
 from datetime import datetime as dt
 from numbers import Number
 import itertools
+from joblib import Parallel, delayed, effective_n_jobs
 
 from krajjat import Sequence, Trial, Subject
 from krajjat.classes.exceptions import ModuleNotFoundException
@@ -19,6 +20,8 @@ from krajjat.plot_functions import plot_silhouette, plot_body_graphs, _plot_comp
 from krajjat.tool_functions import read_pandas_dataframe, find_closest_value_index, set_nested_dict, \
     has_nested_key
 
+import os
+os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
 
 def _common_analysis(**kwargs):
     """Common function to perform a multimodal analysis of the motion capture and audio signals. This function can
@@ -84,6 +87,10 @@ def _common_analysis(**kwargs):
 
     if params.verbosity > 0:
         print(f"\nComputing the {params.analysis}...")
+
+    if params.compute_permutations and params.n_jobs != 1 and params.verbosity > 0:
+        actual_jobs = effective_n_jobs(params.n_jobs)
+        print(f"Running permutations on {actual_jobs} parallel jobs.")
 
     # Precompute tqdm iterations
     progress_bar = tqdm(total=_count_tqdm_iterations(params, 1), desc=params.analysis.capitalize(), ncols=80,
@@ -176,12 +183,32 @@ def _common_analysis(**kwargs):
                             else:
                                 df_target_ind = df_measure_target[df_measure_target[params.average] == individual]
 
-                    # Mappings for the label permutations
+                    # Mappings for the label permutations (computed once per individual, not per label)
                     if params.compute_permutations and params.permutation_method == "label":
                         labels_mappings = []
                         for _ in range(params.number_of_randperms):
-                            shuffled_labels = params.rng.permutation(labels_modality)  # e.g. ["HandLeft", "Head", "HandRight"]
+                            shuffled_labels = params.rng.permutation(labels_modality)
                             labels_mappings.append(dict(zip(labels_modality, shuffled_labels)))
+
+                    # Hoist target_values extraction outside the label loop —
+                    # target_values does not depend on label, only on individual/lag
+                    if params.analysis != "power spectrum":
+                        target_values = df_target_ind["value"].to_numpy()
+                        if target_values.size == 0:
+                            raise Exception("The target values are empty. Please ensure that the target measure "
+                                            "is valid, and that all subjects have an entry for the each series.")
+                    else:
+                        target_values = None
+
+                    # Generate one parent seed per (label, lag) combination upfront
+                    # so results are reproducible regardless of n_jobs execution order
+                    if params.compute_permutations:
+                        n_label_lag = len(labels_modality) * len(params.lags)
+                        label_lag_seeds = params.rng.integers(0, 2 ** 31, size=n_label_lag)
+                        seed_idx = 0
+                        perm_inputs = {}
+                        progress_bar.total += n_label_lag
+                        progress_bar.refresh()
 
                     for label in labels_modality:
                         if params.verbosity > 1:
@@ -190,16 +217,10 @@ def _common_analysis(**kwargs):
                         measure_values = df_measure_ind[df_measure_ind["label"] == label]["value"].to_numpy()
 
                         if params.analysis != "power spectrum":
-                            target_values = df_target_ind["value"].to_numpy()
-                            if target_values.size == 0:
-                                raise Exception("The target values are empty. Please ensure that the target measure "
-                                                "is valid, and that all subjects have an entry for the each series.")
                             if target_values.size != measure_values.size:
                                 raise ValueError(f"The length of the measure values {measure_values.size} is not "
                                                  f"equal to the length of the target values {target_values.size}. "
                                                  f"Please check the dataframe.")
-                        else:
-                            target_values = None
 
                         for lag in params.lags:
 
@@ -209,7 +230,7 @@ def _common_analysis(**kwargs):
                             sample = int(np.round(lag * params.sampling_rate))
                             n = measure_values.size
 
-                            if sample > 0 :
+                            if sample > 0:
                                 measure_values_lag = measure_values[:n - sample]
                             elif sample == 0:
                                 measure_values_lag = measure_values
@@ -223,78 +244,104 @@ def _common_analysis(**kwargs):
                                     target_values_lag = target_values
                                 else:
                                     target_values_lag = target_values[:n + sample]
+                            else:
+                                target_values_lag = None
 
+                            # ── Real computation ──────────────────────────────
                             if params.analysis == "power spectrum":
-                                frequencies, results = _compute_power_spectrum(params.method, measure_values_lag, frequencies,
-                                                                               params.sampling_rate)
-
+                                frequencies, results = _compute_power_spectrum(params.method, measure_values_lag,
+                                                                               frequencies, params.sampling_rate)
                             elif params.analysis == "correlation":
                                 results = _compute_correlation(pg, params.method, measure_values_lag, target_values_lag)
-
                             elif params.analysis == "coherence":
                                 frequencies, results = _compute_coherence(measure_values_lag, target_values_lag,
-                                                                          frequencies, params.sampling_rate, params.nperseg)
-
+                                                                          frequencies, params.sampling_rate,
+                                                                          params.nperseg)
                             elif params.analysis == "mutual information":
                                 results = _compute_mutual_information(mi, sc, measure_values_lag, target_values_lag,
                                                                       params.random_seed, params.n_neighbors,
                                                                       params.mi_scale, params.mi_direction)
-
                             else:
-                                raise Exception("Invalid value for the parameter analysis. Choose either 'power spectrum', "
-                                                "'correlation', 'coherence' or 'mutual information'.")
+                                raise Exception("Invalid value for the parameter analysis. Choose either 'power "
+                                                "spectrum', 'correlation', 'coherence' or 'mutual information'.")
 
                             # noinspection PyUnboundLocalVariable
-                            set_nested_dict(analysis_values, [target_measure, measure, series_value, individual, label, lag],
+                            set_nested_dict(analysis_values,
+                                            [target_measure, measure, series_value, individual, label, lag],
                                             results)
 
+                            # ── Collect permutation inputs ────────────────────
                             if params.compute_permutations:
-                                if not has_nested_key(randperm_values, [target_measure, measure, series_value, individual, label, lag]):
-                                    set_nested_dict(randperm_values, [target_measure, measure, series_value, individual, label, lag], [], False)
+                                if not has_nested_key(randperm_values,
+                                                      [target_measure, measure, series_value, individual, label, lag]):
+                                    set_nested_dict(randperm_values,
+                                                    [target_measure, measure, series_value, individual, label, lag],
+                                                    [], False)
 
-                                for p in range(params.number_of_randperms):
-
-                                    if params.permutation_method == "value":
-                                        perm = params.rng.permutation(measure_values_lag)
-                                    elif params.permutation_method == "label":
+                                # Precompute label permutation arrays (requires df access —
+                                # must stay in main process before the parallel call)
+                                if params.permutation_method == "label":
+                                    precomputed_perms = []
+                                    for p in range(params.number_of_randperms):
                                         random_label = labels_mappings[p][label]
                                         perm = df_measure_ind[df_measure_ind["label"] == random_label]["value"].to_numpy()
                                         if sample > 0:
                                             perm = perm[:n - sample]
-                                        elif sample == 0:
-                                            perm = perm
-                                        else:
+                                        elif sample < 0:
                                             perm = perm[-sample:]
-                                    elif params.permutation_method == "shift":
-                                        if len(measure_values_lag) <= 1:
-                                            perm = measure_values_lag.copy()
-                                        else:
-                                            shift = params.rng.integers(1, len(measure_values_lag))
-                                            perm = np.roll(measure_values_lag, shift)
-                                    elif params.permutation_method == "phase":
-                                        perm = _phase_randomize(measure_values_lag, params.rng)
+                                        precomputed_perms.append(perm)
+                                else:
+                                    precomputed_perms = None
 
-                                    if params.analysis == "power spectrum":
-                                        _, perm_values = _compute_power_spectrum(params.method, perm, frequencies,
-                                                                                 params.sampling_rate)
-
-                                    elif params.analysis == "correlation":
-                                        perm_values = _compute_correlation(pg, params.method, perm, target_values_lag)
-
-                                    elif params.analysis == "coherence":
-                                        _, perm_values = _compute_coherence(perm, target_values_lag, frequencies,
-                                                                            params.sampling_rate, params.nperseg)
-
-                                    elif params.analysis == "mutual information":
-                                        perm_values = _compute_mutual_information(mi, sc, perm, target_values_lag,
-                                                                                  params.random_seed, params.n_neighbors,
-                                                                                  params.mi_scale, params.mi_direction)
-
-                                    set_nested_dict(randperm_values,
-                                                    [target_measure, measure, series_value, individual, label, lag],
-                                                    perm_values, True)
+                                perm_inputs[(label, lag)] = (
+                                    measure_values_lag,
+                                    target_values_lag,
+                                    precomputed_perms,
+                                    label_lag_seeds[seed_idx],
+                                )
+                                seed_idx += 1
 
                             progress_bar.update(1)
+
+                    # ── Run permutations in parallel across (label, lag) pairs ─
+                    # Each worker runs all number_of_randperms permutations for one
+                    # (label, lag) pair sequentially — far less spawn overhead than
+                    # one job per permutation.
+                    if params.compute_permutations:
+                        label_lag_list = list(perm_inputs.keys())
+                        # if params.verbosity > 0:
+                        #     print(f"\n\tRunning {params.number_of_randperms} permutations for "
+                        #           f"{len(label_lag_list)} label/lag pairs...")
+
+                        perm_results_all = []
+                        for result in Parallel(n_jobs=params.n_jobs, prefer=params.parallel_prefer,
+                                               return_as="generator")(delayed(_compute_label_perms)(
+                                parent_seed=perm_inputs[(label, lag)][3],
+                                number_of_randperms=params.number_of_randperms,
+                                measure_values_lag=perm_inputs[(label, lag)][0],
+                                target_values_lag=perm_inputs[(label, lag)][1],
+                                permutation_method=params.permutation_method,
+                                analysis=params.analysis,
+                                method=params.method,
+                                sampling_rate=params.sampling_rate,
+                                nperseg=params.nperseg if hasattr(params, "nperseg") else None,
+                                frequencies=frequencies,
+                                precomputed_perms=perm_inputs[(label, lag)][2],
+                                random_seed=params.random_seed,
+                                n_neighbors=params.n_neighbors,
+                                mi_scale=params.mi_scale,
+                                mi_direction=params.mi_direction,
+                            )
+                            for label, lag in label_lag_list
+                        ):
+                            perm_results_all.append(result)
+                            progress_bar.update(1)
+
+                        for (label, lag), perm_list in zip(label_lag_list, perm_results_all):
+                            for perm_values in perm_list:
+                                set_nested_dict(randperm_values,
+                                                [target_measure, measure, series_value, individual, label, lag],
+                                                perm_values, True)
 
     progress_bar.close()
 
@@ -314,6 +361,7 @@ def _common_analysis(**kwargs):
     averages_perm = {}
     stds_perm = {}
     max_value = 0
+    background_fits = {}  # For power spectrum
 
     tqdm_title = "Z-scores computation" if params.result_type == "z-scores" else "Averages computation"
     progress_bar = tqdm(total=_count_tqdm_iterations(params, 2), desc=tqdm_title, ncols=80,
@@ -381,6 +429,19 @@ def _common_analysis(**kwargs):
                         avg = np.nanmean(vals, axis=0)
                         std = np.nanstd(vals, axis=0)
 
+                        if params.fit_background and params.analysis == "power spectrum":
+                            resolved_lower_freq = _resolve_lower_freq(frequencies, analysis_values, params,
+                                                  target_measure, measure, series_value, labels_modality, lag)
+
+                            if isinstance(params.signif_alpha, list):
+                                fit_result = _fit_spectral_background(frequencies, avg, resolved_lower_freq,
+                                                                      params.signif_alpha[0], params.signif_tail)
+                            else:
+                                fit_result = _fit_spectral_background(frequencies, avg, resolved_lower_freq,
+                                                                      params.signif_alpha, params.signif_tail)
+                            set_nested_dict(background_fits, [target_measure, measure, series_value, label, lag],
+                                            fit_result)
+
                         if params.compute_permutations:
                             if params.analysis in ["correlation", "mutual information"]:
                                 perms_stack = np.stack([np.asarray(randperm_values[target_measure][measure][series_value][ind][label][lag]) for ind in params.individuals], axis=0)
@@ -441,24 +502,27 @@ def _common_analysis(**kwargs):
                             if len(params.measures) > 1:
                                 graph_labels.append(measure.title())
                             graph_labels.append(series_value.title())
+                            if len(params.lags) > 1:
+                                graph_labels.append(f"{lag * 1000:+.0f} ms")
 
                             graph_label = " ".join(graph_labels)
 
                             if params.result_type == "z-scores":
-                                graph_plot = GraphPlot(frequencies, z_scores[target_measure][measure][series_value][label][lag], line_width=params.width_line,
-                                                       color=params.color_line_series[target_measure][measure][series_value][lag], label=graph_label)
+                                graph_plot = GraphPlot(frequencies, z_scores[target_measure][measure][series_value][label][lag], line_width=params.line_width,
+                                                       line_style=params.line_style, color=params.color_line_series[target_measure][measure][series_value][lag],
+                                                       label=graph_label)
                                 plot_dictionary[label].add_graph_plot(graph_plot)
                             else:
                                 graph_plot = GraphPlot(frequencies, averages[target_measure][measure][series_value][label][lag],
-                                                       stds[target_measure][measure][series_value][label][lag], line_width=params.width_line,
-                                                       color=params.color_line_series[target_measure][measure][series_value][lag],
+                                                       stds[target_measure][measure][series_value][label][lag], line_width=params.line_width,
+                                                       line_style=params.line_style, color=params.color_line_series[target_measure][measure][series_value][lag],
                                                        label=graph_label)
                                 plot_dictionary[label].add_graph_plot(graph_plot)
 
                                 if params.compute_permutations:
                                     graph_plot = GraphPlot(frequencies, averages_perm[target_measure][measure][series_value][label][lag],
-                                                           stds_perm[target_measure][measure][series_value][label][lag], line_width=params.width_line,
-                                                           color=params.color_line_perm[target_measure][measure][series_value][lag],
+                                                           stds_perm[target_measure][measure][series_value][label][lag], line_width=params.line_width,
+                                                           line_style=params.line_style, color=params.color_line_perm[target_measure][measure][series_value][lag],
                                                            label=graph_label + " (avg. perm.)")
                                     plot_dictionary[label].add_graph_plot(graph_plot)
 
@@ -469,7 +533,7 @@ def _common_analysis(**kwargs):
                     if params.label_to_modality[label] == "mocap":
                         for plot in plot_dictionary[label].plots:
                             if plot.sd is None:
-                                max_value = max(max_value, np.nanmax(plot.y), np.nanmax(plot.y))
+                                max_value = max(max_value, np.nanmax(plot.y))
                             else:
                                 max_value = max(max_value, np.nanmax(plot.y - plot.sd), np.nanmax(plot.y + plot.sd))
                 else:
@@ -552,8 +616,6 @@ def _common_analysis(**kwargs):
             alpha = params.signif_alpha[0] if isinstance(params.signif_alpha, list) else float(params.signif_alpha)
             contrast_ticks = {}
             for label, g in plot_dictionary.items():
-                # pick any available target/measure/lag to source the p mask (first one is fine for overlay)
-                # you can refine later; minimal viable overlay
                 tm = list(series_p_values.keys())[0]
                 meas = list(series_p_values[tm].keys())[0]
                 pair = list(series_p_values[tm][meas].keys())[0]
@@ -564,7 +626,7 @@ def _common_analysis(**kwargs):
                         contrast_ticks.setdefault(label, {"x": frequencies, "mask": mask, "height_frac": 0.97})
             params.kwargs["contrast_ticks"] = contrast_ticks
 
-    params._set_signif_graph_params()
+    params._set_signif_graph_params(frequencies, background_fits)
 
     analysis_parameters = {"analysis": params.analysis, "method": params.method, "groups": params.groups,
                            "conditions": params.conditions, "subjects": params.subjects, "trials": params.trials,
@@ -578,7 +640,7 @@ def _common_analysis(**kwargs):
                            "specific_frequency": params.specific_frequency, "freq_atol": params.freq_atol,
                            "include_audio": params.include_audio, "color_line_series": params.color_line_series,
                            "color_line_perm": params.color_line_perm, "title": params.title,
-                           "width_line": params.width_line, "verbosity": params.verbosity, "kwargs": params.kwargs}
+                           "width_line": params.line_width, "verbosity": params.verbosity, "kwargs": params.kwargs}
 
     if params.plot_type == "silhouette":
         if params.verbosity > 0:
@@ -607,15 +669,19 @@ def _common_analysis(**kwargs):
             "series_z_scores": series_z_scores
         })
 
+    if params.fit_background:
+        analysis_results["background_fits"] = background_fits
+
     return Results(analysis_parameters, analysis_results, plot_dictionary, dt.now(), dt.now() - time_start)
 
 
 def power_spectrum(experiment_or_dataframe, method="welch", sampling_rate="auto", groups=None, conditions=None,
                    subjects=None, trials=None, sequence_measure="auto", audio_measure="auto", series=None, average=None,
-                   lags=None, result_type="average", permutation_method=None, number_of_randperms=0, random_seed=None,
+                   lags=None, result_type="average", fit_background=False, background_lower_freq=None,
+                   permutation_method=None, number_of_randperms=0, random_seed=None, n_jobs=1, parallel_prefer=None,
                    specific_frequency=None, freq_atol=0.1, include_audio=False, signif_style="threshold",
                    signif_alpha=0.05, signif_tail="1", signif_direction="up", color_line_series=None,
-                   color_line_perm=None, title=None, width_line=1, verbosity=1, **kwargs):
+                   color_line_perm=None, title=None, line_width=1, verbosity=1, **kwargs):
     """Returns the power spectrum values for all the variables (joints and audio) of the given dataframe or experiment.
     The function also plots these power spectrum values.
 
@@ -750,6 +816,14 @@ def power_spectrum(experiment_or_dataframe, method="welch", sampling_rate="auto"
     ~~~~~~~~~~~~~
     .. rubric:: Parameters
 
+    fit_background: bool, optional
+        Whether to fit a background model to the data following a `1/f` decay.
+
+    background_lower_freq: int|float|None, optional
+        The lower frequency of the background model. By default (`None`), the function will automatically detect the
+        lower bound by finding at what frequency the 1/f decay begins. Including frequency bins before that peak
+        will result in a biased slope estimate.
+
     result_type : str, optional
         The type of the results computed and returned by the function. This parameter can be:
 
@@ -782,6 +856,15 @@ def power_spectrum(experiment_or_dataframe, method="welch", sampling_rate="auto"
         Fixes the seed for reproducible random permutations. Default: ``None``: the random permutations will change
         on each execution.
 
+    n_jobs: int, optional
+        Max amount of jobs to run in parallel when computing the permutations. Setting this number higher can
+        drastically lower the computation time, but demand more resources. Set on -1 to use the maximum amount of
+        available cores (default: 1).
+
+    parallel_prefer: str|None
+        Soft hint to choose the default backend for the parallelization. Sets the parameter ``prefer`` from
+        `joblib.Parallel<https://joblib.readthedocs.io/en/latest/generated/joblib.Parallel.html>`_.
+
     specific_frequency : float|list(float)|None, optional
         Frequency (or list of frequencies) to extract from the result. If set, silhouette plots are generated.
 
@@ -798,12 +881,13 @@ def power_spectrum(experiment_or_dataframe, method="welch", sampling_rate="auto"
     signif_style: list(str) | str | None, optional
         The style of significance to show on the plot. This parameter can be one or more of the following:
 
-            • ``"threshold"``: if ``result_type`` is equal to ``"z-scores"``, the plot will show horizontal lines
-              matching the significance threshold.
-            • ``"shade"``: if ``result_type`` is equal to ``"z-scores"``, the plot will show shades
-              matching the significance threshold.
-            • ``"markers"``: if ``result_type`` is equal to ``"z-scores"``, the plot will show markers on the
-              frequencies showing significance. This option is compatible with silhouette plots.
+            • ``"threshold"``: if ``result_type`` is equal to ``"z-scores"`` or ``fit_background`` is `True`, the plot
+              will show horizontal lines matching the significance threshold.
+            • ``"shade"``: if ``result_type`` is equal to ``"z-scores"`` or ``fit_background`` is `True`, the plot will
+              show shades matching the significance threshold.
+            • ``"markers"``: if ``result_type`` is equal to ``"z-scores"`` or ``fit_background`` is `True`, the plot
+              will show markers on the frequencies showing significance. This option is compatible with silhouette
+              plots.
             • ``None`` (default): the significant values aren't shown.
 
     signif_alpha: list(float) | float, optional
@@ -838,7 +922,7 @@ def power_spectrum(experiment_or_dataframe, method="welch", sampling_rate="auto"
     title: str|None, optional
         If set, the title of the plot. Otherwise, an automatic title will be generated.
 
-    width_line : int|float
+    line_width : int|float
         Width of plotted lines.
 
     Other parameters
@@ -879,18 +963,21 @@ def power_spectrum(experiment_or_dataframe, method="welch", sampling_rate="auto"
                             sampling_rate=sampling_rate, groups=groups, conditions=conditions, subjects=subjects,
                             trials=trials, sequence_measure=sequence_measure, audio_measure=audio_measure,
                             series=series, average=average, lags=lags, result_type=result_type,
+                            fit_background=fit_background, background_lower_freq=background_lower_freq,
                             permutation_method=permutation_method, number_of_randperms=number_of_randperms,
-                            random_seed=random_seed, specific_frequency=specific_frequency, freq_atol=freq_atol,
-                            include_audio=include_audio,  signif_style=signif_style,
+                            random_seed=random_seed, n_jobs=n_jobs, parallel_prefer=parallel_prefer,
+                            specific_frequency=specific_frequency, freq_atol=freq_atol, include_audio=include_audio,
+                            signif_style=signif_style,
                             signif_alpha=signif_alpha, signif_tail=signif_tail, signif_direction=signif_direction, color_line_series=color_line_series,
-                            color_line_perm=color_line_perm, title=title, width_line=width_line, verbosity=verbosity,
+                            color_line_perm=color_line_perm, title=title, line_width=line_width, verbosity=verbosity,
                             **kwargs)
 
 def correlation(experiment_or_dataframe, method="pingouin", sampling_rate="auto", groups=None, conditions=None,
                 subjects=None, trials=None, sequence_measure="auto", audio_measure="auto", correlation_with="envelope",
                 series=None, average=None, lags=None, result_type="average", permutation_method=None,
-                number_of_randperms=0, random_seed=None, include_audio=False, signif_style="threshold",
-                signif_alpha=0.05, signif_tail="1", signif_direction="up", verbosity=1, **kwargs):
+                number_of_randperms=0, random_seed=None, n_jobs=1, parallel_prefer=None, include_audio=False,
+                signif_style="threshold", signif_alpha=0.05, signif_tail="1", signif_direction="up", verbosity=1,
+                **kwargs):
     """Calculates and plots the correlation between one metric derived from the sequences, and the same metric from a
     given joint, or another metric derived from the corresponding audio clips.
 
@@ -1062,6 +1149,15 @@ def correlation(experiment_or_dataframe, method="pingouin", sampling_rate="auto"
         Fixes the seed for reproducible random permutations. Default: ``None``: the random permutations will change
         on each execution.
 
+    n_jobs: int, optional
+        Max amount of jobs to run in parallel when computing the permutations. Setting this number higher can
+        drastically lower the computation time, but demand more resources. Set on -1 to use the maximum amount of
+        available cores (default: 1).
+
+    parallel_prefer: str|None
+        Soft hint to choose the default backend for the parallelization. Sets the parameter ``prefer`` from
+        `joblib.Parallel<https://joblib.readthedocs.io/en/latest/generated/joblib.Parallel.html>`_.
+
     include_audio : bool, optional
         If ``True``, includes audio signals in the set of labels to analyse.
 
@@ -1123,17 +1219,20 @@ def correlation(experiment_or_dataframe, method="pingouin", sampling_rate="auto"
     return _common_analysis(experiment_or_dataframe=experiment_or_dataframe, analysis="correlation", method=method,
                             sampling_rate=sampling_rate, groups=groups, conditions=conditions, subjects=subjects,
                             trials=trials, sequence_measure=sequence_measure, audio_measure=audio_measure,
-                            target_measure=correlation_with, series=series, average=average, result_type=result_type,
-                            permutation_method=permutation_method, number_of_randperms=number_of_randperms,
-                            random_seed=random_seed, include_audio=include_audio, verbosity=verbosity, **kwargs)
+                            target_measure=correlation_with, series=series, average=average, lags=lags,
+                            result_type=result_type, permutation_method=permutation_method,
+                            number_of_randperms=number_of_randperms,
+                            random_seed=random_seed, n_jobs=n_jobs, parallel_prefer=parallel_prefer,
+                            include_audio=include_audio, signif_style=signif_style, signif_alpha=signif_alpha,
+                            signif_tail=signif_tail, signif_direction=signif_direction, verbosity=verbosity, **kwargs)
 
 def coherence(experiment_or_dataframe, sampling_rate="auto", groups=None, conditions=None,
               subjects=None, trials=None, sequence_measure="distance", audio_measure="envelope",
               coherence_with="envelope", series=None, average=None, lags=None, result_type="z-scores",
-              permutation_method="value", number_of_randperms=1000, specific_frequency=None, freq_atol=1e-8,
-              freq_resolution_hz=0.25, include_audio=False, random_seed=None,
+              permutation_method="value", number_of_randperms=1000, n_jobs=1, parallel_prefer=None,
+              specific_frequency=None, freq_atol=1e-8, freq_resolution_hz=0.25, include_audio=False, random_seed=None,
               signif_style="threshold", signif_alpha=0.05, signif_tail="1", signif_direction="up",
-              color_line_series=None, color_line_perm=None, title=None, width_line=1, verbosity=1, **kwargs):
+              color_line_series=None, color_line_perm=None, title=None, line_width=1, verbosity=1, **kwargs):
     """Calculates and plots the coherence between measures.
 
     ..versionadded:: 2.0
@@ -1298,6 +1397,15 @@ def coherence(experiment_or_dataframe, sampling_rate="auto", groups=None, condit
         Fixes the seed for reproducible random permutations. Default: ``None``: the random permutations will change
         on each execution.
 
+    n_jobs: int, optional
+        Max amount of jobs to run in parallel when computing the permutations. Setting this number higher can
+        drastically lower the computation time, but demand more resources. Set on -1 to use the maximum amount of
+        available cores (default: 1).
+
+    parallel_prefer: str|None
+        Soft hint to choose the default backend for the parallelization. Sets the parameter ``prefer`` from
+        `joblib.Parallel<https://joblib.readthedocs.io/en/latest/generated/joblib.Parallel.html>`_.
+
     specific_frequency : float|list(float)|None, optional
         Frequency (or list of frequencies) to extract from the result. If set, silhouette plots are generated. This
         parameter is ignored if ``analysis == "correlation"``.
@@ -1356,7 +1464,7 @@ def coherence(experiment_or_dataframe, sampling_rate="auto", groups=None, condit
     title: str|None, optional
         If set, the title of the plot. Otherwise, an automatic title will be generated.
 
-    width_line : int|float
+    line_width : int|float
         Width of plotted lines.
 
     Other parameters
@@ -1396,21 +1504,23 @@ def coherence(experiment_or_dataframe, sampling_rate="auto", groups=None, condit
     return _common_analysis(experiment_or_dataframe=experiment_or_dataframe, analysis="coherence",
                             sampling_rate=sampling_rate, groups=groups, conditions=conditions, subjects=subjects,
                             trials=trials, sequence_measure=sequence_measure, audio_measure=audio_measure,
-                            target_measure=coherence_with, series=series, average=average, result_type=result_type,
-                            permutation_method=permutation_method, number_of_randperms=number_of_randperms,
-                            specific_frequency=specific_frequency, freq_atol=freq_atol, freq_resolution_hz=freq_resolution_hz,
-                            include_audio=include_audio, random_seed=random_seed, signif_style=signif_style,
-                            signif_alpha=signif_alpha, signif_tail=signif_tail, signif_direction=signif_direction,
+                            target_measure=coherence_with, series=series, average=average, lags=lags,
+                            result_type=result_type, permutation_method=permutation_method,
+                            number_of_randperms=number_of_randperms, specific_frequency=specific_frequency,
+                            freq_atol=freq_atol, freq_resolution_hz=freq_resolution_hz,
+                            include_audio=include_audio, random_seed=random_seed, n_jobs=n_jobs,
+                            parallel_prefer=parallel_prefer, signif_style=signif_style, signif_alpha=signif_alpha,
+                            signif_tail=signif_tail, signif_direction=signif_direction,
                             color_line_series=color_line_series, color_line_perm=color_line_perm, title=title,
-                            width_line=width_line, verbosity=verbosity, **kwargs)
+                            line_width=line_width, verbosity=verbosity, **kwargs)
 
 def mutual_information(experiment_or_dataframe, sampling_rate="auto", groups=None, conditions=None, subjects=None,
                        trials=None, sequence_measure="distance", audio_measure="envelope", regression_with="envelope",
                        series=None, average=None, lags=None, result_type="z-scores", permutation_method="value",
-                       number_of_randperms=1000, scale="standard", n_neighbors=3, direction="target",
-                       include_audio=False, random_seed=None, signif_style="threshold", signif_alpha=0.05,
-                       signif_tail="1", signif_direction="up", color_line_series=None, color_line_perm=None, title=None,
-                       width_line=1, verbosity=1, **kwargs):
+                       number_of_randperms=1000, n_jobs=1, parallel_prefer=None, scale="standard", n_neighbors=3,
+                       direction="target", include_audio=False, random_seed=None, signif_style="threshold",
+                       signif_alpha=0.05, signif_tail="1", signif_direction="up", color_line_series=None,
+                       color_line_perm=None, title=None, line_width=1, verbosity=1, **kwargs):
     """Calculates and plots the mutual information between measures.
 
     ..versionadded:: 2.0
@@ -1571,6 +1681,15 @@ def mutual_information(experiment_or_dataframe, sampling_rate="auto", groups=Non
         How many random permutations to calculate. Only used if `permutation_method` is set. An average of the
         calculated random permutations is then calculated, in order to calculate a z-score.
 
+    n_jobs: int, optional
+        Max amount of jobs to run in parallel when computing the permutations. Setting this number higher can
+        drastically lower the computation time, but demand more resources. Set on -1 to use the maximum amount of
+        available cores (default: 1).
+
+    parallel_prefer: str|None
+        Soft hint to choose the default backend for the parallelization. Sets the parameter ``prefer`` from
+        `joblib.Parallel<https://joblib.readthedocs.io/en/latest/generated/joblib.Parallel.html>`_.
+
     n_neighbors: int, optional
         Number of neighbors to use for mutual information estimation. This parameter is directly passed to
         `sklearn <https://scikit-learn.org/1.5/modules/generated/sklearn.feature_selection.mutual_info_regression.html>`_.
@@ -1638,7 +1757,7 @@ def mutual_information(experiment_or_dataframe, sampling_rate="auto", groups=Non
     title: str|None, optional
         If set, the title of the plot. Otherwise, an automatic title will be generated.
 
-    width_line : int|float
+    line_width : int|float
         Width of plotted lines.
 
     Other parameters
@@ -1677,12 +1796,14 @@ def mutual_information(experiment_or_dataframe, sampling_rate="auto", groups=Non
     return _common_analysis(experiment_or_dataframe=experiment_or_dataframe, analysis="mutual information",
                             sampling_rate=sampling_rate, groups=groups, conditions=conditions, subjects=subjects,
                             trials=trials, sequence_measure=sequence_measure, audio_measure=audio_measure,
-                            target_measure=regression_with, series=series, average=average, result_type=result_type,
-                            permutation_method=permutation_method, number_of_randperms=number_of_randperms,
-                            n_neighbors=n_neighbors, mi_scale=scale, mi_direction=direction,
-                            include_audio=include_audio, random_seed=random_seed, color_line_series=color_line_series,
-                            color_line_perm=color_line_perm, title=title, width_line=width_line, verbosity=verbosity,
-                            **kwargs)
+                            target_measure=regression_with, series=series, average=average, lags=lags,
+                            result_type=result_type, permutation_method=permutation_method,
+                            number_of_randperms=number_of_randperms, n_neighbors=n_neighbors, mi_scale=scale,
+                            mi_direction=direction, include_audio=include_audio, random_seed=random_seed, n_jobs=n_jobs,
+                            parallel_prefer=parallel_prefer, color_line_series=color_line_series,
+                            color_line_perm=color_line_perm, signif_style=signif_style, signif_alpha=signif_alpha,
+                            signif_tail=signif_tail, signif_direction=signif_direction, title=title,
+                            line_width=line_width, verbosity=verbosity, **kwargs)
 
 def pca(data, n_components=0.95, groups=None, conditions=None, subjects=None, trials=None, labels="all",
         sequence_measure="auto", audio_measure="auto", selected_components=None, random_seed=None, nan_behaviour=0.1,
@@ -2513,6 +2634,228 @@ def _compute_power_spectrum(method, measure_values, frequencies, sampling_rate):
 
     return frequencies, results
 
+def _resolve_lower_freq(frequencies, analysis_values, params, target_measure, measure, series_value, labels_modality,
+                        lag):
+    """Resolves the lower frequency bound to use when fitting the 1/f spectral background.
+
+    If ``params.background_lower_freq`` is explicitly set, it is returned directly. Otherwise, the lower
+    bound is auto-detected per participant and per joint label by finding the bin immediately after each
+    spectrum's peak — which typically marks the end of the DC-suppression region — and taking the maximum
+    across all participants and labels. This ensures the fitting range starts cleanly above the hump for
+    every participant and every joint, making slopes comparable across joints.
+
+    A warning is emitted if the auto-detected lower bound varies by more than
+    ``params.background_lower_freq_warn_bins`` bins, as this may indicate inconsistent spectral shapes
+    and suggests the user should set ``background_lower_freq`` explicitly.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    frequencies : numpy.ndarray
+        Frequency values in Hz, as returned by the power spectrum computation.
+    analysis_values : dict
+        Nested dictionary of individual power spectra, structured as
+        ``[target_measure][measure][series_value][individual][label][lag]``.
+    params : AnalysisParameters
+        The analysis parameters object, from which ``background_lower_freq``,
+        ``background_lower_freq_warn_bins``, ``individuals``, ``average``, and ``series`` are read.
+    target_measure : str
+        The current target measure key, used to index into ``analysis_values``.
+    measure : str
+        The current measure key, used to index into ``analysis_values``.
+    series_value : str
+        The current series value key, used to index into ``analysis_values``.
+    labels_modality : list(str)
+        All joint labels for the current modality, used to collect peak indices across joints.
+    lag : float
+        The current lag value, used to index into ``analysis_values``.
+
+    Returns
+    -------
+    float
+        The resolved lower frequency bound in Hz to pass to :func:`_fit_spectral_background`.
+    """
+
+    if params.background_lower_freq is not None:
+        return params.background_lower_freq
+
+    # Auto-detect peak bin per participant and per label
+    peak_indices = []
+    for label in labels_modality:
+        for ind in params.individuals:
+            if params.average == params.series and params.average is not None:
+                ind_spectrum = analysis_values[target_measure][measure][series_value][series_value][label][lag]
+            else:
+                ind_spectrum = analysis_values[target_measure][measure][series_value][ind][label][lag]
+            ind_valid = np.ones(len(frequencies), dtype=bool)
+            ind_valid[0] = False
+            ind_valid[-1] = False
+            ind_valid[ind_spectrum == 0] = False
+            ind_valid_indices = np.where(ind_valid)[0]
+            peak_in_valid = np.argmax(ind_spectrum[ind_valid])
+            lower_in_valid = min(peak_in_valid + 1, len(ind_valid_indices) - 2)
+            peak_indices.append(ind_valid_indices[lower_in_valid])
+
+    range_in_bins = max(peak_indices) - min(peak_indices)
+    if range_in_bins > params.background_lower_freq_warn_bins:
+        import warnings
+        range_in_hz = frequencies[max(peak_indices)] - frequencies[min(peak_indices)]
+        warnings.warn(
+            f"The auto-detected lower frequency bound for background fitting varies by "
+            f"{range_in_bins} bins ({range_in_hz:.3f} Hz) across participants and joints for "
+            f"{measure}. Consider setting background_lower_freq explicitly.")
+
+    return frequencies[max(peak_indices)]
+
+
+def _fit_spectral_background(frequencies, power, background_lower_freq, signif_alpha=0.05, signif_tail="1"):
+    """Fit a 1/f background model to a power spectrum in log-log space and identify peaks as positive residuals above
+    a significance threshold derived from the fit.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    frequencies : np.ndarray
+        Frequency values (Hz). Must start at 0 (DC bin included).
+    power : np.ndarray
+        Power spectral density values, same length as frequencies.
+    background_lower_freq : float
+        The lower frequency bound (in Hz) to use when fitting the background. Bins below this frequency are excluded
+        from the fit, though residuals are still computed for them.
+    signif_alpha : float, optional
+        Significance level for peak detection (default: 0.05).
+    signif_tail : str, optional
+        Whether to use a one-tailed (``"1"``) or two-tailed (``"2"``) test (default: ``"1"``).
+
+    Returns
+    -------
+    dict with keys:
+        • ``background``: numpy.ndarray, fitted 1/f background in power units, same length as input.
+          NaN at excluded bins (DC, Nyquist, zero-power bins).
+        • ``threshold_curve``: numpy.ndarray, significance threshold in power units, same shape.
+        • ``residuals``: numpy.ndarray, log10(power) - log10(background), same shape.
+        • ``peak_indices``: numpy.ndarray of int, indices of detected peak bins.
+        • ``peak_freqs``: numpy.ndarray, frequencies of detected peaks in Hz.
+        • ``peak_residuals``: numpy.ndarray, residual values at detected peaks.
+        • ``slope``: float, fitted 1/f exponent (negative for a typical 1/f spectrum).
+        • ``intercept``: float, fitted log-space intercept.
+        • ``r_squared``: float, R² of the background fit over the fitting range.
+        • ``z_threshold``: float, z-score corresponding to signif_alpha and signif_tail.
+        • ``residual_sd``: float, standard deviation of residuals over the fitting range.
+        • ``lower_freq_used``: float, the actual lower frequency bound used for fitting.
+    """
+
+    # Turn to numpy arrays and check that they are the same length
+    frequencies = np.asarray(frequencies, dtype=float)
+    power = np.asarray(power, dtype=float)
+
+    if len(frequencies) != len(power):
+        raise ValueError("frequencies and power must have the same length.")
+
+    # Define which bins to consider
+    valid = np.ones(len(frequencies), dtype=bool)
+    valid[0] = False  # DC
+    valid[-1] = False  # Nyquist artefact
+    valid[power == 0] = False  # log10(0) undefined
+    valid_indices = np.where(valid)[0]
+
+    if np.sum(valid) < 3:
+        raise ValueError("Fewer than 3 valid bins after excluding DC, Nyquist, and zero-power bins.")
+
+    log_freq = np.log10(frequencies[valid])
+    log_power = np.log10(power[valid])
+
+    # Determine lower bound for fitting
+    lower_index = np.searchsorted(frequencies, background_lower_freq)
+    if lower_index >= len(frequencies) - 1:
+        raise ValueError(f"background_lower_freq ({background_lower_freq} Hz) is above all valid frequency bins.")
+    lower_bin_in_valid = np.searchsorted(valid_indices, lower_index)
+    lower_freq_used = frequencies[valid_indices[lower_bin_in_valid]]
+
+    # Fitting mask: valid bins at or above the lower bound
+    fit_mask = np.zeros(np.sum(valid), dtype=bool)
+    fit_mask[lower_bin_in_valid:] = True
+
+    if np.sum(fit_mask) < 2:
+        raise ValueError(f"Fewer than 2 bins available for fitting above {lower_freq_used} Hz.")
+
+    # Fit line in log-log space
+    slope, intercept = np.polyfit(log_freq[fit_mask], log_power[fit_mask], 1)
+
+    # Evaluate background across all valid bins
+    log_background_valid = slope * log_freq + intercept
+
+    # R² over the fitting range
+    ss_res = np.sum((log_power[fit_mask] - log_background_valid[fit_mask]) ** 2)
+    ss_tot = np.sum((log_power[fit_mask] - np.mean(log_power[fit_mask])) ** 2)
+    r_squared = 1.0 - ss_res / ss_tot if ss_tot > 0 else np.nan
+
+    # Residuals over all valid bins
+    residuals_valid = log_power - log_background_valid
+
+    # Residual SD over fitting range only (noise floor estimate)
+    residual_sd = np.std(residuals_valid[fit_mask])
+
+    # Z thresholds and threshold curves, one per alpha level
+    if isinstance(signif_alpha, (int, float)):
+        signif_alpha = [signif_alpha]
+    signif_alpha = sorted(signif_alpha, reverse=True)  # loosest first
+
+    # Z threshold from alpha and tail
+    z_thresholds = []
+    threshold_curves = []
+    for alpha in signif_alpha:
+        if str(signif_tail) == "1":
+            z = stats.norm.ppf(1.0 - alpha)
+        else:
+            z = stats.norm.ppf(1.0 - alpha / 2.0)
+        z_thresholds.append(z)
+        tc = np.full(len(frequencies), np.nan)
+        tc[valid] = 10 ** (log_background_valid + z * residual_sd)
+        threshold_curves.append(tc)
+
+    # Peak detection against loosest threshold
+    loosest_threshold = threshold_curves[0]
+    exceeds = np.zeros(len(frequencies), dtype=bool)
+    exceeds[valid] = power[valid] > loosest_threshold[valid]
+
+    # Build full-length output arrays, NaN at excluded bins
+    background = np.full(len(frequencies), np.nan)
+    background[valid] = 10 ** log_background_valid
+
+    residuals = np.full(len(frequencies), np.nan)
+    residuals[valid] = residuals_valid
+
+    peak_indices = np.array([], dtype=int)
+    peak_levels = np.array([], dtype=int)  # how many thresholds each peak exceeds
+    if np.any(exceeds):
+        residuals_for_peaks = np.where(exceeds, residuals, -np.inf)
+        peaks_found, _ = signal.find_peaks(residuals_for_peaks)
+        peak_indices = peaks_found[exceeds[peaks_found]]
+        peak_levels = np.array([
+            sum(power[idx] > tc[idx] for tc in threshold_curves)
+            for idx in peak_indices
+        ])
+
+    return {
+        "background":       background,
+        "threshold_curves": threshold_curves,  # list, one per alpha
+        "z_thresholds":     z_thresholds,
+        "signif_alphas":    signif_alpha,       # sorted, loosest first
+        "residuals":        residuals,
+        "peak_indices":     peak_indices,
+        "peak_freqs":       frequencies[peak_indices],
+        "peak_residuals":   residuals[peak_indices],
+        "peak_levels":      peak_levels,        # number of thresholds exceeded per peak
+        "slope":            slope,
+        "intercept":        intercept,
+        "r_squared":        r_squared,
+        "residual_sd":      residual_sd,
+        "lower_freq_used":  lower_freq_used,
+    }
+
 def _compute_correlation(pg, method, measure_values, target_values):
     if method == "pingouin":
         try:
@@ -2524,7 +2867,7 @@ def _compute_correlation(pg, method, measure_values, target_values):
         target_values_mean = np.mean(target_values)
         num = np.sum((measure_values - measure_values_mean) * (target_values - target_values_mean))
         denom = np.sqrt(np.sum((measure_values - measure_values_mean) ** 2) *
-                        np.sum((measure_values - target_values_mean) ** 2))
+                        np.sum((target_values - target_values_mean) ** 2))
         if denom != 0:
             results = num / denom
         else:
@@ -2535,9 +2878,19 @@ def _compute_correlation(pg, method, measure_values, target_values):
 
     return results
 
-def _compute_coherence(measure_values, target_values, frequencies, sampling_rate, nperseg):
-    freqs, coh = signal.coherence(measure_values, target_values, fs=sampling_rate,
-                                  nperseg=int(nperseg))
+def _compute_coherence(measure_values, target_values, frequencies, sampling_rate, nperseg,
+                       target_psd=None):
+    if target_psd is not None:
+        # Avoid recomputing target PSD when it's constant across permutations
+        f, Pxx = signal.welch(measure_values, fs=sampling_rate, nperseg=int(nperseg))
+        _, Pxy = signal.csd(measure_values, target_values, fs=sampling_rate, nperseg=int(nperseg))
+        denom = Pxx * target_psd
+        with np.errstate(invalid="ignore", divide="ignore"):
+            coh = np.where(denom > 0, np.abs(Pxy) ** 2 / denom, np.nan)
+        freqs = f
+    else:
+        freqs, coh = signal.coherence(measure_values, target_values, fs=sampling_rate,
+                                      nperseg=int(nperseg))
 
     if len(coh) == 0:
         coh = np.tile(np.nan, int(nperseg // 2 + 1))
@@ -2545,9 +2898,7 @@ def _compute_coherence(measure_values, target_values, frequencies, sampling_rate
     if frequencies is None:
         frequencies = freqs
 
-    results = coh
-
-    return frequencies, results
+    return frequencies, coh
 
 def _compute_mutual_information(mi, sc, measure_values, target_values, random_state, n_neighbors, scale, direction):
 
@@ -2574,6 +2925,84 @@ def _compute_mutual_information(mi, sc, measure_values, target_values, random_st
         result = (result_target + result_predictor) / 2
 
     return result
+
+
+def _compute_label_perms(parent_seed, number_of_randperms, measure_values_lag,
+                          target_values_lag, permutation_method, analysis, method,
+                          sampling_rate, nperseg, frequencies, precomputed_perms,
+                          random_seed, n_neighbors, mi_scale, mi_direction):
+    """Compute all permutations for a single (label, lag) combination.
+    Runs sequentially internally; designed to be called in parallel across labels/lags.
+    """
+    rng = np.random.default_rng(parent_seed)
+    child_seeds = rng.integers(0, 2**31, size=number_of_randperms)
+
+    # Precompute target PSD once per label/lag for coherence shift/phase/label perms
+    if (analysis == "coherence" and
+            permutation_method in ("shift", "phase", "label") and
+            nperseg is not None and target_values_lag is not None):
+        _, target_psd = signal.welch(target_values_lag, fs=sampling_rate, nperseg=int(nperseg))
+    else:
+        target_psd = None
+
+    results = []
+    for p in range(number_of_randperms):
+        perm_values = _compute_one_perm(
+            seed=child_seeds[p],
+            measure_values_lag=measure_values_lag,
+            target_values_lag=target_values_lag,
+            permutation_method=permutation_method,
+            analysis=analysis,
+            method=method,
+            sampling_rate=sampling_rate,
+            nperseg=nperseg,
+            frequencies=frequencies,
+            precomputed_perm=precomputed_perms[p] if precomputed_perms is not None else None,
+            target_psd=target_psd,
+            random_seed=random_seed,
+            n_neighbors=n_neighbors,
+            mi_scale=mi_scale,
+            mi_direction=mi_direction,
+        )
+        results.append(perm_values)
+    return results
+
+
+
+def _compute_one_perm(seed, measure_values_lag, target_values_lag, permutation_method, analysis, method, sampling_rate,
+                      nperseg, frequencies, precomputed_perm=None, target_psd=None, random_seed=None, n_neighbors=3,
+                      mi_scale=None, mi_direction="target"):
+    perm_rng = np.random.default_rng(seed)
+
+    if precomputed_perm is not None:
+        perm = precomputed_perm
+    elif permutation_method == "value":
+        perm = perm_rng.permutation(measure_values_lag)
+    elif permutation_method == "shift":
+        if len(measure_values_lag) <= 1:
+            perm = measure_values_lag.copy()
+        else:
+            shift = perm_rng.integers(1, len(measure_values_lag))
+            perm = np.roll(measure_values_lag, shift)
+    elif permutation_method == "phase":
+        perm = _phase_randomize(measure_values_lag, perm_rng)
+    else:
+        raise ValueError(f"Unknown permutation_method: {permutation_method}")
+
+    if analysis == "power spectrum":
+        _, perm_values = _compute_power_spectrum(method, perm, frequencies, sampling_rate)
+    elif analysis == "correlation":
+        import pingouin as pg
+        perm_values = _compute_correlation(pg, method, perm, target_values_lag)
+    elif analysis == "coherence":
+        _, perm_values = _compute_coherence(perm, target_values_lag, frequencies, sampling_rate, nperseg,
+                                            target_psd=target_psd)
+    elif analysis == "mutual information":
+        from sklearn.feature_selection import mutual_info_regression as mi
+        from sklearn.preprocessing import StandardScaler as sc
+        perm_values = _compute_mutual_information(mi, sc, perm, target_values_lag, random_seed, n_neighbors, mi_scale,
+                                                  mi_direction)
+    return perm_values
 
 def _phase_randomize(array, rng):
     """Return a phase-randomized surrogate of a real-valued signal."""

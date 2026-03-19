@@ -188,7 +188,7 @@ def common_displayer(sequence1, sequence2=None, path_audio=None, path_video=None
         try:
             import sounddevice as sd
         except ImportError:
-            raise ModuleNotFoundException("sounddevice", "read a video with sound.")
+            raise ModuleNotFoundException("sounddevice", "read a video with sound")
         _width_to_dtype = {1: "int8", 2: "int16", 3: "int24", 4: "int32"}
         audio = sd.RawOutputStream(
             samplerate = wavefile.getframerate(),

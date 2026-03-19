@@ -2103,8 +2103,10 @@ def calculate_derivative(array, derivative="velocity", window_length="auto", pol
     if poly_order > window_length:
         raise Exception("The order of the polynomial must be lower than the window length.")
 
-    return savgol_filter(array, window_length, poly_order, derivative, 1/freq, mode=mode)
-    return savgol_filter(array, window_length, poly_order, derivative, mode=mode) * np.power(freq, derivative)
+    result = savgol_filter(array, window_length, poly_order, derivative, 1 / freq, mode=mode)
+    if np.iscomplexobj(result):
+        result = np.real(result)
+    return result.astype(np.float64)
 
 
 def calculate_delay(pose1, pose2, absolute=False):
@@ -3194,7 +3196,7 @@ def load_qualisys_to_kinect():
 
 def load_joints_subplot_layout(joint_layout):
     """Returns a dictionary of the subplot positions of the joints on a skeleton graph. Loads the data from
-    ``"res/kinect_joints_subplot_layout.txt"`` or ``"res/kualisys_joints_subplot_layout.txt"``.
+    ``"res/kinect_joints_subplot_layout.txt"``, ``"res/kualisys_joints_subplot_layout.txt"``, or a custom path.
 
     .. versionadded:: 2.0
 
@@ -3212,24 +3214,16 @@ def load_joints_subplot_layout(joint_layout):
 
     if joint_layout.lower() == "kinect":
         with open(op.join(MODULE_DIR, "res", "kinect_joints_subplot_layout.txt")) as f:
-            content = f.read().split("\n")
+            return [line.split("\t") for line in f.read().split("\n")]
     elif joint_layout.lower() in ["qualisys", "kualisys"]:
         with open(op.join(MODULE_DIR, "res", "kualisys_joints_subplot_layout.txt")) as f:
-            content = f.read().split("\n")
+            return [line.split("\t") for line in f.read().split("\n")]
     else:
         try:
             with open(op.join(joint_layout)) as f:
-                content = f.read().split("\n")
+                return [line.split("\t") for line in f.read().split("\n")]
         except FileNotFoundError:
             raise Exception("The file " + str(joint_layout) + " is not a valid file.")
-
-    joints_positions = {}
-
-    for line in content:
-        elements = line.split("\t")
-        joints_positions[elements[0]] = int(elements[1])
-
-    return joints_positions
 
 
 def load_joints_silhouette_layout(joint_layout):

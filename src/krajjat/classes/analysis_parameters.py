@@ -7,8 +7,10 @@ from numbers import Number
 import numpy as np
 import scipy
 from pandas import DataFrame
+
+from krajjat import GraphPlot
 from krajjat.classes.experiment import Experiment
-from krajjat.tool_functions import CLEAN_DERIV_NAMES, convert_color, find_closest_value_index
+from krajjat.tool_functions import CLEAN_DERIV_NAMES, convert_color, find_closest_value_index, has_nested_key
 from dataclasses import dataclass, field
 
 StringOrSequence = str | Sequence[str]
@@ -44,17 +46,22 @@ class AnalysisParameters:
 
     # Specific analyses parameters
     freq_resolution_hz: Number = 0.25
+    fit_background: bool = False
+    background_lower_freq: float | None = None
     n_neighbors: Number = 3
     mi_scale: str | None = "standard"
     mi_direction: str = "target"
     n_components: int | float | str | None = None
     nan_behaviour: int | float | str = 0.1
     selected_components: list[int] | int | None = None
+    background_lower_freq_warn_bins: int = 2
 
     # Permutation parameters
     permutation_method: str | None = None
     number_of_randperms: int = 0
     random_seed: int | None = None
+    n_jobs: int = 1
+    parallel_prefer: str | None = None
 
     # Specific frequency parameters
     specific_frequency: Number | list[Number] | tuple[Number, ...] | None = None
@@ -65,7 +72,13 @@ class AnalysisParameters:
     color_line_series: OptionalStringOrSequence = None
     color_line_perm: OptionalStringOrSequence = None
     title: str | None = None
-    width_line: Number = 1
+    line_width: Number = 1
+    line_style: str = "-"
+    color_line_background: str = "#888888"
+    color_line_threshold: str = "#888888"
+    line_style_background: str = "--"
+    line_style_threshold: str = ":"
+    color_shade_background: str = "#88888840"
 
     # Significance parameters
     signif_style: OptionalStringOrSequence = None
@@ -159,9 +172,14 @@ class AnalysisParameters:
         else:
             self.compute_permutations = False
 
-        if self.result_type == "z-scores" and not self.compute_permutations:
+        if self.result_type == "z-scores" and not self.compute_permutations and not self.fit_background:
             raise Exception("If the return_values parameter is set to 'z-scores', the permutation_method parameter "
                             "must be set, and number_of_randperms has to be more than 0.")
+
+        if self.fit_background and self.compute_permutations:
+            import warnings
+            warnings.warn("fit_background and permutation_method are both active. Background fitting and "
+                          "permutation-based significance will both be computed independently.")
 
         if self.number_of_randperms < 0:
             raise ValueError("The parameter number_of_randperms must be >= 0.")
@@ -314,7 +332,7 @@ class AnalysisParameters:
         for lag in self.lags:
             sample = lag / dt
             snapped_sample = np.round(sample)
-            snapped_lags.append(snapped_sample * dt)
+            snapped_lags.append(round(float(snapped_sample * dt), 6))
         self.lags = snapped_lags
 
     @staticmethod
@@ -546,7 +564,7 @@ class AnalysisParameters:
                 else:
                     self.kwargs["title_silhouette"].append(" ".join(t))
 
-    def _set_signif_graph_params(self):
+    def _set_signif_graph_params(self, frequencies, background_fits):
 
         if isinstance(self.signif_alpha, (int, float)):
             self.signif_alpha = [self.signif_alpha]
@@ -557,9 +575,9 @@ class AnalysisParameters:
         if self.plot_type == "body" and self.result_type == "z-scores":
 
             if "threshold" in self.signif_style:
-                self.kwargs["horizontal_lines"] = []
+                self.kwargs["overlay_lines"] = []
             if "shade" in self.signif_style:
-                self.kwargs["horizontal_shades"] = []
+                self.kwargs["background_shades"] = []
             if "markers" in self.signif_style:
                 self.kwargs["signif_marker_values"] = []
                 if "signif_marker" not in self.kwargs:
@@ -593,15 +611,15 @@ class AnalysisParameters:
             if "threshold" in self.signif_style:
                 if self.signif_tail == "1":
                     if self.signif_direction == "up":
-                        self.kwargs["horizontal_lines"] = thresholds
+                        self.kwargs["overlay_lines"] = thresholds
                     else:
-                        self.kwargs["horizontal_lines"] = [-threshold for threshold in thresholds]
+                        self.kwargs["overlay_lines"] = [-threshold for threshold in thresholds]
                 else:
-                    self.kwargs["horizontal_lines"] = thresholds
-                    self.kwargs["horizontal_lines"] += [-threshold for threshold in thresholds]
+                    self.kwargs["overlay_lines"] = thresholds
+                    self.kwargs["overlay_lines"] += [-threshold for threshold in thresholds]
 
             if "shade" in self.signif_style:
-                self.kwargs["horizontal_shades"] = bands
+                self.kwargs["background_shades"] = bands
 
             if "markers" in self.signif_style:
                 if self.signif_tail == "1":
@@ -611,6 +629,85 @@ class AnalysisParameters:
                         self.kwargs["signif_marker_values"] = [(-np.inf, -threshold) for threshold in thresholds]
                 else:
                     self.kwargs["signif_marker_values"] = [(-threshold, threshold) for threshold in thresholds]
+
+        if (self.plot_type == "body" and self.fit_background and self.result_type != "z-scores" and
+                frequencies is not None and background_fits is not None):
+            overlay_lines = {}
+            background_shades = {}
+
+            for target_measure in self.target_measures:
+                for measure in self.measures:
+                    if self.measure_to_modality[measure] == "audio" and not self.include_audio:
+                        continue
+                    labels_modality = ["Audio"] if self.measure_to_modality[measure] == "audio" else self.labels_mocap
+                    for series_value in self.series_values:
+                        for label in labels_modality:
+                            for lag in self.lags:
+                                if not has_nested_key(background_fits,
+                                                      [target_measure, measure, series_value, label, lag]):
+                                    continue
+                                fit = background_fits[target_measure][measure][series_value][label][lag]
+
+                                # Background curve: always shown
+                                bg_plot = GraphPlot(frequencies, fit["background"],
+                                                    line_width=self.line_width, line_style=self.line_style_background,
+                                                    color=self.color_line_background, label="1/f background")
+                                overlay_lines.setdefault(label, []).append(bg_plot)
+
+                                if "threshold" in self.signif_style:
+                                    for i, (tc, alpha) in enumerate(zip(fit["threshold_curves"],
+                                                                        fit["signif_alphas"])):
+                                        thr_plot = GraphPlot(frequencies, tc,
+                                                             line_width=self.line_width,
+                                                             line_style=self.line_style_threshold,
+                                                             color=self.color_line_threshold,
+                                                             label=f"Threshold (α={alpha})")
+                                        overlay_lines.setdefault(label, []).append(thr_plot)
+
+                                if "shade" in self.signif_style:
+                                    # Shade between each consecutive pair of thresholds,
+                                    # and above the strictest one
+                                    all_curves = [fit["background"]] + fit["threshold_curves"]
+                                    for lower_arr, upper_arr in zip(all_curves[:-1], all_curves[1:]):
+                                        bg_lower = GraphPlot(frequencies, lower_arr,
+                                                             color=self.color_shade_background)
+                                        thr_upper = GraphPlot(frequencies, upper_arr,
+                                                              color=self.color_shade_background)
+                                        background_shades.setdefault(label, []).append((bg_lower, thr_upper))
+
+                                if "markers" in self.signif_style:
+                                    if "signif_marker" not in self.kwargs:
+                                        self.kwargs["signif_marker"] = "*"
+                                    # One band per threshold level, tightest last
+                                    # marker_values = []
+                                    # for i in range(len(fit["threshold_curves"])):
+                                    #     lower = fit["threshold_curves"][i]
+                                    #     upper = fit["threshold_curves"][i + 1] if i + 1 < len(
+                                    #         fit["threshold_curves"]) else np.full_like(lower, np.inf)
+                                    #     marker_values.append((
+                                    #         np.nanmin(lower[~np.isnan(lower)]),
+                                    #         np.nanmin(upper[~np.isnan(upper)])
+                                    #     ))
+                                    # self.kwargs["signif_marker_values"] = marker_values
+                                    peak_freqs = fit.get("peak_freqs", np.array([]))
+                                    peak_levels = fit.get("peak_levels", np.array([]))
+                                    if len(peak_freqs) > 0:
+                                        marker_x = self.kwargs.get("signif_marker_x_positions", {})
+                                        marker_x[label] = list(zip(peak_freqs, peak_levels))
+                                        self.kwargs["signif_marker_x_positions"] = marker_x
+
+
+            if overlay_lines:
+                self.kwargs["overlay_lines"] = overlay_lines
+            if background_shades:
+                self.kwargs["background_shades"] = background_shades
+
+        elif (self.plot_type == "body" and self.fit_background and
+              self.result_type == "z-scores"):
+            import warnings
+            warnings.warn("fit_background=True is not compatible with result_type='z-scores' for plotting: "
+                          "the background and threshold curves are in power units and cannot be overlaid on "
+                          "a z-score axis. Background fits are still stored in results.background_fits.")
 
     @staticmethod
     def _to_list(x: str | list[str] | tuple[str]) -> list[str]:
