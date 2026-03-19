@@ -787,7 +787,7 @@ class Experiment(object):
             • :meth:`Audio.get_intensity`
         """
         dataframe = self.get_dataframe(sequence_measure, audio_measure, sampling_frequency, exclude_columns,
-                                       include_columns, use_categoricals, verbosity, **kwargs)
+                                       include_columns, "all", use_categoricals, verbosity, **kwargs)
 
         if folder_out == "":
             folder_out = os.getcwd()
