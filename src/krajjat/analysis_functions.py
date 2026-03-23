@@ -307,15 +307,14 @@ def _common_analysis(**kwargs):
                                 "precomputed_perms_by_lag": precomputed_perms_by_lag,
                             })
 
-                # ── Phase 2: One Parallel call for all (individual × label) pairs ─
-                # Dispatches len(individuals) × len(labels_modality) tasks at once
-                # (e.g. 24 subjects × 21 joints = 504 tasks), saturating all workers.
-                # Each task handles all lags internally, reusing measure_psd across lags.
                 if params.compute_permutations and all_perm_tasks:
+                    progress_bar.total += len(all_perm_tasks)
+                    progress_bar.refresh()
                     n_tasks = len(all_perm_tasks)
                     task_seeds = params.rng.integers(0, 2**31, size=n_tasks)
+                    perm_results_all = []
 
-                    perm_results_all = Parallel(n_jobs=params.n_jobs, prefer=params.parallel_prefer)(
+                    for result in Parallel(n_jobs=params.n_jobs, prefer=params.parallel_prefer, return_as="generator")(
                         delayed(_compute_label_perms)(
                             parent_seed=task_seeds[i],
                             number_of_randperms=params.number_of_randperms,
@@ -335,7 +334,9 @@ def _common_analysis(**kwargs):
                             mi_direction=params.mi_direction,
                         )
                         for i, task in enumerate(all_perm_tasks)
-                    )
+                    ):
+                        perm_results_all.append(result)
+                        progress_bar.update(1)
 
                     for task, results_by_lag in zip(all_perm_tasks, perm_results_all):
                         individual = task["individual"]
