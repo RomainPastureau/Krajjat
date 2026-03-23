@@ -157,7 +157,12 @@ def _common_analysis(**kwargs):
                     if params.analysis != "power spectrum":
                         df_measure_target = df_target.loc[df_target[params.series] == series_value]
 
-                # For each subject/trial
+                # Flat list of permutation tasks, one entry per (individual, label).
+                # Populated during Phase 1 (real computation) and consumed in Phase 2
+                # (one single Parallel call after all individuals are processed).
+                all_perm_tasks = []
+
+                # ── Phase 1: Real computation across all individuals ──────────────
                 for individual in params.individuals:
 
                     # If the average is set on the same as series, we skip the individuals that are not the series value
@@ -183,12 +188,20 @@ def _common_analysis(**kwargs):
                             else:
                                 df_target_ind = df_measure_target[df_measure_target[params.average] == individual]
 
+                    # Pre-extract all label arrays once — eliminates repeated DataFrame filters in the hot loop
+                    label_arrays = {
+                        lbl: df_measure_ind.loc[df_measure_ind["label"] == lbl, "value"].to_numpy()
+                        for lbl in labels_modality
+                    }
+
                     # Mappings for the label permutations (computed once per individual, not per label)
                     if params.compute_permutations and params.permutation_method == "label":
                         labels_mappings = []
                         for _ in range(params.number_of_randperms):
                             shuffled_labels = params.rng.permutation(labels_modality)
                             labels_mappings.append(dict(zip(labels_modality, shuffled_labels)))
+                    else:
+                        labels_mappings = None
 
                     # Hoist target_values extraction outside the label loop —
                     # target_values does not depend on label, only on individual/lag
@@ -200,21 +213,11 @@ def _common_analysis(**kwargs):
                     else:
                         target_values = None
 
-                    # Generate one parent seed per (label, lag) combination upfront
-                    # so results are reproducible regardless of n_jobs execution order
-                    if params.compute_permutations:
-                        n_label_lag = len(labels_modality) * len(params.lags)
-                        label_lag_seeds = params.rng.integers(0, 2 ** 31, size=n_label_lag)
-                        seed_idx = 0
-                        perm_inputs = {}
-                        progress_bar.total += n_label_lag
-                        progress_bar.refresh()
-
                     for label in labels_modality:
                         if params.verbosity > 1:
                             print("\t\t\t\t\t" + label)
 
-                        measure_values = df_measure_ind[df_measure_ind["label"] == label]["value"].to_numpy()
+                        measure_values = label_arrays[label]
 
                         if params.analysis != "power spectrum":
                             if target_values.size != measure_values.size:
@@ -270,74 +273,74 @@ def _common_analysis(**kwargs):
                                             [target_measure, measure, series_value, individual, label, lag],
                                             results)
 
-                            # ── Collect permutation inputs ────────────────────
-                            if params.compute_permutations:
-                                if not has_nested_key(randperm_values,
-                                                      [target_measure, measure, series_value, individual, label, lag]):
-                                    set_nested_dict(randperm_values,
-                                                    [target_measure, measure, series_value, individual, label, lag],
-                                                    [], False)
+                            progress_bar.update(1)
 
-                                # Precompute label permutation arrays (requires df access —
-                                # must stay in main process before the parallel call)
-                                if params.permutation_method == "label":
-                                    precomputed_perms = []
+                    # ── Collect permutation task for this (individual, label) pair ──
+                    # Done after real computation so label_arrays and target_values are
+                    # still in scope. The actual Parallel dispatch happens after all
+                    # individuals are processed (Phase 2 below).
+                    if params.compute_permutations:
+                        for label in labels_modality:
+                            # Build precomputed_perms_by_lag for label permutations
+                            if params.permutation_method == "label":
+                                precomputed_perms_by_lag = {}
+                                for lag in params.lags:
+                                    sample = int(np.round(lag * params.sampling_rate))
+                                    n = label_arrays[label].size
+                                    perms_this_lag = []
                                     for p in range(params.number_of_randperms):
-                                        random_label = labels_mappings[p][label]
-                                        perm = df_measure_ind[df_measure_ind["label"] == random_label]["value"].to_numpy()
+                                        perm = label_arrays[labels_mappings[p][label]]
                                         if sample > 0:
                                             perm = perm[:n - sample]
                                         elif sample < 0:
                                             perm = perm[-sample:]
-                                        precomputed_perms.append(perm)
-                                else:
-                                    precomputed_perms = None
+                                        perms_this_lag.append(perm)
+                                    precomputed_perms_by_lag[lag] = perms_this_lag
+                            else:
+                                precomputed_perms_by_lag = None
 
-                                perm_inputs[(label, lag)] = (
-                                    measure_values_lag,
-                                    target_values_lag,
-                                    precomputed_perms,
-                                    label_lag_seeds[seed_idx],
-                                )
-                                seed_idx += 1
+                            all_perm_tasks.append({
+                                "individual": individual,
+                                "label": label,
+                                "measure_values": label_arrays[label],
+                                "target_values": target_values,
+                                "precomputed_perms_by_lag": precomputed_perms_by_lag,
+                            })
 
-                            progress_bar.update(1)
+                # ── Phase 2: One Parallel call for all (individual × label) pairs ─
+                # Dispatches len(individuals) × len(labels_modality) tasks at once
+                # (e.g. 24 subjects × 21 joints = 504 tasks), saturating all workers.
+                # Each task handles all lags internally, reusing measure_psd across lags.
+                if params.compute_permutations and all_perm_tasks:
+                    n_tasks = len(all_perm_tasks)
+                    task_seeds = params.rng.integers(0, 2**31, size=n_tasks)
 
-                    # ── Run permutations in parallel across (label, lag) pairs ─
-                    # Each worker runs all number_of_randperms permutations for one
-                    # (label, lag) pair sequentially — far less spawn overhead than
-                    # one job per permutation.
-                    if params.compute_permutations:
-                        label_lag_list = list(perm_inputs.keys())
-                        # if params.verbosity > 0:
-                        #     print(f"\n\tRunning {params.number_of_randperms} permutations for "
-                        #           f"{len(label_lag_list)} label/lag pairs...")
+                    perm_results_all = Parallel(n_jobs=params.n_jobs, prefer=params.parallel_prefer)(
+                        delayed(_compute_label_perms)(
+                            parent_seed=task_seeds[i],
+                            number_of_randperms=params.number_of_randperms,
+                            measure_values=task["measure_values"],
+                            target_values=task["target_values"],
+                            lags=params.lags,
+                            sampling_rate=params.sampling_rate,
+                            permutation_method=params.permutation_method,
+                            analysis=params.analysis,
+                            method=params.method,
+                            nperseg=params.nperseg if hasattr(params, "nperseg") else None,
+                            frequencies=frequencies,
+                            precomputed_perms_by_lag=task["precomputed_perms_by_lag"],
+                            random_seed=params.random_seed,
+                            n_neighbors=params.n_neighbors,
+                            mi_scale=params.mi_scale,
+                            mi_direction=params.mi_direction,
+                        )
+                        for i, task in enumerate(all_perm_tasks)
+                    )
 
-                        perm_results_all = []
-                        for result in Parallel(n_jobs=params.n_jobs, prefer=params.parallel_prefer,
-                                               return_as="generator")(delayed(_compute_label_perms)(
-                                parent_seed=perm_inputs[(label, lag)][3],
-                                number_of_randperms=params.number_of_randperms,
-                                measure_values_lag=perm_inputs[(label, lag)][0],
-                                target_values_lag=perm_inputs[(label, lag)][1],
-                                permutation_method=params.permutation_method,
-                                analysis=params.analysis,
-                                method=params.method,
-                                sampling_rate=params.sampling_rate,
-                                nperseg=params.nperseg if hasattr(params, "nperseg") else None,
-                                frequencies=frequencies,
-                                precomputed_perms=perm_inputs[(label, lag)][2],
-                                random_seed=params.random_seed,
-                                n_neighbors=params.n_neighbors,
-                                mi_scale=params.mi_scale,
-                                mi_direction=params.mi_direction,
-                            )
-                            for label, lag in label_lag_list
-                        ):
-                            perm_results_all.append(result)
-                            progress_bar.update(1)
-
-                        for (label, lag), perm_list in zip(label_lag_list, perm_results_all):
+                    for task, results_by_lag in zip(all_perm_tasks, perm_results_all):
+                        individual = task["individual"]
+                        label = task["label"]
+                        for lag, perm_list in results_by_lag.items():
                             for perm_values in perm_list:
                                 set_nested_dict(randperm_values,
                                                 [target_measure, measure, series_value, individual, label, lag],
@@ -2879,9 +2882,15 @@ def _compute_correlation(pg, method, measure_values, target_values):
     return results
 
 def _compute_coherence(measure_values, target_values, frequencies, sampling_rate, nperseg,
-                       target_psd=None):
-    if target_psd is not None:
-        # Avoid recomputing target PSD when it's constant across permutations
+                       target_psd=None, measure_psd=None):
+    if target_psd is not None and measure_psd is not None:
+        # Both PSDs precomputed — only CSD needed (saves one Welch call per permutation)
+        freqs, Pxy = signal.csd(measure_values, target_values, fs=sampling_rate, nperseg=int(nperseg))
+        denom = measure_psd * target_psd
+        with np.errstate(invalid="ignore", divide="ignore"):
+            coh = np.where(denom > 0, np.abs(Pxy) ** 2 / denom, np.nan)
+    elif target_psd is not None:
+        # Partial cache: target PSD precomputed, measure PSD still needed
         f, Pxx = signal.welch(measure_values, fs=sampling_rate, nperseg=int(nperseg))
         _, Pxy = signal.csd(measure_values, target_values, fs=sampling_rate, nperseg=int(nperseg))
         denom = Pxx * target_psd
@@ -2889,6 +2898,7 @@ def _compute_coherence(measure_values, target_values, frequencies, sampling_rate
             coh = np.where(denom > 0, np.abs(Pxy) ** 2 / denom, np.nan)
         freqs = f
     else:
+        # No precomputed PSDs — standard path (real coherence computation, non-permutation)
         freqs, coh = signal.coherence(measure_values, target_values, fs=sampling_rate,
                                       nperseg=int(nperseg))
 
@@ -2927,51 +2937,83 @@ def _compute_mutual_information(mi, sc, measure_values, target_values, random_st
     return result
 
 
-def _compute_label_perms(parent_seed, number_of_randperms, measure_values_lag,
-                          target_values_lag, permutation_method, analysis, method,
-                          sampling_rate, nperseg, frequencies, precomputed_perms,
+def _compute_label_perms(parent_seed, number_of_randperms, measure_values,
+                          target_values, lags, sampling_rate,
+                          permutation_method, analysis, method,
+                          nperseg, frequencies,
+                          precomputed_perms_by_lag,
                           random_seed, n_neighbors, mi_scale, mi_direction):
-    """Compute all permutations for a single (label, lag) combination.
-    Runs sequentially internally; designed to be called in parallel across labels/lags.
+    """Compute all permutations for a single label, across all lags.
+    measure_psd is computed once and reused across all lags (valid for shift permutations).
     """
     rng = np.random.default_rng(parent_seed)
     child_seeds = rng.integers(0, 2**31, size=number_of_randperms)
 
-    # Precompute target PSD once per label/lag for coherence shift/phase/label perms
+    # Precompute measure_psd once for this label (valid across all lags for shift perms,
+    # since Pxx(roll(x, k)) == Pxx(x) exactly)
     if (analysis == "coherence" and
             permutation_method in ("shift", "phase", "label") and
-            nperseg is not None and target_values_lag is not None):
-        _, target_psd = signal.welch(target_values_lag, fs=sampling_rate, nperseg=int(nperseg))
+            nperseg is not None):
+        _, measure_psd = signal.welch(measure_values, fs=sampling_rate, nperseg=int(nperseg))
     else:
-        target_psd = None
+        measure_psd = None
 
-    results = []
-    for p in range(number_of_randperms):
-        perm_values = _compute_one_perm(
-            seed=child_seeds[p],
-            measure_values_lag=measure_values_lag,
-            target_values_lag=target_values_lag,
-            permutation_method=permutation_method,
-            analysis=analysis,
-            method=method,
-            sampling_rate=sampling_rate,
-            nperseg=nperseg,
-            frequencies=frequencies,
-            precomputed_perm=precomputed_perms[p] if precomputed_perms is not None else None,
-            target_psd=target_psd,
-            random_seed=random_seed,
-            n_neighbors=n_neighbors,
-            mi_scale=mi_scale,
-            mi_direction=mi_direction,
-        )
-        results.append(perm_values)
-    return results
+    results_by_lag = {}
 
+    for lag in lags:
+        sample = int(np.round(lag * sampling_rate))
+        n = measure_values.size
+
+        if sample > 0:
+            measure_values_lag = measure_values[:n - sample]
+            target_values_lag = target_values[sample:]
+        elif sample == 0:
+            measure_values_lag = measure_values
+            target_values_lag = target_values
+        else:
+            measure_values_lag = measure_values[-sample:]
+            target_values_lag = target_values[:n + sample]
+
+        # Precompute target_psd per lag (target trimming does change with lag)
+        if (analysis == "coherence" and
+                permutation_method in ("shift", "phase", "label") and
+                nperseg is not None and target_values_lag is not None):
+            _, target_psd = signal.welch(target_values_lag, fs=sampling_rate, nperseg=int(nperseg))
+        else:
+            target_psd = None
+
+        precomputed_perms = precomputed_perms_by_lag.get(lag) if precomputed_perms_by_lag else None
+
+        perm_list = []
+        for p in range(number_of_randperms):
+            perm_values = _compute_one_perm(
+                seed=child_seeds[p],
+                measure_values_lag=measure_values_lag,
+                target_values_lag=target_values_lag,
+                permutation_method=permutation_method,
+                analysis=analysis,
+                method=method,
+                sampling_rate=sampling_rate,
+                nperseg=nperseg,
+                frequencies=frequencies,
+                precomputed_perm=precomputed_perms[p] if precomputed_perms is not None else None,
+                target_psd=target_psd,
+                measure_psd=measure_psd,  # reused across all lags
+                random_seed=random_seed,
+                n_neighbors=n_neighbors,
+                mi_scale=mi_scale,
+                mi_direction=mi_direction,
+            )
+            perm_list.append(perm_values)
+
+        results_by_lag[lag] = perm_list
+
+    return results_by_lag
 
 
 def _compute_one_perm(seed, measure_values_lag, target_values_lag, permutation_method, analysis, method, sampling_rate,
-                      nperseg, frequencies, precomputed_perm=None, target_psd=None, random_seed=None, n_neighbors=3,
-                      mi_scale=None, mi_direction="target"):
+                      nperseg, frequencies, precomputed_perm=None, target_psd=None, measure_psd=None, random_seed=None,
+                      n_neighbors=3, mi_scale=None, mi_direction="target"):
     perm_rng = np.random.default_rng(seed)
 
     if precomputed_perm is not None:
@@ -2996,7 +3038,7 @@ def _compute_one_perm(seed, measure_values_lag, target_values_lag, permutation_m
         perm_values = _compute_correlation(pg, method, perm, target_values_lag)
     elif analysis == "coherence":
         _, perm_values = _compute_coherence(perm, target_values_lag, frequencies, sampling_rate, nperseg,
-                                            target_psd=target_psd)
+                                            target_psd=target_psd, measure_psd=measure_psd)
     elif analysis == "mutual information":
         from sklearn.feature_selection import mutual_info_regression as mi
         from sklearn.preprocessing import StandardScaler as sc

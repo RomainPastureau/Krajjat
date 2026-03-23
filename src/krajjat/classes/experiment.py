@@ -556,7 +556,7 @@ class Experiment(object):
 
                         # Repeat the value for the first columns
                         if column in values_to_append.keys():
-                            repeated_values = np.repeat(values_to_append[column], len(timestamps))
+                            repeated_values = np.repeat(values_to_append[column], len(timestamps)).astype(object)
                             data[column].append(repeated_values)
 
                         # Timestamps
@@ -572,12 +572,12 @@ class Experiment(object):
 
                         # Subject attribute
                         elif hasattr(subject, column):
-                            repeated_values = np.repeat(getattr(subject, column), len(timestamps))
+                            repeated_values = np.repeat(getattr(subject, column), len(timestamps)).astype(object)
                             data[column].append(repeated_values)
 
                         # Trial attribute
                         elif hasattr(trial, column):
-                            repeated_values = np.repeat(getattr(trial, column), len(timestamps))
+                            repeated_values = np.repeat(getattr(trial, column), len(timestamps)).astype(object)
                             data[column].append(repeated_values)
 
                         # Attribute not found (nan)
@@ -626,7 +626,7 @@ class Experiment(object):
 
                     # Repeat the value for the first columns
                     if column in values_to_append.keys():
-                        repeated_values = np.array([values_to_append[column] for _ in range(len(timestamps))])
+                        repeated_values = np.repeat(values_to_append[column], len(timestamps)).astype(object)
                         data[column].append(repeated_values)
 
                     # Timestamps
@@ -639,12 +639,12 @@ class Experiment(object):
 
                     # Subject attribute
                     elif hasattr(subject, column):
-                        repeated_values = [getattr(subject, column) for _ in range(len(timestamps))]
+                        repeated_values = np.repeat(getattr(subject, column), len(timestamps)).astype(object)
                         data[column].append(repeated_values)
 
                     # Trial attribute
                     elif hasattr(trial, column):
-                        repeated_values = [getattr(trial, column) for _ in range(len(timestamps))]
+                        repeated_values = np.repeat(getattr(trial, column), len(timestamps)).astype(object)
                         data[column].append(repeated_values)
 
                     # Attribute not found (nan)

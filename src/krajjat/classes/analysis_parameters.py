@@ -289,6 +289,8 @@ class AnalysisParameters:
 
         self._infer_sampling_rate(dataframe)
 
+        self._validate_lags(dataframe)
+
         # Default nperseg
         if self.analysis == "coherence":
             self.nperseg = self.sampling_rate / self.freq_resolution_hz
