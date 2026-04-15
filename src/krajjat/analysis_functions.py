@@ -9,6 +9,7 @@ from datetime import datetime as dt
 from numbers import Number
 import itertools
 from joblib import Parallel, delayed, effective_n_jobs
+import dataclasses
 
 from krajjat import Sequence, Trial, Subject
 from krajjat.classes.exceptions import ModuleNotFoundException
@@ -433,47 +434,70 @@ def _common_analysis(**kwargs):
                         avg = np.nanmean(vals, axis=0)
                         std = np.nanstd(vals, axis=0)
 
-                        if params.fit_background and params.analysis == "power spectrum":
+                        if params.fit_background and params.analysis in ("power spectrum", "coherence"):
                             resolved_lower_freq = _resolve_lower_freq(frequencies, analysis_values, params,
                                                   target_measure, measure, series_value, labels_modality, lag)
 
                             if isinstance(params.signif_alpha, list):
-                                fit_result = _fit_spectral_background(frequencies, avg, resolved_lower_freq,
-                                                                      params.signif_alpha[0], params.signif_tail)
+                                alpha = params.signif_alpha[0]
+                            else:
+                                alpha = params.signif_alpha
+
+                            if params.analysis == "coherence":
+                                fit_result = _fit_coherence_background(frequencies, avg, resolved_lower_freq,
+                                                                       alpha, params.signif_tail)
                             else:
                                 fit_result = _fit_spectral_background(frequencies, avg, resolved_lower_freq,
-                                                                      params.signif_alpha, params.signif_tail)
+                                                                      alpha, params.signif_tail)
+
                             set_nested_dict(background_fits, [target_measure, measure, series_value, label, lag],
                                             fit_result)
 
                         if params.compute_permutations:
                             if params.analysis in ["correlation", "mutual information"]:
-                                perms_stack = np.stack([np.asarray(randperm_values[target_measure][measure][series_value][ind][label][lag]) for ind in params.individuals], axis=0)
+                                perms_stack = np.stack(
+                                    [np.asarray(randperm_values[target_measure][measure][series_value][ind][label][lag])
+                                     for ind in params.individuals], axis=0)
                                 perms = np.nanmean(perms_stack, axis=0)
                             else:
-                                perms_stack = np.stack([np.stack(randperm_values[target_measure][measure][series_value][ind][label][lag], axis=0) for ind in params.individuals], axis=0)
+                                perms_stack = np.stack([np.stack(
+                                    randperm_values[target_measure][measure][series_value][ind][label][lag], axis=0) for
+                                                        ind in params.individuals], axis=0)
                                 perms = np.nanmean(perms_stack, axis=0)
                                 perms = perms[np.all(np.isfinite(perms), axis=1)]
+
+                            avg_perms = np.nanmean(perms, axis=0)
+                            sd_perms = np.nanstd(perms, axis=0)
+
+                            set_nested_dict(averages_perm, [target_measure, measure, series_value, label, lag],
+                                            avg_perms)
+                            set_nested_dict(stds_perm, [target_measure, measure, series_value, label, lag], sd_perms)
 
                             if params.result_type == "z-scores":
 
                                 if perms.size == 0:
                                     p = np.full_like(avg, np.nan)
                                     z = np.full_like(avg, np.nan)
-
                                 else:
-                                    avg_perms = np.nanmean(perms, axis=0)
-                                    sd_perms = np.nanstd(perms, axis=0)
-                                    sd_perms_safe = np.where(sd_perms == 0, np.inf, sd_perms)
-                                    z = (avg - avg_perms) / sd_perms_safe
-                                    p = (np.sum(np.abs(perms - avg_perms) >= np.abs(avg - avg_perms), axis=0) + 1) / (perms.shape[0] + 1)
+                                    if params.fit_background and params.analysis == "coherence":
+                                        fit = background_fits[target_measure][measure][series_value][label][lag]
+                                        bg = fit["background"]
+                                        bg_safe = np.where(np.isfinite(bg), bg, 0.0)
+                                        avg_for_z = avg - bg_safe
+                                        perms_for_z = perms - bg_safe[np.newaxis, :]
+                                    else:
+                                        avg_for_z = avg
+                                        perms_for_z = perms
+
+                                    avg_perms_z = np.nanmean(perms_for_z, axis=0)
+                                    sd_perms_z = np.nanstd(perms_for_z, axis=0)
+                                    sd_perms_safe = np.where(sd_perms_z == 0, np.inf, sd_perms_z)
+                                    z = (avg_for_z - avg_perms_z) / sd_perms_safe
+                                    p = (np.sum(np.abs(perms_for_z - avg_perms_z) >= np.abs(avg_for_z - avg_perms_z), axis=0) + 1) / (
+                                                perms_for_z.shape[0] + 1)
 
                                 set_nested_dict(z_scores, [target_measure, measure, series_value, label, lag], z)
                                 set_nested_dict(p_values, [target_measure, measure, series_value, label, lag], p)
-
-                            else:
-                                set_nested_dict(averages_perm, [target_measure, measure, series_value, label, lag], np.nanmean(perms, axis=0))
-                                set_nested_dict(stds_perm, [target_measure, measure, series_value, label, lag], np.nanstd(perms, axis=0))
 
                         else:
                             perms = []
@@ -632,19 +656,7 @@ def _common_analysis(**kwargs):
 
     params._set_signif_graph_params(frequencies, background_fits)
 
-    analysis_parameters = {"analysis": params.analysis, "method": params.method, "groups": params.groups,
-                           "conditions": params.conditions, "subjects": params.subjects, "trials": params.trials,
-                           "sequence_measures": params.sequence_measures, "audio_measures": params.audio_measures,
-                           "target_measures": params.target_measures, "series": params.series,
-                           "average": params.average, "series_values": params.series_values, "lags": params.lags,
-                           "individuals": params.individuals, "labels": params.labels,
-                           "labels_mocap": params.labels_mocap, "result_type": params.result_type,
-                           "permutation_method": params.permutation_method,
-                           "number_of_randperms": params.number_of_randperms, "random_seed": params.random_seed,
-                           "specific_frequency": params.specific_frequency, "freq_atol": params.freq_atol,
-                           "include_audio": params.include_audio, "color_line_series": params.color_line_series,
-                           "color_line_perm": params.color_line_perm, "title": params.title,
-                           "width_line": params.line_width, "verbosity": params.verbosity, "kwargs": params.kwargs}
+    analysis_parameters = dataclasses.asdict(params)
 
     if params.plot_type == "silhouette":
         if params.verbosity > 0:
@@ -657,15 +669,12 @@ def _common_analysis(**kwargs):
             print("\nShowing the body graph...")
         plot_body_graphs(plot_dictionary, title=params.title, max_scale=max_value, **params.kwargs)
 
-    if params.result_type == "z-scores":
-        analysis_results = {"frequencies": frequencies, "averages": averages, "stds": stds, "z_scores": z_scores,
-                            "p_values": p_values}
+    if params.compute_permutations:
+        analysis_results = {"frequencies": frequencies, "averages": averages, "stds": stds,
+                            "averages_perm": averages_perm, "stds_perm": stds_perm,
+                            "z_scores": z_scores, "p_values": p_values}
     else:
-        if params.permutation_method is not None:
-            analysis_results = {"frequencies": frequencies, "averages": averages, "stds": stds, "averages_perm":
-                                averages_perm, "stds_perm": stds_perm, "z_scores": z_scores, "p_values": p_values}
-        else:
-            analysis_results = {"frequencies": frequencies, "averages": averages, "stds": stds}
+        analysis_results = {"frequencies": frequencies, "averages": averages, "stds": stds}
 
     if params.signif_target == "series":
         analysis_results.update({
@@ -1234,9 +1243,10 @@ def coherence(experiment_or_dataframe, sampling_rate="auto", groups=None, condit
               subjects=None, trials=None, sequence_measure="distance", audio_measure="envelope",
               coherence_with="envelope", series=None, average=None, lags=None, result_type="z-scores",
               permutation_method="value", number_of_randperms=1000, n_jobs=1, parallel_prefer=None,
-              specific_frequency=None, freq_atol=1e-8, freq_resolution_hz=0.25, include_audio=False, random_seed=None,
-              signif_style="threshold", signif_alpha=0.05, signif_tail="1", signif_direction="up",
-              color_line_series=None, color_line_perm=None, title=None, line_width=1, verbosity=1, **kwargs):
+              specific_frequency=None, freq_atol=1e-8, freq_resolution_hz=0.25, fit_background=False,
+              background_lower_freq=None, include_audio=False, random_seed=None, signif_style="threshold",
+              signif_alpha=0.05, signif_tail="1", signif_direction="up", color_line_series=None, color_line_perm=None,
+              title=None, line_width=1, verbosity=1, **kwargs):
     """Calculates and plots the coherence between measures.
 
     ..versionadded:: 2.0
@@ -1810,8 +1820,8 @@ def mutual_information(experiment_or_dataframe, sampling_rate="auto", groups=Non
                             line_width=line_width, verbosity=verbosity, **kwargs)
 
 def pca(data, n_components=0.95, groups=None, conditions=None, subjects=None, trials=None, labels="all",
-        sequence_measure="auto", audio_measure="auto", selected_components=None, random_seed=None, nan_behaviour=0.1,
-        verbosity=1, **kwargs):
+        level="timestamp", sequence_measure="auto", audio_measure="auto", selected_components=None, random_seed=None,
+        nan_behaviour=0.1, verbosity=1, **kwargs):
     """Performs a principal component analysis (PCA) on the measures from the experiment, reducing the dimensionality
     of the data. Each joint_label is used as a feature for the PCA, and, if specified, the audio measure too.
     Relies on the PCA function from
@@ -1890,6 +1900,19 @@ def pca(data, n_components=0.95, groups=None, conditions=None, subjects=None, tr
 
     labels: str | list(str), optional
         Which labels to include in the PCA. This parameter can be ``"all"`` (default), or a list of labels.
+
+    level: str, optional
+        Defines the level at which the PCA is computed:
+
+        • ``"timestamp"`` (default): the PCA is computed on the raw time series, where each observation is a single
+          frame. With a sampling rate of 20 Hz and 54 trials of ~60 seconds, this results in ~64,800 observations per
+          subject. This captures instantaneous co-activation patterns across joints — i.e. which joints tend to move
+          at the same time within trials.
+        • ``"trial"``: the PCA is computed on trial-level mean values, where each observation is one trial (mean speed
+          per joint across all frames of that trial). With 54 trials per subject, this results in 54 observations per
+          subject. This captures recruitment patterns across trials — i.e. which joints tend to be recruited together
+          across different retellings — and is better suited for testing hypotheses about lateral dominance or
+          body-region contrasts.
 
     sequence_measure : list(str)|str, optional
         The sequence measure(s) from the mocap modalities to include in the analysis (e.g., ``"velocity"``,
@@ -2001,7 +2024,7 @@ def pca(data, n_components=0.95, groups=None, conditions=None, subjects=None, tr
                 df = pd.concat([df, trial.audio.to_analysis_dataframe(measure=audio_measure,
                                                                       trial=trial.trial_id)], axis=0, ignore_index=True)
     else:
-        df = pd.DataFrame()
+        df = data
 
     params = AnalysisParameters(analysis="pca", experiment_or_dataframe=df, groups=groups, conditions=conditions,
                                 trials = trials, sequence_measure=sequence_measure, audio_measure=audio_measure,
@@ -2032,7 +2055,14 @@ def pca(data, n_components=0.95, groups=None, conditions=None, subjects=None, tr
             else:
                 dataframe_filtered[col] = dataframe_filtered[col].fillna(default)
 
-    data_matrix = dataframe_filtered.pivot_table(index=["subject", "trial", "timestamp"],
+    if level == "timestamp":
+        index = ["subject", "trial", "timestamp"]
+    elif level == "trial":
+        index = ["subject", "trial"]
+    else:
+        raise ValueError(f"Invalid value for level: {level}.")
+
+    data_matrix = dataframe_filtered.pivot_table(index=index,
                                                 columns="label",
                                                 values="value",
                                                 aggfunc="mean").sort_index()
@@ -2095,7 +2125,7 @@ def pca(data, n_components=0.95, groups=None, conditions=None, subjects=None, tr
     _plot_components(pca_result, pca_model.components_, labels, "PCA", selected_components, verbosity=verbosity, **kwargs)
 
     pca_comps = [{l: c for l, c in zip(labels, comp)} for comp in pca_model.components_]
-    return pca_result, pca_comps
+    return pca_result, pca_comps, pca_model.explained_variance_ratio_
 
 def ica(experiment_or_dataframe, n_components, group=None, condition=None, subjects=None, trials=None,
         sequence_measure="distance", audio_measure="envelope", include_audio=False, sampling_frequency=50,
@@ -2860,6 +2890,153 @@ def _fit_spectral_background(frequencies, power, background_lower_freq, signif_a
         "lower_freq_used":  lower_freq_used,
     }
 
+def _fit_coherence_background(frequencies, coherence, background_lower_freq,
+                               signif_alpha=0.05, signif_tail="1",
+                               max_iter=5, outlier_threshold=2.0):
+    """Fit a 1/f background model to a coherence spectrum in log-log space,
+    using iterative outlier removal to prevent genuine peaks from biasing the fit.
+
+    Parameters
+    ----------
+    frequencies : np.ndarray
+        Frequency values in Hz. Must start at 0 (DC bin included).
+    coherence : np.ndarray
+        Coherence values in [0, 1], same length as frequencies.
+    background_lower_freq : float
+        Lower frequency bound for fitting. Bins below this are excluded from
+        the fit but the background is extrapolated down to them.
+    signif_alpha : float, optional
+        Significance level for peak detection (default: 0.05).
+    signif_tail : str, optional
+        ``"1"`` for one-tailed (default), ``"2"`` for two-tailed.
+    max_iter : int, optional
+        Maximum number of outlier-removal iterations (default: 5).
+    outlier_threshold : float, optional
+        Bins exceeding the current fit by more than this many SDs are removed
+        from the next iteration (default: 2.0).
+
+    Returns
+    -------
+    dict with same keys as _fit_spectral_background, for consistency.
+    """
+    frequencies = np.asarray(frequencies, dtype=float)
+    coherence   = np.asarray(coherence,   dtype=float)
+
+    if len(frequencies) != len(coherence):
+        raise ValueError("frequencies and coherence must have the same length.")
+
+    # Valid bins: exclude DC, Nyquist, and NaN
+    # Zero coherence IS valid — do not exclude it
+    valid = np.ones(len(frequencies), dtype=bool)
+    valid[0]  = False   # DC
+    valid[-1] = False   # Nyquist
+    valid[np.isnan(coherence)] = False
+    valid[coherence <= 0] = False  # log10 undefined, but keep true zeros as NaN output
+    valid_indices = np.where(valid)[0]
+
+    if np.sum(valid) < 3:
+        raise ValueError("Fewer than 3 valid bins after excluding DC, Nyquist, and NaN bins.")
+
+    log_freq = np.log10(frequencies[valid])
+    log_coh  = np.log10(coherence[valid])
+
+    # Determine lower bound for fitting
+    lower_index        = np.searchsorted(frequencies, background_lower_freq)
+    if lower_index >= len(frequencies) - 1:
+        raise ValueError(f"background_lower_freq ({background_lower_freq} Hz) is above all valid bins.")
+    lower_bin_in_valid = np.searchsorted(valid_indices, lower_index)
+    lower_freq_used    = frequencies[valid_indices[lower_bin_in_valid]]
+
+    # Initial fit mask: valid bins at or above lower bound
+    fit_mask = np.zeros(np.sum(valid), dtype=bool)
+    fit_mask[lower_bin_in_valid:] = True
+
+    if np.sum(fit_mask) < 2:
+        raise ValueError(f"Fewer than 2 bins available for fitting above {lower_freq_used} Hz.")
+
+    # Iterative fit: remove upward outliers on each pass
+    current_mask = fit_mask.copy()
+    slope, intercept = None, None
+    for _ in range(max_iter):
+        if np.sum(current_mask) < 2:
+            break
+        slope, intercept = np.polyfit(log_freq[current_mask], log_coh[current_mask], 1)
+        log_bg_fit    = slope * log_freq[current_mask] + intercept
+        residuals_fit = log_coh[current_mask] - log_bg_fit
+        sd            = np.std(residuals_fit)
+        keep          = residuals_fit <= outlier_threshold * sd
+        if keep.all():
+            break
+        current_mask[current_mask] = keep
+
+    # Evaluate final background across all valid bins (extrapolates below lower_freq)
+    log_background_valid = slope * log_freq + intercept
+
+    # R² over the clean fitting range
+    ss_res    = np.sum((log_coh[current_mask] - log_background_valid[current_mask]) ** 2)
+    ss_tot    = np.sum((log_coh[current_mask] - np.mean(log_coh[current_mask]))     ** 2)
+    r_squared = 1.0 - ss_res / ss_tot if ss_tot > 0 else np.nan
+
+    # Residuals over all valid bins
+    residuals_valid = log_coh - log_background_valid
+
+    # Noise floor from clean fitting range only
+    residual_sd = np.std(residuals_valid[current_mask])
+
+    # Threshold curves — one per alpha level, in linear coherence units
+    if isinstance(signif_alpha, (int, float)):
+        signif_alpha = [signif_alpha]
+    signif_alpha = sorted(signif_alpha, reverse=True)
+
+    z_thresholds    = []
+    threshold_curves = []
+    for alpha in signif_alpha:
+        z = stats.norm.ppf(1.0 - alpha) if str(signif_tail) == "1" else stats.norm.ppf(1.0 - alpha / 2.0)
+        z_thresholds.append(z)
+        tc        = np.full(len(frequencies), np.nan)
+        tc[valid] = 10 ** (log_background_valid + z * residual_sd)
+        threshold_curves.append(tc)
+
+    # Background in linear units
+    background        = np.full(len(frequencies), np.nan)
+    background[valid] = 10 ** log_background_valid
+
+    residuals        = np.full(len(frequencies), np.nan)
+    residuals[valid] = residuals_valid
+
+    # Peak detection against loosest threshold
+    loosest_threshold = threshold_curves[0]
+    exceeds           = np.zeros(len(frequencies), dtype=bool)
+    exceeds[valid]    = coherence[valid] > loosest_threshold[valid]
+
+    peak_indices = np.array([], dtype=int)
+    peak_levels  = np.array([], dtype=int)
+    if np.any(exceeds):
+        residuals_for_peaks = np.where(exceeds, residuals, -np.inf)
+        peaks_found, _      = signal.find_peaks(residuals_for_peaks)
+        peak_indices        = peaks_found[exceeds[peaks_found]]
+        peak_levels         = np.array([
+            sum(coherence[idx] > tc[idx] for tc in threshold_curves)
+            for idx in peak_indices
+        ])
+
+    return {
+        "background":       background,
+        "threshold_curves": threshold_curves,
+        "z_thresholds":     z_thresholds,
+        "signif_alphas":    signif_alpha,
+        "residuals":        residuals,
+        "peak_indices":     peak_indices,
+        "peak_freqs":       frequencies[peak_indices],
+        "peak_residuals":   residuals[peak_indices],
+        "peak_levels":      peak_levels,
+        "slope":            slope,
+        "intercept":        intercept,
+        "r_squared":        r_squared,
+        "residual_sd":      residual_sd,
+        "lower_freq_used":  lower_freq_used,
+    }
+
 def _compute_correlation(pg, method, measure_values, target_values):
     if method == "pingouin":
         try:
@@ -2881,6 +3058,7 @@ def _compute_correlation(pg, method, measure_values, target_values):
                          be "pingouin" or "numpy".""")
 
     return results
+
 
 def _compute_coherence(measure_values, target_values, frequencies, sampling_rate, nperseg,
                        target_psd=None, measure_psd=None):

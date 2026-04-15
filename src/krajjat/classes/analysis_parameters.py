@@ -8,7 +8,7 @@ import numpy as np
 import scipy
 from pandas import DataFrame
 
-from krajjat import GraphPlot
+from krajjat.classes.graph_element import GraphPlot
 from krajjat.classes.experiment import Experiment
 from krajjat.tool_functions import CLEAN_DERIV_NAMES, convert_color, find_closest_value_index, has_nested_key
 from dataclasses import dataclass, field
@@ -175,11 +175,6 @@ class AnalysisParameters:
         if self.result_type == "z-scores" and not self.compute_permutations and not self.fit_background:
             raise Exception("If the return_values parameter is set to 'z-scores', the permutation_method parameter "
                             "must be set, and number_of_randperms has to be more than 0.")
-
-        if self.fit_background and self.compute_permutations:
-            import warnings
-            warnings.warn("fit_background and permutation_method are both active. Background fitting and "
-                          "permutation-based significance will both be computed independently.")
 
         if self.number_of_randperms < 0:
             raise ValueError("The parameter number_of_randperms must be >= 0.")
@@ -704,8 +699,8 @@ class AnalysisParameters:
             if background_shades:
                 self.kwargs["background_shades"] = background_shades
 
-        elif (self.plot_type == "body" and self.fit_background and
-              self.result_type == "z-scores"):
+        elif (self.plot_type == "body" and self.fit_background and self.result_type == "z-scores" and
+              self.analysis == "power spectrum"):
             import warnings
             warnings.warn("fit_background=True is not compatible with result_type='z-scores' for plotting: "
                           "the background and threshold curves are in power units and cannot be overlaid on "

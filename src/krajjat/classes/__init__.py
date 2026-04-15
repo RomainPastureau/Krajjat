@@ -1,5 +1,5 @@
-__all__ = ["audio", "audio_derivatives", "exceptions", "experiment", "graph_element", "graphic_classes",
-           "joint", "pose", "sequence", "subject", "time_series", "trial"]
+__all__ = ["analysis_parameters", "audio", "audio_derivatives", "exceptions", "experiment", "graph_element",
+           "graphic_classes", "joint", "pose", "results", "sequence", "subject", "time_series", "trial"]
 
 from . import exceptions
 from .time_series import TimeSeries
@@ -13,3 +13,5 @@ from .subject import Subject
 from .experiment import Experiment
 from .graph_element import Graph, GraphPlot
 from .graphic_classes import GraphicJoint, GraphicPose, GraphicSequence
+from .analysis_parameters import AnalysisParameters
+from .results import Results

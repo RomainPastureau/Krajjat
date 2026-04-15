@@ -41,4 +41,4 @@ AnkleLeft	313	990	50
 HeelLeft	293	1000	50
 ForefootOutLeft	318	1030	50
 ForefootInLeft	278	1030	50
-ToetipLeft	293	1000	50
+ToetipLeft	293	1070	50

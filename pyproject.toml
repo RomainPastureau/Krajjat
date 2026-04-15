@@ -41,6 +41,7 @@ analysis = [
     "scikit-learn >= 1.7.0",
     "pyarrow >= 19.0.0",
     "fastparquet >= 2024.2.0",
+    "fooof >= 1.1.0",
 ]
 display = [
     "sounddevice >= 0.5.0"

@@ -16,6 +16,8 @@ from .classes.subject import Subject
 from .classes.experiment import Experiment
 from .classes.graph_element import Graph, GraphPlot
 from .classes.graphic_classes import GraphicJoint, GraphicPose, GraphicSequence
+from .classes.analysis_parameters import AnalysisParameters
+from .classes.results import Results
 from . import tool_functions
 from . import plot_functions
 from . import io_functions

@@ -1480,6 +1480,7 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, title_silh
                     scale_silhouette=0.9, min_scale="auto", max_scale="auto", show_scale=True, title_scale=None,
                     color_scheme="default", color_background="white", color_silhouette="black",
                     pixels_between_silhouettes=100, path_font=None, font_size=1, resolution=0.5,
+                    n_cols=None, display_ratio=1.0, show_values=False, color_values="black", values_ndigits=2,
                     full_screen=False, show=True, path_save=None, verbosity=1):
     """Plots one or multiple silhouettes with circles representing the different joints, colored according to their
     values in the ``plot_dictionary``. Passing the mouse on the different joints shows, in the bottom right corner, the
@@ -1570,7 +1571,8 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, title_silh
         The size of the font for the title, the silhouette titles and the scale. The default value is 1, which is an
         arbitrary value that is equal to 4% of the height of the window. This parameter can be set on a tuple of three
         values ``(a, b, c)`` where ``α`` is the size of the title, ``b`` the size of the silhouette titles, and ``c``
-        the size of the scale titles and values.
+        the size of the scale titles and values. The parameter can also be set on a tuple of four values; in that case,
+        the fourth value determines the size of the values displayed on top of the joints.
 
     resolution: tuple(int, int) or float or None, optional
         The resolution of the Pygame window that will display the silhouette. This parameter can be:
@@ -1582,6 +1584,27 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, title_silh
           side by side, the horizontal resolution will be set to be twice the size. A parameter of 0.5 on a screen
           that is 1920 × 1080 pixels will, in that case, create a window of 1920 × 540 pixels.
         • None: in that case, the window will be the size of the screen.
+
+    n_cols: int|None, optional
+        The number of silhouettes to display per row. Default: `None`: all silhouettes appear on the same row.
+
+    display_ratio: float, optional
+        Scales the entire content area within the Pygame window by this factor (default: 1.0).
+        For example, setting this to 0.9 limits the content to 90% of the window height and
+        width, preventing silhouette titles and other elements from clipping at the edges.
+
+    show_values: bool, optional
+        If set on ``True``, renders the value associated with each joint as text on top of
+        its circle. The font color is automatically chosen (black or white) based on the
+        circle's background color for readability. Default is ``False``.
+
+    color_values: str, tuple(int, int, int) or tuple(int, int, int, int), optional
+        The color of the background (default: ``"black"``). This parameter can be a tuple with RGB or RGBA values,
+        a string with a hexadecimal value (starting with a leading ``#``) or one of the standard
+        `HTML/CSS color names <https://en.wikipedia.org/wiki/X11_color_names>`_.
+
+    values_ndigits: int, optional
+        How many significant digits to display for the values (default: 2).
 
     full_screen: bool, optional
         Defines if the window will be set full screen (``True``) or not (``False``, default).
@@ -1649,32 +1672,83 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, title_silh
         if key != "Audio":
             number_of_silhouettes = len(plot_dictionary[key])
 
-    # Load silhouette picture, color it and resize it
+    # If the scale is on auto, we scale it the max value
+    min_value, max_value = get_min_max_values_from_plot_dictionary(plot_dictionary)
+    if min_scale == "auto":
+        min_scale = min_value
+    if max_scale == "auto":
+        max_scale = max_value
+
+    # Grid layout: compute number of columns and rows
+    if n_cols is None:
+        actual_n_cols = number_of_silhouettes
+    else:
+        actual_n_cols = min(n_cols, number_of_silhouettes)
+    n_rows = int(np.ceil(number_of_silhouettes / actual_n_cols))
+
+    # ── Fonts and scale constants (needed before silhouette sizing) ────────────
+    if isinstance(font_size, numbers.Number):
+        font_size = (font_size, font_size, font_size)
+
+    if path_font is not None:
+        font_title = pygame.font.Font(path_font, int(resolution[1] * 0.04 * font_size[0]))
+        font_silhouette_title = pygame.font.Font(path_font, int(resolution[1] * 0.04 * font_size[1]))
+        font_scale = pygame.font.Font(path_font, int(resolution[1] * 0.04 * font_size[2]))
+        if len(font_size) == 4:
+            font_values = pygame.font.Font(path_font, int(resolution[1] * 0.04 * font_size[3]))
+        else:
+            font_values = font_scale
+    else:
+        font_title = pygame.font.Font(DEFAULT_FONT_PATH, int(resolution[1] * 0.04 * font_size[0]))
+        font_silhouette_title = pygame.font.Font(DEFAULT_FONT_PATH, int(resolution[1] * 0.04 * font_size[1]))
+        font_scale = pygame.font.Font(DEFAULT_FONT_PATH, int(resolution[1] * 0.04 * font_size[2]))
+        if len(font_size) == 4:
+            font_values = pygame.font.Font(DEFAULT_FONT_PATH, int(resolution[1] * 0.04 * font_size[3]))
+        else:
+            font_values = font_scale
+
+    # Scale constants (fixed layout values)
+    scale_height = 500
+    scale_width = 50
+    start_scale_x = 50
+    start_scale_y = 540 - scale_height // 2
+
+    # Load and resize silhouette
     silhouette = pygame.image.load(SILHOUETTE_PATH)
     color_background = convert_color(color_background, "rgb", False)
 
     if color_background != (255, 255, 255):
         silhouette.fill(color_background, special_flags=pygame.BLEND_RGBA_MIN)
 
-    # Calculate silhouette size using `size_silhouette` ratio of vertical resolution
     silhouette_ratio = silhouette.get_width() / silhouette.get_height()
-    silhouette_height = int(resolution[1] * scale_silhouette)
+    silhouette_height = int((resolution[1] * scale_silhouette * display_ratio
+                             - pixels_between_silhouettes * (n_rows - 1)) / n_rows)
     silhouette_width = int(silhouette_height * silhouette_ratio)
     silhouette = pygame.transform.scale(silhouette, (silhouette_width, silhouette_height))
 
-    # Compute x and y offset to center it horizontally and vertically
-    silhouette_x = (resolution[0] // 2 - (silhouette_width * number_of_silhouettes +
-                                          (pixels_between_silhouettes * (number_of_silhouettes - 1))) // 2)
-    silhouette_y = (resolution[1] - silhouette_height) // 2
+    total_grid_width = silhouette_width * actual_n_cols + pixels_between_silhouettes * (actual_n_cols - 1)
+    total_grid_height = silhouette_height * n_rows + pixels_between_silhouettes * (n_rows - 1)
 
-    # Create the surfaces around the silhouette
-    width_surface_side = (resolution[0] - (silhouette.get_width() * number_of_silhouettes) -
-                          (pixels_between_silhouettes * (number_of_silhouettes - 1))) / 2
-    surface_horizontal = pygame.Surface((resolution[0], resolution[1] * (1 - scale_silhouette) / 2 + 1))
+    # Horizontal centering: shift right of scale when show_scale is True
+    if show_scale:
+        # Estimate right edge of scale using font metrics (pre-render)
+        scale_num_w = max(font_scale.size(str(round(max_scale, 2)))[0],
+                          font_scale.size(str(round(min_scale, 2)))[0])
+        # scale_title is rotated 90°: post-rotation width = pre-rotation height
+        scale_title_str = str(title_scale) if title_scale is not None else ""
+        scale_title_rw = font_scale.size(scale_title_str)[1]
+        scale_right_edge = int((start_scale_x + scale_width + 10) * ratio_w + scale_title_rw + scale_num_w)
+        silhouette_x = scale_right_edge + (resolution[0] - scale_right_edge - total_grid_width) // 2
+    else:
+        silhouette_x = (resolution[0] - total_grid_width) // 2
 
-    surface_left = pygame.Surface((max(0, width_surface_side + 1), resolution[1]))
+    silhouette_y = (resolution[1] - total_grid_height) // 2
+
+    # Create the surfaces around the silhouette (used for background fill)
+    surface_horizontal = pygame.Surface((resolution[0], max(1, (resolution[1] - total_grid_height) // 2 + 1)))
+    surface_left  = pygame.Surface((max(1, silhouette_x + 1), resolution[1]))
+    surface_right = pygame.Surface((max(1, resolution[0] - silhouette_x - total_grid_width), resolution[1]))
     surface_between = pygame.Surface((pixels_between_silhouettes + 1, resolution[1]))
-    surface_right = pygame.Surface((max(0, width_surface_side), resolution[1]))
     surface_horizontal.fill(color_background)
     surface_left.fill(color_background)
     surface_between.fill(color_background)
@@ -1685,36 +1759,15 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, title_silh
         print("Load the fonts and colors...", end=" ")
 
     # Font and colors
-    colors = convert_colors(color_scheme, "rgb", True)  # Color scheme
+    colors           = convert_colors(color_scheme, "rgb", True)
     color_silhouette = convert_color(color_silhouette, "rgb", False)
-    luminance = color_background[0] * 0.2126 + color_background[1] * 0.7152 + color_background[2] * 0.0722
-
-    if isinstance(font_size, numbers.Number):
-        font_size = (font_size, font_size, font_size)
-
-    if path_font is not None:
-        font_title = pygame.font.Font(path_font, int(resolution[1] * 0.04 * font_size[0]))
-        font_silhouette_title = pygame.font.Font(path_font, int(resolution[1] * 0.04 * font_size[1]))
-        font_scale = pygame.font.Font(path_font, int(resolution[1] * 0.04 * font_size[2]))
-    else:
-        font_title = pygame.font.Font(DEFAULT_FONT_PATH, int(resolution[1] * 0.04 * font_size[0]))
-        font_silhouette_title = pygame.font.Font(DEFAULT_FONT_PATH, int(resolution[1] * 0.04 * font_size[1]))
-        font_scale = pygame.font.Font(DEFAULT_FONT_PATH, int(resolution[1] * 0.04 * font_size[2]))
-
-    if luminance > 0.5:
-        font_color = convert_color("black", "rgb", False)
-    else:
-        font_color = convert_color("white", "rgb", False)
+    luminance        = color_background[0] * 0.2126 + color_background[1] * 0.7152 + color_background[2] * 0.0722
+    font_color       = convert_color("black", "rgb", False) if luminance > 0.5 else convert_color("white", "rgb", False)
+    color_values     = convert_color(color_values, "rgb", True)
+    sep = scale_height // (len(colors) - 1)
 
     if verbosity > 0:
         print("Done.")
-
-    # If the scale is on auto, we scale it the max value
-    min_value, max_value = get_min_max_values_from_plot_dictionary(plot_dictionary)
-    if min_scale == "auto":
-        min_scale = min_value
-    if max_scale == "auto":
-        max_scale = max_value
 
     # Getting the joint layout
     if joint_layout == "auto":
@@ -1729,27 +1782,46 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, title_silh
     circles = {}
     values_to_plot = {}
     circle_positions = {}
+    circle_text_colors = {}
 
     for joint in plot_dictionary.keys():
         if joint in joints_positions.keys():
             circles[joint] = []
             values_to_plot[joint] = []
             circle_positions[joint] = []
+            circle_text_colors[joint] = []
             for value in plot_dictionary[joint]:
-                ratio = (value - min_scale) / (max_scale - min_scale)  # Get the ratio of the max value
-                color_in = calculate_color_ratio(colors, ratio)  # Turn that into a color
-                # Transparent color of the circle edge for the gradient
-                color_edge = (color_in[0], color_in[1], color_in[2], 0)
-                values_to_plot[joint].append(font_silhouette_title.render(str(joint) + ": " + str(round(value, 2)),
-                                                         True, font_color))
 
-                radius = joints_positions[joint][2] * ratio_h * scale_silhouette
-                pos_x = joints_positions[joint][0] * ratio_h * scale_silhouette
-                pos_y = joints_positions[joint][1] * ratio_h * scale_silhouette
-                absolute_pos_y = pos_y + silhouette_y - radius
+                if np.isnan(value):
+                    circles[joint].append(None)
+                    values_to_plot[joint].append(None)
+                    circle_text_colors[joint].append(None)
+                    circle_positions[joint].append((0, 0))
+                    continue
+
+                ratio = (value - min_scale) / (max_scale - min_scale)  # Get the ratio of the max value
+                color_in = calculate_color_ratio(colors, ratio)
+                color_edge = (color_in[0], color_in[1], color_in[2], 0)
+
+                if values_ndigits == 0:
+                    v = int(round(value, 0))
+                else:
+                    v = round(value, values_ndigits)
+
+                circle_text_colors[joint].append(font_values.render(str(v), True, color_values))
+                values_to_plot[joint].append(font_scale.render(str(joint) + ": " + str(v), True, font_color))
+
+                # Scale joint positions to the actual silhouette size in the grid
+                joint_scale = silhouette_height / 1080
+                radius = joints_positions[joint][2] * joint_scale
+                pos_x = joints_positions[joint][0] * joint_scale
+                pos_y = joints_positions[joint][1] * joint_scale
 
                 for i in range(number_of_silhouettes):
-                    absolute_pos_x = pos_x + silhouette_x + i * (silhouette_width + pixels_between_silhouettes) - radius
+                    col = i % actual_n_cols
+                    row = i // actual_n_cols
+                    absolute_pos_x = pos_x + silhouette_x + col * (silhouette_width + pixels_between_silhouettes) - radius
+                    absolute_pos_y = pos_y + silhouette_y + row * (silhouette_height + pixels_between_silhouettes) - radius
                     circle_positions[joint].append((absolute_pos_x, absolute_pos_y))
 
                 circles[joint].append(gradients.radial(int(radius), color_in, color_edge))
@@ -1767,8 +1839,15 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, title_silh
                                         int(((scale_height // (len(colors) - 1)) + 1) * ratio_h)),
                                        colors[len(colors) - i - 1], colors[len(colors) - i - 2]))
 
-    scale_top = font_scale.render(str(round(max_scale, 2)), True, font_color)
-    scale_bottom = font_scale.render(str(round(min_scale, 2)), True, font_color)
+    value_top = round(max_scale, 2)
+    if not(np.isnan(value_top)) and int(value_top) == value_top:
+        value_top = int(value_top)
+    scale_top = font_scale.render(str(value_top), True, font_color)
+    value_bottom = round(min_scale, 2)
+    if not(np.isnan(value_bottom)) and int(value_bottom) == value_bottom:
+        value_bottom = int(value_bottom)
+    scale_bottom = font_scale.render(str(value_bottom), True, font_color)
+
     if title_scale is None:
         title_scale = ""
     scale_title = font_scale.render(str(title_scale), True, font_color)
@@ -1792,10 +1871,13 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, title_silh
             raise ValueError(f"The number of silhouette titles ({len(title_silhouette)}) must be equal to the number "
                              f"of silhouettes ({number_of_silhouettes}).")
         for i in range(len(title_silhouette)):
+            col = i % actual_n_cols
+            row = i // actual_n_cols
             silhouette_titles.append(font_silhouette_title.render(str(title_silhouette[i]), True, font_color))
             pos_x = (silhouette_x + silhouette_width // 2 - silhouette_titles[i].get_width() // 2 +
-                     i * (silhouette_width + pixels_between_silhouettes))
-            pos_y = resolution[1] * (1 - (1 - scale_silhouette) / 4) - silhouette_titles[i].get_height() / 2
+                     col * (silhouette_width + pixels_between_silhouettes))
+            pos_y = (silhouette_y + row * (silhouette_height + pixels_between_silhouettes) +
+                     silhouette_height + silhouette_titles[i].get_height() // 2)
             silhouette_titles_positions.append((pos_x, pos_y))
 
     # Mouse
@@ -1835,7 +1917,9 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, title_silh
                 print("Click position: " + str(mouse_coord))
                 mouse_x = 0
                 for i in range(number_of_silhouettes):
-                    start_x = silhouette_x + (i * (silhouette.get_width() + pixels_between_silhouettes))
+                    col = i % actual_n_cols
+                    row = i // actual_n_cols
+                    start_x = silhouette_x + col * (silhouette.get_width() + pixels_between_silhouettes)
                     end_x = start_x + silhouette.get_width()
                     if start_x < mouse_coord[0] < end_x:
                         print(f"Click in silhouette {i + 1}")
@@ -1857,16 +1941,39 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, title_silh
                 window.blit(circle, (circle_x, circle_position[1] * ratio_h - circle_radius))
 
         for i in range(number_of_silhouettes):
-            window.blit(silhouette, (silhouette_x + i * (silhouette_width + pixels_between_silhouettes), silhouette_y))
+            col = i % actual_n_cols
+            row = i // actual_n_cols
+            window.blit(silhouette, (silhouette_x + col * (silhouette_width + pixels_between_silhouettes),
+                                     silhouette_y + row * (silhouette_height + pixels_between_silhouettes)))
 
-        window.blit(surface_horizontal, (0, 0))
-        window.blit(surface_horizontal, (0, resolution[1] * (1 - ((1 - scale_silhouette) / 2)) - 1))
-        window.blit(surface_left, (0, 0))
-        window.blit(surface_right, (resolution[0] - width_surface_side, 0))
+        # Cover empty grid slots with background color
+        for i in range(number_of_silhouettes, n_rows * actual_n_cols):
+            col = i % actual_n_cols
+            row = i // actual_n_cols
+            empty_x = silhouette_x + col * (silhouette_width + pixels_between_silhouettes)
+            empty_y = silhouette_y + row * (silhouette_height + pixels_between_silhouettes)
+            pygame.draw.rect(window, color_background,
+                             (empty_x, empty_y, silhouette_width, silhouette_height))
 
-        for i in range(number_of_silhouettes - 1):
-            window.blit(surface_between, (width_surface_side + ((i + 1) * silhouette.get_width()) + (i *
-                                          pixels_between_silhouettes), 0))
+        # Fill all background gaps with the background color to mask circle overflow
+        # Top and bottom margins
+        pygame.draw.rect(window, color_background, (0, 0, resolution[0], silhouette_y))
+        pygame.draw.rect(window, color_background, (0, silhouette_y + total_grid_height,
+                                                     resolution[0], resolution[1]))
+        # Left and right margins
+        pygame.draw.rect(window, color_background, (0, 0, silhouette_x, resolution[1]))
+        pygame.draw.rect(window, color_background, (silhouette_x + total_grid_width, 0,
+                                                     resolution[0], resolution[1]))
+        # Vertical gaps between columns
+        for c in range(actual_n_cols - 1):
+            gap_x = silhouette_x + (c + 1) * silhouette_width + c * pixels_between_silhouettes
+            pygame.draw.rect(window, color_background,
+                             (gap_x, 0, pixels_between_silhouettes, resolution[1]))
+        # Horizontal gaps between rows
+        for r in range(n_rows - 1):
+            gap_y = silhouette_y + (r + 1) * silhouette_height + r * pixels_between_silhouettes
+            pygame.draw.rect(window, color_background,
+                             (0, gap_y, resolution[0], pixels_between_silhouettes))
 
         if title is not None:
             window.blit(title_plot, title_pos)
@@ -1888,18 +1995,32 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, title_silh
 
         height = 0
         for joint, i in to_blit:
-            window.blit(values_to_plot[joint][i], (resolution[0] - values_to_plot[joint][i].get_width() - 5,
-                                                resolution[1] - values_to_plot[joint][i].get_height() - 5 - height))
-            height += values_to_plot[joint][i].get_height() + 5
+            if values_to_plot[joint][i] is not None:
+                window.blit(values_to_plot[joint][i], (resolution[0] - values_to_plot[joint][i].get_width() - 5,
+                                                    resolution[1] - values_to_plot[joint][i].get_height() - 5 - height))
+                height += values_to_plot[joint][i].get_height() + 5
+
+        if show_values:
+            for joint in order_joints:
+                if joint in plot_dictionary.keys():
+                    for i in range(number_of_silhouettes):
+                        if not np.isnan(plot_dictionary[joint][i]):
+                            joint_scale = silhouette_height / 1080
+                            radius = joints_positions[joint][2] * joint_scale
+                            cx = (circle_positions[joint][i][0] + radius -
+                                  circle_text_colors[joint][i].get_width() / 2)
+                            cy = (circle_positions[joint][i][1] + radius -
+                                  circle_text_colors[joint][i].get_height() / 2)
+                            window.blit(circle_text_colors[joint][i], (cx, cy))
 
         if show_scale:
             for i in range(len(colors) - 1):
-                window.blit(grad[i], (start_scale_x * ratio_w, (start_scale_y + (i * sep)) * ratio_h))
-            window.blit(scale_top, (int((start_scale_x + scale_width + 10) * ratio_w),
+                window.blit(grad[i], ((start_scale_x + 5) * ratio_w + scale_title.get_width(), (start_scale_y + (i * sep)) * ratio_h))
+            window.blit(scale_top, (int((start_scale_x + scale_width + 10) * ratio_w) + scale_title.get_width(),
                                     int((start_scale_y * ratio_h) - scale_top.get_height() // 2)))
-            window.blit(scale_bottom, (int((start_scale_x + scale_width + 10) * ratio_w),
+            window.blit(scale_bottom, (int((start_scale_x + scale_width + 10) * ratio_w) + scale_title.get_width(),
                                        int((start_scale_y + scale_height) * ratio_h - scale_bottom.get_height() // 2)))
-            window.blit(scale_title, (int((start_scale_x + scale_width + 10) * ratio_w),
+            window.blit(scale_title, (int(start_scale_x * ratio_w),
                                       int(resolution[1] // 2 - scale_title.get_height() // 2)))
 
         pygame.display.flip()
@@ -1958,6 +2079,9 @@ def _plot_components(pca_or_ica, components, joint_labels, title, selected_compo
         • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
           may clutter the output and slow down the execution.
     """
+    if not show and path_save is None:
+        return None
+
     n_components = np.shape(components)[0]
     max_components = np.max(components)
 

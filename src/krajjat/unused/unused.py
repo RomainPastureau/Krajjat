@@ -1734,3 +1734,134 @@ def find_common_parent_path(*paths, separator="/"):
             if i != len(self.subjects) - 1:
                 print("")
             i += 1
+
+def _prewhiten_dataframe(dataframe, sampling_rate, nperseg, fooof_type, fooof_freq_range=None,
+                         fooof_aperiodic_mode="fixed"):
+    """Pre-whiten all signals in the dataframe by removing their aperiodic 1/f component using FOOOF (Fitting
+    Oscillations and One Over F).
+
+    Parameters
+    ----------
+    dataframe : pd.DataFrame
+        Dataframe passed as parameter in :func:`_common_analysis`.
+    sampling_rate : float
+        Sampling rate of the data in Hz.
+    nperseg : int
+        Welch window length (same value used for coherence estimation).
+    fooof_type : str
+        On what level to apply the FOOOF: can be ``"trial"`` to fit it on each trial individually, or ``"subject"`` to
+        fit it on all concatenated trials of a subject at once.
+    fooof_freq_range : list of two floats or None, optional
+        Frequency range ``[f_low, f_high]`` over which FOOOF fits the aperiodic slope. If ``None`` (default), uses
+        ``[first non-DC bin, Nyquist]``.
+    fooof_aperiodic_mode : str, optional
+        ``"fixed"`` (default) or ``"knee"``. Use ``"knee"`` if the signals show a flattening of the 1/f slope at very
+        low frequencies.
+
+    Returns
+    -------
+    pd.DataFrame
+        The dataframe modified in-place.
+    """
+
+    # Try fooof first (original name), fall back to specparam (new name)
+    try:
+        from fooof import FOOOF
+    except ImportError:
+        try:
+            from specparam import SpectralModel as FOOOF
+        except ImportError:
+            raise ImportError("Pre-whitening requires the fooof (specparam) package.")
+
+    def _fit_fooof(values, sampling_rate, nperseg, fooof_freq_range, fooof_aperiodic_mode):
+        """Fit FOOOF on a signal and return the aperiodic parameters. Returns None if fit fails."""
+        freqs_welch, psd = signal.welch(values, fs=sampling_rate, nperseg=int(nperseg))
+        fit_range = [freqs_welch[1], freqs_welch[-1]] if fooof_freq_range is None else fooof_freq_range
+        fm = FOOOF(max_n_peaks=0, aperiodic_mode=fooof_aperiodic_mode, verbose=False)
+        try:
+            fm.fit(freqs_welch, psd, fit_range)
+            return fm.aperiodic_params_
+        except Exception as e:
+            return None
+
+    def _whiten_trial(values, ap_params, sampling_rate, fooof_aperiodic_mode):
+        """Apply frequency-domain whitening to a single trial using precomputed aperiodic params."""
+        n = len(values)
+        rfft_freqs = np.fft.rfftfreq(n, d=1.0 / sampling_rate)
+
+        with np.errstate(divide="ignore", invalid="ignore"):
+            if fooof_aperiodic_mode == "fixed":
+                offset, exponent = ap_params
+                log_ap = offset - exponent * np.log10(rfft_freqs)
+            else:  # "knee"
+                offset, knee, exponent = ap_params
+                log_ap = offset - np.log10(knee + rfft_freqs ** exponent)
+
+        log_ap[0] = log_ap[1]  # DC bin: replace -inf with neighbour
+        aperiodic_power = 10.0 ** log_ap
+
+        fft_vals = np.fft.rfft(values)
+        whitened_fft = fft_vals / np.sqrt(aperiodic_power)
+        return np.fft.irfft(whitened_fft, n=n)
+
+    if fooof_type == "trial":
+
+        group_cols = ["subject", "trial", "label", "measure"]
+        for keys, group_idx in dataframe.groupby(group_cols, sort=False).groups.items():
+            group_df = dataframe.loc[group_idx].sort_values(["trial", "timestamp"])
+            values = group_df["value"].to_numpy(dtype=float)
+
+            if len(values) < nperseg:
+                print(f"\tSkipping {keys}: signal length {len(values)} < nperseg {nperseg}.")
+                continue
+
+            ap_params = _fit_fooof(values, sampling_rate, nperseg,
+                                   fooof_freq_range, fooof_aperiodic_mode)
+            if ap_params is None:
+                print(f"\tFit failed for {keys}. Signal left unchanged.")
+                continue
+
+            whitened = _whiten_trial(values, ap_params, sampling_rate, fooof_aperiodic_mode)
+            dataframe.loc[group_df.index, "value"] = whitened
+
+    elif fooof_type == "subject":
+
+        # Phase 1: fit FOOOF per (subject, label, measure) on concatenated trials
+        subject_ap_params = {}
+        fit_group_cols = ["subject", "label", "measure"]
+        for keys, group_idx in dataframe.groupby(fit_group_cols, sort=False).groups.items():
+            group_df = dataframe.loc[group_idx].sort_values(["trial", "timestamp"])
+            values_concat = group_df["value"].to_numpy(dtype=float)
+
+            if len(values_concat) < nperseg:
+                print(f"\tSkipping {keys}: concatenated length {len(values_concat)} < nperseg {nperseg}.")
+                continue
+
+            ap_params = _fit_fooof(values_concat, sampling_rate, nperseg,
+                                   fooof_freq_range, fooof_aperiodic_mode)
+            if ap_params is None:
+                print(f"\tFit failed for {keys}. All trials for this subject/label/measure left unchanged.")
+                continue
+
+            subject_ap_params[keys] = ap_params
+
+        # Phase 2: whiten each trial individually using the subject-level fit
+        trial_group_cols = ["subject", "trial", "label", "measure"]
+        for keys, group_idx in dataframe.groupby(trial_group_cols, sort=False).groups.items():
+            subject, trial, label, measure = keys
+            subject_key = (subject, label, measure)
+
+            if subject_key not in subject_ap_params:
+                continue  # fit failed upstream, skip silently
+
+            group_df = dataframe.loc[group_idx].sort_values("timestamp")
+            values = group_df["value"].to_numpy(dtype=float)
+
+            whitened = _whiten_trial(values, subject_ap_params[subject_key],
+                                     sampling_rate, fooof_aperiodic_mode)
+            dataframe.loc[group_df.index, "value"] = whitened
+
+    else:
+        raise ValueError(f"fooof_type must be 'trial' or 'subject', got '{fooof_type}'.")
+
+    return dataframe
