@@ -1465,7 +1465,9 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", figsize=(12,9), title
     fig.legend(uniq_handles, uniq_labels, loc="upper right", bbox_to_anchor=(0.98, 0.98), frameon=True, ncol=1)
 
     if path_save is not None:
-        os.makedirs(op.split(path_save)[0], exist_ok=True)
+        folder = op.split(path_save)[0]
+        if folder != "":
+            os.makedirs(folder, exist_ok=True)
         plt.savefig(path_save)
 
     if show:

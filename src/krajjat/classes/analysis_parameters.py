@@ -89,6 +89,13 @@ class AnalysisParameters:
 
     # Internal parameters
     compute_permutations: bool = False
+    individuals: list = field(default_factory=list)
+    series_values: list = field(default_factory=list)
+    sequence_measures: list = field(default_factory=list)
+    audio_measures: list = field(default_factory=list)
+    labels_mocap: list = field(default_factory=list)
+    measures: list = field(default_factory=list)
+    target_measures: list = field(default_factory=list)
 
     # Misc. parameters
     verbosity: int = 1
