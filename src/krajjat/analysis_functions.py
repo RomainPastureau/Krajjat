@@ -451,7 +451,7 @@ def _common_analysis(**kwargs):
                                 perms_stack = np.stack([np.stack(
                                     randperm_values[target_measure][measure][series_value][ind][label][lag], axis=0) for
                                                         ind in params.individuals], axis=0)
-                                perms = np.nanmean(perms_stack, axis=0)
+                                perms = np.nanmean(perms_stack, axis=1)
                                 perms = perms[np.all(np.isfinite(perms), axis=1)]
 
                             avg_perms = np.nanmean(perms, axis=0)
