@@ -3050,9 +3050,15 @@ def _compute_one_perm(seed, measure_values_lag, target_values_lag, permutation_m
                                             target_psd=target_psd, measure_psd=measure_psd)
     elif analysis == "mutual information":
         from sklearn.feature_selection import mutual_info_regression as mi
-        from sklearn.preprocessing import StandardScaler as sc
-        perm_values = _compute_mutual_information(mi, sc, perm, target_values_lag, random_seed, n_neighbors, mi_scale,
-                                                  mi_direction)
+        sc = None
+        if mi_scale == "standard":
+            from sklearn.preprocessing import StandardScaler
+            sc = StandardScaler()
+        elif mi_scale == "minmax":
+            from sklearn.preprocessing import MinMaxScaler
+            sc = MinMaxScaler()
+        perm_values = _compute_mutual_information(mi, sc, perm, target_values_lag, random_seed,
+                                                  n_neighbors, mi_scale, mi_direction)
     return perm_values
 
 def _phase_randomize(array, rng):

@@ -65,6 +65,9 @@ class Results(object):
         self.z_scores = analysis_results.get("z_scores", {})
         self.p_values = analysis_results.get("p_values", {})
         self.background_fits = analysis_results.get("background_fits", {})
+        self.n_neighbors = analysis_parameters.get("n_neighbors", 3)
+        self.mi_scale = analysis_parameters.get("mi_scale", "standard")
+        self.mi_direction = analysis_parameters.get("mi_direction", "target")
 
         self.plot_dictionary = plot_dictionary
 
@@ -198,6 +201,9 @@ class Results(object):
             "signif_direction":     self.signif_direction,
             "signif_style":         self.signif_style,
             "signif_target":        self.signif_target,
+            "n_neighbors":          self.n_neighbors,
+            "mi_scale":             self.mi_scale,
+            "mi_direction":         self.mi_direction,
         }
         analysis_results = {
             "frequencies":      self.frequencies,
@@ -301,6 +307,8 @@ class Results(object):
             out.append(f"Correlation with: {', '.join(tms)}")
         elif self.analysis == "coherence":
             out.append(f"Coherence with: {', '.join(tms)}")
+        elif self.analysis == "mutual information":
+            out.append(f"Mutual information with: {', '.join(tms)}")
         if len(self.sequence_measures) == 1:
             out.append(f"Sequence measure: {self.sequence_measures[0].title()}")
         else:
