@@ -854,7 +854,7 @@ def power_spectrum(experiment_or_dataframe, method="welch", sampling_rate="auto"
 
     parallel_prefer: str|None
         Soft hint to choose the default backend for the parallelization. Sets the parameter ``prefer`` from
-        `joblib.Parallel<https://joblib.readthedocs.io/en/latest/generated/joblib.Parallel.html>`_.
+        `joblib.Parallel <https://joblib.readthedocs.io/en/latest/generated/joblib.Parallel.html>`_.
 
     specific_frequency : float|list(float)|None, optional
         Frequency (or list of frequencies) to extract from the result. If set, silhouette plots are generated.
@@ -1147,7 +1147,7 @@ def correlation(experiment_or_dataframe, method="pingouin", sampling_rate="auto"
 
     parallel_prefer: str|None
         Soft hint to choose the default backend for the parallelization. Sets the parameter ``prefer`` from
-        `joblib.Parallel<https://joblib.readthedocs.io/en/latest/generated/joblib.Parallel.html>`_.
+        `joblib.Parallel <https://joblib.readthedocs.io/en/latest/generated/joblib.Parallel.html>`_.
 
     include_audio : bool, optional
         If ``True``, includes audio signals in the set of labels to analyse.
@@ -1395,7 +1395,7 @@ def coherence(experiment_or_dataframe, sampling_rate="auto", groups=None, condit
 
     parallel_prefer: str|None
         Soft hint to choose the default backend for the parallelization. Sets the parameter ``prefer`` from
-        `joblib.Parallel<https://joblib.readthedocs.io/en/latest/generated/joblib.Parallel.html>`_.
+        `joblib.Parallel <https://joblib.readthedocs.io/en/latest/generated/joblib.Parallel.html>`_.
 
     specific_frequency : float|list(float)|None, optional
         Frequency (or list of frequencies) to extract from the result. If set, silhouette plots are generated. This
@@ -1679,7 +1679,7 @@ def mutual_information(experiment_or_dataframe, sampling_rate="auto", groups=Non
 
     parallel_prefer: str|None
         Soft hint to choose the default backend for the parallelization. Sets the parameter ``prefer`` from
-        `joblib.Parallel<https://joblib.readthedocs.io/en/latest/generated/joblib.Parallel.html>`_.
+         `joblib.Par>allel <https://joblib.readthedocs.io/en/latest/generated/joblib.Parallel.html>`_.
 
     n_neighbors: int, optional
         Number of neighbors to use for mutual information estimation. This parameter is directly passed to
@@ -1816,27 +1816,29 @@ def pca(data, n_components=0.95, groups=None, conditions=None, subjects=None, tr
     data: Experiment|pandas.DataFrame|str|list(any)|Subject|Trial|Sequence
         The data to include in the PCA. The sequences and audio measures will be included, if present. This parameter
         can be:
-        • A :class:`Experiment` instance, containing the full dataset to be analyzed.
-        • A `pandas DataFrame <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html>`_,
-          generally generated from :meth:`Experiment.get_dataframe()`.
-        • The path of a file containing a pandas DataFrame, generally generated from
-          :class:`Experiment.save_dataframe()`.
-        • A list combining any of the above types. In that case, all the dataframes will be merged sequentially.
-        • A Subject instance, containing the data for a single subject.
-        • A Trial instance, containing both Sequence and Audio data.
-        • A Sequence instance, containing the data for a single sequence.
+
+            • A :class:`Experiment` instance, containing the full dataset to be analyzed.
+            • A `pandas DataFrame <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html>`_,
+              generally generated from :meth:`Experiment.get_dataframe()`.
+            • The path of a file containing a pandas DataFrame, generally generated from
+              :class:`Experiment.save_dataframe()`.
+            • A list combining any of the above types. In that case, all the dataframes will be merged sequentially.
+            • A Subject instance, containing the data for a single subject.
+            • A Trial instance, containing both Sequence and Audio data.
+            • A Sequence instance, containing the data for a single sequence.
 
     n_components: int|float|str|None, optional
         This parameter is passed to `scikit <https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html>`_.
         As such, the same rules apply:
-        • If set on an integer, the parameter represents the number of components to generate from the PCA. This value
-          must be at least 1, but lower than the number of samples of the data, and lower than the number of channels
-          (joint labels + audio measures).
-        • If set on a string, the parameter must be equal to `"mle"`. In that case, Thomas P. Minka's method for
-          automatically choosing the dimensionality of the PCA is applied.
-        • If set on a float between 0 and 1, the parameter represents the proportion of variance explained by the PCA.
-          By default, this value is set on **0.95**.
-        • `None` sets the parameter on ``min(n_samples, n_features) - 1``.
+
+            • If set on an integer, the parameter represents the number of components to generate from the PCA. This
+              value must be at least 1, but lower than the number of samples of the data, and lower than the number of
+              channels (joint labels + audio measures).
+            • If set on a string, the parameter must be equal to `"mle"`. In that case, Thomas P. Minka's method for
+              automatically choosing the dimensionality of the PCA is applied.
+            • If set on a float between 0 and 1, the parameter represents the proportion of variance explained by the
+              PCA. By default, this value is set on **0.95**.
+            • `None` sets the parameter on ``min(n_samples, n_features) - 1``.
 
     Dataframe filtering
     ~~~~~~~~~~~~~~~~~~~

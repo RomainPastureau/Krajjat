@@ -17,11 +17,12 @@ class TestsGraphElements(unittest.TestCase):
         assert graph_plot.color == "#000000"
         assert graph_plot.label is None
 
-        graph_plot = GraphPlot(np.arange(0, 101), np.arange(0, 101), np.ones(101), 4.0, "red", "test")
+        graph_plot = GraphPlot(np.arange(0, 101), np.arange(0, 101), np.ones(101), 4.0, "-","red", "test")
         assert np.allclose(graph_plot.x, np.arange(0, 101))
         assert np.allclose(graph_plot.y, np.arange(0, 101))
         assert np.allclose(graph_plot.sd, np.ones(101))
         assert graph_plot.line_width == 4.0
+        assert graph_plot.line_style == "-"
         assert graph_plot.color == "red"
         assert graph_plot.label == "test"
 

@@ -5,8 +5,8 @@ ShoulderRight	133	230	150
 ShoulderLeft	333	230	150
 ElbowRight	98	375	150
 ElbowLeft	368	375	150
-WristRight	68	510	120
-WristLeft	398	510	120
+WristRight	62	510	120
+WristLeft	404	510	120
 HandRight	43	570	100
 HandLeft	423	570	100
 HipRight	293	550	150

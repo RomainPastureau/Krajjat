@@ -1357,6 +1357,7 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", figsize=(12,9), title
                 plt.title(key)
             else:
                 plt.title(title_audio)
+
             if xlim is not None:
                 plt.xlim(xlim)
             if ylim is not None:
@@ -1370,7 +1371,7 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", figsize=(12,9), title
                     audio_max = max(np.nanmax(p.y) for p in audio_plots)
                     margin = (audio_max - audio_min) * 0.1
                     plt.ylim([audio_min - margin, audio_max + margin])
-            else:
+            elif ylim is None:
                 plt.ylim([min_value, max_value])
 
             # Background shades
@@ -2028,6 +2029,7 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, title_silh
         pygame.display.flip()
 
         if path_save is not None:
+            os.makedirs(os.path.dirname(path_save), exist_ok=True)
             pygame.image.save(window, path_save)
             path_save = None
 

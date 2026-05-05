@@ -1,6 +1,6 @@
 Upload distribution
 -------------------
-1) cd /GitHub/find_delay/docs
+1) cd /GitHub/Krajjat/docs
    ./make html
 
 2) cd ..
