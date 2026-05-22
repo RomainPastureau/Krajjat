@@ -295,7 +295,8 @@ class AnalysisParameters:
 
         # Default nperseg
         if self.analysis == "coherence":
-            self.nperseg = self.sampling_rate / self.freq_resolution_hz
+            self.nperseg = int(round(self.sampling_rate / self.freq_resolution_hz))
+            self.actual_freq_resolution_hz = self.sampling_rate / self.nperseg
 
         if self.verbosity > 0:
             print("\tDone.")
@@ -382,19 +383,28 @@ class AnalysisParameters:
         median_diff = time_diffs.median()
         if median_diff <= 0:
             raise ValueError("Invalid or non-monotonic time values found in the dataframe.")
-        inferred_rate = 1.0 / median_diff
+        inferred_rate_raw  = 1.0 / median_diff
+
+        inferred_rate_rounded = round(inferred_rate_raw)
+        if np.isclose(inferred_rate_raw, inferred_rate_rounded, atol=tolerance):
+            inferred_rate = float(inferred_rate_rounded)
+        else:
+            inferred_rate = float(inferred_rate_raw)
 
         if self.sampling_rate == "auto":
             self.sampling_rate = inferred_rate
-
-        # Compare with provided value
-        if not np.isclose(inferred_rate, self.sampling_rate, atol=1e-2):
-            raise ValueError(f"The provided sampling_rate ({self.sampling_rate} Hz) does not match "
-                             f"inferred rate from dataframe ({inferred_rate:.2f} Hz).")
         else:
-            if self.verbosity > 0:
-                print(f"\tThe provided sampling_rate ({self.sampling_rate} Hz) matches the inferred rate from the "
-                      f"dataframe ({inferred_rate:.2f} Hz).")
+            provided_rate = float(self.sampling_rate)
+
+            # Compare with provided value
+            if not np.isclose(inferred_rate, self.sampling_rate, atol=1e-2):
+                raise ValueError(f"The provided sampling_rate ({self.sampling_rate} Hz) does not match "
+                                 f"inferred rate from dataframe ({inferred_rate:.2f} Hz).")
+            self.sampling_rate = inferred_rate
+
+        if self.verbosity > 0:
+            print(f"\tThe provided sampling_rate ({self.sampling_rate} Hz) matches the inferred rate from the "
+                  f"dataframe ({inferred_rate:.2f} Hz).")
 
     def _prepare_plot_variables(self):
         # Plot

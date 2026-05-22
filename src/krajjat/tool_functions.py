@@ -3227,8 +3227,9 @@ def load_joints_subplot_layout(joint_layout):
 
 
 def load_joints_silhouette_layout(joint_layout):
-    """Returns a dictionary of the positions and radii of the joints, and a list of the order in which to plot the
-    joints for the function :func:`plot_functions.plot_silhouette` Loads the data from
+    """Returns a dictionary of the positions and radii of the joints, of the position of the corresponding values,
+    and a list of the order in which to plot the
+    joints for the function :func:`plot_functions.plot_silhouette`. Loads the data from
     ``"res/kinect_joints_silhouette_layout.txt"``, ``"res/kualisys_joints_silhouette_layout.txt"``, or a custom file.
 
     .. versionadded:: 2.0
@@ -3238,7 +3239,9 @@ def load_joints_silhouette_layout(joint_layout):
     joint_layout: str
         The layout to load, either ``"kinect"`` or ``"qualisys"``/``"kualisys"``. This parameter can also be the path
         to a custom layout (in .txt). In that case, each line must contain a joint label, the horizontal position,
-        the vertical position and the radius of the circle to plot, all separated by a tabulation. The positions and
+        the vertical position and the radius of the circle to plot, all separated by a tabulation. Each line can be
+        complemented by two values indicating the horizontal and vertical position at where to plot the values on top
+        of the joint; if not specified, the joint position values are used. The positions and
         radius are expected to be specified in pixels. The output list of the function, which defines the order in
         which to plot the joints, is defined by the order of the joints in the file.
 
@@ -3270,7 +3273,12 @@ def load_joints_silhouette_layout(joint_layout):
 
     for line in content:
         elements = line.split("\t")
-        joints_positions[elements[0]] = (int(elements[1]), int(elements[2]), int(elements[3]))
+        if len(elements) == 4:
+            joints_positions[elements[0]] = (int(elements[1]), int(elements[2]), int(elements[3]),
+                                             int(elements[1]), int(elements[2]))
+        else:
+            joints_positions[elements[0]] = (int(elements[1]), int(elements[2]), int(elements[3]),
+                                             int(elements[4]), int(elements[5]))
         joint_layout.append(elements[0])
 
     return joints_positions, joint_layout

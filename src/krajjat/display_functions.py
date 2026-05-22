@@ -711,7 +711,7 @@ def _process_events(animation, window_area, modif_this, modif_other, seq_num, ma
                 if event.y > 0:
                     animation.set_zoom_level(animation.zoom_level + float(steps["zoom_level"]), window_area,
                                              pygame.mouse.get_pos())
-                elif event.y < 0 and animation.width_line > steps["zoom_level"]:
+                elif event.y < 0 and animation.zoom_level > steps["zoom_level"]:
                     animation.set_zoom_level(animation.zoom_level - float(steps["zoom_level"]), window_area,
                                              pygame.mouse.get_pos())
                 if verbosity > 0 and event.y != 0:
@@ -1000,7 +1000,7 @@ def save_video_sequence(sequence1, path_output, fps=25, sequence2=None, path_aud
     elif image_type == "PNG":
         codec = 'png'
     else:
-        raise Exception('Wrong value for the parameter image_type: " + str(image_type) + ". Should be "JPEG" or "PNG".')
+        raise Exception(f"Wrong value for the parameter image_type: {image_type}. Should be \"JPEG\" or \"PNG\".")
 
     if path_audio is None:
         p = Popen(['ffmpeg', '-hide_banner', '-loglevel', 'error', '-y', '-f', 'image2pipe', '-vcodec', codec, '-r',
@@ -1008,7 +1008,7 @@ def save_video_sequence(sequence1, path_output, fps=25, sequence2=None, path_aud
                   stdin=PIPE)
     else:
         wavefile = wave.open(path_audio, "rb")
-        duration_audio = wavefile.getsampwidth()/wavefile.getframerate()
+        duration_audio = wavefile.getnframes()/wavefile.getframerate()
         if duration_audio < animation1.get_duration():
             p = Popen(['ffmpeg', '-hide_banner', '-loglevel', 'error', '-y', '-f', 'image2pipe', '-vcodec', codec, '-r',
                        str(fps), '-i', '-', '-i', path_audio, '-vcodec', 'mpeg4', '-q:v', str(quality), '-r', str(fps),

@@ -229,25 +229,16 @@ def _common_analysis(**kwargs):
                                 print("\t\t\t\t\t\tLag: " + str(lag) + " s")
 
                             # Trim the arrays for the given lag
-                            sample = int(np.round(lag * params.sampling_rate))
+                            max_lag_samples = int(round(max(abs(lag) for lag in params.lags) * params.sampling_rate))
+
+                            sample = int(round(lag * params.sampling_rate))
                             n = measure_values.size
 
-                            if sample > 0:
-                                measure_values_lag = measure_values[:n - sample]
-                            elif sample == 0:
-                                measure_values_lag = measure_values
-                            else:
-                                measure_values_lag = measure_values[-sample:]
+                            start = max_lag_samples
+                            stop = n - max_lag_samples
 
-                            if target_values is not None:
-                                if sample > 0:
-                                    target_values_lag = target_values[sample:]
-                                elif sample == 0:
-                                    target_values_lag = target_values
-                                else:
-                                    target_values_lag = target_values[:n + sample]
-                            else:
-                                target_values_lag = None
+                            measure_values_lag = measure_values[start:stop]
+                            target_values_lag = target_values[start + sample:stop + sample]
 
                             # Compute the results for the real data
                             if params.analysis == "power spectrum":
@@ -466,13 +457,40 @@ def _common_analysis(**kwargs):
                                 if perms.size == 0:
                                     p = np.full_like(avg, np.nan)
                                     z = np.full_like(avg, np.nan)
+                                elif params.analysis in ["correlation", "mutual information"]:
+                                    # Stouffer's method: compute a z-score per subject against that
+                                    # subject's own permutation null, then combine. This avoids the
+                                    # sqrt(N) inflation that occurs when subject-averaging the perm
+                                    # distribution before computing its std.
+                                    relevant_individuals = (
+                                        [series_value] if (params.average == params.series
+                                                           and params.average is not None)
+                                        else params.individuals
+                                    )
+                                    per_subject_z = []
+                                    for ind in relevant_individuals:
+                                        obs_ind = analysis_values[target_measure][measure][
+                                            series_value][ind][label][lag]
+                                        perms_ind = np.asarray(
+                                            randperm_values[target_measure][measure][
+                                                series_value][ind][label][lag])
+                                        mean_perm_ind = np.nanmean(perms_ind)
+                                        std_perm_ind = np.nanstd(perms_ind)
+                                        std_perm_ind_safe = std_perm_ind if std_perm_ind > 0 else np.inf
+                                        per_subject_z.append(
+                                            (obs_ind - mean_perm_ind) / std_perm_ind_safe)
+                                    per_subject_z = np.array(per_subject_z)
+                                    n_valid = int(np.sum(np.isfinite(per_subject_z)))
+                                    z = (np.nansum(per_subject_z) / np.sqrt(n_valid)
+                                         if n_valid > 0 else np.nan)
+                                    p = 2 * stats.norm.sf(np.abs(z))
                                 else:
                                     avg_perms_z = np.nanmean(perms, axis=0)
                                     sd_perms_z = np.nanstd(perms, axis=0)
                                     sd_perms_safe = np.where(sd_perms_z == 0, np.inf, sd_perms_z)
                                     z = (avg - avg_perms_z) / sd_perms_safe
-                                    p = (np.sum(np.abs(perms - avg_perms_z) >= np.abs(avg - avg_perms_z), axis=0) + 1) / (
-                                                perms.shape[0] + 1)
+                                    p = (np.sum(np.abs(perms - avg_perms_z) >= np.abs(avg - avg_perms_z),
+                                                axis=0) + 1) / (perms.shape[0] + 1)
 
                                 set_nested_dict(z_scores, [target_measure, measure, series_value, label, lag], z)
                                 set_nested_dict(p_values, [target_measure, measure, series_value, label, lag], p)
@@ -2896,14 +2914,14 @@ def _compute_coherence(measure_values, target_values, frequencies, sampling_rate
                        target_psd=None, measure_psd=None):
     if target_psd is not None and measure_psd is not None:
         # Both PSDs precomputed — only CSD needed (saves one Welch call per permutation)
-        freqs, Pxy = signal.csd(measure_values, target_values, fs=sampling_rate, nperseg=int(nperseg))
+        freqs, Pxy = signal.csd(measure_values, target_values, fs=sampling_rate, nperseg=int(round(nperseg)))
         denom = measure_psd * target_psd
         with np.errstate(invalid="ignore", divide="ignore"):
             coh = np.where(denom > 0, np.abs(Pxy) ** 2 / denom, np.nan)
     elif target_psd is not None:
         # Partial cache: target PSD precomputed, measure PSD still needed
-        f, Pxx = signal.welch(measure_values, fs=sampling_rate, nperseg=int(nperseg))
-        _, Pxy = signal.csd(measure_values, target_values, fs=sampling_rate, nperseg=int(nperseg))
+        f, Pxx = signal.welch(measure_values, fs=sampling_rate, nperseg=int(round(nperseg)))
+        _, Pxy = signal.csd(measure_values, target_values, fs=sampling_rate, nperseg=int(round(nperseg)))
         denom = Pxx * target_psd
         with np.errstate(invalid="ignore", divide="ignore"):
             coh = np.where(denom > 0, np.abs(Pxy) ** 2 / denom, np.nan)
@@ -2911,7 +2929,7 @@ def _compute_coherence(measure_values, target_values, frequencies, sampling_rate
     else:
         # No precomputed PSDs — standard path (real coherence computation, non-permutation)
         freqs, coh = signal.coherence(measure_values, target_values, fs=sampling_rate,
-                                      nperseg=int(nperseg))
+                                      nperseg=int(round(nperseg)))
 
     if len(coh) == 0:
         coh = np.tile(np.nan, int(nperseg // 2 + 1))
@@ -2920,6 +2938,7 @@ def _compute_coherence(measure_values, target_values, frequencies, sampling_rate
         frequencies = freqs
 
     return frequencies, coh
+
 
 def _compute_mutual_information(mi, sc, measure_values, target_values, random_state, n_neighbors, scale, direction):
 
@@ -2965,7 +2984,7 @@ def _compute_label_perms(parent_seed, number_of_randperms, measure_values,
     if (analysis == "coherence" and
             permutation_method in ("shift", "phase", "label") and
             nperseg is not None):
-        _, measure_psd = signal.welch(measure_values, fs=sampling_rate, nperseg=int(nperseg))
+        _, measure_psd = signal.welch(measure_values, fs=sampling_rate, nperseg=int(round(nperseg)))
     else:
         measure_psd = None
 
@@ -2989,7 +3008,7 @@ def _compute_label_perms(parent_seed, number_of_randperms, measure_values,
         if (analysis == "coherence" and
                 permutation_method in ("shift", "phase", "label") and
                 nperseg is not None and target_values_lag is not None):
-            _, target_psd = signal.welch(target_values_lag, fs=sampling_rate, nperseg=int(nperseg))
+            _, target_psd = signal.welch(target_values_lag, fs=sampling_rate, nperseg=int(round(nperseg)))
         else:
             target_psd = None
 

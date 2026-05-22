@@ -8,37 +8,37 @@ ShoulderBackRight	158	225	100
 ArmRight	108	315	100
 BackRight	183	340	100
 ElbowRight	103	365	100
-WristOutRight	78	520	50
-WristInRight	48	510	50
-HandOutRight	63	575	50
-HandInRight	28	575	50
+WristOutRight	78	520	50	78	530
+WristInRight	48	510	50	48	500
+HandOutRight	63	575	50	63	585
+HandInRight	28	575	50	28	565
 ShoulderTopLeft	333	195	100
 ShoulderBackLeft	308	225	100
 Chest	233	250	100
 ArmLeft	358	315	100
 BackLeft	283	340	100
 ElbowLeft	363	365	100
-WristOutLeft	388	520	50
-WristInLeft	418	510	50
-HandOutLeft	403	575	50
-HandInLeft	438	575	50
+WristOutLeft	388	520	50	388	530
+WristInLeft	418	510	50	418	500
+HandOutLeft	403	575	50	403	585
+HandInLeft	438	575	50	438	565
 WaistBackRight	148	500	100
 WaistFrontRight	143	540	100
 ThighRight	173	635	100
 KneeRight	168	750	100
 ShinRight	163	865	100
-AnkleRight	153	990	50
-HeelRight	173	1000	50
-ForefootOutRight	148	1030	50
-ForefootInRight	188	1030	50
+AnkleRight	153	990	50	153	980
+HeelRight	173	1000	50	193	1000
+ForefootOutRight	148	1030	50	138	1020
+ForefootInRight	188	1030	50	198	1040
 ToetipRight	173	1070	50
 WaistBackLeft	318	500	100
 WaistFrontLeft	323	540	100
 ThighLeft	293	635	100
 KneeLeft	298	750	100
 ShinLeft	303	865	100
-AnkleLeft	313	990	50
-HeelLeft	293	1000	50
-ForefootOutLeft	318	1030	50
-ForefootInLeft	278	1030	50
+AnkleLeft	313	990	50	313	980
+HeelLeft	293	1000	50	273	1000
+ForefootOutLeft	318	1030	50	328	1020
+ForefootInLeft	278	1030	50	268	1040
 ToetipLeft	293	1070	50

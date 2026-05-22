@@ -275,7 +275,13 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
     if figure_background_color is not None:
         fig.patch.set_facecolor(convert_color(figure_background_color, "hex", False))
     fig.subplots(len(measures), 1)  # figsize=(12, 9))
-    fig.subplots_adjust(left=0.15, bottom=0.1, right=0.97, top=0.9, wspace=0.3, hspace=0.6)
+    left = mpl_kwargs.pop("left", 0.15)
+    bottom = mpl_kwargs.pop("bottom", 0.1)
+    right = mpl_kwargs.pop("right", 0.97)
+    top = mpl_kwargs.pop("top", 0.9)
+    wspace = mpl_kwargs.pop("wspace", 0.3)
+    hspace = mpl_kwargs.pop("hspace", 0.6)
+    fig.subplots_adjust(left, bottom, right, top, wspace, hspace)
 
     # Plot x, y, z, distance travelled and velocities
     parameters = {"rotation": "horizontal", "horizontalalignment": "right", "verticalalignment": "center",
@@ -1012,12 +1018,14 @@ def audio_plotter(audio, filter_below=None, filter_over=None, number_of_formants
     return fig
 
 def plot_body_graphs(plot_dictionary, joint_layout="auto", figsize=(12,9), title=None, min_scale=None, max_scale=None,
-                     show_scale=False, title_scale=None, xlim=None, ylim=None, shaded_error_bars=True,
+                     show_scale=False, title_scale=None, xlim=None, ylim=None, x_scale_log=False, x_label=None,
+                     y_label=None, shaded_error_bars=True,
                      overlay_lines=None, overlay_lines_width=2, overlay_lines_color="red", overlay_lines_style="-",
                      background_shades=None, background_shades_color="#ff000080", alpha_error_bars=0.4,
                      signif_marker=None, signif_marker_values=None, signif_marker_size=10, signif_marker_color="black",
-                     signif_marker_offset=0.02, signif_marker_x_positions=None, color_scheme="default",
-                     title_audio="Audio", full_screen=False, show=True, path_save=None):
+                     signif_marker_offset=0.02, signif_marker_x_positions=None, color_scheme="default", legend=True,
+                     title_audio="Audio", full_screen=False, show=True, path_save=None, close_fig=False,
+                     sns_kwargs=None, mpl_kwargs=None):
     """Creates multiple subplots placed so that each joint is roughly placed where it is located on the body. The
     values of each subplot are taken from the parameter ``plot_dictionary``, and the positions from the layout
     differ between Kinect and Kualisys systems.
@@ -1070,6 +1078,15 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", figsize=(12,9), title
 
     ylim: list(float, float)|None, optional
         If set, defines the lower and upper limits of the y-axis of the sub-graphs (default: None).
+
+    x_scale_log: bool, optional
+        If set on `True`, sets tje horizontal scale to be logarithmic (default: `False`).
+
+    x_label: str|None, optional
+        If set, the graph will display a label on the horizontal axis of the first sub-plot.
+
+    y_label: str|None, optional
+        If set, the graph will display a label on the vertical axis of the first sub-plot.
 
     shaded_error_bars: bool, optional
         Shows shaded error bars for each plot if the standard deviation is part of the plot_dictionary. Default: True.
@@ -1147,6 +1164,9 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", figsize=(12,9), title
         The color scheme to use for the color scale. This color scheme should be coherent with the colors defined in
         the ``plot_dictionary``.
 
+    legend: bool, optional
+        Show the legend on the top right of the figure.
+
     title_audio: str or None, optional
         The title to give to the sub-plot that matches the key ``"Audio"`` from the ``plot_dictionary``. This sub-plot
         is located in the top-left corner of the plot, and is not scaled the same way as the other plots. By default,
@@ -1162,6 +1182,13 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", figsize=(12,9), title
 
     path_save: str or None
         If not `None`, the function saves the obtained graph at the given path.
+
+    sns_kwargs: dict
+        Any of the parameters accepted by seaborn.
+
+    mpl_kwargs: dict
+        Any of the parameters accepted by
+        `matplotlib.pyplot.plot <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html>`_.
 
     Example
     -------
@@ -1200,7 +1227,10 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", figsize=(12,9), title
         joints_positions = load_joints_subplot_layout(joint_layout)
 
     # Figure parameters
-    sns.set_theme(font_scale=0.8)
+    sns_kw = {"font_scale": 0.8}
+    if sns_kwargs is not None:
+        sns_kw.update(sns_kwargs)
+    sns.set_theme(**sns_kw)
     plt.rcParams["figure.figsize"] = figsize
 
     # plt.rcParams["font.size"] = 7
@@ -1213,15 +1243,34 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", figsize=(12,9), title
 
     for i in range(len(joints_positions)):
         for j in range(len(joints_positions[i])):
-            if joints_positions[i][j].lower() in ["audio", "envelope", "pitch", "intensity", "f1", "f2"]:
+            if (joints_positions[i][j] is not None and
+                    joints_positions[i][j].lower() in ["audio", "envelope", "pitch", "intensity", "f1", "f2"]):
                 joints_positions[i][j] = "Audio"
 
     fig, axes = plt.subplots(nrows=rows, ncols=cols, squeeze=False)  # constrained_layout=True)
+
+    if mpl_kwargs is None:
+        mpl_kwargs = {}
+    left = mpl_kwargs.pop("left", 0.03)
+    bottom = mpl_kwargs.pop("bottom", 0.03)
+    right = mpl_kwargs.pop("right", 0.97)
     if title is not None:
-        plt.subplots_adjust(left=0.03, bottom=0.03, right=0.97, top=0.93, wspace=0.3, hspace=0.8)
+        top = mpl_kwargs.pop("top", 0.93)
         fig.suptitle(title, fontsize="x-large", fontweight="bold")
     else:
-        plt.subplots_adjust(left=0.03, bottom=0.03, right=0.97, top=0.97, wspace=0.3, hspace=0.8)
+        top = mpl_kwargs.pop("top", 0.97)
+    wspace = mpl_kwargs.pop("wspace", 0.3)
+    hspace = mpl_kwargs.pop("hspace", 0.8)
+    fig.subplots_adjust(left, bottom, right, top, wspace, hspace)
+
+    tick_pad = mpl_kwargs.pop("tick_pad", None)
+    title_pad = mpl_kwargs.pop("title_pad", None)
+    title_weight = mpl_kwargs.pop("title_weight", None)
+    xtick_step = mpl_kwargs.pop("xtick_step", None)
+    ytick_step = mpl_kwargs.pop("ytick_step", None)
+    tight_layout = mpl_kwargs.pop("tight_layout", False)
+    xlabel_pad = mpl_kwargs.pop("xlabel_pad", None)
+    ylabel_pad = mpl_kwargs.pop("ylabel_pad", None)
 
     if full_screen:
         manager = plt.get_current_fig_manager()
@@ -1348,15 +1397,23 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", figsize=(12,9), title
             if joints_positions[i][j] is not None and joints_positions[i][j] != "":
                 joints_subplot_no[joints_positions[i][j]] = i * cols + j + 1
 
+    first_joint = next((joint for row in joints_positions for joint in row if joint is not None and joint != ""
+                        and joint in plot_dictionary), None)
+    first_ax = None
+
     # Plot the subplots
     for key in plot_dictionary.keys():
         if key in joints_subplot_no:
             plt.subplot(rows, cols, joints_subplot_no[key])
             if key != "Audio":  # We want to scale everything apart from the audio
+                if np.isnan(min_value) or np.isinf(min_value):
+                    min_value = 0.0
+                if np.isnan(max_value) or np.isinf(max_value):
+                    max_value = 1.0
                 plt.ylim([min_value, max_value])
-                plt.title(key)
+                plt.title(key, pad=title_pad if title_pad is not None else 6, fontweight=title_weight)
             else:
-                plt.title(title_audio)
+                plt.title(title_audio, pad=title_pad if title_pad is not None else 6, fontweight=title_weight)
 
             if xlim is not None:
                 plt.xlim(xlim)
@@ -1425,12 +1482,36 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", figsize=(12,9), title
                     plt.fill_between(subplot.x, subplot.y - subplot.sd, subplot.y + subplot.sd,
                                      alpha=alpha_error_bars, facecolor=line.get_color())
 
+            if key == first_joint:
+                if x_label is not None:
+                    plt.xlabel(x_label, fontsize=10)
+                if y_label is not None:
+                    plt.ylabel(y_label, fontsize=10)
+                first_ax = plt.gca()  # capture the actual active axis
+
     # Delete unused axes
     for i in range(rows):
         for j in range(cols):
             if j >= len(joints_positions[i]) or joints_positions[i][j] == "" or joints_positions[i][j] is None or \
                joints_positions[i][j] not in joints_subplot_no or joints_positions[i][j] not in plot_dictionary:
                 fig.delaxes(axes[i][j])
+
+    # Log scale
+    if x_scale_log:
+        for ax in fig.get_axes():
+            ax.set_xscale("log")
+
+    for ax in fig.get_axes():
+        if tick_pad is not None:
+            ax.tick_params(axis="both", pad=tick_pad)
+        if xtick_step is not None and ax.get_xlim()[1] > 0:
+            x_min, x_max = ax.get_xlim()
+            ax.set_xticks(np.arange(math.ceil(x_min), math.floor(x_max) + 1, xtick_step))
+    if first_ax is not None:
+        if xlabel_pad is not None and x_label is not None:
+            first_ax.xaxis.labelpad = xlabel_pad
+        if ylabel_pad is not None and y_label is not None:
+            first_ax.yaxis.labelpad = ylabel_pad
 
     # Get colors
     color_list = calculate_color_points_on_gradient(color_scheme, 100)
@@ -1463,7 +1544,11 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", figsize=(12,9), title
             uniq_labels.append(l)
 
     # Unified legend
-    fig.legend(uniq_handles, uniq_labels, loc="upper right", bbox_to_anchor=(0.98, 0.98), frameon=True, ncol=1)
+    if legend:
+        fig.legend(uniq_handles, uniq_labels, loc="upper right", bbox_to_anchor=(0.98, 0.98), frameon=True, ncol=1)
+
+    if tight_layout:
+        plt.tight_layout()
 
     if path_save is not None:
         folder = op.split(path_save)[0]
@@ -1474,7 +1559,8 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", figsize=(12,9), title
     if show:
         plt.show()
 
-    plt.close()
+    if close_fig:
+        plt.close()
 
     return fig
 
@@ -1786,12 +1872,14 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, title_silh
     values_to_plot = {}
     circle_positions = {}
     circle_text_colors = {}
+    values_positions = {}
 
     for joint in plot_dictionary.keys():
         if joint in joints_positions.keys():
             circles[joint] = []
             values_to_plot[joint] = []
             circle_positions[joint] = []
+            values_positions[joint] = []
             circle_text_colors[joint] = []
             for value in plot_dictionary[joint]:
 
@@ -1800,6 +1888,7 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, title_silh
                     values_to_plot[joint].append(None)
                     circle_text_colors[joint].append(None)
                     circle_positions[joint].append((0, 0))
+                    values_positions[joint].append((0, 0))
                     continue
 
                 ratio = (value - min_scale) / (max_scale - min_scale)  # Get the ratio of the max value
@@ -1807,9 +1896,9 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, title_silh
                 color_edge = (color_in[0], color_in[1], color_in[2], 0)
 
                 if values_ndigits == 0:
-                    v = int(round(value, 0))
+                    v = f"{int(round(value, 0))}"
                 else:
-                    v = round(value, values_ndigits)
+                    v = f"{value:.{values_ndigits}f}"
 
                 circle_text_colors[joint].append(font_values.render(str(v), True, color_values))
                 values_to_plot[joint].append(font_scale.render(str(joint) + ": " + str(v), True, font_color))
@@ -1819,13 +1908,18 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, title_silh
                 radius = joints_positions[joint][2] * joint_scale
                 pos_x = joints_positions[joint][0] * joint_scale
                 pos_y = joints_positions[joint][1] * joint_scale
+                pos_value_x = joints_positions[joint][3] * joint_scale
+                pos_value_y = joints_positions[joint][4] * joint_scale
 
                 for i in range(number_of_silhouettes):
                     col = i % actual_n_cols
                     row = i // actual_n_cols
                     absolute_pos_x = pos_x + silhouette_x + col * (silhouette_width + pixels_between_silhouettes) - radius
                     absolute_pos_y = pos_y + silhouette_y + row * (silhouette_height + pixels_between_silhouettes) - radius
+                    absolute_pos_value_x = pos_value_x + silhouette_x + col * (silhouette_width + pixels_between_silhouettes) - radius
+                    absolute_pos_value_y = pos_value_y + silhouette_y + row * (silhouette_height + pixels_between_silhouettes) - radius
                     circle_positions[joint].append((absolute_pos_x, absolute_pos_y))
+                    values_positions[joint].append((absolute_pos_value_x, absolute_pos_value_y))
 
                 circles[joint].append(gradients.radial(int(radius), color_in, color_edge))
 
@@ -2010,9 +2104,9 @@ def plot_silhouette(plot_dictionary, joint_layout="auto", title=None, title_silh
                         if not np.isnan(plot_dictionary[joint][i]):
                             joint_scale = silhouette_height / 1080
                             radius = joints_positions[joint][2] * joint_scale
-                            cx = (circle_positions[joint][i][0] + radius -
+                            cx = (values_positions[joint][i][0] + radius -
                                   circle_text_colors[joint][i].get_width() / 2)
-                            cy = (circle_positions[joint][i][1] + radius -
+                            cy = (values_positions[joint][i][1] + radius -
                                   circle_text_colors[joint][i].get_height() / 2)
                             window.blit(circle_text_colors[joint][i], (cx, cy))
 
