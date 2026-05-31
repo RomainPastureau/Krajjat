@@ -4,6 +4,16 @@ import os
 import numpy as np
 from datetime import datetime, timedelta
 from pathlib import Path
+import gzip
+
+def _open_json_text(path, mode="rt"):
+    """Open regular JSON or gzipped JSON transparently."""
+    path = Path(path)
+
+    if path.suffix in [".gz", ".gzip"]:
+        return gzip.open(path, mode, encoding="utf-8")
+
+    return open(path, mode, encoding="utf-8")
 
 
 class Results(object):
@@ -224,52 +234,52 @@ class Results(object):
             "duration":            Results._encode(self.duration),
         }
 
-    def save(self, path):
-        """Save the Results object to a JSON file.
-
-        Parameters
-        ----------
-        path : str or Path
-            Destination file path. The appropriate extension is added automatically
-            if not already present.
-
-        Examples
-        --------
-        >>> out.save("results/coherence_velocity.json")           # JSON, lossless
-        """
+    def save(self, path, compact=False, compressed=False, include_plot_dictionary=True):
         path = Path(path)
-        if path.suffix != ".json":
-            path = path.with_suffix(".json")
+
+        if compressed:
+            if path.suffix not in {".gz", ".gzip"}:
+                if path.suffix == ".json":
+                    path = path.with_suffix(".json.gzip")
+                else:
+                    path = path.with_suffix(path.suffix + ".gzip")
+        else:
+            if path.suffix != ".json":
+                path = path.with_suffix(".json")
+
         os.makedirs(path.parent, exist_ok=True)
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(self._build_payload(), f, indent=2, ensure_ascii=False)
+
+        payload = self._build_payload()
+
+        if not include_plot_dictionary:
+            payload.pop("plot_dictionary", None)
+
+        with _open_json_text(path, "wt") as f:
+            if compact:
+                json.dump(payload, f, separators=(",", ":"), ensure_ascii=False)
+            else:
+                json.dump(payload, f, indent=2, ensure_ascii=False)
+
         print(f"Results saved to {path}")
 
     @classmethod
     def load(cls, path):
         """Load a Results object previously saved with :meth:`Results.save`.
-        The loaded object includes the full plot dictionary and can be passed directly to :func:`plot_body_graphs`.
 
-        Parameters
-        ----------
-        path : str or Path
-            Path to the ``.json`` file.
-
-        Returns
-        -------
-        Results
-
-        Examples
-        --------
-        >>> out = Results.load("results/coherence_velocity.json")
-        >>> print(out)
-        >>> plot_body_graphs(out.plot_dictionary, ...)
+        Supports both:
+        - .json
+        - .gz
+        - .gzip
         """
         path = Path(path)
-        if path.suffix != ".json":
+
+        # Preserve old behavior only when no useful suffix is provided.
+        if path.suffix == "":
             path = path.with_suffix(".json")
 
-        with open(path, "r", encoding="utf-8") as f:
+        # If the user passes "file.gz", assume it is already intentional.
+        # If the user passes "file.json.gz", keep it as-is.
+        with _open_json_text(path, "rt") as f:
             raw = json.load(f)
 
         version = raw.get("krajjat_results_version", 1)
@@ -277,10 +287,13 @@ class Results(object):
             raise ValueError(f"Unsupported results file version: {version}")
 
         analysis_parameters = cls._decode(raw["analysis_parameters"])
-        analysis_results    = cls._decode(raw["analysis_results"])
-        plot_dictionary     = cls._decode(raw["plot_dictionary"])
-        timestamp           = cls._decode(raw["timestamp"])
-        duration            = cls._decode(raw["duration"])
+        analysis_results = cls._decode(raw["analysis_results"])
+
+        # Important: allow lightweight files without plot_dictionary.
+        plot_dictionary = cls._decode(raw.get("plot_dictionary", {}))
+
+        timestamp = cls._decode(raw["timestamp"])
+        duration = cls._decode(raw["duration"])
 
         return cls(analysis_parameters, analysis_results, plot_dictionary, timestamp, duration)
 

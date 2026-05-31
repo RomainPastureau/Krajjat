@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import itertools
-from typing import Any, Sequence
+from typing import Any, Sequence, Callable
 from numbers import Number
 
 import numpy as np
@@ -46,6 +46,7 @@ class AnalysisParameters:
 
     # Specific analyses parameters
     freq_resolution_hz: Number = 0.25
+    detrend: str | Callable | bool = "constant"
     fit_background: bool = False
     background_lower_freq: float | None = None
     n_neighbors: Number = 3

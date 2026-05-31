@@ -21,7 +21,8 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
                                   window_length=7, poly_order=None, nperseg=None, welch_window="hann", align=True,
                                   timestamp_start=None, timestamp_end=None, xlim=None, ylim=None, time_format=True,
                                   figure_background_color=None, graph_background_color=None, line_color=None,
-                                  line_width=1.0, show=True, path_save=None, verbosity=1, **kwargs):
+                                  line_width=1.0, show=True, path_save=None, verbosity=1, sns_kwargs=None, 
+                                  mpl_kwargs=None):
     """Plots the x, y, z positions across time of the joint of one or more sequences, along with the distance travelled,
     velocity and absolute variations of acceleration.
 
@@ -270,6 +271,9 @@ def single_joint_movement_plotter(sequence_or_sequences, joint_label="HandRight"
 
     sns.set_theme()
     plt.rcParams["figure.figsize"] = (12, 9)
+    
+    if mpl_kwargs is None:
+        mpl_kwargs = {}
 
     fig = plt.figure()
     if figure_background_color is not None:
@@ -1286,6 +1290,8 @@ def plot_body_graphs(plot_dictionary, joint_layout="auto", figsize=(12,9), title
         max_value = max_scale
 
     def _to_graphplot(item, kind, ii):
+        if isinstance(item, str) and item.lower() in ("inf", "+inf", "-inf"):
+            item = float(item)
         if isinstance(item, (int, float)):
             if kind == "line":
                 return GraphPlot(None, item, None, overlay_lines_width[ii[1]], overlay_lines_style[ii[2]],

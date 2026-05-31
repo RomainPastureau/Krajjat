@@ -249,7 +249,7 @@ def _common_analysis(**kwargs):
                             elif params.analysis == "coherence":
                                 frequencies, results = _compute_coherence(measure_values_lag, target_values_lag,
                                                                           frequencies, params.sampling_rate,
-                                                                          params.nperseg)
+                                                                          params.nperseg, params.detrend)
                             elif params.analysis == "mutual information":
                                 results = _compute_mutual_information(mi, sc, measure_values_lag, target_values_lag,
                                                                       params.random_seed, params.n_neighbors,
@@ -310,6 +310,7 @@ def _common_analysis(**kwargs):
                             analysis=params.analysis,
                             method=params.method,
                             nperseg=params.nperseg if hasattr(params, "nperseg") else None,
+                            detrend=params.detrend,
                             frequencies=frequencies,
                             precomputed_perms_by_lag=task["precomputed_perms_by_lag"],
                             random_seed=params.random_seed,
@@ -1239,7 +1240,8 @@ def coherence(experiment_or_dataframe, sampling_rate="auto", groups=None, condit
               subjects=None, trials=None, sequence_measure="distance", audio_measure="envelope",
               coherence_with="envelope", series=None, average=None, lags=None, result_type="z-scores",
               permutation_method="value", number_of_randperms=1000, n_jobs=1, parallel_prefer=None,
-              specific_frequency=None, freq_atol=1e-8, freq_resolution_hz=0.25, include_audio=False, random_seed=None,
+              specific_frequency=None, freq_atol=1e-8, freq_resolution_hz=0.25, detrend="constant", include_audio=False,
+              random_seed=None,
               signif_style="threshold", signif_alpha=0.05, signif_tail="1", signif_direction="up",
               color_line_series=None, color_line_perm=None, title=None, line_width=1, verbosity=1, **kwargs):
     """Calculates and plots the coherence between measures.
@@ -1425,6 +1427,10 @@ def coherence(experiment_or_dataframe, sampling_rate="auto", groups=None, condit
     freq_resolution_hz: int or float, optional
         Defines how large each frequency segment will be for the analysis. If set on 0.25 (default), the coherence
         will be calculated at intervals of 0.25 Hz.
+
+    detrend: bool|str|function, optional
+        How to detrend the signal before the coherence. Accepts any value valid for
+        `scipy <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.detrend.html>`_ (default: "constant").
 
     include_audio : bool, optional
         If ``True``, includes audio signals in the set of labels to analyse.
@@ -2910,18 +2916,20 @@ def _compute_correlation(pg, method, measure_values, target_values):
     return results
 
 
-def _compute_coherence(measure_values, target_values, frequencies, sampling_rate, nperseg,
+def _compute_coherence(measure_values, target_values, frequencies, sampling_rate, nperseg, detrend,
                        target_psd=None, measure_psd=None):
     if target_psd is not None and measure_psd is not None:
         # Both PSDs precomputed — only CSD needed (saves one Welch call per permutation)
-        freqs, Pxy = signal.csd(measure_values, target_values, fs=sampling_rate, nperseg=int(round(nperseg)))
+        freqs, Pxy = signal.csd(measure_values, target_values, fs=sampling_rate, nperseg=int(round(nperseg)),
+                                detrend=detrend)
         denom = measure_psd * target_psd
         with np.errstate(invalid="ignore", divide="ignore"):
             coh = np.where(denom > 0, np.abs(Pxy) ** 2 / denom, np.nan)
     elif target_psd is not None:
         # Partial cache: target PSD precomputed, measure PSD still needed
-        f, Pxx = signal.welch(measure_values, fs=sampling_rate, nperseg=int(round(nperseg)))
-        _, Pxy = signal.csd(measure_values, target_values, fs=sampling_rate, nperseg=int(round(nperseg)))
+        f, Pxx = signal.welch(measure_values, fs=sampling_rate, nperseg=int(round(nperseg)), detrend=detrend)
+        _, Pxy = signal.csd(measure_values, target_values, fs=sampling_rate, nperseg=int(round(nperseg)),
+                            detrend=detrend)
         denom = Pxx * target_psd
         with np.errstate(invalid="ignore", divide="ignore"):
             coh = np.where(denom > 0, np.abs(Pxy) ** 2 / denom, np.nan)
@@ -2929,7 +2937,7 @@ def _compute_coherence(measure_values, target_values, frequencies, sampling_rate
     else:
         # No precomputed PSDs — standard path (real coherence computation, non-permutation)
         freqs, coh = signal.coherence(measure_values, target_values, fs=sampling_rate,
-                                      nperseg=int(round(nperseg)))
+                                      nperseg=int(round(nperseg)), detrend=detrend)
 
     if len(coh) == 0:
         coh = np.tile(np.nan, int(nperseg // 2 + 1))
@@ -2970,7 +2978,7 @@ def _compute_mutual_information(mi, sc, measure_values, target_values, random_st
 def _compute_label_perms(parent_seed, number_of_randperms, measure_values,
                           target_values, lags, sampling_rate,
                           permutation_method, analysis, method,
-                          nperseg, frequencies,
+                          nperseg, detrend, frequencies,
                           precomputed_perms_by_lag,
                           random_seed, n_neighbors, mi_scale, mi_direction):
     """Compute all permutations for a single label, across all lags.
@@ -3025,6 +3033,7 @@ def _compute_label_perms(parent_seed, number_of_randperms, measure_values,
                 method=method,
                 sampling_rate=sampling_rate,
                 nperseg=nperseg,
+                detrend=detrend,
                 frequencies=frequencies,
                 precomputed_perm=precomputed_perms[p] if precomputed_perms is not None else None,
                 target_psd=target_psd,
@@ -3042,7 +3051,7 @@ def _compute_label_perms(parent_seed, number_of_randperms, measure_values,
 
 
 def _compute_one_perm(seed, measure_values_lag, target_values_lag, permutation_method, analysis, method, sampling_rate,
-                      nperseg, frequencies, precomputed_perm=None, target_psd=None, measure_psd=None, random_seed=None,
+                      nperseg, detrend, frequencies, precomputed_perm=None, target_psd=None, measure_psd=None, random_seed=None,
                       n_neighbors=3, mi_scale=None, mi_direction="target"):
     perm_rng = np.random.default_rng(seed)
 
@@ -3067,7 +3076,7 @@ def _compute_one_perm(seed, measure_values_lag, target_values_lag, permutation_m
         import pingouin as pg
         perm_values = _compute_correlation(pg, method, perm, target_values_lag)
     elif analysis == "coherence":
-        _, perm_values = _compute_coherence(perm, target_values_lag, frequencies, sampling_rate, nperseg,
+        _, perm_values = _compute_coherence(perm, target_values_lag, frequencies, sampling_rate, nperseg, detrend,
                                             target_psd=target_psd, measure_psd=measure_psd)
     elif analysis == "mutual information":
         from sklearn.feature_selection import mutual_info_regression as mi
