@@ -20,7 +20,7 @@ class TestsAudioDerivatives(unittest.TestCase):
 
         # Envelope
         audio = Audio("test_audios/test_audio_1.wav", verbosity=0)
-        envelope = audio.get_envelope(filter_over=50, verbosity=0)
+        envelope = audio.get_envelope(filter_above=50, verbosity=0)
 
         for ext in extensions:
             envelope.save("test_envelopes/test_audio_1_envelope." + ext, verbosity=0)
@@ -157,7 +157,7 @@ class TestsAudioDerivatives(unittest.TestCase):
 
         audio = Audio("test_audios/test_audio_1.wav", verbosity=0)
         audio_t = audio.trim(0, 0.1, verbosity=0)
-        formant = audio_t.get_formant(formant_number=2, filter_over=50, verbosity=0)
+        formant = audio_t.get_formant(formant_number=2, filter_above=50, verbosity=0)
         formant.save("test_formants/test_audio_4_f2.xlsx", verbosity=0)
         formant = Formant("test_formants/test_audio_4_f2.xlsx", verbosity=0)
         assert len(formant.samples) == 4411
@@ -190,16 +190,16 @@ class TestsAudioDerivatives(unittest.TestCase):
         assert formant.name == "formant_1"
 
         audio = Audio("test_audios/test_audio_1.wav", verbosity=0)
-        envelope = audio.get_envelope(filter_over=50, verbosity=0)
+        envelope = audio.get_envelope(filter_above=50, verbosity=0)
         envelope.set_name("env_2")
         assert envelope.name == "env_2"
-        pitch = audio.get_pitch(filter_over=50, verbosity=0)
+        pitch = audio.get_pitch(filter_above=50, verbosity=0)
         pitch.set_name("pitch_2")
         assert pitch.name == "pitch_2"
-        intensity = audio.get_intensity(filter_over=50, verbosity=0)
+        intensity = audio.get_intensity(filter_above=50, verbosity=0)
         intensity.set_name("intensity_2")
         assert intensity.name == "intensity_2"
-        formant = audio.get_formant(formant_number=1, filter_over=50, verbosity=0)
+        formant = audio.get_formant(formant_number=1, filter_above=50, verbosity=0)
         formant.set_name("formant_2")
 
     def test_set_condition(self):
@@ -218,16 +218,16 @@ class TestsAudioDerivatives(unittest.TestCase):
         assert formant.condition == "cond_1"
 
         audio = Audio("test_audios/test_audio_1.wav", verbosity=0)
-        envelope = audio.get_envelope(filter_over=50, verbosity=0)
+        envelope = audio.get_envelope(filter_above=50, verbosity=0)
         envelope.set_condition("cond_2")
         assert envelope.condition == "cond_2"
-        pitch = audio.get_pitch(filter_over=50, verbosity=0)
+        pitch = audio.get_pitch(filter_above=50, verbosity=0)
         pitch.set_condition("cond_2")
         assert pitch.condition == "cond_2"
-        intensity = audio.get_intensity(filter_over=50, verbosity=0)
+        intensity = audio.get_intensity(filter_above=50, verbosity=0)
         intensity.set_condition("cond_2")
         assert intensity.condition == "cond_2"
-        formant = audio.get_formant(formant_number=1, filter_over=50, verbosity=0)
+        formant = audio.get_formant(formant_number=1, filter_above=50, verbosity=0)
         formant.set_condition("cond_2")
 
     def test_define_name_init(self):
@@ -527,7 +527,7 @@ class TestsAudioDerivatives(unittest.TestCase):
 
     def test_filter_frequencies(self):
         envelope = Envelope("test_envelopes/test_audio_1_envelope.wav", verbosity=0)
-        envelope_ff = envelope.filter_frequencies(filter_below=10, filter_over=3000, name="ff", verbosity=0)
+        envelope_ff = envelope.filter_frequencies(filter_below=10, filter_above=3000, name="ff", verbosity=0)
         assert np.allclose(envelope_ff.samples[0:8], [-4837.99812712, -4813.27839174, -4781.24726369, -4743.11218948,
                                                          -4700.37958566, -4654.51169394, -4606.74436175,
                                                       -4558.01837946])
@@ -535,7 +535,7 @@ class TestsAudioDerivatives(unittest.TestCase):
         assert envelope_ff.get_name() == "ff"
 
         pitch = Pitch("test_pitches/test_audio_1_pitch.wav", verbosity=0)
-        pitch_ff = pitch.filter_frequencies(filter_below=10, filter_over=3000, verbosity=0)
+        pitch_ff = pitch.filter_frequencies(filter_below=10, filter_above=3000, verbosity=0)
         assert np.allclose(pitch_ff.samples[10000:10008], [27.51481439, 27.46117937, 27.4076525, 27.35423381,
                                                            27.3009233, 27.247721, 27.19462691, 27.14164103])
         assert len(pitch_ff.samples) == len(pitch.samples)
@@ -543,7 +543,7 @@ class TestsAudioDerivatives(unittest.TestCase):
 
         assert pitch_ff.metadata["processing_steps"][-1]["processing_type"] == "filter_frequencies"
         assert pitch_ff.metadata["processing_steps"][-1]["filter_below"] == 10
-        assert pitch_ff.metadata["processing_steps"][-1]["filter_over"] == 3000
+        assert pitch_ff.metadata["processing_steps"][-1]["filter_above"] == 3000
 
     def test_resample(self):
         envelope = Envelope("test_envelopes/test_audio_1_envelope.wav", verbosity=0)

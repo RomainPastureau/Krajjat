@@ -381,7 +381,7 @@ class TestsAudio(unittest.TestCase):
 
     def test_get_envelope(self):
         audio = Audio("test_audios/test_audio_1.wav", verbosity=0)
-        envelope = audio.get_envelope(filter_over=50, verbosity=0)
+        envelope = audio.get_envelope(filter_above=50, verbosity=0)
         assert np.allclose(envelope[0:8], [15308.40133241, 15360.89714681, 15413.41532137, 15465.95342631,
                                               15518.50902764, 15571.07969116, 15623.66298493, 15676.25648127])
         assert len(envelope.samples) == len(audio.samples)
@@ -393,14 +393,14 @@ class TestsAudio(unittest.TestCase):
         assert envelope.metadata["processing_steps"][0]["window_size"] == 1e6
         assert envelope.metadata["processing_steps"][0]["overlap_ratio"] == 0.5
         assert envelope.metadata["processing_steps"][0]["filter_below"] is None
-        assert envelope.metadata["processing_steps"][0]["filter_over"] == 50
+        assert envelope.metadata["processing_steps"][0]["filter_above"] == 50
         assert envelope.metadata["processing_steps"][1]["processing_type"] == "filter_frequencies"
         assert envelope.metadata["processing_steps"][1]["filter_below"] is None
-        assert envelope.metadata["processing_steps"][1]["filter_over"] == 50
+        assert envelope.metadata["processing_steps"][1]["filter_above"] == 50
 
     def test_get_pitch(self):
         audio = Audio("test_audios/test_audio_1.wav", verbosity=0)
-        pitch = audio.get_pitch(filter_over=50, verbosity=0)
+        pitch = audio.get_pitch(filter_above=50, verbosity=0)
         assert np.allclose(pitch[10000:10008], [195.98805202, 195.98368469, 195.97936191, 195.97508345,
                                                 195.97084909, 195.96665859, 195.96251174, 195.95840829])
         assert len(pitch.samples) == len(audio.samples)
@@ -412,14 +412,14 @@ class TestsAudio(unittest.TestCase):
         assert pitch.metadata["processing_steps"][0]["method"] == "parselmouth"
         assert pitch.metadata["processing_steps"][0]["zeros_as_nan"] == False
         assert pitch.metadata["processing_steps"][0]["filter_below"] is None
-        assert pitch.metadata["processing_steps"][0]["filter_over"] == 50
+        assert pitch.metadata["processing_steps"][0]["filter_above"] == 50
         assert pitch.metadata["processing_steps"][1]["processing_type"] == "filter_frequencies"
         assert pitch.metadata["processing_steps"][1]["filter_below"] is None
-        assert pitch.metadata["processing_steps"][1]["filter_over"] == 50
+        assert pitch.metadata["processing_steps"][1]["filter_above"] == 50
 
     def test_get_intensity(self):
         audio = Audio("test_audios/test_audio_1.wav", verbosity=0)
-        intensity = audio.get_intensity(filter_over=50, verbosity=0)
+        intensity = audio.get_intensity(filter_above=50, verbosity=0)
         assert np.allclose(intensity[10000:10008], [179.34715244, 179.34714534, 179.34713824, 179.34713112,
                                                     179.347124, 179.34711686, 179.34710971, 179.34710256])
         assert len(intensity.samples) == len(audio.samples)
@@ -430,26 +430,26 @@ class TestsAudio(unittest.TestCase):
         assert intensity.metadata["processing_steps"][0]["original_path"] == audio.get_path()
         assert intensity.metadata["processing_steps"][0]["zeros_as_nan"] == False
         assert intensity.metadata["processing_steps"][0]["filter_below"] is None
-        assert intensity.metadata["processing_steps"][0]["filter_over"] == 50
+        assert intensity.metadata["processing_steps"][0]["filter_above"] == 50
         assert intensity.metadata["processing_steps"][1]["processing_type"] == "filter_frequencies"
         assert intensity.metadata["processing_steps"][1]["filter_below"] is None
-        assert intensity.metadata["processing_steps"][1]["filter_over"] == 50
+        assert intensity.metadata["processing_steps"][1]["filter_above"] == 50
 
     def test_get_formant(self):
         audio = Audio("test_audios/test_audio_1.wav", verbosity=0)
-        formant = audio.get_formant(filter_over=50, verbosity=0)
+        formant = audio.get_formant(filter_above=50, verbosity=0)
         assert np.allclose(formant[10000:10008], [179.29268628, 179.29478572, 179.29689894, 179.29902553,
                                                   179.3011651, 179.30331726, 179.30548163, 179.30765781])
         assert len(formant.samples) == len(audio.samples)
         assert formant.get_name() == audio.get_name() + " (F1)"
 
-        formant = audio.get_formant(formant_number=1, filter_over=50, verbosity=0)
+        formant = audio.get_formant(formant_number=1, filter_above=50, verbosity=0)
         assert np.allclose(formant[10000:10008], [179.29268628, 179.29478572, 179.29689894, 179.29902553,
                                                   179.3011651, 179.30331726, 179.30548163, 179.30765781])
         assert len(formant.samples) == len(audio.samples)
         assert formant.get_name() == audio.get_name() + " (F1)"
 
-        formant = audio.get_formant(formant_number=2, filter_over=50, verbosity=0)
+        formant = audio.get_formant(formant_number=2, filter_above=50, verbosity=0)
         assert np.allclose(formant[10000:10008], [173.38511437, 173.23929667, 173.09748704, 172.95965232,
                                                   172.82575948, 172.69577562, 172.56966799, 172.44740396])
         assert len(formant.samples) == len(audio.samples)
@@ -461,39 +461,39 @@ class TestsAudio(unittest.TestCase):
         assert formant.metadata["processing_steps"][0]["formant_number"] == 2
         assert formant.metadata["processing_steps"][0]["zeros_as_nan"] == False
         assert formant.metadata["processing_steps"][0]["filter_below"] is None
-        assert formant.metadata["processing_steps"][0]["filter_over"] == 50
+        assert formant.metadata["processing_steps"][0]["filter_above"] == 50
         assert formant.metadata["processing_steps"][1]["processing_type"] == "filter_frequencies"
         assert formant.metadata["processing_steps"][1]["filter_below"] is None
-        assert formant.metadata["processing_steps"][1]["filter_over"] == 50
+        assert formant.metadata["processing_steps"][1]["filter_above"] == 50
 
     def test_get_derivative(self):
         audio = Audio("test_audios/test_audio_1.wav", verbosity=0)
 
-        envelope = audio.get_derivative("envelope", filter_over=50, verbosity=0)
+        envelope = audio.get_derivative("envelope", filter_above=50, verbosity=0)
         assert np.allclose(envelope[0:8], [15308.40133241, 15360.89714681, 15413.41532137, 15465.95342631,
                                               15518.50902764, 15571.07969116, 15623.66298493, 15676.25648127])
         assert len(envelope.samples) == len(audio.samples)
         assert envelope.get_name() == audio.get_name() + " (ENV)"
 
-        pitch = audio.get_derivative("pitch", filter_over=50, verbosity=0)
+        pitch = audio.get_derivative("pitch", filter_above=50, verbosity=0)
         assert np.allclose(pitch[10000:10008], [195.98805202, 195.98368469, 195.97936191, 195.97508345,
                                                 195.97084909, 195.96665859, 195.96251174, 195.95840829])
         assert len(pitch.samples) == len(audio.samples)
         assert pitch.get_name() == audio.get_name() + " (PIT)"
 
-        intensity = audio.get_derivative("intensity", filter_over=50, verbosity=0)
+        intensity = audio.get_derivative("intensity", filter_above=50, verbosity=0)
         assert np.allclose(intensity[10000:10008], [179.34715244, 179.34714534, 179.34713824, 179.34713112,
                                                     179.347124, 179.34711686, 179.34710971, 179.34710256])
         assert len(intensity.samples) == len(audio.samples)
         assert intensity.get_name() == audio.get_name() + " (INT)"
 
-        formant = audio.get_derivative("formant", formant_number=1, filter_over=50, verbosity=0)
+        formant = audio.get_derivative("formant", formant_number=1, filter_above=50, verbosity=0)
         assert np.allclose(formant[10000:10008], [179.29268628, 179.29478572, 179.29689894, 179.29902553,
                                                   179.3011651, 179.30331726, 179.30548163, 179.30765781])
         assert len(formant.samples) == len(audio.samples)
         assert formant.get_name() == audio.get_name() + " (F1)"
 
-        formant = audio.get_derivative("f2", filter_over=50, verbosity=0)
+        formant = audio.get_derivative("f2", filter_above=50, verbosity=0)
         assert np.allclose(formant[10000:10008], [173.38511437, 173.23929667, 173.09748704, 172.95965232,
                                                   172.82575948, 172.69577562, 172.56966799, 172.44740396])
         assert len(formant.samples) == len(audio.samples)
@@ -505,10 +505,10 @@ class TestsAudio(unittest.TestCase):
         assert formant.metadata["processing_steps"][0]["formant_number"] == 2
         assert formant.metadata["processing_steps"][0]["zeros_as_nan"] == False
         assert formant.metadata["processing_steps"][0]["filter_below"] is None
-        assert formant.metadata["processing_steps"][0]["filter_over"] == 50
+        assert formant.metadata["processing_steps"][0]["filter_above"] == 50
         assert formant.metadata["processing_steps"][1]["processing_type"] == "filter_frequencies"
         assert formant.metadata["processing_steps"][1]["filter_below"] is None
-        assert formant.metadata["processing_steps"][1]["filter_over"] == 50
+        assert formant.metadata["processing_steps"][1]["filter_above"] == 50
 
     def test_filter_frequencies(self):
         audio = Audio("test_audios/test_audio_1.wav", verbosity=0)
@@ -527,7 +527,7 @@ class TestsAudio(unittest.TestCase):
 
         assert audio_ff.metadata["processing_steps"][0]["processing_type"] == "filter_frequencies"
         assert audio_ff.metadata["processing_steps"][0]["filter_below"] == 4000
-        assert audio_ff.metadata["processing_steps"][0]["filter_over"] == 5000
+        assert audio_ff.metadata["processing_steps"][0]["filter_above"] == 5000
 
     def test_resample(self):
         audio = Audio("test_audios/test_audio_1.wav", verbosity=0)

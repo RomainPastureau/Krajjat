@@ -127,7 +127,7 @@ class TestsPlotFunctions(unittest.TestCase):
     def test_audio_plotter(self):
         show = False
         audio = Audio("test_audios/test_audio_1.wav", verbosity=0)
-        audio_plotter(audio, filter_over=50, show=show, verbosity=0)
+        audio_plotter(audio, filter_above=50, show=show, verbosity=0)
 
     def test_plot_body_graphs(self):
         show = False

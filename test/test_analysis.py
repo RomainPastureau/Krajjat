@@ -79,7 +79,7 @@ class TestsAnalysisFunctions(unittest.TestCase):
         # sequence_rs = sequence_cj.resample(20, "cubic", verbosity=0)
         # sequence_t = sequence_rs.trim_to_audio(0, audio, verbosity=0)
         #
-        # envelope = audio.get_envelope(filter_over=50, verbosity=0)
+        # envelope = audio.get_envelope(filter_above=50, verbosity=0)
         # envelope_rs = envelope.resample(20, "cubic", verbosity=0)
         #
         # experiment = Experiment("Test Experiment 1")
@@ -99,7 +99,7 @@ class TestsAnalysisFunctions(unittest.TestCase):
         # sequence_rs = sequence_cj.resample(20, "cubic", verbosity=0)
         # sequence_t = sequence_rs.trim_to_audio(0, audio, verbosity=0)
         #
-        # pitch = audio.get_pitch(filter_over=50, verbosity=0)
+        # pitch = audio.get_pitch(filter_above=50, verbosity=0)
         # pitch_rs = pitch.resample(20, "cubic", verbosity=0)
         #
         # experiment = Experiment("Test Experiment 1")
@@ -136,7 +136,7 @@ class TestsAnalysisFunctions(unittest.TestCase):
         # sequence_rs = sequence_cj.resample(20, "cubic", verbosity=0)
         # sequence_t = sequence_rs.trim_to_audio(0, audio, verbosity=0)
         #
-        # envelope = audio.get_envelope(filter_over=50, verbosity=0)
+        # envelope = audio.get_envelope(filter_above=50, verbosity=0)
         # envelope_rs = envelope.resample(20, "cubic", verbosity=0)
         #
         # path_audio = op.join("test_audios", "audio_ainhoa_trimmed.wav")

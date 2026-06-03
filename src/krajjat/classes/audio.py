@@ -350,8 +350,8 @@ class Audio(AudioDerivative):
         return super().get_info(return_type, include_path)
 
     # === Transformation functions ===
-    def get_envelope(self, window_size=1e6, overlap_ratio=0.5, filter_below=None, filter_over=None, padtype="constant",
-                     padlen=None, name=None, verbosity=1):
+    def get_envelope(self, window_size=1e6, overlap_ratio=0.5, filter_below=None, filter_above=None, order=2,
+                     padtype="constant", padlen=None, filter_type="sos", name=None, verbosity=1):
         """Calculates the envelope of an array, and returns it. The function can also optionally perform a band-pass
         filtering, if the corresponding parameters are provided.
 
@@ -374,8 +374,12 @@ class Audio(AudioDerivative):
         filter_below: int, float or None, optional
             If not ``None`` nor 0, this value will be provided as the lowest frequency of the band-pass filter.
 
-        filter_over: int, float or None, optional
+        filter_above: int, float or None, optional
             If not ``None`` nor 0, this value will be provided as the highest frequency of the band-pass filter.
+
+        order: int, optional
+            The order of the Butterworth filter
+            (see `scipy.signal.butter <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.butter.html>`_).
 
         padtype: str, optional
             What type of padding to use. See the documentation of `scipy.signal.filtfilt
@@ -385,6 +389,13 @@ class Audio(AudioDerivative):
         padlen: int, optional
             The number of elements for the padding. See the documentation of `scipy.signal.filtfilt
             <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.filtfilt.html>`_ for more information.
+
+        filter_type: str, optional
+            Which function to use, whether `scipy.signal.sosfiltfilt
+            <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.sosfiltfilt.html#scipy.signal.sosfiltfilt>`_
+            (`"sos"`, default) or
+            `scipy.signal.filtfilt <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.filtfilt.html>`_
+            (`"filtfilt"` or `"ba"`).
 
         name: str or None, optional
             Defines the name of the envelope. If set on ``None``, the name will be the same as the original Audio
@@ -407,7 +418,7 @@ class Audio(AudioDerivative):
         Example
         -------
         >>> audio = Audio("Recordings/Ross/recording_12.wav")
-        >>> envelope = audio.get_envelope(filter_over=50)
+        >>> envelope = audio.get_envelope(filter_above=50)
         """
 
         if verbosity > 0:
@@ -488,17 +499,20 @@ class Audio(AudioDerivative):
         envelope.metadata["processing_steps"].append({"processing_type": "get_envelope",
                                                       "original_audio": self.name, "original_path": self.path,
                                                       "window_size": window_size, "overlap_ratio": overlap_ratio,
-                                                      "filter_below": filter_below, "filter_over": filter_over})
+                                                      "filter_below": filter_below, "filter_above": filter_above,
+                                                      "order": order, "padtype": padtype, "padlen": padlen,
+                                                      "filter_type": filter_type})
 
         # Filtering
-        if filter_below is not None or filter_over is not None:
-            envelope = envelope.filter_frequencies(filter_below, filter_over, padtype, padlen, name, verbosity)
+        if filter_below is not None or filter_above is not None:
+            envelope = envelope.filter_frequencies(filter_below, filter_above, order, padtype, padlen, filter_type,
+                                                   name, verbosity)
 
         return envelope
 
     # noinspection PyArgumentList
-    def get_pitch(self, method="parselmouth", filter_below=None, filter_over=None, padtype="constant", padlen=None,
-                  name=None, zeros_as_nan=False, verbosity=1):
+    def get_pitch(self, method="parselmouth", filter_below=None, filter_above=None, order=2, padtype="constant",
+                  padlen=None, filter_type="sos", name=None, zeros_as_nan=False, verbosity=1):
         """Calculates the pitch of the voice in the audio clip, and returns a Pitch object.
 
         .. versionadded:: 2.0
@@ -512,8 +526,12 @@ class Audio(AudioDerivative):
         filter_below: int, float or None, optional
             If not ``None`` nor 0, this value will be provided as the lowest frequency of the band-pass filter.
 
-        filter_over: int, float or None, optional
+        filter_above: int, float or None, optional
             If not ``None`` nor 0, this value will be provided as the highest frequency of the band-pass filter.
+
+        order: int, optional
+            The order of the Butterworth filter
+            (see `scipy.signal.butter <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.butter.html>`_).
 
         padtype: str, optional
             What type of padding to use. See the documentation of `scipy.signal.filtfilt
@@ -523,6 +541,13 @@ class Audio(AudioDerivative):
         padlen: int, optional
             The number of elements for the padding. See the documentation of `scipy.signal.filtfilt
             <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.filtfilt.html>`_ for more information.
+
+        filter_type: str, optional
+            Which function to use, whether `scipy.signal.sosfiltfilt
+            <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.sosfiltfilt.html#scipy.signal.sosfiltfilt>`_
+            (`"sos"`, default) or
+            `scipy.signal.filtfilt <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.filtfilt.html>`_
+            (`"filtfilt"` or `"ba"`).
 
         name: str or None, optional
             Defines the name of the pitch. If set on ``None``, the name will be the same as the original Audio
@@ -549,7 +574,7 @@ class Audio(AudioDerivative):
         Example
         -------
         >>> audio = Audio("Recordings/Silvestri/recording_13.wav")
-        >>> pitch = audio.get_pitch(filter_over=50)
+        >>> pitch = audio.get_pitch(filter_above=50)
         """
         if verbosity > 0:
             print("Creating a Pitch object...")
@@ -628,16 +653,19 @@ class Audio(AudioDerivative):
         pitch.metadata["processing_steps"].append({"processing_type": "get_pitch",
                                                    "original_audio": self.name, "original_path": self.path,
                                                    "method": method, "zeros_as_nan": zeros_as_nan,
-                                                   "filter_below": filter_below, "filter_over": filter_over})
+                                                   "filter_below": filter_below, "filter_above": filter_above,
+                                                   "order": order, "padtype": padtype, "padlen": padlen,
+                                                   "filter_type": filter_type})
 
-        if filter_below is not None or filter_over is not None:
-            pitch = pitch.filter_frequencies(filter_below, filter_over, padtype, padlen, name, verbosity)
+        if filter_below is not None or filter_above is not None:
+            pitch = pitch.filter_frequencies(filter_below, filter_above, order, padtype, padlen, filter_type,
+                                             name, verbosity)
 
         return pitch
 
     # noinspection PyArgumentList
-    def get_intensity(self, filter_below=None, filter_over=None, padtype="constant", padlen=None, name=None,
-                      zeros_as_nan=False, verbosity=1):
+    def get_intensity(self, filter_below=None, filter_above=None, order=2, padtype="constant", padlen=None,
+                      filter_type="sos", name=None, zeros_as_nan=False, verbosity=1):
         """Calculates the intensity of the voice in the audio clip, and returns an Intensity object. The function can
         also optionally perform a band-pass filtering and a resampling, if the corresponding parameters are provided.
 
@@ -648,8 +676,12 @@ class Audio(AudioDerivative):
         filter_below: int, float or None, optional
             If not ``None`` nor 0, this value will be provided as the lowest frequency of the band-pass filter.
 
-        filter_over: int, float or None, optional
+        filter_above: int, float or None, optional
             If not ``None`` nor 0, this value will be provided as the highest frequency of the band-pass filter.
+
+        order: int, optional
+            The order of the Butterworth filter
+            (see `scipy.signal.butter <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.butter.html>`_).
 
         padtype: str, optional
             What type of padding to use. See the documentation of `scipy.signal.filtfilt
@@ -659,6 +691,13 @@ class Audio(AudioDerivative):
         padlen: int, optional
             The number of elements for the padding. See the documentation of `scipy.signal.filtfilt
             <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.filtfilt.html>`_ for more information.
+
+        filter_type: str, optional
+            Which function to use, whether `scipy.signal.sosfiltfilt
+            <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.sosfiltfilt.html#scipy.signal.sosfiltfilt>`_
+            (`"sos"`, default) or
+            `scipy.signal.filtfilt <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.filtfilt.html>`_
+            (`"filtfilt"` or `"ba"`).
 
         name: str or None, optional
             Defines the name of the intensity. If set on ``None``, the name will be the same as the original Audio
@@ -685,7 +724,7 @@ class Audio(AudioDerivative):
         Example
         -------
         >>> audio = Audio("Recordings/Horner/recording_14.wav")
-        >>> intensity = audio.get_intensity(filter_over=50)
+        >>> intensity = audio.get_intensity(filter_above=50)
         """
         if verbosity > 0:
             print("Creating an Intensity object...")
@@ -726,17 +765,19 @@ class Audio(AudioDerivative):
 
         intensity.metadata["processing_steps"].append({"processing_type": "get_intensity",
                                                        "original_audio": self.name, "original_path": self.path,
-                                                       "zeros_as_nan": zeros_as_nan,
-                                                       "filter_below": filter_below, "filter_over": filter_over})
+                                                       "zeros_as_nan": zeros_as_nan, "filter_below": filter_below,
+                                                       "filter_above": filter_above, "order": order, "padtype": padtype,
+                                                       "padlen": padlen, "filter_type": filter_type})
 
-        if filter_below is not None or filter_over is not None:
-            intensity = intensity.filter_frequencies(filter_below, filter_over, padtype, padlen, name, verbosity)
+        if filter_below is not None or filter_above is not None:
+            intensity = intensity.filter_frequencies(filter_below, filter_above, order, padtype, padlen, filter_type,
+                                                     name, verbosity)
 
         return intensity
 
     # noinspection PyArgumentList
-    def get_formant(self, formant_number=1, filter_below=None, filter_over=None, padtype="constant", padlen=None,
-                    name=None, zeros_as_nan=False, verbosity=1):
+    def get_formant(self, formant_number=1, filter_below=None, filter_above=None, order=2, padtype="constant",
+                    padlen=None, filter_type="sos", name=None, zeros_as_nan=False, verbosity=1):
         """Calculates the formants of the voice in the audio clip, and returns a Formant object.
 
         .. versionadded:: 2.0
@@ -749,8 +790,12 @@ class Audio(AudioDerivative):
         filter_below: int, float or None, optional
             If not ``None`` nor 0, this value will be provided as the lowest frequency of the band-pass filter.
 
-        filter_over: int, float or None, optional
+        filter_above: int, float or None, optional
             If not ``None`` nor 0, this value will be provided as the highest frequency of the band-pass filter.
+
+        order: int, optional
+            The order of the Butterworth filter
+            (see `scipy.signal.butter <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.butter.html>`_).
 
         padtype: str, optional
             What type of padding to use. See the documentation of `scipy.signal.filtfilt
@@ -760,6 +805,13 @@ class Audio(AudioDerivative):
         padlen: int, optional
             The number of elements for the padding. See the documentation of `scipy.signal.filtfilt
             <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.filtfilt.html>`_ for more information.
+
+        filter_type: str, optional
+            Which function to use, whether `scipy.signal.sosfiltfilt
+            <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.sosfiltfilt.html#scipy.signal.sosfiltfilt>`_
+            (`"sos"`, default) or
+            `scipy.signal.filtfilt <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.filtfilt.html>`_
+            (`"filtfilt"` or `"ba"`).
 
         name: str or None, optional
             Defines the name of the intensity. If set on ``None``, the name will be the same as the original Audio
@@ -786,7 +838,7 @@ class Audio(AudioDerivative):
         Example
         -------
         >>> audio = Audio("Recordings/Beck/recording_15.wav")
-        >>> formant = audio.get_formant(formant_number=1, filter_over=50)
+        >>> formant = audio.get_formant(formant_number=1, filter_above=50)
         """
         if verbosity > 0:
             print("Creating a Formant object...")
@@ -830,17 +882,20 @@ class Audio(AudioDerivative):
         formant.metadata["processing_steps"].append({"processing_type": "get_formant",
                                                      "original_audio": self.name, "original_path": self.path,
                                                      "formant_number": formant_number, "zeros_as_nan": zeros_as_nan,
-                                                     "filter_below": filter_below, "filter_over": filter_over})
+                                                     "filter_below": filter_below, "filter_above": filter_above,
+                                                     "order": order, "padtype": padtype, "padlen": padlen,
+                                                     "filter_type": filter_type})
         formant.metadata["formant_number"] = formant_number
 
-        if filter_below is not None or filter_over is not None:
-            formant = formant.filter_frequencies(filter_below, filter_over, padtype, padlen, name, verbosity)
+        if filter_below is not None or filter_above is not None:
+            formant = formant.filter_frequencies(filter_below, filter_above, order, padtype, padlen, filter_type,
+                                                 name, verbosity)
 
         return formant
 
-    def get_derivative(self, derivative, filter_below=None, filter_over=None, padtype="constant", padlen=None,
-                       resampling_frequency=None, resampling_mode="pchip", res_window_size=1e7, res_overlap_ratio=0.5,
-                       timestamp_start=None, timestamp_end=None, name=None, verbosity=1, **kwargs):
+    def get_derivative(self, derivative, filter_below=None, filter_above=None, order=2, padtype="constant", padlen=None,
+                       filter_type="sos", resampling_frequency=None, resampling_mode="pchip", res_window_size=1e7,
+                       res_overlap_ratio=0.5, timestamp_start=None, timestamp_end=None, name=None, verbosity=1, **kwargs):
 
         """Computes and returns the requested AudioDerivative.
 
@@ -860,8 +915,12 @@ class Audio(AudioDerivative):
         filter_below: int, float or None, optional
             If not ``None`` nor 0, this value will be provided as the lowest frequency of the band-pass filter.
 
-        filter_over: int, float or None, optional
+        filter_above: int, float or None, optional
             If not ``None`` nor 0, this value will be provided as the highest frequency of the band-pass filter.`
+
+        order: int, optional
+            The order of the Butterworth filter
+            (see `scipy.signal.butter <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.butter.html>`_).
 
         padtype: str, optional
             What type of padding to use. See the documentation of `scipy.signal.filtfilt
@@ -871,6 +930,13 @@ class Audio(AudioDerivative):
         padlen: int, optional
             The number of elements for the padding. See the documentation of `scipy.signal.filtfilt
             <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.filtfilt.html>`_ for more information.
+
+        filter_type: str, optional
+            Which function to use, whether `scipy.signal.sosfiltfilt
+            <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.sosfiltfilt.html#scipy.signal.sosfiltfilt>`_
+            (`"sos"`, default) or
+            `scipy.signal.filtfilt <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.filtfilt.html>`_
+            (`"filtfilt"` or `"ba"`).
 
         resampling_frequency: float
             The frequency, in hertz, at which you want to resample the audio clip. A frequency of 4 will return samples
@@ -937,29 +1003,34 @@ class Audio(AudioDerivative):
         Examples
         --------
         >>> audio = Audio("Recordings/Kondo/recording_16.wav")
-        >>> envelope = audio.get_derivative("envelope", filter_over=50)
-        >>> pitch = audio.get_derivative("pitch", filter_over=50, zeros_as_nan=True)
-        >>> intensity = audio.get_derivative("intensity", filter_over=50, name="Kondo_intensity")
-        >>> f1 = audio.get_derivative("formant", formant_number=1, filter_over=50)
-        >>> f2 = audio.get_derivative("f2", filter_over=50)
+        >>> envelope = audio.get_derivative("envelope", filter_above=50)
+        >>> pitch = audio.get_derivative("pitch", filter_above=50, zeros_as_nan=True)
+        >>> intensity = audio.get_derivative("intensity", filter_above=50, name="Kondo_intensity")
+        >>> f1 = audio.get_derivative("formant", formant_number=1, filter_above=50)
+        >>> f2 = audio.get_derivative("f2", filter_above=50)
         """
 
         if derivative == "audio":
-            audio_derivative = self.filter_frequencies(filter_below, filter_over, padtype, padlen, name, verbosity)
+            audio_derivative = self.filter_frequencies(filter_below, filter_above, order, padtype, padlen, filter_type,
+                                                       name, verbosity)
         elif derivative == "envelope":
-            audio_derivative = self.get_envelope(filter_below=filter_below, filter_over=filter_over, padtype=padtype,
-                                                 padlen=padlen, name=name, verbosity=verbosity, **kwargs)
+            audio_derivative = self.get_envelope(filter_below=filter_below, filter_above=filter_above, order=order,
+                                                 padtype=padtype, padlen=padlen, filter_type=filter_type, name=name,
+                                                 verbosity=verbosity, **kwargs)
         elif derivative == "pitch":
-            audio_derivative = self.get_pitch(filter_below=filter_below, filter_over=filter_over, padtype=padtype,
-                                              padlen=padlen, name=name, verbosity=verbosity, **kwargs)
+            audio_derivative = self.get_pitch(filter_below=filter_below, filter_above=filter_above, order=order,
+                                              padtype=padtype, padlen=padlen, filter_type=filter_type, name=name,
+                                              verbosity=verbosity, **kwargs)
         elif derivative == "intensity":
-            audio_derivative = self.get_intensity(filter_below=filter_below, filter_over=filter_over, padtype=padtype,
-                                                  padlen=padlen, name=name, verbosity=verbosity, **kwargs)
+            audio_derivative = self.get_intensity(filter_below=filter_below, filter_above=filter_above, order=order,
+                                                  padtype=padtype, padlen=padlen, filter_type=filter_type, name=name,
+                                                  verbosity=verbosity, **kwargs)
         elif derivative in ["formant", "f1", "f2", "f3", "f4", "f5"]:
             if derivative != "formant" and "formant_number" not in kwargs:
                 kwargs["formant_number"] = int(derivative[1])
-            audio_derivative = self.get_formant(filter_below=filter_below, filter_over=filter_over, padtype=padtype,
-                                                padlen=padlen, name=name, verbosity=verbosity, **kwargs)
+            audio_derivative = self.get_formant(filter_below=filter_below, filter_above=filter_above, order=order,
+                                                padtype=padtype, padlen=padlen, filter_type=filter_type, name=name,
+                                                verbosity=verbosity, **kwargs)
         else:
             raise InvalidParameterValueException("derivative", derivative,
                                                  ["audio", "envelope", "pitch", "intensity", "formant"])
@@ -973,8 +1044,8 @@ class Audio(AudioDerivative):
 
         return audio_derivative
 
-    def filter_frequencies(self, filter_below=None, filter_over=None, padtype="constant", padlen=None, name=None,
-                           verbosity=1):
+    def filter_frequencies(self, filter_below=None, filter_above=None, order=2, padtype="constant", padlen=None, name=None,
+                           filter_type="sos", verbosity=1):
         """Applies a low-pass, high-pass or band-pass filter to the data in the attribute :attr:`samples`.
 
         .. versionadded: 2.0
@@ -986,10 +1057,14 @@ class Audio(AudioDerivative):
             If this parameter is the only one provided, a high-pass filter will be applied to the samples; if
             ``filter_over`` is also provided, a band-pass filter will be applied to the samples.
 
-        filter_over: float or None, optional
+        filter_above: float or None, optional
             The value over which you want to filter the data. If set on None or 0, this parameter will be ignored.
             If this parameter is the only one provided, a low-pass filter will be applied to the samples; if
             ``filter_below`` is also provided, a band-pass filter will be applied to the samples.
+
+        order: int, optional
+            The order of the Butterworth filter
+            (see `scipy.signal.butter <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.butter.html>`_).
 
         padtype: str, optional
             What type of padding to use. See the documentation of `scipy.signal.filtfilt
@@ -1000,9 +1075,23 @@ class Audio(AudioDerivative):
             The number of elements for the padding. See the documentation of `scipy.signal.filtfilt
             <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.filtfilt.html>`_ for more information.
 
+        filter_type: str, optional
+            Which function to use, whether `scipy.signal.sosfiltfilt
+            <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.sosfiltfilt.html#scipy.signal.sosfiltfilt>`_
+            (`"sos"`, default) or
+            `scipy.signal.filtfilt <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.filtfilt.html>`_
+            (`"filtfilt"` or `"ba"`).
+
         name: str or None, optional
             Defines the name of the output audio. If set on ``None``, the name will be the same as the
             original audio derivative, with the suffix ``"+FF"``.
+
+        filter_type: str, optional
+            Which function to use, whether `scipy.signal.sosfiltfilt
+            <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.sosfiltfilt.html#scipy.signal.sosfiltfilt>`_
+            (`"sos"`, default) or
+            `scipy.signal.filtfilt <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.filtfilt.html>`_
+            (`"filtfilt"` or `"ba"`).
 
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
@@ -1023,7 +1112,7 @@ class Audio(AudioDerivative):
         >>> audio = Audio("Recordings/Shore/recording_17.wav")
         >>> audio_ff = audio.filter_frequencies(filter_below=10, filter_over=50)
         """
-        return super().filter_frequencies(filter_below, filter_over, padtype, padlen, name, verbosity)
+        return super().filter_frequencies(filter_below, filter_above, order, padtype, padlen, filter_type, name, verbosity)
 
     def resample(self, frequency, method="cubic", window_size=1e7, overlap_ratio=0.5, name=None, verbosity=1):
         """Resamples an audio clip to the `frequency` parameter. It first creates a new set of timestamps at the

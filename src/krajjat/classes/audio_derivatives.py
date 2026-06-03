@@ -44,7 +44,7 @@ class AudioDerivative(TimeSeries):
         Examples
         --------
         >>> aud = Audio("Recordings/Ross/audio.wav")
-        >>> env = aud.get_envelope(filter_over=50)
+        >>> env = aud.get_envelope(filter_above=50)
         >>> env.set_name("Envelope 001")
 
         >>> pitch = Pitch("Recordings/Ross/pitch.tsv")
@@ -66,7 +66,7 @@ class AudioDerivative(TimeSeries):
         Examples
         --------
         >>> aud = Audio("Recordings/Rachel/audio.wav")
-        >>> env = aud.get_envelope(filter_over=50)
+        >>> env = aud.get_envelope(filter_above=50)
         >>> env.set_condition("English")
 
         >>> pitch = Pitch("Recordings/Rachel/pitch.tsv")
@@ -638,8 +638,8 @@ class AudioDerivative(TimeSeries):
 
     # noinspection PyTupleAssignmentBalance
     # noinspection PyArgumentList
-    def filter_frequencies(self, filter_below=None, filter_over=None, padtype="constant", padlen=None, name=None,
-                           verbosity=1):
+    def filter_frequencies(self, filter_below=None, filter_above=None, order=2, padtype="constant", padlen=None,
+                           filter_type="sos", name=None, verbosity=1):
         """Applies a low-pass, high-pass or band-pass filter to the data in the attribute :attr:`samples`.
 
         .. versionadded: 2.0
@@ -649,12 +649,16 @@ class AudioDerivative(TimeSeries):
         filter_below: float or None, optional
             The value below which you want to filter the data. If set on None or 0, this parameter will be ignored.
             If this parameter is the only one provided, a high-pass filter will be applied to the samples; if
-            ``filter_over`` is also provided, a band-pass filter will be applied to the samples.
+            ``filter_above`` is also provided, a band-pass filter will be applied to the samples.
 
-        filter_over: float or None, optional
+        filter_above: float or None, optional
             The value over which you want to filter the data. If set on None or 0, this parameter will be ignored.
             If this parameter is the only one provided, a low-pass filter will be applied to the samples; if
             ``filter_below`` is also provided, a band-pass filter will be applied to the samples.
+
+        order: int, optional
+            The order of the Butterworth filter
+            (see `scipy.signal.butter <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.butter.html>`_).
 
         padtype: str, optional
             What type of padding to use. See the documentation of `scipy.signal.filtfilt
@@ -668,6 +672,13 @@ class AudioDerivative(TimeSeries):
         name: str or None, optional
             Defines the name of the output audio derivative. If set on ``None``, the name will be the same as the
             original audio derivative, with the suffix ``"+FF"``.
+
+        filter_type: str, optional
+            Which function to use, whether `scipy.signal.sosfiltfilt
+            <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.sosfiltfilt.html#scipy.signal.sosfiltfilt>`_
+            (`"sos"`, default) or
+            `scipy.signal.filtfilt <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.filtfilt.html>`_
+            (`"filtfilt"` or `"ba"`).
 
         verbosity: int, optional
             Sets how much feedback the code will provide in the console output:
@@ -683,27 +694,9 @@ class AudioDerivative(TimeSeries):
         AudioDerivative
             The AudioDerivative instance, with filtered values.
         """
-        if filter_below not in [None, 0] and filter_over not in [None, 0]:
-            if verbosity > 0:
-                print("Applying a band-pass filter for frequencies between " + str(filter_below) + " and " +
-                      str(filter_over) + " Hz...")
-            b, a = butter(2, [filter_below, filter_over], "band", fs=self.frequency)
-            new_samples = filtfilt(b, a, self.samples, padtype=padtype, padlen=padlen)
-
-        elif filter_below not in [None, 0]:
-            if verbosity > 0:
-                print("Applying a high-pass filter for frequencies over " + str(filter_below) + " Hz...")
-            b, a = butter(2, filter_below, "high", fs=self.frequency)
-            new_samples = filtfilt(b, a, self.samples, padtype=padtype, padlen=padlen)
-
-        elif filter_over not in [None, 0]:
-            if verbosity > 0:
-                print("Applying a low-pass filter for frequencies below " + str(filter_over) + " Hz...")
-            b, a = butter(2, filter_over, "low", fs=self.frequency)
-            new_samples = filtfilt(b, a, self.samples, padtype=padtype, padlen=padlen)
-
-        else:
-            new_samples = self.samples
+        new_samples = filter_array(self.samples, self.frequency, filter_below=filter_below, filter_above=filter_above,
+                                   order=order, padtype=padtype, padlen=padlen, filter_type=filter_type,
+                                   verbosity=verbosity)
 
         if name is None:
             name = self.name + " +FF"
@@ -715,9 +708,9 @@ class AudioDerivative(TimeSeries):
             new_audio_derivative = type(self)(new_samples, self.frequency, name=name, verbosity=verbosity)
 
         new_audio_derivative._set_attributes_from_other_object(self)
-        new_audio_derivative.metadata["processing_steps"].append({"processing_type": "filter_frequencies",
-                                                                  "filter_below": filter_below,
-                                                                  "filter_over": filter_over})
+        new_audio_derivative.metadata["processing_steps"].append(
+            {"processing_type": "filter_frequencies", "filter_below": filter_below, "filter_above": filter_above,
+                                "order": order, "padtype": padtype, "padlen": padlen, "filter_type": filter_type})
         return new_audio_derivative
 
     def resample(self, frequency, method="cubic", window_size=1e7, overlap_ratio=0.5, name=None, verbosity=1):

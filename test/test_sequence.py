@@ -1223,7 +1223,7 @@ class TestsSequenceMethods(unittest.TestCase):
 
         assert sequence_ff.metadata["processing_steps"][0]["processing_type"] == "filter_frequencies"
         assert sequence_ff.metadata["processing_steps"][0]["filter_below"] is None
-        assert sequence_ff.metadata["processing_steps"][0]["filter_over"] == 4
+        assert sequence_ff.metadata["processing_steps"][0]["filter_above"] == 4
 
         self.assertRaises(ValueError, sequence.filter_frequencies, None, 10, verbosity=0)
         self.assertRaises(ValueError, sequence.filter_frequencies, -5, 1, verbosity=0)

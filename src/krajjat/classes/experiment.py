@@ -532,9 +532,16 @@ class Experiment(object):
                                                        timestamp_end=timestamp_end,
                                                        window_length=kwargs.get("window_length", "auto"),
                                                        poly_order=kwargs.get("poly_order", "auto"),
-                                                       verbosity=verbosity-1)
+                                                       verbosity=verbosity-1,
+                                                       filter_above=kwargs.get("filter_above", None),
+                                                       filter_below=kwargs.get("filter_below", None),
+                                                       order=kwargs.get("order", 2),
+                                                       padtype=kwargs.get("padtype", "constant"),
+                                                       padlen=kwargs.get("padlen", None),
+                                                       filter_type=kwargs.get("filter_type", "sos"))
 
-
+                if not (type(sequence_values) is dict):
+                    sequence_values = {sequence.get_joints()[0]: sequence_values}
 
                 timestamps = sequence.get_timestamps(relative=True,
                                                      timestamp_start=timestamp_start,
@@ -594,8 +601,12 @@ class Experiment(object):
 
                 if type(audio) is Audio and measure != "audio":
                     audio = audio.get_derivative(measure,
-                                                 filter_over=kwargs.get("filter_over", None),
+                                                 filter_above=kwargs.get("filter_above", None),
                                                  filter_below=kwargs.get("filter_below", None),
+                                                 order=kwargs.get("order", 2),
+                                                 padtype=kwargs.get("padtype", "constant"),
+                                                 padlen=kwargs.get("padlen", None),
+                                                 filter_type=kwargs.get("filter_type", "sos"),
                                                  timestamp_start=timestamp_start,
                                                  timestamp_end=timestamp_end,
                                                  verbosity=verbosity-1)
@@ -603,6 +614,13 @@ class Experiment(object):
                       (type(audio).__name__ == "Formant" and measure not in ["f1", "f2", "f3", "f4", "f5"])):
                     raise Exception(f"Impossible to derive the measure {measure} from a {type(audio).__name__} "
                                     f"object.")
+                else:
+                    audio = audio.filter_frequencies(filter_above=kwargs.get("filter_above", None),
+                                                     filter_below=kwargs.get("filter_below", None),
+                                                     order=kwargs.get("order", 2),
+                                                     padtype=kwargs.get("padtype", "constant"),
+                                                     padlen=kwargs.get("padlen", None),
+                                                     filter_type=kwargs.get("filter_type", "sos"))
 
                 if sampling_frequency is not None and audio.frequency != sampling_frequency:
                     audio = audio.resample(sampling_frequency,

@@ -889,7 +889,7 @@ def framerate_plotter(sequence_or_sequences, line_width=1.0, line_color="black",
 
 
 # noinspection PyArgumentList
-def audio_plotter(audio, filter_below=None, filter_over=None, number_of_formants=3, show=True, path_save=None,
+def audio_plotter(audio, filter_below=None, filter_above=None, number_of_formants=3, show=True, path_save=None,
                   verbosity=1):
     """Given an audio instance, plots the samples, filtered envelope, pitch, intensity, formants and spectrogram.
 
@@ -903,7 +903,7 @@ def audio_plotter(audio, filter_below=None, filter_over=None, number_of_formants
     filter_below: int, float or None, optional
         If not ``None`` nor 0, this value will be provided as the lowest frequency of the band-pass filter.
 
-    filter_over: int, float or None, optional
+    filter_above: int, float or None, optional
         If not ``None`` nor 0, this value will be provided as the highest frequency of the band-pass filter.
 
     number_of_formants: int, optional
@@ -934,25 +934,25 @@ def audio_plotter(audio, filter_below=None, filter_over=None, number_of_formants
     Example
     -------
     >>> audio = Audio("Sequences/Gymnastica/recording_gymnastica.wav", verbosity=0)
-    >>> audio_plotter(audio, filter_over=50, verbosity=0)
+    >>> audio_plotter(audio, filter_above=50, verbosity=0)
     """
 
     if verbosity > 0:
         print("Getting the envelope...", end=" ")
-    envelope = audio.get_envelope(filter_over=filter_over, filter_below=filter_below, verbosity=verbosity - 1)
+    envelope = audio.get_envelope(filter_above=filter_above, filter_below=filter_below, verbosity=verbosity - 1)
     if verbosity > 0:
         print("Done.")
 
     if verbosity > 0:
         print("Getting the pitch...", end=" ")
-    pitch = audio.get_pitch(filter_over=filter_over, filter_below=filter_below, zeros_as_nan=False,
+    pitch = audio.get_pitch(filter_above=filter_above, filter_below=filter_below, zeros_as_nan=False,
                             verbosity=verbosity - 1)
     if verbosity > 0:
         print("Done.")
 
     if verbosity > 0:
         print("Getting the intensity...", end=" ")
-    intensity = audio.get_intensity(filter_over=filter_over, filter_below=filter_below, zeros_as_nan=False,
+    intensity = audio.get_intensity(filter_above=filter_above, filter_below=filter_below, zeros_as_nan=False,
                                     verbosity=verbosity - 1)
     if verbosity > 0:
         print("Done.")
@@ -961,7 +961,7 @@ def audio_plotter(audio, filter_below=None, filter_over=None, number_of_formants
     for f in range(1, number_of_formants + 1):
         if verbosity > 0:
             print(f"Getting the formant f{f}...", end=" ")
-        formant = audio.get_formant(f, filter_over=filter_over, filter_below=filter_below, zeros_as_nan=False,
+        formant = audio.get_formant(f, filter_above=filter_above, filter_below=filter_below, zeros_as_nan=False,
                                     verbosity=verbosity - 1)
         formants.append(formant)
         if verbosity > 0:

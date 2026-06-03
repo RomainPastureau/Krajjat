@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 from scipy.interpolate import CubicSpline, PchipInterpolator, Akima1DInterpolator, interp1d
 from scipy.io import loadmat
-from scipy.signal import savgol_filter
+from scipy.signal import savgol_filter, butter, sosfiltfilt, filtfilt
 
 import openpyxl as xl
 
@@ -2332,6 +2332,110 @@ def divide_in_windows(array, window_size, overlap=0, add_incomplete_window=True)
             windows.append(array[window_start:])
 
     return windows
+
+
+def filter_array(array, fs=1, filter_below=None, filter_above=None, order=2, padtype="constant", padlen=None,
+                 filter_type="sos", axis=-1, verbosity=1):
+    """Filters an array according to the given parameters.
+
+    .. versionadded:: 2.0
+
+    Parameters
+    ----------
+    array: np.array
+        An array to filter.
+
+    fs: int|float, optional
+        The sample rate of the array (default: 1).
+
+    filter_below: float or None, optional
+        The value below which you want to filter the data. If set on `None` or `0`, this parameter will be ignored.
+        If this parameter is the only one provided, a high-pass filter will be applied to the data; if
+        ``filter_over`` is also provided, a band-pass filter will be applied to the data.
+
+    filter_above: float or None, optional
+        The value above which you want to filter the data. If set on None or 0, this parameter will be ignored.
+        If this parameter is the only one provided, a low-pass filter will be applied to the data; if
+        ``filter_below`` is also provided, a band-pass filter will be applied to the data.
+
+    order: int, optional
+        The order of the Butterworth filter
+        (see `scipy.signal.butter <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.butter.html>`_).
+
+    padtype: str, optional
+        What type of padding to use. See the documentation of `scipy.signal.filtfilt
+        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.filtfilt.html>`_ for more information
+        (default: ``"constant"`` - warning: this default is not scipy's default (``"odd"``).)
+
+    padlen: int, optional
+        The number of elements for the padding. See the documentation of `scipy.signal.filtfilt
+        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.filtfilt.html>`_ for more information
+        (default: `None`).
+
+    filter_type: str, optional
+        Which function to use, whether `scipy.signal.sosfiltfilt
+        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.sosfiltfilt.html#scipy.signal.sosfiltfilt>`_
+        (`"sos"`, default) or
+        `scipy.signal.filtfilt <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.filtfilt.html>`_
+        (`"filtfilt"` or `"ba"`).
+
+    axis: int, optional
+        The array axis on which to filter the data (default: -1, see `scipy.signal.sosfiltfilt
+        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.sosfiltfilt.html#scipy.signal.sosfiltfilt>`_.
+
+    verbosity: int, optional
+        Sets how much feedback the code will provide in the console output:
+
+        • *0: Silent mode.* The code won’t provide any feedback, apart from error messages.
+        • *1: Normal mode* (default). The code will provide essential feedback such as progression markers and
+          current steps.
+        • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
+          may clutter the output and slow down the execution.
+
+    Returns
+    -------
+    np.array
+        The filtered array.
+    """
+
+    if verbosity > 0:
+        if filter_below not in [None, 0] and filter_above not in [None, 0]:
+            print(f"Applying a band-pass filter for frequencies between {filter_below} and {filter_above} Hz...",
+                  end=" ")
+        elif filter_below not in [None, 0]:
+            print(f"Applying a high-pass filter for frequencies over {filter_below} Hz...", end=" ")
+        elif filter_above not in [None, 0]:
+            print(f"Applying a low-pass filter for frequencies below {filter_above} Hz...", end=" ")
+
+    if filter_below not in [None, 0] and filter_above not in [None, 0]:
+        bounds = [filter_below, filter_above]
+        btype = "band"
+    elif filter_below not in [None, 0]:
+        bounds = filter_below
+        btype = "high"
+    elif filter_above not in [None, 0]:
+        bounds = filter_above
+        btype = "low"
+    else:
+        return array
+
+    if filter_type in ["sos", "sosfiltfilt"]:
+        output = "sos"
+    elif filter_type in ["ba", "filtfilt"]:
+        output = "ba"
+    else:
+        raise ValueError(f"Invalid value for the parameter filt_type ({filter_type}. Should be \"sos\" or \"filtfilt\".")
+
+    f = butter(order, bounds, btype=btype, output=output, fs=fs)
+    if output == "sos":
+        filtered_array = sosfiltfilt(f, array, axis=axis, padtype=padtype, padlen=padlen)
+    else:
+        filtered_array = filtfilt(f[0], f[1], array, axis=axis, padtype=padtype, padlen=padlen)
+
+    if verbosity > 0:
+        print("Done.")
+
+    return filtered_array
 
 
 # === Color functions ===

@@ -354,13 +354,13 @@ Resampling, filtering, and keeping track of the pre-processing steps
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Finally, we will resample the sequence to 20 Hz to ensure a constant sampling rate, and apply a band-pass filter using
 :func:`~krajjat.classes.sequence.Sequence.filter_frequencies`. This last step will allow us to get rid of the very low
-oscillations (below 0.1 Hz). If you set a value for ``filter_over``, make sure that it is **less** than half of the
+oscillations (below 0.1 Hz). If you set a value for ``filter_above``, make sure that it is **less** than half of the
 sampling rate of the sequence.
 
 .. code-block:: python
 
     sequence_resampled = sequence_tr_audio.resample(20)
-    sequence_ff = sequence_resampled.filter_frequencies(filter_below=0.1, filter_over=8)
+    sequence_ff = sequence_resampled.filter_frequencies(filter_below=0.1, filter_above=8)
 
 We have performed six pre-processing steps so far: jitter correction, re-referencing, trimming, trimming to audio,
 resampling, and frequency filtering. In order to keep track of all of these steps, we can check the attribute
@@ -378,7 +378,7 @@ This is a list, where each element matches, in order, a processing step, with al
      {'processing_type': 'trim', 'start': 11.13, 'end': 79.0833823, 'use_relative_timestamps': False},
      {'processing_type': 'trim', 'start': 0, 'end': np.float64(63.40264583333333), 'use_relative_timestamps': True},
      {'processing_type': 'resample', 'frequency': 20, 'method': 'cubic', 'window_size': 10000000.0, 'overlap_ratio': 0.5},
-     {'processing_type': 'filter_frequencies', 'filter_below': 0.1, 'filter_over': 8}]
+     {'processing_type': 'filter_frequencies', 'filter_below': 0.1, 'filter_above': 8}]
 
 Saving the data
 ^^^^^^^^^^^^^^^

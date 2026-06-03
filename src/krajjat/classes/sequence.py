@@ -22,7 +22,7 @@ from krajjat.tool_functions import (convert_timestamp_to_seconds, show_progressi
                                     read_text_table, write_xlsx, write_text_table, get_system_csv_separator,
                                     load_joint_labels, load_qualisys_to_kinect, calculate_distance,
                                     calculate_derivative, calculate_delay, resample_data, interpolate_data,
-                                    generate_random_joints, UNITS,
+                                    generate_random_joints, UNITS, filter_array,
                                     CLEAN_DERIV_NAMES)
 
 from statistics import stdev
@@ -2056,7 +2056,7 @@ class Sequence(TimeSeries):
         return np.allclose(framerates, np.ones(framerates.size) * framerates[0])
 
     def get_measure(self, measure, joint_label=None, timestamp_start=None, timestamp_end=None, window_length="auto",
-                    poly_order="auto", absolute=False, use_relative_timestamps=False, verbosity=1):
+                    poly_order="auto", absolute=False, use_relative_timestamps=False, verbosity=1, **kwargs):
         """Returns an array of coordinates, distances, or derivatives of the distance for one or multiple joints
         from the Sequence instance.
 
@@ -2125,6 +2125,9 @@ class Sequence(TimeSeries):
               current steps.
             • *2: Chatty mode.* The code will provide all possible information on the events happening. Note that this
               may clutter the output and slow down the execution.
+
+        **kwargs: optional
+            Any parameter accepted by the function :func:`tool_functions.filter_array`.
 
         Note
         ----
@@ -2235,6 +2238,7 @@ class Sequence(TimeSeries):
             if verbosity > 1:
                 print(f"\t{joint_label}")
 
+            axis = -1
             if measure not in ["y", "z", "distance y", "distance z"]:
                 x_coords = np.array([pose.joints[joint_label].get_x() for pose in self.poses])
             if measure not in ["x", "z", "distance x", "distance z"]:
@@ -2243,28 +2247,32 @@ class Sequence(TimeSeries):
                 z_coords = np.array([pose.joints[joint_label].get_z() for pose in self.poses])
 
             if measure == "x":
-                measures[joint_label] = x_coords[start_idx:end_idx]
+                measure_array = x_coords[start_idx:end_idx]
             elif measure == "y":
-                measures[joint_label] = y_coords[start_idx:end_idx]
+                measure_array = y_coords[start_idx:end_idx]
             elif measure == "z":
-                measures[joint_label] = z_coords[start_idx:end_idx]
+                measure_array = z_coords[start_idx:end_idx]
             elif measure == "coordinates":
-                measures[joint_label] = np.column_stack([x_coords, y_coords, z_coords])[start_idx:end_idx]
+                measure_array = np.column_stack([x_coords, y_coords, z_coords])[start_idx:end_idx]
+                axis = 0
             elif measure == "distance":
                 distances = np.sqrt(np.diff(x_coords) ** 2 + np.diff(y_coords) ** 2 + np.diff(z_coords) ** 2)
-                measures[joint_label] = distances[start_idx:end_idx]
+                measure_array = distances[start_idx:end_idx]
             elif measure == "distance x":
-                measures[joint_label] = np.abs(np.diff(x_coords))[start_idx:end_idx]
+                measure_array = np.abs(np.diff(x_coords))[start_idx:end_idx]
             elif measure == "distance y":
-                measures[joint_label] = np.abs(np.diff(y_coords))[start_idx:end_idx]
+                measure_array = np.abs(np.diff(y_coords))[start_idx:end_idx]
             elif measure == "distance z":
-                measures[joint_label] = np.abs(np.diff(z_coords))[start_idx:end_idx]
+                measure_array = np.abs(np.diff(z_coords))[start_idx:end_idx]
             else:
                 freq = self.get_sampling_rate()
                 dx = calculate_derivative(x_coords, measure, window_length, poly_order, freq=freq, mode="nearest")
                 dy = calculate_derivative(y_coords, measure, window_length, poly_order, freq=freq, mode="nearest")
                 dz = calculate_derivative(z_coords, measure, window_length, poly_order, freq=freq, mode="nearest")
-                measures[joint_label] = np.sqrt(dx ** 2 + dy ** 2 + dz ** 2)[start_idx:end_idx]
+                measure_array = np.sqrt(dx ** 2 + dy ** 2 + dz ** 2)[start_idx:end_idx]
+
+            measures[joint_label] = filter_array(measure_array, self.get_sampling_rate(), axis=axis, verbosity=verbosity,
+                                                 **kwargs)
 
         if len(measures.keys()) == 1:
             return measures[joint_labels[0]]
@@ -3527,8 +3535,8 @@ class Sequence(TimeSeries):
         return new_sequence
 
     # noinspection PyTupleAssignmentBalance
-    def filter_frequencies(self, filter_below=None, filter_over=None, padtype="constant", padlen=None, name=None,
-                           verbosity=1):
+    def filter_frequencies(self, filter_below=None, filter_above=None, order=2, padtype="constant", padlen=None,
+                           filter_type="sos", name=None, verbosity=1):
         """Applies a low-pass, high-pass or band-pass filter to the positions of the joints.
 
         .. versionadded: 2.0
@@ -3538,12 +3546,16 @@ class Sequence(TimeSeries):
         filter_below: float or None, optional
             The value below which you want to filter the data. If set on None or 0, this parameter will be ignored.
             If this parameter is the only one provided, a high-pass filter will be applied to the data; if
-            ``filter_over`` is also provided, a band-pass filter will be applied to the data.
+            ``filter_above`` is also provided, a band-pass filter will be applied to the data.
 
-        filter_over: float or None, optional
+        filter_above: float or None, optional
             The value over which you want to filter the data. If set on None or 0, this parameter will be ignored.
             If this parameter is the only one provided, a low-pass filter will be applied to the data; if
             ``filter_below`` is also provided, a band-pass filter will be applied to the data.
+
+        order: int, optional
+            The order of the Butterworth filter
+            (see `scipy.signal.butter <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.butter.html>`_).
 
         padtype: str, optional
             What type of padding to use. See the documentation of `scipy.signal.filtfilt
@@ -3553,6 +3565,13 @@ class Sequence(TimeSeries):
         padlen: int, optional
             The number of elements for the padding. See the documentation of `scipy.signal.filtfilt
             <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.filtfilt.html>`_ for more information.
+
+        filter_type: str, optional
+            Which function to use, whether `scipy.signal.sosfiltfilt
+            <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.sosfiltfilt.html#scipy.signal.sosfiltfilt>`_
+            (`"sos"`, default) or
+            `scipy.signal.filtfilt <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.filtfilt.html>`_
+            (`"filtfilt"` or `"ba"`).
 
         name: str or None, optional
             Defines the name of the output sequence. If set on ``None``, the name will be the same as the
@@ -3597,16 +3616,6 @@ class Sequence(TimeSeries):
         """
 
         new_sequence = self._create_new_sequence_with_timestamps(verbosity)
-
-        if verbosity > 0:
-            if filter_below not in [None, 0] and filter_over not in [None, 0]:
-                print(f"Applying a band-pass filter for frequencies between {filter_below} and {filter_over} Hz...",
-                      end=" ")
-            elif filter_below not in [None, 0]:
-                print(f"Applying a high-pass filter for frequencies over {filter_below} Hz...", end=" ")
-            elif filter_over not in [None, 0]:
-                print(f"Applying a low-pass filter for frequencies below {filter_over} Hz...", end=" ")
-
         for joint_label in self.joint_labels:
 
             if verbosity > 1:
@@ -3616,28 +3625,15 @@ class Sequence(TimeSeries):
             y_positions = self.get_measure("y", joint_label, verbosity=verbosity-1)
             z_positions = self.get_measure("z", joint_label, verbosity=verbosity-1)
 
-            a, b = None, None
-            # Band-pass filter
-            if filter_below not in [None, 0] and filter_over not in [None, 0]:
-                b, a = butter(2, [filter_below, filter_over], "band", fs=self.get_sampling_rate())
-
-            # High-pass filter
-            elif filter_below not in [None, 0]:
-                b, a = butter(2, filter_below, "high", fs=self.get_sampling_rate())
-
-            # Low-pass filter
-            elif filter_over not in [None, 0]:
-                b, a = butter(2, filter_over, "low", fs=self.get_sampling_rate())
-
-            if a is None and b is None:
-                filtered_x_positions = x_positions
-                filtered_y_positions = y_positions
-                filtered_z_positions = z_positions
-
-            else:
-                filtered_x_positions = filtfilt(b, a, x_positions, padtype=padtype, padlen=padlen)
-                filtered_y_positions = filtfilt(b, a, y_positions, padtype=padtype, padlen=padlen)
-                filtered_z_positions = filtfilt(b, a, z_positions, padtype=padtype, padlen=padlen)
+            filtered_x_positions = filter_array(x_positions, self.get_sampling_rate(), filter_below=filter_below,
+                                                filter_above=filter_above, order=order, padtype=padtype, padlen=padlen,
+                                                filter_type=filter_type, verbosity=verbosity)
+            filtered_y_positions = filter_array(y_positions, self.get_sampling_rate(), filter_below=filter_below,
+                                                filter_above=filter_above, order=order, padtype=padtype, padlen=padlen,
+                                                filter_type=filter_type, verbosity=verbosity)
+            filtered_z_positions = filter_array(z_positions, self.get_sampling_rate(), filter_below=filter_below,
+                                                filter_above=filter_above, order=order, padtype=padtype, padlen=padlen,
+                                                filter_type=filter_type, verbosity=verbosity)
 
             if len(filtered_x_positions) != len(new_sequence.poses):
                 raise ValueError(f"Length mismatch for joint '{joint_label}': filtered series has "
@@ -3659,7 +3655,9 @@ class Sequence(TimeSeries):
         new_sequence._set_attributes_from_other_sequence(self)
 
         new_sequence.metadata["processing_steps"].append({"processing_type": "filter_frequencies",
-                                                         "filter_below": filter_below, "filter_over": filter_over})
+                                                         "filter_below": filter_below, "filter_above": filter_above,
+                                                          "order": order, "padtype": padtype, "padlen": padlen,
+                                                          "filter_type": filter_type})
         return new_sequence
 
     def resample(self, frequency, method="cubic", window_size=1e7, overlap_ratio=0.5, name=None, verbosity=1):
